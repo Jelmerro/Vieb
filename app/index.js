@@ -1223,8 +1223,8 @@ let resourceTypes = null
 let resourcesAllowed = []
 /** @type {string[]} */
 let resourcesBlocked = []
-/** @type {string[]} */
-let requestHeaders = []
+/** @type {{[key: string]: string}} */
+let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
@@ -1237,10 +1237,10 @@ ipcMain.on("set-redirects", (_, rdr) => {
 /**
  * Update the request header setting.
  * @param {Electron.IpcMainEvent} _
- * @param {string} headers
+ * @param {{[key: string]: string}} headers
  */
 const updateRequestHeaders = (_, headers) => {
-    requestHeaders = headers.split(",").filter(h => h)
+    requestHeaders = headers
 }
 
 ipcMain.on("update-request-headers", updateRequestHeaders)
@@ -1349,13 +1349,13 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
 /**
  * Update the list of spell languages to be used.
  * @param {Electron.IpcMainEvent} _
- * @param {string} langs
+ * @param {string[]} langs
  */
 const setSpelllangs = (_, langs) => {
     if (!langs) {
         return
     }
-    const parsedLangs = langs.split(",").map(l => {
+    const parsedLangs = langs.map(l => {
         let lang = l
         if (lang === "system") {
             lang = app.getLocale()
@@ -1617,11 +1617,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
     newSess.webRequest.onBeforeSendHeaders((details, callback) => {
         const headers = details.requestHeaders
-        for (const head of requestHeaders) {
-            if (head.includes("~")) {
-                headers[head.split("~")[0]] = head.split("~").slice(1).join("~")
+        for (const head of Object.keys(requestHeaders)) {
+            if (head.startsWith("-")) {
+                delete headers[head.replace(/$-/, "")]
             } else {
-                delete headers[head]
+                headers[head] = requestHeaders[head]
             }
         }
         return callback({"cancel": false, "requestHeaders": headers})

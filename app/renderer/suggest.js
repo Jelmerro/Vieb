@@ -316,7 +316,7 @@ const suggestExplore = search => {
         return
     }
     const {suggestHist} = require("./history")
-    getSetting("suggestorder").split(",").filter(s => s).forEach(suggest => {
+    getSetting("suggestorder").filter(s => s).forEach(suggest => {
         const args = suggest.split("~")
         const type = args.shift()
         let count = 10
@@ -342,8 +342,9 @@ const suggestExplore = search => {
             if (!order) {
                 order = "alpha"
             }
-            const words = getSetting("searchwords").split(",").map(s => {
-                const [title, url] = s.split("~")
+            const searchwords = getSetting("searchwords")
+            const words = Object.keys(searchwords).map(title => {
+                const url = searchwords[title]
                 let filledUrl = searchword(search).url
                 if (filledUrl === search) {
                     filledUrl = url

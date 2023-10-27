@@ -136,8 +136,9 @@ const isUrl = location => {
  * @param {string} location
  */
 const searchword = location => {
-    for (const mapping of getSetting("searchwords").split(",")) {
-        const [word, url] = mapping.split("~")
+    const searchwords = getSetting("searchwords")
+    for (const word of Object.keys(searchwords)) {
+        const url = searchwords[word]
         if (word && url) {
             const q = location.replace(`${word} `, "")
             if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
@@ -1423,7 +1424,7 @@ const stringToUrl = location => {
         url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
     }
     if (!isUrl(url)) {
-        const engines = getSetting("searchengine").split(",")
+        const engines = getSetting("searchengine")
         const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""

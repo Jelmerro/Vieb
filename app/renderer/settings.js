@@ -87,9 +87,11 @@ const defaultSettings = {
     "closablepinnedtabs": false,
     /** @type {"all"|"persistall"|"useronly"|"persistuseronly"|"none"} */
     "commandhist": "persistuseronly",
-    "containercolors": "temp\\d+~#ff0",
+    /** @type {string[]} */
+    "containercolors": ["temp\\d+~#ff0"],
     "containerkeeponreopen": true,
-    "containernames": "",
+    /** @type {string[]} */
+    "containernames": [],
     "containernewtab": "s:usecurrent",
     /** @type {"automatic"|"always"|"never"} */
     "containershowname": "automatic",
@@ -98,14 +100,15 @@ const defaultSettings = {
     "countlimit": 100,
     "darkreader": false,
     "darkreaderbg": "#181a1b",
-    "darkreaderblocklist": "",
+    /** @type {string[]} */
+    "darkreaderblocklist": [],
     "darkreaderbrightness": 100,
     "darkreadercontrast": 100,
     "darkreaderfg": "#e8e6e3",
     "darkreadergrayscale": 0,
     /** @type {"dark"|"light"} */
     "darkreadermode": "dark",
-    "darkreaderscope": "page",
+    "darkreaderscope": ["page"],
     "darkreadersepia": 0,
     "darkreadertextstroke": 0,
     /** @type {"window"|"split"|"vsplit"|"tab"} */
@@ -132,13 +135,27 @@ const defaultSettings = {
      *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"
      * )} */
     "favicons": "session",
-    "favoritepages": "",
-    /** @type {"all"|"alpha"|"alphanum"|"dvorakhome"
-     * |"numbers"|"qwertyhome"|"custom:${string}"} */
+    /** @type {string[]} */
+    "favoritepages": [],
     "followchars": "alpha",
-    "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
-    "followelementpointer":
-        "url,onclick,inputs-insert,inputs-click,media,image,other",
+    "followelement": [
+        "url",
+        "onclick",
+        "inputs-insert",
+        "inputs-click",
+        "media",
+        "image",
+        "other"
+    ],
+    "followelementpointer": [
+        "url",
+        "onclick",
+        "inputs-insert",
+        "inputs-click",
+        "media",
+        "image",
+        "other"
+    ],
     /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
     /** @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
@@ -174,7 +191,7 @@ const defaultSettings = {
     "mapsuggestposition": "topright",
     /** @type {import("./tabs").tabPosition} */
     "markposition": "newtab",
-    /** @type {import("./tabs").tabPosition | "default"} */
+    /** @type {import("./tabs").tabPosition|"default"} */
     "markpositionshifted": "default",
     "maxmapdepth": 10,
     /** @type {"always"|"globalasneeded"|"elementasneeded"|"never"} */
@@ -184,7 +201,10 @@ const defaultSettings = {
     /** @type {"both"|"navbar"|"tabbar"|"never"} */
     "menuvieb": "both",
     "mintabwidth": 28,
-    "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
+    "modifiers": [
+        "Ctrl", "Shift", "Alt", "Meta", "NumLock", "CapsLock", "ScrollLock"
+    ],
+    /** @type {"all"|string[]} */
     "mouse": "all",
     /** @type {"nothing"|"drag"} */
     "mousedisabledbehavior": "nothing",
@@ -243,9 +263,12 @@ const defaultSettings = {
     "permissionpersistentstorage": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionpointerlock": "block",
-    "permissionsallowed": "",
-    "permissionsasked": "",
-    "permissionsblocked": "",
+    /** @type {string[]} */
+    "permissionsallowed": [],
+    /** @type {string[]} */
+    "permissionsasked": [],
+    /** @type {string[]} */
+    "permissionsblocked": [],
     /** @type {"block"|"ask"|"allow"} */
     "permissionscreenwakelock": "block",
     /** @type {"block"|"ask"|"allow"} */
@@ -262,22 +285,36 @@ const defaultSettings = {
     "pointerposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
     "pointerpostype": "casing",
-    "quickmarkpersistence": "scroll,marks,pointer",
+    "quickmarkpersistence": ["scroll", "marks", "pointer"],
     "quitonlasttabclose": false,
-    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
-        + "~https://$3",
+    /** @type {string[]} */
+    "redirects": [
+        "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3"
+    ],
     "redirecttohttp": false,
     "reloadtaboncrash": false,
     /** @type {"always"|"special"|"newtab"|"never"} */
     "replacespecial": "special",
     /** @type {"always"|"newtab"|"never"} */
     "replacestartup": "never",
-    "requestheaders": "",
+    /** @type {{[key: string]: string}} */
+    "requestheaders": {},
     "requesttimeout": 20000,
-    "resourcesallowed": "",
-    "resourcesblocked": "",
-    "resourcetypes": "object,script,media,image,"
-        + "stylesheet,font,xhr,ping,websocket",
+    /** @type {string[]} */
+    "resourcesallowed": [],
+    /** @type {string[]} */
+    "resourcesblocked": [],
+    "resourcetypes": [
+        "object",
+        "script",
+        "media",
+        "image",
+        "stylesheet",
+        "font",
+        "xhr",
+        "ping",
+        "websocket"
+    ],
     /** @type {"all"|"pinned"|"regular"|"none"} */
     "restoretabs": "all",
     "restorewindowmaximize": true,
@@ -289,34 +326,43 @@ const defaultSettings = {
     "scrollpostype": "casing",
     /** @type {"global"|"local"|"both"} */
     "searchemptyscope": "global",
-    "searchengine": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    "searchengine": ["https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web"],
     /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
     /** @type {"global"|"local"|"inclocal"} */
     "searchscope": "global",
-    "searchwords": "",
+    /** @type {{[key: string]: string}} */
+    "searchwords": {},
     "shell": "",
     "showcmd": true,
     "smartcase": true,
     "spell": true,
-    "spelllang": "system",
+    "spelllang": ["system"],
     "splitbelow": false,
     "splitright": false,
     "sponsorblock": false,
-    "sponsorblockcategories": "sponsor~lime,intro~cyan,outro~blue,"
-        + "interaction~red,selfpromo~yellow,music_offtopic",
-    "startuppages": "",
-    "storenewvisits": "pages",
+    /** @type {{[key: string]: string}} */
+    "sponsorblockcategories": {
+        "interaction": "red",
+        "intro": "cyan",
+        "music_offtopic": "",
+        "outro": "blue",
+        "selfpromo": "yellow",
+        "sponsor": "lime"
+    },
+    /** @type {string[]} */
+    "startuppages": [],
+    "storenewvisits": ["pages"],
     "suggestbouncedelay": 100,
     "suggestcommands": 9000000000000000,
-    "suggestorder": "history,searchword,file",
+    "suggestorder": ["history", "searchword", "file"],
     "suggesttopsites": 10,
     "suspendbackgroundtab": true,
     /** @type {"all"|"regular"|"none"} */
     "suspendonrestore": "regular",
     "suspendplayingtab": false,
     "suspendtimeout": 0,
-    "suspendtimeoutignore": "ga//",
+    "suspendtimeoutignore": ["ga//"],
     /** @type {"left"|"right"|"previous"} */
     "tabclosefocus": "left",
     "tabcycle": true,
@@ -332,17 +378,19 @@ const defaultSettings = {
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 2000,
-    "tocpages": "",
+    /** @type {string[]} */
+    "tocpages": [],
     /** @type {"auto"|"deepl"|"libretranslate"} */
     "translateapi": "auto",
     "translatekey": "",
     "translatelang": "en-us",
     "translateurl": "https://api-free.deepl.com/v2/",
-    "useragent": "",
+    /** @type {string[]} */
+    "useragent": [],
     "userscript": false,
-    "userscriptscope": "page",
+    "userscriptscope": ["page"],
     "userstyle": false,
-    "userstylescope": "page",
+    "userstylescope": ["page"],
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
@@ -364,40 +412,6 @@ const freeText = [
     "translatekey",
     "vimcommand",
     "windowtitle"
-]
-const listLike = [
-    "containercolors",
-    "containernames",
-    "darkreaderscope",
-    "favoritepages",
-    "followelement",
-    "followelementpointer",
-    "modifiers",
-    "mouse",
-    "permissionsallowed",
-    "permissionsasked",
-    "permissionsblocked",
-    "quickmarkpersistence",
-    "redirects",
-    "requestheaders",
-    "resourcesallowed",
-    "resourcesblocked",
-    "searchengine",
-    "searchwords",
-    "spelllang",
-    "sponsorblockcategories",
-    "startuppages",
-    "storenewvisits",
-    "suggestorder",
-    "suspendtimeoutignore",
-    "resourcetypes",
-    "tocpages",
-    "userscriptscope",
-    "userstylescope"
-]
-const listLikeTilde = [
-    "darkreaderblocklist",
-    "useragent"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -624,6 +638,7 @@ let spelllangs = []
  * @param {string} value
  */
 const checkOption = (src, setting, value) => {
+    /** @type {typeof validOptions[setting]} */
     const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
     if (optionList) {
         const valid = optionList.includes(value)
@@ -660,10 +675,10 @@ const checkNumber = (src, setting, value) => {
 /**
  * Check if the provided suggest order is valid.
  * @param {import("./common").RunSource} src
- * @param {string} value
+ * @param {string[]} value
  */
 const checkSuggestOrder = (src, value) => {
-    for (const suggest of value.split(",").filter(s => s.trim())) {
+    for (const suggest of value) {
         const parts = (suggest.match(/~/g) || []).length
         if (parts > 2) {
             notify(
@@ -736,7 +751,7 @@ const checkSuggestOrder = (src, value) => {
  * Check if other more advanced settings are configured correctly.
  * @param {import("./common").RunSource} src
  * @param {string} setting
- * @param {number | string | boolean} value
+ * @param {number|string|boolean|string[]|{[key: string]: string}} value
  */
 const checkOther = (src, setting, value) => {
     // Special cases
@@ -785,10 +800,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containercolors") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const colorMatch of value.split(",").filter(c => c.trim())) {
+        for (const colorMatch of v) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -816,10 +834,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containernames") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const containerMatch of value.split(",").filter(c => c.trim())) {
+        for (const containerMatch of v) {
             if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
                     + "Entries must have one or two ~ to separate the "
@@ -845,7 +866,7 @@ const checkOther = (src, setting, value) => {
             if (simpleValue.match(specialChars)) {
                 notify(
                     "No special characters besides underscores are allowed in "
-                    + `the name of a container, invalid ${setting}: ${value}`,
+                    + `the name of a container, invalid ${setting}: ${v}`,
                     {src, "type": "warn"})
                 return false
             }
@@ -865,10 +886,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "darkreaderblocklist") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const match of value.split("~").filter(c => c.trim())) {
+        for (const match of v) {
             try {
                 RegExp(match)
             } catch {
@@ -880,10 +904,13 @@ const checkOther = (src, setting, value) => {
     }
     const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
     if (scopeConf.includes(setting)) {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const match of value.split(",").filter(c => c.trim())) {
+        for (const match of v) {
             if (!["file", "page", "special"].includes(match)) {
                 notify(`Invalid value '${match}' in ${setting}, `
                     + "must be one of: file, page or special",
@@ -908,10 +935,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "favoritepages") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const page of value.split(",").filter(p => p.trim())) {
+        for (const page of v) {
             if (!isUrl(page)) {
                 notify(`Invalid URL passed to favoritepages: ${page}`,
                     {src, "type": "warn"})
@@ -943,17 +973,20 @@ const checkOther = (src, setting, value) => {
             if (chars.length < 2) {
                 notify("A minimum of two characters is required",
                     {src, "type": "warn"})
-                return
+                return false
             }
             if (new Set(chars).size < chars.length) {
                 notify("All characters must be unique, no duplicates",
                     {src, "type": "warn"})
-                return
+                return false
             }
         }
     }
     if (setting.startsWith("followelement")) {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
         const ok = [
@@ -965,7 +998,7 @@ const checkOther = (src, setting, value) => {
             "image",
             "other"
         ]
-        for (const element of value.split(",").filter(e => e.trim())) {
+        for (const element of v) {
             if (!ok.includes(element)) {
                 notify(`Invalid element type passed: ${element}, `
                    + `must be any combination of: url, onclick,
@@ -976,11 +1009,14 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "modifiers") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
         const {keyNames} = require("./input")
-        for (const name of value.split(",").filter(n => n.trim())) {
+        for (const name of v) {
             if (name.length > 1
                 && !keyNames.some(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
@@ -990,11 +1026,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "mouse") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        const invalid = value.split(",").find(
-            v => !mouseFeatures.includes(v) && v !== "all")
+        const invalid = v.find(m => !mouseFeatures.includes(m) && m !== "all")
         if (invalid) {
             notify(`Feature '${invalid}' is not a valid mouse feature`,
                 {src, "type": "warn"})
@@ -1015,10 +1053,13 @@ const checkOther = (src, setting, value) => {
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const override of value.split(",").filter(o => o.trim())) {
+        for (const override of v) {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
@@ -1087,10 +1128,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "quickmarkpersistence" && value !== "") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const mType of value.split(",").filter(l => l.trim())) {
+        for (const mType of v) {
             if (!["scroll", "marks", "pointer"].includes(mType)) {
                 notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
                     {src, "type": "warn"})
@@ -1099,10 +1143,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "redirects") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const redirect of value.split(",").filter(r => r.trim())) {
+        for (const redirect of v) {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -1121,10 +1168,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const override of value.split(",").filter(o => o.trim())) {
+        for (const override of v) {
             const [match, ...names] = override.split("~")
             try {
                 RegExp(match)
@@ -1134,7 +1184,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             for (const name of names) {
-                const supported = defaultSettings.resourcetypes.split(",")
+                const supported = defaultSettings.resourcetypes
                 if (!supported.includes(name)) {
                     notify(`Invalid resource type in ${setting}: ${name}`,
                         {src, "type": "warn"})
@@ -1144,11 +1194,14 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "resourcetypes" && value !== "") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const rsrc of value.split(",").filter(l => l.trim())) {
-            if (!defaultSettings.resourcetypes.split(",").includes(rsrc)) {
+        for (const rsrc of v) {
+            if (!defaultSettings.resourcetypes.includes(rsrc)) {
                 notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
                     {src, "type": "warn"})
                 return false
@@ -1156,10 +1209,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchengine") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (let baseUrl of value.split(",").filter(e => e.trim())) {
+        for (let baseUrl of v) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
                 notify(`Invalid searchengine value: ${baseUrl}\n`
@@ -1177,19 +1233,30 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchwords") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (typeof v !== "object") {
             return false
+        }
+        if (Array.isArray(v)) {
+            const list = v
+            v = {}
+            for (const el of list) {
+                if ((el.match(/~/g) || []).length !== 1) {
+                    notify(`Invalid searchwords entry: ${el}\n`
+                        + "Entries must have exactly one ~ to separate the "
+                        + "searchword from the URL", {src, "type": "warn"})
+                    return false
+                }
+                const [keyword, url] = el.split("~")
+                v[keyword] = url
+            }
         }
         /** @type {string[]} */
         const knownSearchwords = []
-        for (const searchword of value.split(",").filter(s => s.trim())) {
-            if ((searchword.match(/~/g) || []).length !== 1) {
-                notify(`Invalid searchwords entry: ${searchword}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "searchword from the URL", {src, "type": "warn"})
-                return false
-            }
-            const [keyword, url] = searchword.split("~")
+        for (const searchword of Object.entries(v)) {
+            const [keyword, url] = searchword
             const simpleKeyword = keyword.replace(/_/g, "")
             if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
@@ -1215,10 +1282,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const lang of value.split(",").filter(l => l.trim())) {
+        for (const lang of v) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
                     {src, "type": "warn"})
@@ -1227,22 +1297,33 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "sponsorblockcategories") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (typeof v !== "object") {
             return false
+        }
+        if (Array.isArray(v)) {
+            const list = v
+            v = {}
+            for (const el of list) {
+                if ((el.match(/~/g) || []).length > 1) {
+                    notify(`Invalid ${setting} entry: ${el}\n`
+                        + "Entries must have zero or one ~ to separate the "
+                        + "category name and color name/hex",
+                    {src, "type": "warn"})
+                    return false
+                }
+                const [category, color] = el.split("~")
+                v[category] = color
+            }
         }
         /** @type {string[]} */
         const knownCategories = []
-        const allCategories = defaultSettings.sponsorblockcategories
-            .split(",").map(s => s.split("~")[0])
-        for (const catColorPair of value.split(",").filter(c => c.trim())) {
-            if ((catColorPair.match(/~/g) || []).length > 1) {
-                notify(`Invalid ${setting} entry: ${catColorPair}\n`
-                    + "Entries must have zero or one ~ to separate the "
-                    + "category name and color name/hex",
-                {src, "type": "warn"})
-                return false
-            }
-            const [category, color] = catColorPair.split("~")
+        const allCategories = Object.keys(
+            defaultSettings.sponsorblockcategories)
+        for (const catColorPair of Object.entries(v)) {
+            const [category, color] = catColorPair
             if (!allCategories.includes(category)) {
                 notify(`Invalid category in ${setting}: ${category}`,
                     {src, "type": "warn"})
@@ -1267,10 +1348,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "startuppages") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const page of value.split(",").filter(p => p.trim())) {
+        for (const page of v) {
             const parts = page.split("~")
             const url = parts.shift() ?? ""
             const cname = parts.shift()
@@ -1314,7 +1398,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
         const valid = [
@@ -1325,7 +1412,7 @@ const checkOther = (src, setting, value) => {
             "readerview",
             "markdownviewer"
         ]
-        for (const visitType of value.split(",").filter(v => v.trim())) {
+        for (const visitType of v) {
             if (!valid.includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
                     + `must be one of: ${valid.join(", ")}`,
@@ -1335,16 +1422,22 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "suggestorder") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        return checkSuggestOrder(src, value)
+        return checkSuggestOrder(src, v)
     }
     if (setting === "suspendtimeoutignore") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const ignore of value.split(",")) {
+        for (const ignore of v) {
             const {rangeToTabIdxs} = require("./command")
             if (!rangeToTabIdxs(src, ignore).valid) {
                 return false
@@ -1352,10 +1445,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "tocpages") {
-        if (typeof value !== "string") {
+        let v = value
+        if (typeof v === "string") {
+            v = v.split(",").filter(t => t.trim())
+        } else if (!Array.isArray(v)) {
             return false
         }
-        for (const match of value.split(",").filter(c => c.trim())) {
+        for (const match of v) {
             try {
                 RegExp(match)
             } catch {
@@ -1379,11 +1475,19 @@ const checkOther = (src, setting, value) => {
 }
 
 /**
- * Check if a setting is of type enum, so it has to validate the valid opts.
+ * Check if a given setting name exists at all.
  * @param {string} set
  * @returns {set is keyof typeof defaultSettings}
  */
 const isExistingSetting = set => set in defaultSettings
+
+/**
+ * Check if a setting is of type boolean.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<boolean, defaultSettings>}
+ */
+const isBooleanSetting = set => isExistingSetting(set)
+    && typeof defaultSettings[set] === "boolean"
 
 /**
  * Check if a setting is of type enum, so it has to validate the valid opts.
@@ -1400,24 +1504,58 @@ const isEnumSetting = set => set in validOptions
 const isNumberSetting = set => set in numberRanges
 
 /**
+ * Check if a setting is of type string[], to treat it like an array.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<string[], defaultSettings>|"mouse"}
+ */
+const isArraySetting = set => isExistingSetting(set)
+    && (Array.isArray(defaultSettings[set]) || set === "mouse")
+
+/**
+ * Check if a setting is of type object with string key/value.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<{[key: string]: string}, defaultSettings>}
+ */
+const isObjectSetting = set => isExistingSetting(set)
+    && !isArraySetting(set) && typeof defaultSettings[set] === "object"
+
+/**
+ * Check if a setting is of type string.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<string, defaultSettings>}
+ */
+const isStringSetting = set => isExistingSetting(set)
+    && typeof defaultSettings[set] === "string"
+
+/**
  * Check if a setting will be valid for a given value.
+ * @template {keyof typeof defaultSettings} T
  * @param {import("./common").RunSource} src
- * @param {keyof typeof defaultSettings} setting
- * @param {string | number | boolean} value
+ * @param {T} setting
+ * @param {typeof defaultSettings[T]} value
  */
 const isValidSetting = (src, setting, value) => {
     const expectedType = typeof allSettings[setting]
-    /** @type {string | number | boolean} */
-    let parsedValue = String(value)
+    /** @type {string|number|boolean|string[]|{[key: string]: string}} */
+    let parsedValue = value
     if (expectedType === "number" && !isNaN(Number(parsedValue))) {
         parsedValue = Number(value)
+    }
+    if (expectedType === "string") {
+        parsedValue = String(value)
     }
     if (expectedType === "boolean") {
         if (["true", "false"].includes(String(parsedValue))) {
             parsedValue = value === "true"
         }
     }
-    if (expectedType !== typeof parsedValue) {
+    if (expectedType === "object" && typeof value === "string") {
+        try {
+            parsedValue = JSON.parse(value)
+        } catch {
+            // This is fine, string will be split and checked for validity
+        }
+    } else if (expectedType !== typeof parsedValue) {
         notify(`The value of setting '${setting}' is of an incorrect `
             + `type, expected '${expectedType}' but got `
             + `'${typeof parsedValue}' instead.`, {src, "type": "warn"})
@@ -1476,7 +1614,7 @@ const updatePdfOption = () => {
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
-            const color = allSettings.containercolors.split(",").find(
+            const color = allSettings.containercolors.find(
                 c => page.getAttribute("container")?.match(c.split("~")[0]))
             const tab = tabForPage(page)
             if (tab && color) {
@@ -1490,7 +1628,7 @@ const updateContainerSettings = (full = true) => {
     if (!container) {
         return
     }
-    const color = allSettings.containercolors.split(",").find(
+    const color = allSettings.containercolors.find(
         c => container.match(c.split("~")[0]))
     const show = allSettings.containershowname
     const containerNameEl = document.getElementById("containername")
@@ -1516,7 +1654,8 @@ const updateContainerSettings = (full = true) => {
  * @param {boolean} fromExecute
  */
 const updateDownloadSettings = (fromExecute = false) => {
-    /** @type {{[setting: string]: boolean|number|string}} */
+    /** @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
@@ -1565,7 +1704,8 @@ const webviewSettings = [
 /** Update the settings in the webviewsettings file that are used there. */
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-    /** @type {{[setting: string]: string|number|boolean}} */
+    /** @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}} */
     const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
@@ -1580,7 +1720,8 @@ const updateWebviewSettings = () => {
 
 /** Update the permissions in the main thread on change. */
 const updatePermissionSettings = () => {
-    /** @type {{[setting: string]: string|number|boolean}} */
+    /** @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}} */
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {
@@ -1655,8 +1796,7 @@ const suggestionList = () => {
         }
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
-        const isListLike = listLike.includes(setting)
-            || listLikeTilde.includes(setting)
+        const isListLike = typeof defaultSettings[setting] === "object"
         if (isNumber || isFreeText || isListLike) {
             listOfSuggestions.push(`${setting}+=`)
             listOfSuggestions.push(`${setting}^=`)
@@ -1717,13 +1857,13 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     let typeLabel = "String"
     /** @type {string|string[]} */
     let allowedValues = ""
-    if (listLike.includes(setting)) {
+    if (isArraySetting(setting)) {
         typeLabel = "List"
-        allowedValues = "Comma-separated list"
+        allowedValues = "Comma separated list or Array"
     }
-    if (listLikeTilde.includes(setting)) {
-        typeLabel = "List"
-        allowedValues = "Tilde-separated list"
+    if (isObjectSetting(setting)) {
+        typeLabel = "Object"
+        allowedValues = "Comma and tilde separated nested list or Object"
     }
     if (isEnumSetting(setting)) {
         typeLabel = "Enum"
@@ -1813,50 +1953,84 @@ const updateHelpPage = src => {
 
 /**
  * Set the value of a setting, if considered valid, else notify the user.
+ * @template {keyof typeof defaultSettings} T
  * @param {import("./common").RunSource} src
- * @param {string} setting
- * @param {string | number | boolean} value
+ * @param {T} setting
+ * @param {typeof defaultSettings[T]} value
  */
 const set = (src, setting, value) => {
-    if (!isExistingSetting(setting)) {
-        notify(`The setting '${setting}' doesn't exist`, {src, "type": "warn"})
-        return false
-    }
     if (isValidSetting(src, setting, value)) {
-        // The ts-expect-error statements are there because of this issue:
-        // https://github.com/microsoft/TypeScript/issues/31663
         const {applyLayout} = require("./pagelayout")
-        if (typeof allSettings[setting] === "boolean") {
-            // @ts-expect-error #bug in TS since very long
-            allSettings[setting] = typeof value !== "number"
-                && ["true", true].includes(value)
-        } else if (typeof allSettings[setting] === "number") {
-            // @ts-expect-error #bug in TS since very long
+        if (isBooleanSetting(setting)) {
+            allSettings[setting] = value === "true" || value === true
+        } else if (isNumberSetting(setting)) {
             allSettings[setting] = Number(value)
-        } else if (listLike.includes(setting)) {
-            // Remove empty and duplicate elements from the comma separated list
+        } else if (isEnumSetting(setting)) {
+            // @ts-expect-error this is properly checked with "checkOption"
+            allSettings[setting] = String(value)
+        } else if (isStringSetting(setting)) {
+            // @ts-expect-error properly checked: is a string, but not an enum
+            allSettings[setting] = String(value)
+        } else if (isArraySetting(setting)) {
             if (typeof value === "string") {
-                // @ts-expect-error #bug in TS since very long
-                allSettings[setting] = Array.from(new Set(value
-                    .split(",").map(e => e.trim()).filter(e => e))).join(",")
+                try {
+                    allSettings[setting] = JSON.parse(value)
+                } catch {
+                    allSettings[setting] = value.split(",").filter(t => t)
+                }
+            } else if (Array.isArray(value)) {
+                allSettings[setting] = value
+            } else {
+                notify("Please report a bug, this should never happen",
+                    {src, "type": "error"})
             }
-        } else if (listLikeTilde.includes(setting)) {
-            // Remove empty and duplicate elements from the comma separated list
+        } else if (isObjectSetting(setting)) {
             if (typeof value === "string") {
-                // @ts-expect-error #bug in TS since very long
-                allSettings[setting] = Array.from(new Set(value
-                    .split("~").map(e => e.trim()).filter(e => e))).join("~")
+                try {
+                    const parsed = JSON.parse(value)
+                    if (Array.isArray(parsed)) {
+                        /** @type {{[key: string]: string}} */
+                        const element = {}
+                        parsed.forEach(el => {
+                            const [key, val] = el.split("~")
+                            element[key] = val
+                        })
+                        allSettings[setting] = element
+                    } else {
+                        allSettings[setting] = parsed
+                    }
+                } catch {
+                    /** @type {{[key: string]: string}} */
+                    const element = {}
+                    value.split(",").filter(t => t).forEach(el => {
+                        const [key, val] = el.split("~")
+                        element[key] = val
+                    })
+                    allSettings[setting] = element
+                }
+            } else if (Array.isArray(value)) {
+                /** @type {{[key: string]: string}} */
+                const element = {}
+                value.forEach(el => {
+                    const [key, val] = el.split("~")
+                    element[key] = val
+                })
+                allSettings[setting] = element
+            } else if (typeof value === "object") {
+                // @ts-expect-error for some reason setting could be never,
+                // the type seems correct, so ignoring seems safe for now.
+                allSettings[setting] = value
+            } else {
+                notify("Please report a bug, this should never happen",
+                    {src, "type": "error"})
             }
-        } else {
-            // @ts-expect-error #bug in TS since very long
-            allSettings[setting] = value
         }
         if (setting === "mouse") {
             let newval = allSettings.mouse
             if (!mouseFeatures.some(f => !newval.includes(f))) {
                 newval = "all"
             }
-            if (newval.split(",").includes("all")) {
+            if (newval !== "all" && newval.includes("all")) {
                 newval = "all"
             }
             allSettings.mouse = newval
@@ -1932,9 +2106,9 @@ const set = (src, setting, value) => {
         }
         if (setting.includes("resource")) {
             ipcRenderer.send("update-resource-settings",
-                allSettings.resourcetypes.trim().split(",").filter(r => r),
-                allSettings.resourcesblocked.trim().split(",").filter(r => r),
-                allSettings.resourcesallowed.trim().split(",").filter(r => r))
+                allSettings.resourcetypes,
+                allSettings.resourcesblocked,
+                allSettings.resourcesallowed)
         }
         if (setting === "taboverflow") {
             const tabs = document.getElementById("tabs")
@@ -2032,6 +2206,7 @@ const loadFromDisk = (firstRun, src = "source") => {
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
     }
     if (isFile(joinPath(appData(), "erwicmode"))) {
+        /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
         Object.keys(erwicDefaults).forEach(t => {
             set(src, t, erwicDefaults[t])
@@ -2082,7 +2257,7 @@ const reset = (src, setting) => {
 
 /**
  * Escape value chars as needed.
- * @param {string | number} value
+ * @param {string|number} value
  */
 const escapeValueChars = value => {
     if (typeof value === "number") {
@@ -2127,29 +2302,23 @@ const listCurrentSettings = (full = false) => {
             } else {
                 setCommands += `no${setting}\n`
             }
-            return
-        }
-        if (listLike.includes(setting) && typeof value === "string") {
-            const entries = value.split(",")
-            if (entries.length > 1 || value.match(/( |'|")/g)) {
+        } else if (Array.isArray(value)) {
+            const defaultStringVal = JSON.stringify(defaultSettings[setting])
+            if (JSON.stringify(value) !== defaultStringVal) {
                 setCommands += `${setting}=\n`
-                entries.forEach(entry => {
+                value.forEach(entry => {
                     setCommands += `${setting}+=${escapeValueChars(entry)}\n`
                 })
-                return
             }
-        }
-        if (listLikeTilde.includes(setting) && typeof value === "string") {
-            const entries = value.split("~")
-            if (entries.length > 1 || value.match(/( |'|")/g)) {
-                setCommands += `${setting}=\n`
-                entries.forEach(entry => {
-                    setCommands += `${setting}+=${escapeValueChars(entry)}\n`
-                })
-                return
+        } else if (typeof value === "object") {
+            const valueString = JSON.stringify(value)
+            const defaultStringVal = JSON.stringify(defaultSettings[setting])
+            if (valueString !== defaultStringVal) {
+                setCommands += `${setting}=${valueString}\n`
             }
+        } else {
+            setCommands += `${setting}=${escapeValueChars(value)}\n`
         }
-        setCommands += `${setting}=${escapeValueChars(value)}\n`
     })
     return setCommands
 }
@@ -2202,7 +2371,7 @@ const init = () => {
         spelllangs = langs || []
         spelllangs.push("system")
         if (!isValidSetting("source", "spelllang", allSettings.spelllang)) {
-            set("source", "spelllang", "system")
+            set("source", "spelllang", ["system"])
         }
         ipcRenderer.send("set-spelllang", allSettings.spelllang)
     })
@@ -2228,12 +2397,12 @@ module.exports = {
     freeText,
     getCustomStyling,
     init,
+    isArraySetting,
     isEnumSetting,
     isExistingSetting,
     isNumberSetting,
+    isStringSetting,
     listCurrentSettings,
-    listLike,
-    listLikeTilde,
     loadFromDisk,
     mouseFeatures,
     reset,

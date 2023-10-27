@@ -39,7 +39,7 @@ const {
     isHTMLAudioElement
 } = require("../util")
 
-/** @type {string|null} */
+/** @type {string[]|null} */
 let currentFollowStatus = null
 const clickInputs = [
     "button",
@@ -874,14 +874,16 @@ const mainInfoLoop = () => {
 /** If following, send the follow elements with a 100ms pause between them. */
 const followLoop = async() => {
     if (currentFollowStatus) {
-        const links = await getAllFollowLinks(currentFollowStatus.split(","))
+        const links = await getAllFollowLinks(currentFollowStatus)
         ipcRenderer.send("follow-response", links)
         setTimeout(() => followLoop(), 100)
     }
 }
 
 ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
-    if (currentFollowStatus !== newFollowFilter) {
+    if (!currentFollowStatus
+        || currentFollowStatus.length !== newFollowFilter.length
+        || currentFollowStatus[0] !== newFollowFilter[0]) {
         currentFollowStatus = newFollowFilter
         followLoop()
     }

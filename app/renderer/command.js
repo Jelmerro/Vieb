@@ -99,9 +99,8 @@ const listSetting = (src, setting) => {
             + "making 'vieb://help' the new default in 11.0.0 onward.",
         {src, "type": "warn"})
     }
-    notify(`The setting '${setting}' has the value '${getSetting(setting)}'`, {
-        src
-    })
+    notify(`The setting '${setting}' has the value '${
+        JSON.stringify(getSetting(setting))}'`, {src})
 }
 
 /**
@@ -134,69 +133,57 @@ const isValidSettingName = name => {
  */
 const modifyListOrNumber = (src, setting, value, method) => {
     const {
-        freeText, listLike, listLikeTilde, set, isNumberSetting
+        set, isNumberSetting, isStringSetting, isArraySetting
     } = require("./settings")
     const isNumber = isNumberSetting(setting)
-    const isFreeText = freeText.includes(setting)
-    const isListLike = listLike.includes(setting)
-    const isListLikeTilde = listLikeTilde.includes(setting)
-    if (!isNumber && !isFreeText && !isListLike && !listLikeTilde) {
+    const isText = isStringSetting(setting)
+    const isList = isArraySetting(setting)
+    if (!isNumber && !isText && !isList) {
         notify(
             `Can't modify '${setting}' as if it were a number or list`,
             {src, "type": "warn"})
         return
     }
     if (method === "append") {
-        if (isListLike) {
-            set(src, setting, `${getSetting(setting)},${value}`)
-        }
-        if (isListLikeTilde) {
-            set(src, setting, `${getSetting(setting)}~${value}`)
+        if (isList) {
+            set(src, setting, [...getSetting(setting), value])
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) + Number(value))
         }
-        if (isFreeText) {
+        if (isText) {
             set(src, setting, getSetting(setting) + value)
         }
     }
     if (method === "remove") {
-        if (isListLike) {
-            let current = String(getSetting(setting)).split(",")
-            if (setting === "mouse" && current?.[0] === "all") {
+        if (isList) {
+            let current = getSetting(setting)
+            if (current === "all") {
                 const {mouseFeatures} = require("./settings")
                 current = mouseFeatures
             }
-            let newValue = current.filter(e => e && e !== value).join(",")
-            if (newValue === current.join(",")) {
+            let newValue = current.filter(e => e && e !== value)
+            if (JSON.stringify(newValue) === JSON.stringify(current)) {
                 newValue = current.filter(
-                    e => e.split("~")[0] !== value.split("~")[0]).join(",")
+                    e => e.split("~")[0] !== value.split("~")[0])
             }
-            set(src, setting, newValue)
-        }
-        if (isListLikeTilde) {
-            const current = String(getSetting(setting)).split("~")
-            const newValue = current.filter(e => e && e !== value).join("~")
             set(src, setting, newValue)
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) - Number(value))
         }
-        if (isFreeText) {
+        if (isText) {
             set(src, setting, String(getSetting(setting)).replace(value, ""))
         }
     }
     if (method === "special") {
-        if (isListLike) {
-            set(src, setting, `${value},${getSetting(setting)}`)
-        }
-        if (isListLikeTilde) {
-            set(src, setting, `${value}~${getSetting(setting)}`)
+        if (isList) {
+            set(src, setting, [value, ...getSetting(setting)])
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) * Number(value))
         }
-        if (isFreeText) {
+        if (isText) {
             set(src, setting, value + getSetting(setting))
         }
     }
@@ -247,10 +234,20 @@ const setCommand = (src, args) => {
             }
         } else if ((/^\w+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "=")
-            set(src, setting, value)
+            if (isValidSettingName(setting) && setting !== "all") {
+                set(src, setting, value)
+            } else {
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
+            }
         } else if ((/^\w+:/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, ":")
-            set(src, setting, value)
+            if (isValidSettingName(setting) && setting !== "all") {
+                set(src, setting, value)
+            } else {
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
+            }
         } else if ((/^\w+!.+/).test(part)) {
             const [setting] = part.split("!")
             const values = part.split("!").slice(1).join("!").split("|")
@@ -300,7 +297,7 @@ const setCommand = (src, args) => {
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 if (typeof value === "boolean") {
-                    set(src, part.replace("inv", ""), String(!value))
+                    set(src, settingName, String(!value))
                 } else {
                     notify(`The setting '${settingName}' can not be flipped`,
                         {src, "type": "warn"})
@@ -315,12 +312,10 @@ const setCommand = (src, args) => {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
-                const {listLike, listLikeTilde} = require("./settings")
+                const {isArraySetting} = require("./settings")
                 if (typeof value === "boolean") {
                     set(src, settingName, "false")
-                } else if (listLike.includes(part.replace("no", ""))) {
-                    set(src, settingName, "")
-                } else if (listLikeTilde.includes(part.replace("no", ""))) {
+                } else if (isArraySetting(part.replace("no", ""))) {
                     set(src, settingName, "")
                 } else {
                     listSetting(src, settingName)
@@ -671,7 +666,7 @@ const tabForBufferArg = (args, filter = null) => {
 /** Quit the entire app entirely, including all quit settings and cleanup. */
 const quitall = () => {
     ipcRenderer.send("hide-window")
-    const keepQuickmarkNames = getSetting("quickmarkpersistence").split(",")
+    const keepQuickmarkNames = getSetting("quickmarkpersistence")
     const clearMark = ["scroll", "marks", "pointer"]
         .filter(t => !keepQuickmarkNames.includes(t))
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
@@ -2520,22 +2515,64 @@ const parseAndValidateArgs = commandStr => {
     let currentArg = ""
     let escapedDouble = false
     let escapedSingle = false
+    const infoJSON = {
+        "curly": 0,
+        "double": false,
+        "single": false,
+        "square": 0
+    }
     const noEscape = noEscapeCommands.includes(command)
-    for (const char of argsString) {
-        if (char === "'" && !escapedDouble && !noEscape) {
-            escapedSingle = !escapedSingle
-            continue
+    const setCommandParsing = "set".startsWith(command)
+    if (setCommandParsing) {
+        for (const char of argsString) {
+            const evenNumberOfEscapesSlashes = (currentArg
+                .match(/\\*$/)?.[0]?.length ?? 0) % 2 === 0
+            if (!evenNumberOfEscapesSlashes) {
+                currentArg += char
+                continue
+            }
+            if (char === `"`) {
+                infoJSON.double = !infoJSON.double
+            }
+            if (char === "`") {
+                infoJSON.single = !infoJSON.single
+            }
+            if (!infoJSON.single && !infoJSON.double) {
+                if (char === "{") {
+                    infoJSON.curly += 1
+                } else if (char === "}") {
+                    infoJSON.curly -= 1
+                }
+                if (char === "[") {
+                    infoJSON.square += 1
+                } else if (char === "]") {
+                    infoJSON.square -= 1
+                }
+                if (char === " " && !infoJSON.curly && !infoJSON.square) {
+                    args.push(currentArg)
+                    currentArg = ""
+                    continue
+                }
+            }
+            currentArg += char
         }
-        if (char === "\"" && !escapedSingle && !noEscape) {
-            escapedDouble = !escapedDouble
-            continue
+    } else {
+        for (const char of argsString) {
+            if (char === "'" && !escapedDouble && !noEscape) {
+                escapedSingle = !escapedSingle
+                continue
+            }
+            if (char === `"` && !escapedSingle && !noEscape) {
+                escapedDouble = !escapedDouble
+                continue
+            }
+            if (char === " " && !escapedDouble && !escapedSingle) {
+                args.push(currentArg)
+                currentArg = ""
+                continue
+            }
+            currentArg += char
         }
-        if (char === " " && !escapedDouble && !escapedSingle) {
-            args.push(currentArg)
-            currentArg = ""
-            continue
-        }
-        currentArg += char
     }
     if (currentArg) {
         args.push(currentArg)
@@ -2544,6 +2581,32 @@ const parseAndValidateArgs = commandStr => {
     if (command.endsWith("!") && !command.endsWith("!!")) {
         confirm = true
         command = command.slice(0, -1)
+    }
+    if (setCommandParsing) {
+        let parsingError = ""
+        const invalidJSON = args.some(a => {
+            const value = a.replace(/^\w+(.?=|:)/, "")
+            if (value.startsWith("{") && value.endsWith("}")
+                || value.startsWith("[") && value.endsWith("]")) {
+                try {
+                    JSON.parse(value)
+                    return false
+                } catch (e) {
+                    parsingError = String(e)
+                    return true
+                }
+            }
+            return false
+        })
+        return {
+            args,
+            command,
+            confirm,
+            "error": parsingError,
+            range,
+            "valid": infoJSON.curly === 0 && infoJSON.square === 0
+                && !infoJSON.single && !infoJSON.double && !invalidJSON
+        }
     }
     return {
         args,
@@ -2617,11 +2680,15 @@ const execute = (com, opts = {}) => {
     }
     const p = parseAndValidateArgs(commandStr)
     let {command} = p
-    const {range, args, valid, confirm} = p
+    const {range, args, valid, confirm, error} = p
     if (!valid) {
-        notify(
-            "Command could not be executed, unmatched quotes or backslash:"
-            + `\n${commandStr}`, {src, "type": "warn"})
+        if ("set".startsWith(command)) {
+            notify("Command could not be executed, invalid JSON provided:"
+                + `\n${commandStr}\n${error}`, {src, "type": "warn"})
+        } else {
+            notify("Command could not be executed, unmatched quotes or "
+                + `backslash:\n${commandStr}`, {src, "type": "warn"})
+        }
         return
     }
     const matches = Object.keys(commands).concat(Object.keys(userCommands))

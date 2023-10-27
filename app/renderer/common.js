@@ -192,7 +192,7 @@ const getSetting = name => getStored("settings")[name]
  */
 const getMouseConf = val => {
     const mouse = getSetting("mouse")
-    return mouse?.split(",").includes("all") || mouse?.split(",").includes(val)
+    return mouse === "all" || mouse.includes(val)
 }
 
 /**

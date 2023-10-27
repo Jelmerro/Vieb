@@ -142,13 +142,13 @@ const applyLayout = () => {
     const susCall = (tab, linkId, timeout) => {
         const index = listTabs().indexOf(tab)
         let shouldSuspend = true
-        getSetting("suspendtimeoutignore").split(",").forEach(ignore => {
+        getSetting("suspendtimeoutignore").forEach(ignore => {
             const {rangeToTabIdxs} = require("./command")
             if (rangeToTabIdxs("other", ignore).tabs.includes(index)) {
                 shouldSuspend = false
             }
         })
-        if (getSetting("suspendtimeoutignore") === "ga//") {
+        if (JSON.stringify(getSetting("suspendtimeoutignore")) === `["ga//"]`) {
             shouldSuspend = getSetting("suspendplayingtab")
                 || !tab.hasAttribute("media-playing")
         }

@@ -156,21 +156,13 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
             originalLabel.textContent = "Default:"
             settingStatus.append(originalLabel)
             const original = document.createElement("kbd")
-            if (typeof setting.default === "string") {
-                original.textContent = `"${setting.default}"`
-            } else {
-                original.textContent = `${setting.default}`
-            }
+            original.textContent = `${JSON.stringify(setting.default)}`
             settingStatus.append(original)
             const currentLabel = document.createElement("span")
             currentLabel.textContent = "Current:"
             settingStatus.append(currentLabel)
             const current = document.createElement("kbd")
-            if (typeof setting.default === "string") {
-                current.textContent = `"${setting.current}"`
-            } else {
-                current.textContent = `${setting.current}`
-            }
+            current.textContent = `${JSON.stringify(setting.current)}`
             settingStatus.append(current)
             const allowedValuesLabel = document.createElement("span")
             allowedValuesLabel.textContent = "Accepted:"

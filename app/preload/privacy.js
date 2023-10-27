@@ -110,7 +110,7 @@ try {
         const permissionOverrideTypes = ["ask", "block", "allow"]
         for (const type of permissionOverrideTypes) {
             const permList = getWebviewSetting(
-                `permissions${type}ed`)?.split(",")
+                `permissions${type}ed`)
             for (const r of permList ?? []) {
                 if (!r.trim() || settingRule) {
                     continue
@@ -206,7 +206,7 @@ try {
         const permissionOverrideTypes = ["ask", "block"]
         for (const type of permissionOverrideTypes) {
             for (const r of getWebviewSetting(
-                `permissions${type}ed`)?.split(",") ?? []) {
+                `permissions${type}ed`) ?? []) {
                 if (!r.trim() || settingRule) {
                     continue
                 }

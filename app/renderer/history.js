@@ -182,7 +182,7 @@ const addToHist = url => {
     if (url.startsWith("devtools://")) {
         return
     }
-    const saveTypes = getSetting("storenewvisits").split(",")
+    const saveTypes = getSetting("storenewvisits")
     if (pathToSpecialPageName(url)?.name) {
         if (!saveTypes.includes("special")) {
             return
