@@ -11,7 +11,34 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## Unreleased 11.0.0
+
+## Added
+
+- Settings of type list and object, that can also be set with lists or objects with ":set"
+
+## Changed
+
+- Default value for "dialogconfirm" to "notifyallow"
+- Default value for "nativetheme" to "dark"
+- Default value for "tocpages" to "vieb://help"
+
+## Removed
+
+- Setting "suspendplayingtab" in favor of "suspendtimeoutignore" with the right range
+- Option "system" for "nativetheme"
+- Option "ask" for "permissionmediadevices"
+
+## Fixed
+
+- Download success notification showing in info color instead of success color
+
+### Versions
+
+- Electron 27.0.0 (unchanged)
+- Chromium 118.0.5993.54 (unchanged)
+
+## Unreleased 10.5.0
 
 ### Added
 

@@ -125,23 +125,167 @@ const isValidSettingName = name => {
 }
 
 /**
+ * Check if an unknown or any value is an array of strings.
+ * @param {unknown|any} value
+ * @returns {value is string[]}
+ */
+const isStringArray = value => Array.isArray(value)
+    && value.every(s => typeof s === "string")
+
+/**
+ * Check if an unknown or any value is an array of arrays each having strings,
+ * at least one, maybe two, but no more.
+ * @param {unknown|any} value
+ * @returns {value is string[][]}
+ */
+const isStringArrayArray = value => Array.isArray(value)
+    && value.every(a => Array.isArray(a)
+        && (a.length === 1 || a.length === 2)
+            && a.every(s => typeof s === "string"))
+
+/**
+ * Check if an unknown or any value is an object containing only string values.
+ * @param {unknown|any} value
+ * @returns {value is {[key: string]: string}}
+ */
+const isStringObject = value => typeof value === "object"
+    && Object.values(value).every(s => typeof s === "string")
+
+/**
  * Modifiy a list or a number.
  * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"} method
  */
-const modifyListOrNumber = (src, setting, value, method) => {
+const modifyListOrObject = (src, setting, value, method) => {
+    const {set, isArraySetting, isObjectSetting} = require("./settings")
+    const isList = isArraySetting(setting)
+    const isObject = isObjectSetting(setting)
+    const {mouseFeatures} = require("./settings")
+    /** @type {{[key: string]: string}|string[]|string[][]|unknown} */
+    let parsed = {}
+    try {
+        parsed = JSON.parse(value)
+    } catch {
+        notify(
+            `Invalid JSON in '${setting}' value:\n${value}`,
+            {src, "type": "warn"})
+        return
+    }
+    if (!isStringArray(parsed)
+        && !isStringArrayArray(parsed) && !isStringObject(parsed)) {
+        notify(
+            `Invalid structure/type found in '${setting}' value:\n${value}\n`
+            + "Can only be an object with strings, a list of strings, "
+            + "or a list with lists of 1 or 2 strings", {src, "type": "warn"})
+        return
+    }
+    if (isList) {
+        let addition = parsed
+        if (isStringObject(addition)) {
+            /** @type {string[]} */
+            const additionList = []
+            Object.entries(addition).forEach(([key, val]) => {
+                additionList.push(`${key}~${val}`)
+            })
+            addition = additionList
+        }
+        if (isStringArrayArray(addition)) {
+            /** @type {string[]} */
+            const additionList = []
+            addition.forEach(([key, val]) => {
+                additionList.push(`${key}~${val}`)
+            })
+            addition = additionList
+        }
+        let current = getSetting(setting)
+        if (current === "all") {
+            current = mouseFeatures
+        }
+        if (method === "append") {
+            set(src, setting, [...current, ...addition])
+        }
+        if (method === "remove") {
+            let newValue = current
+            for (const entry of addition) {
+                newValue = newValue.filter(e => e && e !== entry)
+            }
+            if (JSON.stringify(newValue) === JSON.stringify(current)) {
+                for (const entry of addition) {
+                    newValue = newValue.filter(
+                        e => e.split("~")[0] !== entry.split("~")[0])
+                }
+            }
+            set(src, setting, newValue)
+        }
+        if (method === "special") {
+            set(src, setting, [...addition, ...current])
+        }
+    } else if (isObject) {
+        let addition = parsed
+        if (isStringArray(addition)) {
+            /** @type {{[key: string]: string}} */
+            const additionObj = {}
+            addition.forEach(val => {
+                additionObj[val.split("~")[0]] = val
+                    .split("~").slice(1).join("~") ?? ""
+            })
+            addition = additionObj
+        }
+        if (isStringArrayArray(addition)) {
+            /** @type {{[key: string]: string}} */
+            const additionObj = {}
+            addition.forEach(([key, val]) => {
+                additionObj[key] = val ?? ""
+            })
+            addition = additionObj
+        }
+        const newValue = getSetting(setting)
+        if (method === "append") {
+            Object.entries(addition).forEach(([key, val]) => {
+                newValue[key] = val
+            })
+        }
+        if (method === "remove") {
+            Object.entries(addition).forEach(([key]) => {
+                delete newValue[key]
+            })
+        }
+        if (method === "special") {
+            Object.entries(addition).forEach(([key, val]) => {
+                newValue[key] = val
+            })
+        }
+        set(src, setting, newValue)
+    }
+}
+
+/**
+ * Modifiy a list or a number.
+ * @param {import("./common").RunSource} src
+ * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {string} value
+ * @param {"append"|"remove"|"special"} method
+ */
+const modifySpecialMethod = (src, setting, value, method) => {
     const {
-        set, isNumberSetting, isStringSetting, isArraySetting
+        set, isNumberSetting, isStringSetting, isArraySetting, isObjectSetting
     } = require("./settings")
     const isNumber = isNumberSetting(setting)
     const isText = isStringSetting(setting)
     const isList = isArraySetting(setting)
-    if (!isNumber && !isText && !isList) {
+    const isObject = isObjectSetting(setting)
+    const {mouseFeatures} = require("./settings")
+    if (!isNumber && !isText && !isList && !isObject) {
         notify(
-            `Can't modify '${setting}' as if it were a number or list`,
-            {src, "type": "warn"})
+            `Can't modify '${setting}' as if it were a number, `
+            + `text, list or object`, {src, "type": "warn"})
+        return
+    }
+    if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
+        || value.startsWith("[") && value.endsWith("]"))) {
+        modifyListOrObject(src, setting, value, method)
         return
     }
     if (method === "append") {
@@ -159,7 +303,6 @@ const modifyListOrNumber = (src, setting, value, method) => {
         if (isList) {
             let current = getSetting(setting)
             if (current === "all") {
-                const {mouseFeatures} = require("./settings")
                 current = mouseFeatures
             }
             let newValue = current.filter(e => e && e !== value)
@@ -211,7 +354,7 @@ const setCommand = (src, args) => {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(src, setting, value, "append")
+                modifySpecialMethod(src, setting, value, "append")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -219,7 +362,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(src, setting, value, "remove")
+                modifySpecialMethod(src, setting, value, "remove")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -227,7 +370,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(src, setting, value, "special")
+                modifySpecialMethod(src, setting, value, "special")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})

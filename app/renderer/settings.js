@@ -2401,6 +2401,7 @@ module.exports = {
     isEnumSetting,
     isExistingSetting,
     isNumberSetting,
+    isObjectSetting,
     isStringSetting,
     listCurrentSettings,
     loadFromDisk,

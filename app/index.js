@@ -1732,7 +1732,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         "action": {
                             "path": info.file, "type": "download-success"
                         },
-                        "src": downloadSrc
+                        "src": downloadSrc,
+                        "type": "success"
                     })
             } else {
                 mainWindow?.webContents.send("notify",
