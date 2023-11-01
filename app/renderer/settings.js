@@ -1549,13 +1549,7 @@ const isValidSetting = (src, setting, value) => {
             parsedValue = value === "true"
         }
     }
-    if (expectedType === "object" && typeof value === "string") {
-        try {
-            parsedValue = JSON.parse(value)
-        } catch {
-            // This is fine, string will be split and checked for validity
-        }
-    } else if (expectedType !== typeof parsedValue) {
+    if (expectedType !== typeof parsedValue) {
         notify(`The value of setting '${setting}' is of an incorrect `
             + `type, expected '${expectedType}' but got `
             + `'${typeof parsedValue}' instead.`, {src, "type": "warn"})

@@ -130,7 +130,7 @@ const isStringObject = value => typeof value === "object"
  * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
- * @param {"append"|"remove"|"special"} method
+ * @param {"append"|"remove"|"special"|"replace"} method
  */
 const modifyListOrObject = (src, setting, value, method) => {
     const {set, isArraySetting, isObjectSetting} = require("./settings")
@@ -177,6 +177,9 @@ const modifyListOrObject = (src, setting, value, method) => {
         if (current === "all") {
             current = mouseFeatures
         }
+        if (method === "replace") {
+            set(src, setting, addition)
+        }
         if (method === "append") {
             set(src, setting, [...current, ...addition])
         }
@@ -215,6 +218,10 @@ const modifyListOrObject = (src, setting, value, method) => {
             })
             addition = additionObj
         }
+        if (method === "replace") {
+            set(src, setting, addition)
+            return
+        }
         const newValue = getSetting(setting)
         if (method === "append") {
             Object.entries(addition).forEach(([key, val]) => {
@@ -240,9 +247,9 @@ const modifyListOrObject = (src, setting, value, method) => {
  * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
- * @param {"append"|"remove"|"special"} method
+ * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifySpecialMethod = (src, setting, value, method) => {
+const modifySetting = (src, setting, value, method = "replace") => {
     const {
         set, isNumberSetting, isStringSetting, isArraySetting, isObjectSetting
     } = require("./settings")
@@ -251,15 +258,19 @@ const modifySpecialMethod = (src, setting, value, method) => {
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
     const {mouseFeatures} = require("./settings")
+    if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
+        || value.startsWith("[") && value.endsWith("]"))) {
+        modifyListOrObject(src, setting, value, method)
+        return
+    }
+    if (method === "replace") {
+        set(src, setting, value)
+        return
+    }
     if (!isNumber && !isText && !isList && !isObject) {
         notify(
             `Can't modify '${setting}' as if it were a number, `
             + `text, list or object`, {src, "type": "warn"})
-        return
-    }
-    if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
-        || value.startsWith("[") && value.endsWith("]"))) {
-        modifyListOrObject(src, setting, value, method)
         return
     }
     if (method === "append") {
@@ -323,12 +334,11 @@ const setCommand = (src, args) => {
         }
         return
     }
-    const {set} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySpecialMethod(src, setting, value, "append")
+                modifySetting(src, setting, value, "append")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -336,7 +346,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySpecialMethod(src, setting, value, "remove")
+                modifySetting(src, setting, value, "remove")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -344,7 +354,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySpecialMethod(src, setting, value, "special")
+                modifySetting(src, setting, value, "special")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -352,7 +362,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "=")
             if (isValidSettingName(setting) && setting !== "all") {
-                set(src, setting, value)
+                modifySetting(src, setting, value)
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -360,7 +370,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+:/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, ":")
             if (isValidSettingName(setting) && setting !== "all") {
-                set(src, setting, value)
+                modifySetting(src, setting, value)
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -370,7 +380,8 @@ const setCommand = (src, args) => {
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
                 const index = values.indexOf(String(getSetting(setting)))
-                set(src, setting, values[index + 1] || values[0])
+                modifySetting(src,
+                    setting, values[index + 1] || values[0])
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -381,10 +392,11 @@ const setCommand = (src, args) => {
                 const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
-                    set(src, setting, String(!value))
+                    modifySetting(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
                     const index = validOptions[setting].indexOf(String(value))
-                    set(src, setting, validOptions[setting][index + 1]
+                    modifySetting(src, setting,
+                        validOptions[setting][index + 1]
                         || validOptions[setting][0])
                 } else {
                     notify(
@@ -408,13 +420,13 @@ const setCommand = (src, args) => {
             }
         } else if (isValidSettingName(part) && part !== "all"
             && typeof getSetting(part) === "boolean") {
-            set(src, part, "true")
+            modifySetting(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 if (typeof value === "boolean") {
-                    set(src, settingName, String(!value))
+                    modifySetting(src, settingName, String(!value))
                 } else {
                     notify(`The setting '${settingName}' can not be flipped`,
                         {src, "type": "warn"})
@@ -431,9 +443,9 @@ const setCommand = (src, args) => {
                 const value = getSetting(settingName)
                 const {isArraySetting} = require("./settings")
                 if (typeof value === "boolean") {
-                    set(src, settingName, "false")
+                    modifySetting(src, settingName, "false")
                 } else if (isArraySetting(part.replace("no", ""))) {
-                    set(src, settingName, "")
+                    modifySetting(src, settingName, "")
                 } else {
                     listSetting(src, settingName)
                 }

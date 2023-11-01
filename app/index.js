@@ -606,6 +606,10 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 const allowedFingerprints = {}
 /** @type {{
  *   [permission: string]: "allow"|"block"|"ask"|"allowkind"|"allowfull"
+ * } & {
+ *   permissionsallowed?: string[],
+ *   permissionsasked?: string[],
+ *   permissionsblocked?: string[]
  * }} */
 let permissions = {}
 
@@ -660,7 +664,7 @@ const permissionHandler = (_, pm, callback, details) => {
     /** @type {("ask"|"block"|"allow")[]} */
     const permissionOverrideTypes = ["ask", "block", "allow"]
     for (const override of permissionOverrideTypes) {
-        const permList = permissions[`permissions${override}ed`]?.split(",")
+        const permList = permissions[`permissions${override}ed`]
         for (const rule of permList || []) {
             if (!rule.trim() || settingRule) {
                 continue
