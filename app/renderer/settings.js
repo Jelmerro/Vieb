@@ -1744,7 +1744,8 @@ const suggestionList = () => {
             }
         } else {
             listOfSuggestions.push(`${setting}=`)
-            listOfSuggestions.push(`${setting}=${defaultSettings[setting]}`)
+            listOfSuggestions.push(`${setting}=${
+                JSON.stringify(defaultSettings[setting])}`)
         }
         if (setting === "clearhistoryinterval") {
             listOfSuggestions.push(`${setting}=session`)
