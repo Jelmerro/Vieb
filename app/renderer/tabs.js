@@ -584,7 +584,7 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
                     } a {color: ${linkcolor || "#0cf"};}`
                     injectCustomStyleRequest(webview, "theme", style)
                 }
-            })
+            }).catch(() => null)
         })
         if (!force) {
             return

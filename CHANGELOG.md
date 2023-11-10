@@ -32,11 +32,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ## Fixed
 
 - Download success notification showing in info color instead of success color
+- Occasional error popup when viewing SVGs directly because of style injection refusal
 
 ### Versions
 
-- Electron 27.0.0 (unchanged)
-- Chromium 118.0.5993.54 (unchanged)
+- Electron TODO (was 27.0.4)
+- Chromium TODO (was 118.0.5993.129)
 
 ## [10.5.0](https://github.com/Jelmerro/Vieb/compare/10.4.0...10.5.0) - 2023-11-10
 
