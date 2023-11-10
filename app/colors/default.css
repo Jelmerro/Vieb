@@ -294,19 +294,19 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #app.mousedisabled-drag:not(.mouse-follow) .follow-url-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-inputs-click-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-inputs-insert-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-onclick-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-media-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-image-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-other-border {-webkit-app-region: drag;}
 /* notifications & map suggestions */
 #notifications, #app #mapsuggest {display: flex;position: absolute;flex-direction: column;z-index: 5;}
-#notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;white-space: pre-wrap;}
+#notifications {width: calc(100% - 1.4em);gap: .5em;pointer-events: none;}
+#notifications > span, #app #mapsuggest {background: var(--bg);padding: .5em;display: flex;max-width: calc(100% - 2.6em);max-height: calc(100% - 2.6em);border: .1em solid var(--notification-border);overflow-wrap: anywhere;white-space: pre-wrap;overflow-y: auto;}
+#notifications > span {width: 33%;min-width: 33%;pointer-events: auto;}
 #notifications > span.permission {color: var(--notification-permission);}
 #notifications > span.dialog {color: var(--notification-dialog);}
 #notifications > span.error {color: var(--notification-error);}
 #notifications > span.warning, #app #mapsuggest span.warning {color: var(--notification-warning);}
 #notifications > span.info, #app #mapsuggest span.info {color: var(--notification-info);}
 #notifications > span.success, #app #mapsuggest span.success {color: var(--notification-success);}
-#app #mapsuggest {width: auto;max-width: 90%;max-height: 90%;overflow-y: auto;}
-#app #mapsuggest span.warning {display: inline-block;margin-right: 1em;}
-.bottomright {right: .7em;bottom: .7em;}
-.bottomleft {left: .7em;bottom: .7em;}
-.topright {right: .7em;top: .7em;}
-.topleft {left: .7em;top: .7em;}
+#notifications.bottomright {align-items: end;justify-content: end;}
+#notifications.bottomleft {align-items: start;justify-content: end;}
+#notifications.topright {align-items: end;justify-content: start;}
+#notifications.topleft {align-items: start;justify-content: start;}
 .bottomright {right: .7em;bottom: .7em;}
 .bottomleft {left: .7em;bottom: .7em;}
 .topright {right: .7em;top: .7em;}
