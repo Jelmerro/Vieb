@@ -109,8 +109,8 @@ const updateUrl = (webview, force = false) => {
  */
 const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
-    const {empty} = require("./favicons")
-    empty(webview)
+    const {loading} = require("./favicons")
+    loading(webview, true)
 }
 
 /**
@@ -423,6 +423,22 @@ const switchToTab = tabOrIndex => {
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
     setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
+    const loadingProgress = document.getElementById("loading-progress")
+    if (loadingProgress) {
+        if (["line", "all"].includes(getSetting("loadingindicator"))) {
+            try {
+                if (newCurrentPage?.isLoading()) {
+                    loadingProgress.style.display = "flex"
+                } else {
+                    loadingProgress.style.display = "none"
+                }
+            } catch {
+                loadingProgress.style.display = "none"
+            }
+        } else {
+            loadingProgress.style.display = "none"
+        }
+    }
 }
 
 /**

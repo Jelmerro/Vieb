@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ## Added
 
 - Settings of type list and object, that can also be set with lists or objects with ":set"
+- Setting "loadingindicator" to control where the page load status should be shown
 
 ## Changed
 

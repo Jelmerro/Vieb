@@ -73,8 +73,8 @@ const listSetting = (src, setting) => {
         notify(`--- Options ---\n${listCurrentSettings(true)}`, {src})
         return
     }
-    notify(`The setting '${setting}' has the value '${
-        JSON.stringify(getSetting(setting))}'`, {src})
+    notify(`The setting '${setting}' has the value: ${
+        JSON.stringify(getSetting(setting))}`, {src})
 }
 
 /**

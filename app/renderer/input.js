@@ -2494,6 +2494,7 @@ const init = () => {
             }
         }
         const overPageElements = "#page-container, #screenshot-highlight"
+        // #TODO this is now broken and scrolls the pages always
         if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
             const page = currentPage()
             if (getMouseConf("pageoutsideinsert") && page) {

@@ -787,6 +787,15 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
     }).catch(rej)
 })
 
+/** Return the position and dimensions of the page container. */
+const pageContainerPos = () => {
+    const pagelayout = document.getElementById("page-container")
+    if (!pagelayout) {
+        return {"bottom": 0, "left": 0, "right": 0, "top": 0}
+    }
+    return pagelayout.getBoundingClientRect()
+}
+
 /**
  * Calculate the offset in pixels for each dimension of an element.
  * @param {HTMLElement} page
@@ -1587,6 +1596,7 @@ module.exports = {
     compareVersions,
     fetchUrl,
     fetchJSON,
+    pageContainerPos,
     pageOffset,
     execCommand,
     isValidIntervalValue,

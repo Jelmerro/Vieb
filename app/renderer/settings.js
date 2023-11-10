@@ -186,6 +186,8 @@ const defaultSettings = {
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
+    /** @type {"none"|"spinner"|"line"|"all"} */
+    "loadingindicator": "spinner",
     "mapsuggest": 9000000000000000,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "mapsuggestposition": "topright",
@@ -467,6 +469,7 @@ const validOptions = {
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
+    "loadingindicator": ["none", "spinner", "line", "all"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "markposition": [
         "open",

@@ -31,7 +31,7 @@ const {
     pathToSpecialPageName,
     stringToUrl
 } = require("../util")
-const {getSetting, tabForPage, listPages} = require("./common")
+const {getSetting, tabForPage, listPages, currentPage} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
@@ -104,46 +104,49 @@ const updateMappings = ({currentUrl = null, now = null} = {}) => {
 }
 
 /**
- * Show the loading spinner in place of the favicon.
+ * Show the loading spinner in place of the favicon, optionally clearing it.
  * @param {Electron.WebviewTag} webview
+ * @param {boolean} empty
  */
-const loading = webview => {
+const loading = (webview, empty = false) => {
+    const loadingIndicator = getSetting("loadingindicator")
     const tab = tabForPage(webview)
     const status = tab?.querySelector(".status")
+    if (["line", "all"].includes(loadingIndicator)) {
+        if (webview === currentPage()) {
+            const loadingProgress = document.getElementById("loading-progress")
+            if (loadingProgress) {
+                loadingProgress.style.display = "flex"
+            }
+        }
+    }
     if (status instanceof HTMLElement) {
-        status.style.display = ""
+        if (["spinner", "all"].includes(loadingIndicator)) {
+            status.style.display = ""
+        } else {
+            status.style.display = "none"
+        }
     }
     const favicon = tab?.querySelector(".favicon")
     if (!(favicon instanceof HTMLImageElement)) {
         return
     }
-    favicon.style.display = "none"
-}
-
-/**
- * Empty the favicon and show the loading spinner in place of the favicon.
- * @param {Electron.WebviewTag} webview
- */
-const empty = webview => {
-    const tab = tabForPage(webview)
-    const status = tab?.querySelector(".status")
-    if (status instanceof HTMLElement) {
-        status.style.display = ""
-    }
-    const favicon = tab?.querySelector(".favicon")
-    if (!(favicon instanceof HTMLImageElement)) {
-        return
-    }
-    favicon.style.display = "none"
-    if (webview.src.startsWith("devtools://")) {
-        favicon.src = viebIcon
+    if (["spinner", "all"].includes(loadingIndicator)) {
+        favicon.style.display = "none"
     } else {
-        favicon.src = "img/empty.png"
+        favicon.style.display = ""
+    }
+    if (empty) {
+        if (webview.src.startsWith("devtools://")) {
+            favicon.src = viebIcon
+        } else {
+            favicon.src = "img/empty.png"
+        }
     }
 }
 
 /**
- * Set the favicon path and show it.
+ * Set the favicon path and show if already done loading.
  * @param {HTMLSpanElement} tab
  * @param {string} loc
  */
@@ -276,11 +279,17 @@ const forSite = url => {
 }
 
 /**
- * Show the favicon that was previously set for this site.
+ * Show the favicon that was previously set for this site, and stop loading.
  * @param {Electron.WebviewTag} webview
  */
 const show = webview => {
     const tab = tabForPage(webview)
+    if (webview === currentPage()) {
+        const loadingProgress = document.getElementById("loading-progress")
+        if (loadingProgress) {
+            loadingProgress.style.display = "none"
+        }
+    }
     const status = tab?.querySelector(".status")
     if (status instanceof HTMLElement) {
         status.style.display = "none"
@@ -325,5 +334,5 @@ const init = () => {
 }
 
 module.exports = {
-    empty, forSite, getRedirect, init, loading, show, update, updateMappings
+    forSite, getRedirect, init, loading, show, update, updateMappings
 }
