@@ -773,8 +773,10 @@ const addWebviewListeners = webview => {
         if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
             const {getCustomStyling} = require("./settings")
             const fontsize = getSetting("guifontsize")
-            sendToPageOrSubFrame("action", "showTOC",
-                getCustomStyling(), fontsize)
+            setTimeout(() => {
+                sendToPageOrSubFrame("action", "showTOC",
+                    getCustomStyling(), fontsize)
+            }, 50)
         }
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")

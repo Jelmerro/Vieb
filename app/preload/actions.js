@@ -640,12 +640,12 @@ const showTOC = (customStyling, fontsize, opened = false) => {
             lists.push(list)
         }
         const listItem = document.createElement("li")
-        const baseHeadingId = heading.id || heading.textContent
-            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "") || ""
+        const baseHeadingId = heading.id || `toc_${heading.textContent
+            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "")
+            || Math.round(Math.random() * 1000000000000000)}`
         let headingId = baseHeadingId
         let duplicateHeadingCounter = 2
-        while (headingNames.includes(headingId)
-            || document.getElementById(headingId)) {
+        while (headingNames.includes(headingId)) {
             headingId = `${baseHeadingId}${duplicateHeadingCounter}`
             duplicateHeadingCounter += 1
         }

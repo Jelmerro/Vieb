@@ -314,7 +314,7 @@ window.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".example-buttons")?.append(button)
     }
 })
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.querySelector("img")
     if (icon && mainImg) {
         mainImg.src = icon
