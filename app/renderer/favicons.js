@@ -121,7 +121,7 @@ const loading = webview => {
 }
 
 /**
- * Empty the favicon.
+ * Empty the favicon and show the loading spinner in place of the favicon.
  * @param {Electron.WebviewTag} webview
  */
 const empty = webview => {
@@ -198,23 +198,25 @@ const deleteIfTooOld = loc => {
  * @param {string} favicon
  */
 const update = (webview, favicon) => {
-    if (getSetting("favicons") === "disabled") {
-        return
-    }
+    const tab = tabForPage(webview)
     if (viebIcon === favicon) {
         if (!pathToSpecialPageName(webview.src)?.name) {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
         const customIcon = appConfig()?.icon
-        const tab = tabForPage(webview)
         if (tab && customIcon) {
             setPath(tab, stringToUrl(customIcon))
             return
         }
     }
+    if (getSetting("favicons") === "disabled") {
+        if (tab) {
+            setPath(tab, "img/empty.png")
+        }
+        return
+    }
     const currentUrl = webview.src
-    const tab = tabForPage(webview)
     mappings[currentUrl] = favicon
     updateMappings({currentUrl})
     if (tab && (favicon.startsWith("file:/") || favicon.startsWith("data:"))) {
