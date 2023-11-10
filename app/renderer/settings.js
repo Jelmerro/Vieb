@@ -495,7 +495,7 @@ const validOptions = {
     "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "largeonly", "smallonly", "never"],
-    "nativetheme": ["system", "dark", "light"],
+    "nativetheme": ["dark", "light"],
     "notificationforpermissions": [
         "all", "allowed", "blocked", "silent", "none"
     ],
@@ -514,9 +514,7 @@ const validOptions = {
     "permissiongeolocation": ["block", "ask", "allow"],
     "permissionhid": ["block", "allow"],
     "permissionidledetection": ["block", "ask", "allow"],
-    "permissionmediadevices": [
-        "block", "ask", "allow", "allowkind", "allowfull"
-    ],
+    "permissionmediadevices": ["block", "allow", "allowkind", "allowfull"],
     "permissionmicrophone": ["block", "ask", "allow"],
     "permissionmidi": ["block", "ask", "allow"],
     "permissionmidisysex": ["block", "ask", "allow"],
