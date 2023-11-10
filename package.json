@@ -9,7 +9,7 @@
     "fix": "eslint --fix app .eslintrc.js build.js",
     "lint": "npm run eslint && npm run tsc",
     "eslint": "eslint app .eslintrc.js build.js",
-    "patch": "patch-package",
+    "postinstall": "patch-package",
     "tsc": "tsc",
     "start": "electron app",
     "test": "node --test",
@@ -43,8 +43,8 @@
     "webpack-node-externals": "3.0.0"
   },
   "dependencies": {
-    "@cliqz/adblocker-electron": "1.26.11",
-    "@cliqz/adblocker-electron-preload": "1.26.11",
+    "@cliqz/adblocker-electron": "1.26.12",
+    "@cliqz/adblocker-electron-preload": "1.26.12",
     "@mozilla/readability": "0.4.4",
     "darkreader": "4.9.67",
     "highlight.js": "11.9.0",

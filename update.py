@@ -78,8 +78,6 @@ def main():
         json.dump(package_lock, f, indent=2)
         f.write("\n")
     subprocess.run(["npm", "ci"], check=True)
-    print("\n  = Patch packages\n")
-    subprocess.run(["npm", "run", "patch"], check=True)
 
 
 if __name__ == "__main__":
