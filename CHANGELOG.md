@@ -11,7 +11,7 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased 11.0.0
+## Unreleased
 
 ## Added
 
@@ -38,7 +38,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Electron 27.0.0 (unchanged)
 - Chromium 118.0.5993.54 (unchanged)
 
-## Unreleased 10.5.0
+## [10.5.0](https://github.com/Jelmerro/Vieb/compare/10.4.0...10.5.0) - 2023-11-10
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/10.4.0...10.5.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.5.0)
 
 ### Added
 
@@ -55,11 +57,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Table of contents background being transparent
+- Cache not being cleared correctly on quit on Windows resulting in background processes remaining
 
 ### Versions
 
-- Electron 27.0.0 (unchanged)
-- Chromium 118.0.5993.54 (unchanged)
+- Electron 27.0.4 (was 27.0.0)
+- Chromium 118.0.5993.129 (was 118.0.5993.54)
 
 ## [10.4.0](https://github.com/Jelmerro/Vieb/compare/10.3.0...10.4.0) - 2023-10-12
 

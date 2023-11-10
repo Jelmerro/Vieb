@@ -138,7 +138,7 @@ const rimrafSync = p => {
             }
             return rmdirSync(p, er)
         }
-        if (isErrnoException(er) && er.code === "EISDIR") {
+        if (!isErrnoException(er) || er.code !== "EISDIR") {
             throw er
         }
         if (er instanceof Error) {
