@@ -1911,7 +1911,7 @@ const set = (src, setting, value) => {
         if (setting === "mouse" || setting === "mousedisabledbehavior") {
             updateMouseSettings()
         }
-        if (setting === "nativetheme") {
+        if (setting === "nativetheme" && value === "system") {
             notify("DEPRECATION: nativetheme value 'system' will be removed, "
                 + "making 'dark' the new default from 11.0.0 onward.",
             {src, "type": "warn"})
