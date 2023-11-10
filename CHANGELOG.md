@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Table of contents background being transparent
+- Cache not being cleared correctly on quit on Windows resulting in background processes remaining
 
 ### Versions
 
