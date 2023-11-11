@@ -29,7 +29,6 @@ const {
     propPixels,
     execCommand,
     isElement,
-    pageOffset,
     pageContainerPos
 } = require("../util")
 const {

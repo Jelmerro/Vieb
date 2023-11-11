@@ -276,7 +276,6 @@ const updateScreenshotHighlight = (hide = false) => {
     }
     const border = Number(getComputedStyle(highlight)
         .borderWidth.split(/[.px]/g)[0])
-    // TODO fix display of this since relative rework
     const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
     const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
     const rect = {
