@@ -37,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Download success notification showing in info color instead of success color
 - Occasional error popup when viewing SVGs directly because of style injection refusal
+- Markdownviewer not supporting local images due to file access limits
 
 ### Versions
 

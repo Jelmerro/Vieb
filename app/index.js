@@ -1825,7 +1825,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.end()
         })
     })
+    let markdownFilesUniqueId = ""
+    newSess.protocol.handle("markdownfiles", req => {
+        const url = new URL(req.url)
+        const id = url.searchParams.get("md-uuid")
+        url.search = ""
+        if (!markdownFilesUniqueId || !id || markdownFilesUniqueId !== id) {
+            return Response.error()
+        }
+        return net.fetch(url.href.replace(/^markdownfiles:/, "file:"))
+    })
     newSess.protocol.handle("markdownviewer", req => {
+        const {randomUUID} = require("crypto")
+        markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -1890,10 +1902,39 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         mdRenderer.html = text => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
             .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+        /**
+         * Add md-uuid to the url to allow requests to markdownfiles protocol.
+         * @param {string} href
+         * @param {string|undefined|null} title
+         * @param {string} alt
+         */
+        mdRenderer.image = (href, title, alt) => {
+            let safeUrl = href
+            try {
+                safeUrl = encodeURI(href).replace(/%25/g, "%")
+                if (url.startsWith("file:")
+                    && href.startsWith("markdownfiles")) {
+                    safeUrl += `?md-uuid=${markdownFilesUniqueId}`
+                }
+            } catch {
+                safeUrl = ""
+            }
+            let output = `<img src="${safeUrl}" alt="${alt}"`
+            if (title) {
+                output += ` title="${title}"`
+            }
+            output += ">"
+            return output
+        }
         markedObj.setOptions({"renderer": mdRenderer, "silent": true})
         try {
             const {baseUrl} = require("marked-base-url")
-            markedObj.use(baseUrl(url))
+            if (url.startsWith("file:")) {
+                const base = url.replace(/^file:/, "markdownfiles:")
+                markedObj.use(baseUrl(base))
+            } else {
+                markedObj.use(baseUrl(url))
+            }
         } catch {
             // Base url handling is optional.
         }
