@@ -380,7 +380,7 @@ const defaultSettings = {
     "timeout": true,
     "timeoutlen": 2000,
     /** @type {string[]} */
-    "tocpages": ["vieb://help"],
+    "tocpages": [],
     /** @type {"auto"|"deepl"|"libretranslate"} */
     "translateapi": "auto",
     "translatekey": "",

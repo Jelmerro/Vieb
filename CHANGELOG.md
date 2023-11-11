@@ -22,7 +22,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Default value for "dialogconfirm" to "notifyallow"
 - Default value for "nativetheme" to "dark"
-- Default value for "tocpages" to "vieb://help"
 - Disabled favicons to be empty instead of showing the broken image indicator
 - Mapsuggest and notification alignment in default colorscheme
 
