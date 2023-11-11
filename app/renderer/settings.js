@@ -1915,6 +1915,8 @@ const set = (src, setting, value) => {
             notify("DEPRECATION: nativetheme value 'system' will be removed, "
                 + "making 'dark' the new default from 11.0.0 onward.",
             {src, "type": "warn"})
+        }
+        if (setting === "nativetheme") {
             updateNativeTheme()
         }
         if (setting === "pdfbehavior") {

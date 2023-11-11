@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Revert deprecation of "tocpages", current empty default wil remain in 11.x.x
 
+### Fixed
+
+- Nativetheme not updating correctly because of incorrect deprecation statement in previous release
+
 ### Versions
 
 - Electron 27.0.4 (unchanged)
