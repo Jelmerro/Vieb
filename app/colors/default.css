@@ -524,8 +524,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
  * TOC
 */
 #toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;color: var(--fg);background: var(--bg);border: solid 1px var(--fg);padding: 0;max-height: 90vh;overflow: auto;line-height: 1;pointer-events: all;}
-#toc summary {display: block;cursor: pointer;padding: 1em;}
-#toc summary h1 {display: list-item;margin: 0;font-size: 2em;color: var(--fg);}
+#toc h1 {margin: .7em;font-size: 2em;color: var(--fg);}
 #toc ul {padding-inline-start: 1.8em;padding-inline-end: .5em;}
 #toc a {color: var(--link-color);}
 #toc > a {display: block;padding: 0 1.8em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}

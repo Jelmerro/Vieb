@@ -24,6 +24,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default value for "nativetheme" to "dark"
 - Disabled favicons to be empty instead of showing the broken image indicator
 - Mapsuggest and notification alignment in default colorscheme
+- Table of contents to be always open, it is either opened and shown or not shown at all
+- Table of contents to remember the scroll position on hide, until the page is reloaded, for easy toggling
 
 ## Removed
 
