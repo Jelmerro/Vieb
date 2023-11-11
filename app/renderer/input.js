@@ -2493,8 +2493,8 @@ const init = () => {
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
             }
         }
-        const overPageElements = "#page-container, #screenshot-highlight"
-        // #TODO this is now broken and scrolls the pages always
+        const overPageElements = "#follow, #screenshot-highlight, #pointer, "
+            + "#url-hover, #loading-progress"
         if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
             const page = currentPage()
             if (getMouseConf("pageoutsideinsert") && page) {
