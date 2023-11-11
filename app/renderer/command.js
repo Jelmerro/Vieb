@@ -94,11 +94,6 @@ const listSetting = (src, setting) => {
             + "suspendtimeoutignore in 11.0.0 onward.",
         {src, "type": "warn"})
     }
-    if (setting === "tocpages") {
-        notify("DEPRECATION: tocpages default value will be changed, "
-            + "making 'vieb://help' the new default in 11.0.0 onward.",
-        {src, "type": "warn"})
-    }
     notify(`The setting '${setting}' has the value '${getSetting(setting)}'`, {
         src
     })

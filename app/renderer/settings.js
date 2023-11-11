@@ -2003,11 +2003,6 @@ const set = (src, setting, value) => {
             const {restartSuspendTimeouts} = require("./pagelayout")
             restartSuspendTimeouts()
         }
-        if (setting === "tocpages") {
-            notify("DEPRECATION: tocpages default value will be changed, "
-                + "making 'vieb://help' the new default in 11.0.0 onward.",
-            {src, "type": "warn"})
-        }
         if (setting === "windowtitle") {
             updateWindowTitle()
         }

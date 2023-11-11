@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Revert deprecation of "tocpages", current empty default wil remain in 11.x.x
+
+### Versions
+
+- Electron 27.0.4 (unchanged)
+- Chromium 118.0.5993.129 (unchanged)
+
 ## [10.5.0](https://github.com/Jelmerro/Vieb/compare/10.4.0...10.5.0) - 2023-11-10
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.4.0...10.5.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.5.0)
