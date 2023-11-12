@@ -110,7 +110,7 @@ const handleScrollDiffEvent = diff => {
 const releaseKeys = () => {
     try {
         sendToPageOrSubFrame("send-input-event",
-            {"type": "leave", "x": X, "y": Y})
+            {"type": "leave", "x": X, "y": Math.max(1, Y)})
         sendToPageOrSubFrame("action", "selectionRemove", zoomX(), zoomY())
     } catch {
         // Can't release keys, probably because of opening a new tab
