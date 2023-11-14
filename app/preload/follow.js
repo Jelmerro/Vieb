@@ -414,6 +414,26 @@ window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
 
 /**
+ * Send the mouse selection to the renderer based on the client rect dimensions.
+ * @param {Selection} selection
+ * @param {boolean} toinsert
+ */
+const sendMouseSelection = (selection, toinsert) => {
+    const dims = selection.getRangeAt(0).getBoundingClientRect()
+    ipcRenderer.send("mouse-selection", {
+        "endX": dims.x + dims.width - 1,
+        "endY": dims.y + dims.height - 1,
+        "startX": dims.x + 1,
+        "startY": dims.y + 1,
+        "text": selection.toString(),
+        toinsert
+    })
+}
+
+/** @type {number|null} */
+let doubleToTripleTimeout = null
+
+/**
  * Send mouse up info to the renderer via main on up.
  * @param {MouseEvent} e
  * @param {HTMLIFrameElement|null} frame
@@ -425,19 +445,23 @@ const mouseUpListener = (e, frame = null) => {
     const diffX = Math.abs(endX - startX)
     const diffY = Math.abs(endY - startY)
     ipcRenderer.sendToHost("mouse-up")
+    const selection = (frame?.contentWindow || window).getSelection()
+    const toinsert = e.composedPath().some(
+        el => matchesQuery(el, textlikeInputs))
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
-        const text = (frame?.contentWindow || window).getSelection()?.toString()
+        const text = selection?.toString()
         if (text) {
             ipcRenderer.send("mouse-selection", {
-                endX,
-                endY,
-                startX,
-                startY,
-                text,
-                "toinsert": e.composedPath().some(
-                    el => matchesQuery(el, textlikeInputs))
+                endX, endY, startX, startY, text, toinsert
             })
         }
+    } else if (selection?.toString().trim() && e.detail === 2) {
+        doubleToTripleTimeout = window.setTimeout(() => {
+            sendMouseSelection(selection, toinsert)
+        }, 500)
+    } else if (selection?.toString().trim() && e.detail > 2) {
+        window.clearTimeout(doubleToTripleTimeout ?? undefined)
+        sendMouseSelection(selection, toinsert)
     }
 }
 

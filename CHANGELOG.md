@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Table of contents to be always open, it is either opened and shown or not shown at all
 - Table of contents to remember the scroll position on hide, until the page is reloaded, for easy toggling
 - Default theme suggest position to be below the tabs
+- Setting "mousevisualmode" now works with double and triple click selections
 
 ## Removed
 
