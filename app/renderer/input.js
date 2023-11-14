@@ -1201,6 +1201,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
     const isUpper = id.toUpperCase() === id
     if (id.length === 1 && isLetter && isUpper) {
         options.shiftKey = true
+        options.shift = true
         options.modifiers.push("shift")
     } else {
         keyNames.forEach(key => {

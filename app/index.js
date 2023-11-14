@@ -2795,11 +2795,16 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
         if (!wc) {
             return
         }
-        wc.sendInputEvent({keyCode, "type": "keyDown"})
-        if (keyCode.length === 1) {
-            wc.sendInputEvent({keyCode, "type": "char"})
+        /** @type {"shift"[]} */
+        const modifiers = []
+        if (keyOptions.shift) {
+            modifiers.push("shift")
         }
-        wc.sendInputEvent({keyCode, "type": "keyUp"})
+        wc.sendInputEvent({keyCode, modifiers, "type": "keyDown"})
+        if (keyCode.length === 1) {
+            wc.sendInputEvent({keyCode, modifiers, "type": "char"})
+        }
+        wc.sendInputEvent({keyCode, modifiers, "type": "keyUp"})
         wc.mainFrame.framesInSubtree
             .filter(f => f.routingId !== wc.mainFrame.routingId)
             .forEach(f => f.send("keyboard-type-event", keyOptions))

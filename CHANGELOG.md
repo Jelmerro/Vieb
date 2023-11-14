@@ -41,6 +41,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Occasional error popup when viewing SVGs directly because of style injection refusal
 - Markdownviewer not supporting local images due to file access limits
 - GUI-related settings not hiding after follow and pointer actions due to pointer being in mouse override position
+- Mapped insert mode inputs with shifted keys sending the keys twice or not at all when unshifted variant exists
 
 ### Versions
 
