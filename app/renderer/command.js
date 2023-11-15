@@ -124,6 +124,7 @@ const isStringArrayArray = value => Array.isArray(value)
  */
 const isStringObject = value => typeof value === "object"
     && Object.values(value).every(s => typeof s === "string")
+    && !isStringArray(value)
 
 /**
  * Modifiy a list or a number.
@@ -264,6 +265,21 @@ const modifySetting = (src, setting, value, method = "replace") => {
         return
     }
     if (method === "replace") {
+        if (isList) {
+            const arr = value.split(",").filter(v => v.trim())
+            modifyListOrObject(src, setting, JSON.stringify(arr), method)
+            return
+        }
+        if (isObject) {
+            /** @type {{[key: string]: string}} */
+            const obj = {}
+            for (const val of value) {
+                obj[val.split("~")[0]] = val
+                    .split("~").slice(1).join("~") ?? ""
+            }
+            modifyListOrObject(src, setting, JSON.stringify(obj), method)
+            return
+        }
         set(src, setting, value)
         return
     }

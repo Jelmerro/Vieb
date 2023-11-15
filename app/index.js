@@ -1216,7 +1216,8 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  */
 /** @type {downloadItem[]} */
 let downloads = []
-let redirects = ""
+/** @type {string[]} */
+let redirects = []
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
 /** @type {"view"|"block"|"download"}} */
@@ -1569,7 +1570,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
-        redirects.split(",").forEach(r => {
+        redirects.forEach(r => {
             if (r.trim()) {
                 const [match, replace] = r.split("~")
                 url = url.replace(RegExp(match), replace)
