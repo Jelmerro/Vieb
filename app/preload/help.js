@@ -99,7 +99,9 @@ const processHash = () => {
  * @param {string} text
  */
 const addTextWithLinksToTypes = (baseEl, text) => {
-    const types = ["Boolean", "List", "String", "Interval", "Number", "Enum"]
+    const types = [
+        "Boolean", "String", "Interval", "Number", "Enum", "Array", "Object"
+    ]
     text.split(RegExp(`(${types.join("|")})`, "g")).forEach(s => {
         /** @type {HTMLAnchorElement|Text} */
         let el = document.createElement("a")

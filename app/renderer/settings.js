@@ -1884,12 +1884,12 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (isArraySetting(setting)) {
         typeLabel = "Array"
         allowedValues
-            = "Comma separated string, Array, Array of Arrays or Object"
+            = "Comma String, Array, Array of Arrays or Object"
     }
     if (isObjectSetting(setting)) {
         typeLabel = "Object"
         allowedValues
-            = "Comma separated string, Array, Array of Arrays or Object"
+            = "Comma String, Array, Array of Arrays or Object"
     }
     if (isEnumSetting(setting)) {
         typeLabel = "Enum"
