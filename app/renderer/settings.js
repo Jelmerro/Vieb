@@ -227,6 +227,8 @@ const defaultSettings = {
     "notificationlimitsmall": 3,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
+    /** @type {{[key: string]: string}} */
+    "passthroughkeys": {},
     /** @type {"view"|"block"|"download"|"external"} */
     "pdfbehavior": "download",
     /** @type {"block"|"ask"|"allow"} */
