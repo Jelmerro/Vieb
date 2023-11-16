@@ -124,6 +124,7 @@
         </ul>
         <h4 id="array">Array</h4>
         These type of settings accept a comma separated string, or actual Arrays/Objects using JSON. It can be set directly, just like a string, but can also be appended or modified per entry. Some lists that are comma-separated have nested lists that are separated by tildes, though you don't need to worry about commas if you use the Array or Object syntax.
+        TODO, many more examples and better docs for ^= vs += differences.
         <ul>
             <li><span class="command-block">:set example</span> - Read the value of an array</li>
             <li><span class="command-block">:set noexample</span> - Empty the array</li>
@@ -136,6 +137,7 @@
         </ul>
         <h4 id="object">Object</h4>
         These type of settings accept a comma separated string, with each entry being tilde separated, or actual Arrays/Objects using JSON. It can be set directly, like a string, but can also be appended or modified per entry. The Object syntax is preferred as you don't need to worry about the commas and tildes separating the entries.
+        TODO, many more examples and better docs for ^= vs += differences.
         <ul>
             <li><span class="command-block">:set example</span> - Read the value of an object</li>
             <li><span class="command-block">:set noexample</span> - Empty the object</li>
@@ -1042,6 +1044,8 @@
         Control the amount of lines in a notification that should be considered a small or a large one. Small notifications are shown over the page in the corner configured with <a href="#notificationposition">notificationposition</a>, while large ones show in a dialog that can be scrolled. The line limit by default is set to 3, so notifications with 3 lines or fewer are shown in the notification corner, while larger ones show in the dialog. If you always want the dialog, set this setting to 0, or if you never want it, set it to a very large limit. You can also choose to use native notifications instead, optionally only for small or large notifications using the <a href="#nativenotification">nativenotification</a> setting.
         <h3 id="notificationposition">notificationposition</h3>
         This setting sets the location of Vieb notifications. You can set it to any corner of the window. Long notifications will open in a scrollable popup similar to Vim. The value of this setting is ignored when native notifications are used.
+        <h3 id="passthroughkeys">passthroughkeys</h3>
+        TODO (and also link here from mapping system).
         <h3 id="pdfbehavior">pdfbehavior</h3>
         Control what happens when a PDF is opened in a page. By default, it will now download the PDF url. You can also choose to block the reader without automatically downloading with "block". To get the built-in Chromium PDF reader back, use "view". The reader is disabled because no interaction is possible with it and you also lose focus on the Vieb interface, requiring mouse interaction to get it back. You can also choose to open the PDF externally using the <a href="#externalcommand">externalcommand</a> by setting pdfbehavior to "external". If you want to do either of these but only manually, you can set the pdfbehavior to "block" and use <a href="#action.openLinkExternal">action.openLinkExternal</a> or <a href="#action.downloadLink">action.downloadLink</a> manually, this setting is only for doing either of these automatically.
         <h3 id="permissioncamera">permissioncamera</h3>

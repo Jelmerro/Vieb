@@ -182,6 +182,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             set(src, setting, addition)
         }
         if (method === "append") {
+            // TODO either document that it overrides same keys
             set(src, setting, [...current, ...addition])
         }
         if (method === "remove") {
@@ -198,6 +199,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             set(src, setting, newValue)
         }
         if (method === "special") {
+            // TODO make it extend/append a value with existing keys
             set(src, setting, [...addition, ...current])
         }
     } else if (isObject) {
@@ -225,6 +227,7 @@ const modifyListOrObject = (src, setting, value, method) => {
         }
         const newValue = getSetting(setting)
         if (method === "append") {
+            // TODO either document that it overrides same keys
             Object.entries(addition).forEach(([key, val]) => {
                 newValue[key] = val
             })
@@ -235,6 +238,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             })
         }
         if (method === "special") {
+            // TODO make it extend/append a value with existing keys
             Object.entries(addition).forEach(([key, val]) => {
                 newValue[key] = val
             })

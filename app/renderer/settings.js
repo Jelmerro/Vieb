@@ -752,7 +752,7 @@ const checkSuggestOrder = (src, value) => {
 /**
  * Check if other more advanced settings are configured correctly.
  * @param {import("./common").RunSource} src
- * @param {string} setting
+ * @param {keyof typeof defaultSettings} setting
  * @param {number|string|boolean|string[]|{[key: string]: string}} value
  */
 const checkOther = (src, setting, value) => {
@@ -802,6 +802,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containercolors") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -836,6 +837,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containernames") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -888,6 +890,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "darkreaderblocklist") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -906,6 +909,7 @@ const checkOther = (src, setting, value) => {
     }
     const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
     if (scopeConf.includes(setting)) {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -937,6 +941,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "favoritepages") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -985,6 +990,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting.startsWith("followelement")) {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1011,6 +1017,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "modifiers") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1028,6 +1035,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "mouse") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1051,10 +1059,15 @@ const checkOther = (src, setting, value) => {
             return false
         }
     }
+    if (setting === "passthroughkeys") {
+        // TODO implement check for valid url regex + valid map key names list
+        return true
+    }
     const permissionSettings = [
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1131,6 +1144,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "quickmarkpersistence" && value !== "") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1146,6 +1160,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "redirects") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1171,6 +1186,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1197,6 +1213,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "resourcetypes" && value !== "") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1212,6 +1229,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchengine") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1236,6 +1254,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchwords") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1285,6 +1304,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1300,6 +1320,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "sponsorblockcategories") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1351,6 +1372,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "startuppages") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1401,6 +1423,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1425,6 +1448,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "suggestorder") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1434,6 +1458,7 @@ const checkOther = (src, setting, value) => {
         return checkSuggestOrder(src, v)
     }
     if (setting === "suspendtimeoutignore") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
@@ -1448,6 +1473,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "tocpages") {
+        // TODO check if still needed
         let v = value
         if (typeof v === "string") {
             v = v.split(",").filter(t => t.trim())
