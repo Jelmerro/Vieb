@@ -401,7 +401,7 @@ const addCommand = (
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")
-            execute(command)
+            execute(command, {"src": "user"})
             const {clear} = require("./contextmenu")
             clear()
         }
@@ -473,8 +473,12 @@ const suggestCommand = searchStr => {
         c => c.startsWith(search)).forEach(c => addCommand(c))
     const {validOptions} = require("./settings")
     // Command: screenshot
-    if ("screenshot".startsWith(command)
+    if (command.startsWith("screen")
         && !range && !confirm && args.length < 3) {
+        let fullCommand = "screenshot"
+        if (command.startsWith("screenc")) {
+            fullCommand = "screencopy"
+        }
         let [dims] = args
         let [, location] = args
         if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
@@ -487,10 +491,10 @@ const suggestCommand = searchStr => {
             location = location.slice(1, location.length - 1)
         }
         if (!location && !dims) {
-            addCommand("screenshot ~")
-            addCommand("screenshot /")
+            addCommand(`${fullCommand} ~`)
+            addCommand(`${fullCommand} /`)
             if (downloadPath()) {
-                addCommand(`screenshot ${downloadPath()}`)
+                addCommand(`${fullCommand} ${downloadPath()}`)
             }
         }
         if (location || search.endsWith(" ")) {
@@ -498,9 +502,9 @@ const suggestCommand = searchStr => {
                 location = joinPath(downloadPath(), location)
             }
             suggestFiles(location).forEach(l => addCommand(
-                `screenshot${dims} ${l.path}`))
+                `${fullCommand}${dims} ${l.path}`))
         } else if (dims) {
-            addCommand(`screenshot${dims}`)
+            addCommand(`${fullCommand}${dims}`)
         }
     }
     updateScreenshotHighlight()

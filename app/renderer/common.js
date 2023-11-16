@@ -265,7 +265,7 @@ const updateScreenshotHighlight = (hide = false) => {
     const url = getUrl()
     const dims = url?.value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-    const screenCmd = url?.value.replace(/^:/g, "").trim().startsWith("screen")
+    const screenCmd = url?.value.replace(/^:/g, "").trim().match(/^screen[a-z]* .*/)
     const highlight = document.getElementById("screenshot-highlight")
     if (!highlight) {
         return
