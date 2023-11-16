@@ -43,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Markdownviewer not supporting local images due to file access limits
 - GUI-related settings not hiding after follow and pointer actions due to pointer being in mouse override position
 - Mapped insert mode inputs with shifted keys sending the keys twice or not at all when unshifted variant exists
+- Non-recursive insert mode special keys not always being called with the correct name (hence arrows not working)
 
 ### Versions
 
