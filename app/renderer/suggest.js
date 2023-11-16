@@ -41,7 +41,8 @@ const {
     getMouseConf,
     updateScreenshotHighlight,
     getUrl,
-    pageForTab
+    pageForTab,
+    currentPage
 } = require("./common")
 
 /** @type {string[]} */
@@ -472,39 +473,83 @@ const suggestCommand = searchStr => {
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
     const {validOptions} = require("./settings")
-    // Command: screenshot
+    // Command: screenshot and screencopy
     if (command.startsWith("screen")
         && !range && !confirm && args.length < 3) {
         let fullCommand = "screenshot"
         if (command.startsWith("screenc")) {
             fullCommand = "screencopy"
         }
-        let [dims] = args
-        let [, location] = args
-        if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
-            [, dims] = args
-            ;[location] = args
+        let [dims, location] = args
+        let dimsFirst = true
+        if (!dims?.match(/^[0-9,]+$/g)
+            || location && !dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+            [location, dims] = args
+            dimsFirst = false
         }
-        dims = ` ${dims || ""}`
+        if (dims && !dims?.match(/^[0-9,]+$/g)) {
+            return
+        }
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
+        const rect = {
+            "height": Number(dims?.split(",")[1] ?? pageHeight),
+            "width": Number(dims?.split(",")[0] ?? pageWidth),
+            "x": Number(dims?.split(",")[2] ?? 0),
+            "y": Number(dims?.split(",")[3] ?? 0)
+        }
+        const dimsSuggest = `${rect.width},${rect.height},${rect.x},${rect.y}`
         location = expandPath(location || "")
-        if (location.startsWith("\"") && location.endsWith("\"")) {
-            location = location.slice(1, location.length - 1)
+        if (location && !isAbsolutePath(location)) {
+            location = joinPath(downloadPath(), location)
         }
-        if (!location && !dims) {
-            addCommand(`${fullCommand} ~`)
-            addCommand(`${fullCommand} /`)
-            if (downloadPath()) {
+        if (fullCommand === "screencopy") {
+            if (!dims) {
+                addCommand(`${fullCommand}`)
+            }
+            addCommand(`${fullCommand} ${dimsSuggest}`)
+        } else if (location) {
+            const fileSuggestions = suggestFiles(location)
+            fileSuggestions.forEach(l => {
+                let loc = l.path
+                if (l.path.includes(" ")) {
+                    loc = `"${loc}"`
+                }
+                if (dimsFirst) {
+                    addCommand(`${fullCommand} ${dimsSuggest} ${loc}`)
+                } else if (dims) {
+                    addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
+                } else {
+                    addCommand(`${fullCommand} ${loc}`)
+                    addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
+                }
+            })
+            if (!fileSuggestions.length) {
+                if (dimsFirst) {
+                    addCommand(`${fullCommand} ${dimsSuggest} ${location}`)
+                } else if (dims) {
+                    addCommand(`${fullCommand} ${location} ${dimsSuggest}`)
+                } else {
+                    addCommand(`${fullCommand} ${location}`)
+                    addCommand(`${fullCommand} ${location} ${dimsSuggest}`)
+                }
+            }
+        } else {
+            if (!dims) {
+                addCommand(`${fullCommand} ~`)
+            }
+            addCommand(`${fullCommand} ~ ${dimsSuggest}`)
+            addCommand(`${fullCommand} ${dimsSuggest} ~`)
+            if (!dims) {
+                addCommand(`${fullCommand} /`)
+            }
+            addCommand(`${fullCommand} / ${dimsSuggest}`)
+            addCommand(`${fullCommand} ${dimsSuggest} /`)
+            if (!dims) {
                 addCommand(`${fullCommand} ${downloadPath()}`)
             }
-        }
-        if (location || search.endsWith(" ")) {
-            if (!isAbsolutePath(location)) {
-                location = joinPath(downloadPath(), location)
-            }
-            suggestFiles(location).forEach(l => addCommand(
-                `${fullCommand}${dims} ${l.path}`))
-        } else if (dims) {
-            addCommand(`${fullCommand}${dims}`)
+            addCommand(`${fullCommand} ${downloadPath()} ${dimsSuggest}`)
+            addCommand(`${fullCommand} ${dimsSuggest} ${downloadPath()}`)
         }
     }
     updateScreenshotHighlight()
@@ -549,15 +594,11 @@ const suggestCommand = searchStr => {
                     addCommand(`write ${typeSuggest}`)
                     addCommand(`write ${typeSuggest} ~`)
                     addCommand(`write ${typeSuggest} /`)
-                    if (downloadPath()) {
-                        addCommand(`write ${typeSuggest} ${downloadPath()}`)
-                    }
+                    addCommand(`write ${typeSuggest} ${downloadPath()}`)
                 } else {
                     addCommand(`write ~ ${typeSuggest}`)
                     addCommand(`write / ${typeSuggest}`)
-                    if (downloadPath()) {
-                        addCommand(`write ${downloadPath()} ${typeSuggest}`)
-                    }
+                    addCommand(`write ${downloadPath()} ${typeSuggest}`)
                 }
             } else {
                 addCommand(`write`.trim())
@@ -571,13 +612,11 @@ const suggestCommand = searchStr => {
                 addCommand(`write html /`.trim())
                 addCommand(`write / mhtml`.trim())
                 addCommand(`write mhtml /`.trim())
-                if (downloadPath()) {
-                    addCommand(`write ${downloadPath()}`.trim())
-                    addCommand(`write ${downloadPath()} html`.trim())
-                    addCommand(`write html ${downloadPath()}`.trim())
-                    addCommand(`write ${downloadPath()} mhtml`.trim())
-                    addCommand(`write mhtml ${downloadPath()}`.trim())
-                }
+                addCommand(`write ${downloadPath()}`.trim())
+                addCommand(`write ${downloadPath()} html`.trim())
+                addCommand(`write html ${downloadPath()}`.trim())
+                addCommand(`write ${downloadPath()} mhtml`.trim())
+                addCommand(`write mhtml ${downloadPath()}`.trim())
             }
         }
         if ((path || search.endsWith(" ")) && !range) {
@@ -605,12 +644,10 @@ const suggestCommand = searchStr => {
                 }
             })
             if (!fileSuggestions.length) {
-                if (type) {
-                    if (args[0] === type) {
-                        addCommand(`write ${typeSuggest} ${path}`)
-                    } else {
-                        addCommand(`write ${path} ${typeSuggest}`)
-                    }
+                if (type && args[0] === type) {
+                    addCommand(`write ${typeSuggest} ${path}`)
+                } else if (type) {
+                    addCommand(`write ${path} ${typeSuggest}`)
                 } else {
                     addCommand(`write ${path}`)
                     addCommand(`write ${path} html`)

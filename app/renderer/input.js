@@ -945,7 +945,8 @@ const moveScreenshotFrame = (x, y) => {
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
         const url = getUrl()
         const dims = url?.value.split(" ").find(
-            arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
+            arg => arg?.match(/^[0-9,]+$/g))
+        const dimsIndex = url?.value.split(" ").indexOf(dims ?? "") ?? 1
         if (currentMode() !== "command" || !currentPage()) {
             return
         }
@@ -980,12 +981,17 @@ const moveScreenshotFrame = (x, y) => {
         if (rect.height === 0 || rect.height > pageHeight - rect.y) {
             rect.height = pageHeight - rect.y
         }
+        const newDims = `${rect.width},${rect.height},${rect.x},${rect.y}`
         if (dims && url) {
-            url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
-                rect.height},${rect.x},${rect.y}`)
+            url.value = url.value.split(" ").map((v, i) => {
+                if (i === dimsIndex) {
+                    return newDims
+                }
+                return v
+            }).join(" ")
         } else if (url) {
-            url.value = `${url.value.split(" ").slice(0, -1).join(" ")
-            } ${rect.width},${rect.height},${rect.x},${rect.y}`
+            url.value = `${url.value.split(" ").slice(0, 2)
+                .filter(t => t).join(" ")} ${newDims}`
         }
         updateScreenshotHighlight()
         requestSuggestUpdate()
