@@ -1,7 +1,7 @@
 {
   "name": "vieb",
   "productName": "Vieb",
-  "version": "10.5.0",
+  "version": "11.0.0-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/jsdom": "21.1.5",
     "@types/picomatch": "2.3.3",
-    "electron": "27.0.4",
+    "electron": "27.1.0",
     "electron-builder": "24.6.4",
     "eslint": "8.53.0",
     "eslint-plugin-jsdoc": "46.9.0",
@@ -49,9 +49,9 @@
     "darkreader": "4.9.67",
     "highlight.js": "11.9.0",
     "jsdom": "22.1.0",
-    "marked": "9.1.6",
-    "marked-base-url": "1.1.0",
-    "marked-highlight": "2.0.6",
+    "marked": "10.0.0",
+    "marked-base-url": "1.1.1",
+    "marked-highlight": "2.0.7",
     "picomatch": "3.0.1"
   }
 }
