@@ -532,27 +532,100 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: write
-    if ("write".startsWith(command) && !confirm && args.length < 2) {
-        // TODO update suggestions for new type arg
-        let location = expandPath(args.join(" "))
-        if (location.startsWith("\"") && location.endsWith("\"")) {
-            location = location.slice(1, location.length - 1)
+    if ("write".startsWith(command) && !confirm && args.length < 3) {
+        let [path = "", type = ""] = args
+        if (!["mhtml", "html"].includes(type)
+            && ["mhtml", "html"].some(h => h.startsWith(path))) {
+            [type = "", path = ""] = args
         }
-        if (!location && !range) {
-            addCommand("write ~")
-            addCommand("write /")
-            if (downloadPath()) {
-                addCommand(`write ${downloadPath()}`)
+        path = expandPath(path)
+        let typeSuggest = "html"
+        if (type.startsWith("m")) {
+            typeSuggest = "mhtml"
+        }
+        if (!path && !range) {
+            if (type) {
+                if (args[0] === type) {
+                    addCommand(`write ${typeSuggest}`)
+                    addCommand(`write ${typeSuggest} ~`)
+                    addCommand(`write ${typeSuggest} /`)
+                    if (downloadPath()) {
+                        addCommand(`write ${typeSuggest} ${downloadPath()}`)
+                    }
+                } else {
+                    addCommand(`write ~ ${typeSuggest}`)
+                    addCommand(`write / ${typeSuggest}`)
+                    if (downloadPath()) {
+                        addCommand(`write ${downloadPath()} ${typeSuggest}`)
+                    }
+                }
+            } else {
+                addCommand(`write`.trim())
+                addCommand(`write ~`.trim())
+                addCommand(`write ~ html`.trim())
+                addCommand(`write html ~`.trim())
+                addCommand(`write ~ mhtml`.trim())
+                addCommand(`write mhtml ~`.trim())
+                addCommand(`write /`.trim())
+                addCommand(`write / html`.trim())
+                addCommand(`write html /`.trim())
+                addCommand(`write / mhtml`.trim())
+                addCommand(`write mhtml /`.trim())
+                if (downloadPath()) {
+                    addCommand(`write ${downloadPath()}`.trim())
+                    addCommand(`write ${downloadPath()} html`.trim())
+                    addCommand(`write html ${downloadPath()}`.trim())
+                    addCommand(`write ${downloadPath()} mhtml`.trim())
+                    addCommand(`write mhtml ${downloadPath()}`.trim())
+                }
             }
         }
-        if (location || search.endsWith(" ") && !range) {
-            if (!isAbsolutePath(location)) {
-                location = joinPath(downloadPath(), location)
+        if ((path || search.endsWith(" ")) && !range) {
+            if (!isAbsolutePath(path)) {
+                path = joinPath(downloadPath(), path)
             }
-            suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
+            const fileSuggestions = suggestFiles(path)
+            fileSuggestions.forEach(l => {
+                let loc = l.path
+                if (l.path.includes(" ")) {
+                    loc = `"${loc}"`
+                }
+                if (type) {
+                    if (args[0] === type) {
+                        addCommand(`write ${typeSuggest} ${loc}`)
+                    } else {
+                        addCommand(`write ${loc} ${typeSuggest}`)
+                    }
+                } else {
+                    addCommand(`write ${loc}`)
+                    addCommand(`write ${loc} html`)
+                    addCommand(`write ${loc} mhtml`)
+                    addCommand(`write html ${loc}`)
+                    addCommand(`write mtml ${loc}`)
+                }
+            })
+            if (!fileSuggestions.length) {
+                if (type) {
+                    if (args[0] === type) {
+                        addCommand(`write ${typeSuggest} ${path}`)
+                    } else {
+                        addCommand(`write ${path} ${typeSuggest}`)
+                    }
+                } else {
+                    addCommand(`write ${path}`)
+                    addCommand(`write ${path} html`)
+                    addCommand(`write ${path} mhtml`)
+                }
+            }
         }
         if (range) {
-            addCommand(`${range}write`)
+            if (type) {
+                addCommand(`${range}write ${typeSuggest}`)
+            } else {
+                addCommand(`${range}write`)
+                addCommand(`${range}write html`)
+                addCommand(`${range}write mhtml`)
+            }
             const tabs = listTabs()
             rangeToTabIdxs("user", range, true).tabs.map(num => {
                 const tab = tabs.at(num)
@@ -561,7 +634,7 @@ const suggestCommand = searchStr => {
                 }
                 const index = tabs.indexOf(tab)
                 return {
-                    "command": `${index}write`,
+                    "command": `${index}write ${typeSuggest}`.trim(),
                     "icon": pageForTab(tab)?.getAttribute("src") ?? "",
                     "title": tab.querySelector("span")?.textContent ?? "",
                     "url": pageForTab(tab)?.getAttribute("src") ?? ""
