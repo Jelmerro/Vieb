@@ -1083,9 +1083,10 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
  * Write the html of a page to disk based on tab index or current.
  * @param {import("./common").RunSource} src
  * @param {string|null} customLoc
+ * @param {"mhtml"|"html"} extension
  * @param {number|null} tabIdx
  */
-const writePage = (src, customLoc = null, tabIdx = null) => {
+const writePage = (src, customLoc, extension, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
@@ -1094,12 +1095,16 @@ const writePage = (src, customLoc = null, tabIdx = null) => {
     if (!page || page instanceof HTMLDivElement) {
         return
     }
-    const loc = resolveFileArg(src, customLoc, "html", page)
+    let type = "HTMLComplete"
+    if (extension === "mhtml") {
+        type = "MHTML"
+    }
+    const loc = resolveFileArg(src, customLoc, extension, page)
     if (!loc) {
         return
     }
     const webContentsId = page.getWebContentsId()
-    ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
+    ipcRenderer.invoke("save-page", webContentsId, loc, type).then(() => {
         notify(`Page saved at '${loc}'`, {src})
     }).catch(err => {
         notify(`Could not save the page:\n${err}`, {src, "type": "err"})
@@ -1113,21 +1118,33 @@ const writePage = (src, customLoc = null, tabIdx = null) => {
  * @param {string} range
  */
 const write = (src, args, range) => {
-    if (args.length > 1) {
-        notify("The write command takes only a single optional argument:\n"
-            + "the location where to write the page", {src, "type": "warn"})
+    if (args.length > 2) {
+        notify("The write command takes two optionals argument:\n"
+            + "the location where to write the page and a type of file",
+        {src, "type": "warn"})
         return
     }
-    if (range && args[0]) {
-        notify("Range cannot be combined with a custom location",
+    let [path, type = "html"] = args
+    if (!["mhtml", "html"].includes(type) || ["mhtml", "html"].includes(path)) {
+        [type, path] = args
+    }
+    if (type !== "html" && type !== "mhtml") {
+        notify("Write type must be one of 'html' or 'mhtml'",
+            {src, "type": "warn"})
+        return
+    }
+    if (range && path) {
+        notify("Write command range cannot be combined with a custom location",
             {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => writePage(src, null, t))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            writePage(src, null, type, t)
+        }
         return
     }
-    writePage(src, args[0])
+    writePage(src, path, type)
 }
 
 /**

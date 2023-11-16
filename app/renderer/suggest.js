@@ -529,6 +529,7 @@ const suggestCommand = searchStr => {
     }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
+        // TODO update suggestions for new type arg
         let location = expandPath(args.join(" "))
         if (location.startsWith("\"") && location.endsWith("\"")) {
             location = location.slice(1, location.length - 1)

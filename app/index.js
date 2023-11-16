@@ -2206,8 +2206,8 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
 ipcMain.on("update-native-theme", (_, newTheme) => {
     nativeTheme.themeSource = newTheme
 })
-ipcMain.handle("save-page", (_, id, loc) => {
-    webContents.fromId(id)?.savePage(loc, "HTMLComplete")
+ipcMain.handle("save-page", (_, id, loc, type) => {
+    webContents.fromId(id)?.savePage(loc, type)
 })
 ipcMain.on("hide-window", () => {
     if (!argDebugMode) {
