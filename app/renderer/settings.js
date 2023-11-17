@@ -321,10 +321,6 @@ const defaultSettings = {
     ],
     /** @type {"all"|"pinned"|"regular"|"none"} */
     "restoretabs": "all",
-    "restorewindowfullscreen": true,
-    "restorewindowmaximize": true,
-    "restorewindowposition": true,
-    "restorewindowsize": true,
     /** @type {"domain"|"url"} */
     "scrollposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
@@ -396,6 +392,7 @@ const defaultSettings = {
     "userstyle": false,
     "userstylescope": ["page"],
     "vimcommand": "gvim",
+    "windowfullscreen": "restore",
     "windowmaximize": "restore",
     "windowposition": "restore",
     "windowsize": "restore",
@@ -596,6 +593,7 @@ const validOptions = {
         "uk",
         "zh"
     ],
+    "windowfullscreen": ["true", "false", "restore"],
     "windowmaximize": ["true", "false", "restore"]
 }
 const numberRanges = {

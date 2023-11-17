@@ -19,7 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "loadingindicator" to control where the page load status should be shown
 - Setting "passthroughkeys" to send keys to the page per site/domain/regex without leaving normal mode
 - Option to write command to save pages as MHTML instead of just HTML
-- Setting "restorewindowfullscreen" to allow the fullscreen state to be kept after restart (default on)
+- Setting "windowfullscreen" to allow the fullscreen state to be kept after restart (default "restore")
 
 ## Changed
 
@@ -38,6 +38,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "suspendplayingtab" in favor of "suspendtimeoutignore" with the right range
 - Option "system" for "nativetheme"
 - Option "ask" for "permissionmediadevices"
+- Setting "restorewindowmaximize" in favor of "windowmaximize" with value "restore"
+- Setting "restorewindowposition" in favor of "windowposition" with value "restore"
+- Setting "restorewindowsize" in favor of "windowsize" with value "restore"
 
 ## Fixed
 
