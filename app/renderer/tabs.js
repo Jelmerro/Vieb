@@ -1457,10 +1457,12 @@ const init = () => {
                 addTab({"src": "source", "url": specialPagePath("help")})
             }
         }
-        ipcRenderer.send("window-state-init",
-            getSetting("restorewindowposition"),
-            getSetting("restorewindowsize"),
-            getSetting("restorewindowmaximize"))
+        ipcRenderer.send("window-state-init", {
+            "full": getSetting("restorewindowfullscreen"),
+            "max": getSetting("restorewindowmaximize"),
+            "pos": getSetting("restorewindowposition"),
+            "size": getSetting("restorewindowsize")
+        })
     })
 }
 

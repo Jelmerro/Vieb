@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "loadingindicator" to control where the page load status should be shown
 - Setting "passthroughkeys" to send keys to the page per site/domain/regex without leaving normal mode
 - Option to write command to save pages as MHTML instead of just HTML
+- Setting "restorewindowfullscreen" to allow the fullscreen state to be kept after restart (default on)
 
 ## Changed
 

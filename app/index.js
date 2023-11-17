@@ -2117,14 +2117,14 @@ ipcMain.on("download-favicon", (_, options) => {
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 
 /**
- * Save the current window state, optionally just the maximization state.
- * @param {boolean} maximizeOnly
+ * Save the current window state, optionally just the maximize/fullscreen state.
+ * @param {boolean} statesOnly
  */
-const saveWindowState = (maximizeOnly = false) => {
+const saveWindowState = (statesOnly = false) => {
     try {
         mainWindow?.webContents?.send("window-update-gui")
         let state = readJSON(windowStateFile) || {}
-        if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
+        if (!statesOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
             const currentScreen = screen.getDisplayMatching(newBounds).workArea
             const sameW = newBounds.width === currentScreen.width
@@ -2138,13 +2138,14 @@ const saveWindowState = (maximizeOnly = false) => {
             }
         }
         state.maximized = mainWindow?.isMaximized()
+        state.fullscreen = mainWindow?.fullScreen
         writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
     }
 }
 
-ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
+ipcMain.on("window-state-init", (_, restore) => {
     if (!mainWindow) {
         return
     }
@@ -2156,19 +2157,23 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         bounds.width = Number(parsed.width)
         bounds.height = Number(parsed.height)
         bounds.maximized = !!parsed.maximized
+        bounds.fullscreen = !!parsed.fullscreen
     }
-    if (restorePos) {
+    if (restore.pos) {
         if (bounds.x > 0 && bounds.y > 0) {
             mainWindow.setPosition(bounds.x, bounds.y)
         }
     }
-    if (restoreSize) {
+    if (restore.size) {
         if (bounds.width > 500 && bounds.height > 500) {
             mainWindow.setSize(bounds.width, bounds.height)
         }
     }
-    if (bounds.maximized && restoreMax) {
+    if (bounds.maximized && restore.max) {
         mainWindow.maximize()
+    }
+    if (bounds.fullscreen && restore.full) {
+        mainWindow.fullScreen = true
     }
     mainWindow.show()
     mainWindow.focus()
@@ -2241,6 +2246,7 @@ ipcMain.handle("toggle-always-on-top", () => {
 ipcMain.handle("toggle-fullscreen", () => {
     if (mainWindow) {
         mainWindow.fullScreen = !mainWindow.fullScreen
+        saveWindowState(true)
     }
 })
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {

@@ -321,6 +321,7 @@ const defaultSettings = {
     ],
     /** @type {"all"|"pinned"|"regular"|"none"} */
     "restoretabs": "all",
+    "restorewindowfullscreen": true,
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,

@@ -1175,6 +1175,8 @@
         Detection of these resource types relies on the internal Chromium request response types and as such cannot be customized or improved to work more reliable or handle other types.
         <h3 id="restoretabs">restoretabs</h3>
         This setting controls if tabs you had open during the previous browsing session should be restored. By default all tabs you had open when you quit Vieb last time will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is set to "pinned", regular tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are still restored if set to "pinned". With the "regular" and "none" options, you can choose to not restore pinned tabs, but only regular ones or none at all. The container and muted state of each tab is always remembered on restart. You can control if restored tabs are loaded or not with <a href="#suspendonrestore">suspendonrestore</a>.
+        <h3 id="restorewindowfullscreen">restorewindowfullscreen</h3>
+        Toggle for remembering and restoring the window fullscreen state after restarting Vieb.
         <h3 id="restorewindowmaximize">restorewindowmaximize</h3>
         Toggle for remembering and restoring the window maximization state after restarting Vieb.
         <h3 id="restorewindowposition">restorewindowposition</h3>
