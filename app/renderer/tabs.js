@@ -1459,9 +1459,12 @@ const init = () => {
         }
         ipcRenderer.send("window-state-init", {
             "full": getSetting("restorewindowfullscreen"),
-            "max": getSetting("restorewindowmaximize"),
-            "pos": getSetting("restorewindowposition"),
+            "max": getSetting("restorewindowmaximize")
+                && getSetting("windowmaximize"),
+            "pos": getSetting("restorewindowposition")
+                && getSetting("windowposition"),
             "size": getSetting("restorewindowsize")
+                && getSetting("windowsize")
         })
     })
 }

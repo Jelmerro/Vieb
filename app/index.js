@@ -2159,17 +2159,26 @@ ipcMain.on("window-state-init", (_, restore) => {
         bounds.maximized = !!parsed.maximized
         bounds.fullscreen = !!parsed.fullscreen
     }
-    if (restore.pos) {
+    if (restore.pos === "restore") {
         if (bounds.x > 0 && bounds.y > 0) {
             mainWindow.setPosition(bounds.x, bounds.y)
         }
+    } else if (restore.pos !== "default") {
+        const nums = restore.pos.split("x").map(Number)
+        mainWindow.setPosition(nums[0], nums[1])
     }
-    if (restore.size) {
+    if (restore.size === "restore") {
         if (bounds.width > 500 && bounds.height > 500) {
             mainWindow.setSize(bounds.width, bounds.height)
         }
+    } else if (restore.size !== "default") {
+        const nums = restore.size.split("x").map(Number)
+        mainWindow.setSize(nums[0], nums[1])
     }
-    if (bounds.maximized && restore.max) {
+    if (bounds.maximized && restore.max === "restore") {
+        mainWindow.maximize()
+    }
+    if (restore.max === "true") {
         mainWindow.maximize()
     }
     if (bounds.fullscreen && restore.full) {

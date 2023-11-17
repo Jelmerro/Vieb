@@ -4,7 +4,7 @@
    height="1300"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
    version="1.0"
    sodipodi:docname="cheatsheet.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
@@ -69,16 +69,16 @@
      objecttolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.87681241"
-     inkscape:cx="696.27208"
-     inkscape:cy="387.76823"
+     inkscape:zoom="1.24"
+     inkscape:cx="593.14516"
+     inkscape:cy="666.53226"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="10px"
      height="1300px"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1020"
+     inkscape:window-height="1016"
      inkscape:window-x="1920"
      inkscape:window-y="0"
      showguides="false"
@@ -103,7 +103,9 @@
        empcolor="#3f3fff"
        opacity="0.15"
        empopacity="0.38"
-       empspacing="5" />
+       empspacing="5"
+       units="mm"
+       visible="false" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -1938,15 +1940,14 @@
        transform="translate(3.9917318,10.834701)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4258"><tspan
+         id="tspan2"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4256">save 
-</tspan></tspan><tspan
+           id="tspan1">save &#10;</tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4262"><tspan
+         id="tspan4"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4260">URL</tspan></tspan></text>
+           id="tspan3">URL</tspan></tspan></text>
     <text
        id="text9514-2-4"
        y="319.29251"
@@ -1956,15 +1957,14 @@
        transform="translate(289.16688,-66.591742)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4266"><tspan
+         id="tspan6"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4264">restore 
-</tspan></tspan><tspan
+           id="tspan5">restore &#10;</tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4270"><tspan
+         id="tspan8"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4268">URL</tspan></tspan></text>
+           id="tspan7">URL</tspan></tspan></text>
     <text
        id="text9514-2-6"
        y="319.29251"
@@ -1974,20 +1974,19 @@
        transform="translate(4.5968886,39.259431)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4274"><tspan
+         id="tspan10"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4272">save </tspan></tspan><tspan
+           id="tspan9">save </tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4278"><tspan
+         id="tspan12"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4276">scroll 
-</tspan></tspan><tspan
+           id="tspan11">scroll &#10;</tspan></tspan><tspan
          x="626.76935"
          y="334.65249"
-         id="tspan4282"><tspan
+         id="tspan14"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4280">position</tspan></tspan></text>
+           id="tspan13">position</tspan></tspan></text>
     <text
        id="text9514-2-6-0"
        y="319.29251"
@@ -1997,20 +1996,19 @@
        transform="translate(288.3482,-37.857714)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4286"><tspan
+         id="tspan16"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4284">restore </tspan></tspan><tspan
+           id="tspan15">restore </tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4290"><tspan
+         id="tspan18"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4288">scroll 
-</tspan></tspan><tspan
+           id="tspan17">scroll &#10;</tspan></tspan><tspan
          x="626.76935"
          y="334.65249"
-         id="tspan4294"><tspan
+         id="tspan20"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4292">position</tspan></tspan></text>
+           id="tspan19">position</tspan></tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:12.8px;line-height:0%;font-family:TlwgTypewriter;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
@@ -2225,21 +2223,19 @@
        transform="translate(42,4)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4298"><tspan
+         id="tspan22"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4296"> 
-</tspan></tspan><tspan
+           id="tspan21"> &#10;</tspan></tspan><tspan
          x="351.18723"
          y="280.07504"
-         id="tspan4302"><tspan
+         id="tspan24"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4300">follow </tspan></tspan><tspan
+           id="tspan23">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.75503"
-         id="tspan4306"><tspan
+         id="tspan26"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4304">mode
-</tspan></tspan></text>
+           id="tspan25">mode&#10;</tspan></tspan></text>
     <text
        id="text9514-6"
        y="203.01891"
@@ -3864,7 +3860,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-2-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(203.11083,569.74587)"><flowRegion
+       transform="translate(203.11083,575.74587)"><flowRegion
          id="flowRegion5693-9-1-7-6-3"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-4-7"
@@ -4068,7 +4064,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(205.79196,260.28154)"><flowRegion
+       transform="translate(205.79196,272.28154)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-1"
@@ -4388,7 +4384,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-9"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(203.16416,480.4123)"><flowRegion
+       transform="translate(203.16416,488.4123)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-4"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-34"
@@ -4466,7 +4462,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4-1"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(206.18347,350.34686)"><flowRegion
+       transform="translate(206.18347,360.34686)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-8-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-3-2"
@@ -4566,7 +4562,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-6-1-2"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-306.64516,196.87097)"><flowRegion
+       transform="translate(-306.64516,194.87097)"><flowRegion
          id="flowRegion5693-9-1-7-3-5-2"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-0-9"
@@ -4591,6 +4587,8 @@
          id="flowPara89760">gr/gR  -  toggle reader view in current/new tab</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara10369">gm/gM  -  toggle markdown view in current/new tab</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara1">gc - toggle table of contents in current tab</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara20559"><flowSpan
    style="font-weight:bold"
@@ -5226,23 +5224,21 @@
        transform="translate(40.307436,-25.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4310"><tspan
+         id="tspan28"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4308"> 
-</tspan></tspan><tspan
+           id="tspan27"> &#10;</tspan></tspan><tspan
          x="351.18723"
          y="280.07504"
-         id="tspan4314"><tspan
+         id="tspan30"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4312">follow in </tspan></tspan><tspan
+           id="tspan29">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.75503"
-         id="tspan4320"><tspan
+         id="tspan33"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4316">new tab</tspan><tspan
+           id="tspan31">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4318">
-</tspan></tspan></text>
+           id="tspan32">&#10;</tspan></tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0%;font-family:'DejaVu Sans Mono';display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"

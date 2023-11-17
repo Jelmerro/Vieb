@@ -50,6 +50,36 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
+- Electron 27.1.0 (unchanged)
+- Chromium 118.0.5993.144 (unchanged)
+
+## [10.6.0](https://github.com/Jelmerro/Vieb/compare/10.5.0...10.6.0) - 2023-11-17
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/10.5.0...10.6.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.6.0)
+
+### Added
+
+- Settings "windowmaximize" to replace "restorewindowmaximize" and allow fixed defaults
+- Settings "windowposition" to replace "restorewindowposition" and allow custom positions
+- Settings "windowsize" to replace "restorewindowsize" and allow custom sizes
+
+### Changed
+
+- Revert deprecation of "tocpages", current empty default wil remain in 11.x.x
+- More setting related errors to show the incorrect value
+
+### Deprecated
+
+- Setting "restorewindowmaximize" (will be removed in 11.x.x) in favor of using "windowmaximize" with "restore"
+- Setting "restorewindowposition" (will be removed in 11.x.x) in favor of using "windowposition" with "restore"
+- Setting "restorewindowsize" (will be removed in 11.x.x) in favor of using "windowsize" with "restore"
+
+### Fixed
+
+- Nativetheme not updating correctly because of incorrect deprecation statement in previous release
+
+### Versions
+
 - Electron 27.1.0 (was 27.0.4)
 - Chromium 118.0.5993.144 (was 118.0.5993.129)
 
