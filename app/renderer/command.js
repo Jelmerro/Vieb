@@ -94,6 +94,11 @@ const listSetting = (src, setting) => {
             + "suspendtimeoutignore in 11.0.0 onward.",
         {src, "type": "warn"})
     }
+    if (setting.startsWith("restore")) {
+        notify(`DEPRECATION: ${setting} will be replace with `
+            + `${setting.replace("restore", "")} in 11.0.0 onward.`,
+        {src, "type": "warn"})
+    }
     notify(`The setting '${setting}' has the value '${getSetting(setting)}'`, {
         src
     })

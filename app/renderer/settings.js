@@ -344,6 +344,9 @@ const defaultSettings = {
     "userstyle": false,
     "userstylescope": "page",
     "vimcommand": "gvim",
+    "windowmaximize": "restore",
+    "windowposition": "restore",
+    "windowsize": "restore",
     "windowtitle": "%app - %title"
 }
 /** @type {typeof defaultSettings} */
@@ -575,7 +578,8 @@ const validOptions = {
         "tr",
         "uk",
         "zh"
-    ]
+    ],
+    "windowmaximize": ["true", "false", "restore"]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
@@ -748,7 +752,7 @@ const checkOther = (src, setting, value) => {
             || isValidIntervalValue(value)
         if (!valid) {
             notify("clearhistoryinterval can only be set to none, session or "
-                + "a valid interval, such as 1day or 3months",
+                + `a valid interval, such as 1day or 3months, not: ${value}`,
             {src, "type": "warn"})
         }
         return valid
@@ -898,11 +902,12 @@ const checkOther = (src, setting, value) => {
         }
         const expandedPath = expandPath(value)
         if (value && !pathExists(expandedPath)) {
-            notify("The download path does not exist", {src, "type": "warn"})
+            notify(`The downloadpath does not exist: ${expandPath}`,
+                {src, "type": "warn"})
             return false
         }
         if (value && !isDir(expandedPath)) {
-            notify("The download path is not a directory",
+            notify(`The downloadpath is not a directory: ${expandPath}`,
                 {src, "type": "warn"})
             return false
         }
@@ -941,14 +946,14 @@ const checkOther = (src, setting, value) => {
         if (value.startsWith("custom:")) {
             const chars = value.replace("custom:", "").split("")
             if (chars.length < 2) {
-                notify("A minimum of two characters is required",
+                notify("The followchars value must be at least two characters",
                     {src, "type": "warn"})
-                return
+                return false
             }
             if (new Set(chars).size < chars.length) {
-                notify("All characters must be unique, no duplicates",
-                    {src, "type": "warn"})
-                return
+                notify("All followchars characters must be unique, "
+                    + "no duplicates", {src, "type": "warn"})
+                return false
             }
         }
     }
@@ -1006,8 +1011,8 @@ const checkOther = (src, setting, value) => {
             return false
         }
         if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify("The newtaburl value must be a valid url or empty",
-                {src, "type": "warn"})
+            notify("The newtaburl value must be a valid url or empty"
+                + `, not: ${value}`, {src, "type": "warn"})
             return false
         }
     }
@@ -1163,15 +1168,15 @@ const checkOther = (src, setting, value) => {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
                 notify(`Invalid searchengine value: ${baseUrl}\n`
-                        + "Each URL must contain a %s parameter, which will "
-                        + "be replaced by the search string",
+                    + "Each URL must contain a %s parameter, which will "
+                    + "be replaced by the search string",
                 {src, "type": "warn"})
                 return false
             }
             if (!isUrl(baseUrl)) {
                 notify(
-                    "Each URL of the searchengine setting must be a valid url",
-                    {src, "type": "warn"})
+                    `Invalid searchengine value:${baseUrl}\n`
+                    + "URL must be a valid url", {src, "type": "warn"})
                 return false
             }
         }
@@ -1370,9 +1375,30 @@ const checkOther = (src, setting, value) => {
             return false
         }
         if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify("The translateurl value must be a valid url",
+            notify(`The translateurl value must be a valid url, not: ${value}`,
                 {src, "type": "warn"})
             return false
+        }
+    }
+    if (setting === "windowposition" || setting === "windowsize") {
+        if (typeof value !== "string") {
+            return false
+        }
+        if (value === "restore" || value === "default") {
+            return true
+        }
+        if (!value.match(/^\d+x\d+$/g)) {
+            notify(`The ${setting} value must be two numbers joined with an x, `
+                + "such as 800x600", {src, "type": "warn"})
+            return false
+        }
+        const nums = value.split("x").map(Number)
+        if (setting === "windowsize") {
+            if (nums.some(v => v < 500)) {
+                notify(`The ${setting} value sizes must be at least 500, not: ${
+                    nums.find(v => v < 500)}`, {src, "type": "warn"})
+                return false
+            }
         }
     }
     return true
@@ -1773,6 +1799,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "vimcommand") {
         allowedValues = "Any system command"
     }
+    if (setting === "windowposition" || setting === "windowsize") {
+        allowedValues = "'default', 'restore' or custom value"
+    }
     if (setting === "windowtitle") {
         allowedValues = "Any title"
     }
@@ -1995,6 +2024,11 @@ const set = (src, setting, value) => {
         }
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
+        }
+        if (setting.startsWith("restore")) {
+            notify(`DEPRECATION: ${setting} will be replace with `
+                + `${setting.replace("restore", "")} in 11.0.0 onward.`,
+            {src, "type": "warn"})
         }
         if (setting === "suspendplayingtab") {
             notify("DEPRECATION: suspendplayingtab will be replaced with "

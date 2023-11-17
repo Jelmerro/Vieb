@@ -13,9 +13,22 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Settings "windowmaximize" to replace "restorewindowmaximize" and allow fixed defaults
+- Settings "windowposition" to replace "restorewindowposition" and allow custom positions
+- Settings "windowsize" to replace "restorewindowsize" and allow custom sizes
+
 ### Changed
 
 - Revert deprecation of "tocpages", current empty default wil remain in 11.x.x
+- More setting related errors to show the incorrect value
+
+### Deprecated
+
+- Setting "restorewindowmaximize" (will be removed in 11.x.x) in favor of using "windowmaximize" with "restore"
+- Setting "restorewindowposition" (will be removed in 11.x.x) in favor of using "windowposition" with "restore"
+- Setting "restorewindowsize" (will be removed in 11.x.x) in favor of using "windowsize" with "restore"
 
 ### Fixed
 
