@@ -805,14 +805,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containercolors") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const colorMatch of v) {
+        for (const colorMatch of value) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -840,14 +836,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containernames") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const containerMatch of v) {
+        for (const containerMatch of value) {
             if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
                     + "Entries must have one or two ~ to separate the "
@@ -873,7 +865,7 @@ const checkOther = (src, setting, value) => {
             if (simpleValue.match(specialChars)) {
                 notify(
                     "No special characters besides underscores are allowed in "
-                    + `the name of a container, invalid ${setting}: ${v}`,
+                    + `the name of a container, invalid ${setting}: ${value}`,
                     {src, "type": "warn"})
                 return false
             }
@@ -893,14 +885,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "darkreaderblocklist") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const match of v) {
+        for (const match of value) {
             try {
                 RegExp(match)
             } catch {
@@ -912,14 +900,10 @@ const checkOther = (src, setting, value) => {
     }
     const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
     if (scopeConf.includes(setting)) {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const match of v) {
+        for (const match of value) {
             if (!["file", "page", "special"].includes(match)) {
                 notify(`Invalid value '${match}' in ${setting}, `
                     + "must be one of: file, page or special",
@@ -945,14 +929,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "favoritepages") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const page of v) {
+        for (const page of value) {
             if (!isUrl(page)) {
                 notify(`Invalid URL passed to favoritepages: ${page}`,
                     {src, "type": "warn"})
@@ -994,11 +974,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting.startsWith("followelement")) {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
         const ok = [
@@ -1010,7 +986,7 @@ const checkOther = (src, setting, value) => {
             "image",
             "other"
         ]
-        for (const element of v) {
+        for (const element of value) {
             if (!ok.includes(element)) {
                 notify(`Invalid element type passed: ${element}, `
                    + `must be any combination of: url, onclick,
@@ -1021,15 +997,11 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "modifiers") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
         const {keyNames} = require("./input")
-        for (const name of v) {
+        for (const name of value) {
             if (name.length > 1
                 && !keyNames.some(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
@@ -1039,14 +1011,11 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "mouse") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        const invalid = v.find(m => !mouseFeatures.includes(m) && m !== "all")
+        const invalid = value.find(
+            m => !mouseFeatures.includes(m) && m !== "all")
         if (invalid) {
             notify(`Feature '${invalid}' is not a valid mouse feature`,
                 {src, "type": "warn"})
@@ -1071,14 +1040,10 @@ const checkOther = (src, setting, value) => {
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const override of v) {
+        for (const override of value) {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
@@ -1148,14 +1113,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "quickmarkpersistence" && value !== "") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const mType of v) {
+        for (const mType of value) {
             if (!["scroll", "marks", "pointer"].includes(mType)) {
                 notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
                     {src, "type": "warn"})
@@ -1164,14 +1125,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "redirects") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const redirect of v) {
+        for (const redirect of value) {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -1190,14 +1147,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const override of v) {
+        for (const override of value) {
             const [match, ...names] = override.split("~")
             try {
                 RegExp(match)
@@ -1217,14 +1170,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "resourcetypes" && value !== "") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const rsrc of v) {
+        for (const rsrc of value) {
             if (!defaultSettings.resourcetypes.includes(rsrc)) {
                 notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
                     {src, "type": "warn"})
@@ -1233,14 +1182,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchengine") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (let baseUrl of v) {
+        for (let baseUrl of value) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
                 notify(`Invalid searchengine value: ${baseUrl}\n`
@@ -1258,30 +1203,12 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchwords") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (typeof v !== "object") {
+        if (typeof value !== "object" || Array.isArray(value)) {
             return false
-        }
-        if (Array.isArray(v)) {
-            const list = v
-            v = {}
-            for (const el of list) {
-                if ((el.match(/~/g) || []).length !== 1) {
-                    notify(`Invalid searchwords entry: ${el}\n`
-                        + "Entries must have exactly one ~ to separate the "
-                        + "searchword from the URL", {src, "type": "warn"})
-                    return false
-                }
-                const [keyword, url] = el.split("~")
-                v[keyword] = url
-            }
         }
         /** @type {string[]} */
         const knownSearchwords = []
-        for (const searchword of Object.entries(v)) {
+        for (const searchword of Object.entries(value)) {
             const [keyword, url] = searchword
             const simpleKeyword = keyword.replace(/_/g, "")
             if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
@@ -1308,14 +1235,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const lang of v) {
+        for (const lang of value) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
                     {src, "type": "warn"})
@@ -1324,33 +1247,14 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "sponsorblockcategories") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (typeof v !== "object") {
+        if (typeof value !== "object" || Array.isArray(value)) {
             return false
-        }
-        if (Array.isArray(v)) {
-            const list = v
-            v = {}
-            for (const el of list) {
-                if ((el.match(/~/g) || []).length > 1) {
-                    notify(`Invalid ${setting} entry: ${el}\n`
-                        + "Entries must have zero or one ~ to separate the "
-                        + "category name and color name/hex",
-                    {src, "type": "warn"})
-                    return false
-                }
-                const [category, color] = el.split("~")
-                v[category] = color
-            }
         }
         /** @type {string[]} */
         const knownCategories = []
         const allCategories = Object.keys(
             defaultSettings.sponsorblockcategories)
-        for (const catColorPair of Object.entries(v)) {
+        for (const catColorPair of Object.entries(value)) {
             const [category, color] = catColorPair
             if (!allCategories.includes(category)) {
                 notify(`Invalid category in ${setting}: ${category}`,
@@ -1376,14 +1280,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "startuppages") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const page of v) {
+        for (const page of value) {
             const parts = page.split("~")
             const url = parts.shift() ?? ""
             const cname = parts.shift()
@@ -1427,11 +1327,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
         const valid = [
@@ -1442,7 +1338,7 @@ const checkOther = (src, setting, value) => {
             "readerview",
             "markdownviewer"
         ]
-        for (const visitType of v) {
+        for (const visitType of value) {
             if (!valid.includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
                     + `must be one of: ${valid.join(", ")}`,
@@ -1452,24 +1348,16 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "suggestorder") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        return checkSuggestOrder(src, v)
+        return checkSuggestOrder(src, value)
     }
     if (setting === "suspendtimeoutignore") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const ignore of v) {
+        for (const ignore of value) {
             const {rangeToTabIdxs} = require("./command")
             if (!rangeToTabIdxs(src, ignore).valid) {
                 return false
@@ -1477,14 +1365,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "tocpages") {
-        // TODO check if still needed
-        let v = value
-        if (typeof v === "string") {
-            v = v.split(",").filter(t => t.trim())
-        } else if (!Array.isArray(v)) {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const match of v) {
+        for (const match of value) {
             try {
                 RegExp(match)
             } catch {
