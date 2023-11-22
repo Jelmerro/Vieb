@@ -182,7 +182,6 @@ const modifyListOrObject = (src, setting, value, method) => {
             set(src, setting, addition)
         }
         if (method === "append") {
-            // TODO either document that it overrides same keys
             set(src, setting, [...current, ...addition])
         }
         if (method === "remove") {
@@ -227,7 +226,7 @@ const modifyListOrObject = (src, setting, value, method) => {
         }
         const newValue = getSetting(setting)
         if (method === "append") {
-            // TODO either document that it overrides same keys
+            // TODO document that it overrides same keys
             Object.entries(addition).forEach(([key, val]) => {
                 newValue[key] = val
             })

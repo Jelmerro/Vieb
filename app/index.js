@@ -2181,7 +2181,10 @@ ipcMain.on("window-state-init", (_, restore) => {
     if (restore.max === "true") {
         mainWindow.maximize()
     }
-    if (bounds.fullscreen && restore.full) {
+    if (bounds.fullscreen && restore.full === "restore") {
+        mainWindow.fullScreen = true
+    }
+    if (restore.full === "true") {
         mainWindow.fullScreen = true
     }
     mainWindow.show()
