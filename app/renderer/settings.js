@@ -1004,8 +1004,8 @@ const checkOther = (src, setting, value) => {
         for (const name of value) {
             if (name.length > 1
                 && !keyNames.some(key => key.vim.includes(name))) {
-                notify(`Key name '${name}' is not recognized as a valid key`,
-                    {src, "type": "warn"})
+                notify(`Key name '${name}' in modifiers is not `
+                    + "recognized as a valid key", {src, "type": "warn"})
                 return false
             }
         }
@@ -1033,7 +1033,45 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "passthroughkeys") {
-        // TODO implement check for valid url regex + valid map key names list
+        if (typeof value !== "object" || Array.isArray(value)) {
+            return false
+        }
+        for (const val of Object.keys(value)) {
+            try {
+                RegExp(val)
+            } catch {
+                notify(
+                    `Invalid regular expression in passthroughkeys: ${val}`,
+                    {src, "type": "warn"})
+                return false
+            }
+        }
+        const {keyNames, splitMapString} = require("./input")
+        for (const val of Object.values(value)) {
+            const {valid, maps} = splitMapString(val)
+            if (!valid) {
+                notify(`Invalid keys in passthroughkeys entry: ${val}`,
+                    {src, "type": "warn"})
+                return false
+            }
+            for (let name of maps) {
+                if (name.length === 1) {
+                    continue
+                }
+                if (name.startsWith("<") && name.endsWith(">")) {
+                    name = name.slice(1, -1)
+                } else {
+                    notify(`Key name '${name}' in passthroughkeys is not `
+                        + "recognized as a valid key", {src, "type": "warn"})
+                    return false
+                }
+                if (!keyNames.some(key => key.vim.includes(name))) {
+                    notify(`Key name '${name}' in passthroughkeys is not `
+                        + "recognized as a valid key", {src, "type": "warn"})
+                    return false
+                }
+            }
+        }
         return true
     }
     const permissionSettings = [

@@ -2028,12 +2028,12 @@ const handleKeyboard = async e => {
     if (matchingMod) {
         return
     }
-    const passthroughKeys = getSetting("passthroughkeys")
-    if (currentMode() === "normal" && !isEmptyObject(passthroughKeys)) {
+    const passthroughkeys = getSetting("passthroughkeys")
+    if (currentMode() === "normal" && !isEmptyObject(passthroughkeys)) {
         const url = currentPage()?.src ?? ""
-        const matchedUrl = Object.keys(passthroughKeys).find(k => url.match(k))
+        const matchedUrl = Object.keys(passthroughkeys).find(k => url.match(k))
         if (matchedUrl) {
-            const keys = splitMapString(passthroughKeys[matchedUrl]).maps
+            const keys = splitMapString(passthroughkeys[matchedUrl]).maps
                 .map(k => sanitiseMapString(keyboardEventSource, k))
             if (keys.includes(id)) {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
@@ -2828,6 +2828,7 @@ module.exports = {
     resetInputHistory,
     resetScreenshotDrag,
     sanitiseMapString,
+    splitMapString,
     startRecording,
     stopRecording,
     typeCharacterIntoNavbar,
