@@ -2613,8 +2613,12 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
         if (subframe) {
             try {
                 const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                    const frameId = `${f.routingId}-${f.processId}`
-                    return frameId === subframe.id
+                    try {
+                        const frameId = `${f.routingId}-${f.processId}`
+                        return frameId === subframe.id
+                    } catch {
+                        return false
+                    }
                 })
                 if (actionName === "selectionRequest") {
                     frameRef?.send("action", actionName,
@@ -2650,8 +2654,12 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
     if (subframe) {
         try {
             const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
+                try {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                } catch {
+                    return false
+                }
             })
             frameRef?.send("contextmenu-data", {
                 ...info,
@@ -2668,8 +2676,13 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
 })
 ipcMain.on("contextmenu", (_, id) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(
-            f => f.send("contextmenu"))
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("contextmenu")
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
     } catch (ex) {
         errToMain(ex)
     }
@@ -2684,8 +2697,12 @@ ipcMain.on("focus-input", (_, id, location = null) => {
         if (subframe) {
             try {
                 const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                    const frameId = `${f.routingId}-${f.processId}`
-                    return frameId === subframe.id
+                    try {
+                        const frameId = `${f.routingId}-${f.processId}`
+                        return frameId === subframe.id
+                    } catch {
+                        return false
+                    }
                 })
                 frameRef?.send("focus-input", {
                     "x": location.x - subframe.absX,
@@ -2706,8 +2723,13 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
     }
     try {
         if (frameId) {
-            const frameRef = wc.mainFrame.framesInSubtree.find(
-                f => frameId === `${f.routingId}-${f.processId}`)
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                try {
+                    return frameId === `${f.routingId}-${f.processId}`
+                } catch {
+                    return false
+                }
+            })
             frameRef?.send("replace-input-field", correction, inputField)
             return
         }
@@ -2824,9 +2846,19 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
             wc.sendInputEvent({keyCode, modifiers, "type": "char"})
         }
         wc.sendInputEvent({keyCode, modifiers, "type": "keyUp"})
-        wc.mainFrame.framesInSubtree
-            .filter(f => f.routingId !== wc.mainFrame.routingId)
-            .forEach(f => f.send("keyboard-type-event", keyOptions))
+        wc.mainFrame.framesInSubtree.filter(f => {
+            try {
+                return f.routingId !== wc.mainFrame.routingId
+            } catch {
+                return false
+            }
+        }).forEach(f => {
+            try {
+                f.send("keyboard-type-event", keyOptions)
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
     } catch (ex) {
         errToMain(ex)
     }
@@ -2845,8 +2877,12 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
     if (subframe) {
         try {
             const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
+                try {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                } catch {
+                    return false
+                }
             })
             if (inputInfo.type === "scroll") {
                 frameRef?.send("custom-mouse-event", "mousewheel", {

@@ -198,7 +198,6 @@ const modifyListOrObject = (src, setting, value, method) => {
             set(src, setting, newValue)
         }
         if (method === "special") {
-            // TODO make it extend/append a value with existing keys
             set(src, setting, [...addition, ...current])
         }
     } else if (isObject) {
@@ -226,7 +225,6 @@ const modifyListOrObject = (src, setting, value, method) => {
         }
         const newValue = getSetting(setting)
         if (method === "append") {
-            // TODO document that it overrides same keys
             Object.entries(addition).forEach(([key, val]) => {
                 newValue[key] = val
             })
@@ -237,10 +235,9 @@ const modifyListOrObject = (src, setting, value, method) => {
             })
         }
         if (method === "special") {
-            // TODO make it extend/append a value with existing keys
-            Object.entries(addition).forEach(([key, val]) => {
-                newValue[key] = val
-            })
+            notify("This syntax is reserved for future use, "
+                + "but has no purpose yet.", {src, "type": "warn"})
+            return
         }
         set(src, setting, newValue)
     }
@@ -276,7 +273,8 @@ const modifySetting = (src, setting, value, method = "replace") => {
         if (isObject) {
             /** @type {{[key: string]: string}} */
             const obj = {}
-            for (const val of value) {
+            const arr = value.split(",").filter(v => v.trim())
+            for (const val of arr) {
                 obj[val.split("~")[0]] = val
                     .split("~").slice(1).join("~") ?? ""
             }
@@ -293,6 +291,12 @@ const modifySetting = (src, setting, value, method = "replace") => {
         return
     }
     if (method === "append") {
+        if (isObject) {
+            const obj = getSetting(setting)
+            obj[value.split("~")[0]] = value
+                .split("~").slice(1).join("~") ?? ""
+            set(src, setting, obj)
+        }
         if (isList) {
             set(src, setting, [...getSetting(setting), value])
         }
@@ -304,6 +308,11 @@ const modifySetting = (src, setting, value, method = "replace") => {
         }
     }
     if (method === "remove") {
+        if (isObject) {
+            const obj = getSetting(setting)
+            delete obj[value.split("~")[0]]
+            set(src, setting, obj)
+        }
         if (isList) {
             let current = getSetting(setting)
             if (current === "all") {
@@ -324,6 +333,10 @@ const modifySetting = (src, setting, value, method = "replace") => {
         }
     }
     if (method === "special") {
+        if (isObject) {
+            notify("This syntax is reserved for future use, "
+                + "but has no purpose yet.", {src, "type": "warn"})
+        }
         if (isList) {
             set(src, setting, [value, ...getSetting(setting)])
         }
@@ -460,11 +473,17 @@ const setCommand = (src, args) => {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
-                const {isArraySetting} = require("./settings")
+                const {
+                    isArraySetting, isObjectSetting, isNumberSetting
+                } = require("./settings")
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, "false")
-                } else if (isArraySetting(part.replace("no", ""))) {
+                } else if (isArraySetting(settingName)) {
                     modifySetting(src, settingName, "")
+                } else if (isObjectSetting(settingName)) {
+                    modifySetting(src, settingName, "")
+                } else if (isNumberSetting(settingName)) {
+                    modifySetting(src, settingName, "0")
                 } else {
                     listSetting(src, settingName)
                 }

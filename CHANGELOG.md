@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "passthroughkeys" to send keys to the page per site/domain/regex without leaving normal mode
 - Option to write command to save pages as MHTML instead of just HTML
 - Setting "windowfullscreen" to allow the fullscreen state to be kept after restart (default "restore")
+- Setting clear syntax from booleans ":set noexample", to work for objects, arrays and numbers too
 
 ## Changed
 

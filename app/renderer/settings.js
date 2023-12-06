@@ -1720,6 +1720,12 @@ const suggestionList = () => {
             for (const option of validOptions[setting]) {
                 listOfSuggestions.push(`${setting}=${option}`)
             }
+        } else if (isObjectSetting(setting) || isArraySetting(setting)
+            || isNumberSetting(setting)) {
+            listOfSuggestions.push(`${setting}=`)
+            listOfSuggestions.push(`${setting}=${
+                JSON.stringify(defaultSettings[setting])}`)
+            listOfSuggestions.push(`no${setting}`)
         } else {
             listOfSuggestions.push(`${setting}=`)
             listOfSuggestions.push(`${setting}=${

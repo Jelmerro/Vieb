@@ -104,6 +104,7 @@
         These type of settings accept a number. Most of the number settings only accept a specific range, usually just positive numbers. The valid numbers for a particular setting are explained the help of each setting separately.
         <ul>
             <li><span class="command-block">:set example</span> - Read the value of a number</li>
+            <li><span class="command-block">:set noexample</span> - Set the number value to 0.</li>
             <li><span class="command-block">:set example+=value</span> - Increment a number with the value</li>
             <li><span class="command-block">:set example-=value</span> - Subtract a number with the value</li>
             <li><span class="command-block">:set example^=value</span> - Multiply a number with the value</li>
@@ -124,28 +125,41 @@
         </ul>
         <h4 id="array">Array</h4>
         These type of settings accept a comma separated string, or actual Arrays/Objects using JSON. It can be set directly, just like a string, but can also be appended or modified per entry. Some lists that are comma-separated have nested lists that are separated by tildes, though you don't need to worry about commas if you use the Array or Object syntax.
-        TODO, many more examples and better docs for ^= vs += differences.
         <ul>
-            <li><span class="command-block">:set example</span> - Read the value of an array</li>
-            <li><span class="command-block">:set noexample</span> - Empty the array</li>
-            <li><span class="command-block">:set example+=value</span> - Append the value to the array</li>
-            <li><span class="command-block">:set example-=value</span> - Remove the value from the array, priority for exact matches in the list for "value", if not found, it will remove any matches up to the first "~" in each value of the list.</li>
-            <li><span class="command-block">:set example^=value</span> - Prepend the value to a list</li>
-            <li><span class="command-block">:set example=["value1", "value2"]</span> - Set to an array of values, equal to "value1,value2", but with support for commas</li>
-            <li><span class="command-block">:set example=[["value1", "optional_options"], ["value2"]]</span> - Set to an array of values, equal to "value1~optional_options,value2", but with support for commas</li>
-            <li><span class="command-block">:set example={"value1": "optional_options", "value2": ""}</span> - Set to an array of values, equal to "value1~optional_options,value2~", but with support for commas</li>
+            <li><span class="command-block">:set example</span> - Read the value of the array.</li>
+            <li><span class="command-block">:set noexample</span> - Empty the array.</li>
+            <li><span class="command-block">:set example+=value</span> - Append a single value to the array.</li>
+            <li><span class="command-block">:set example-=value</span> - Remove a single value from the array, priority for exact matches in the array for "value", if not found, it will remove any matches up to the first "~" in each value of the array.</li>
+            <li><span class="command-block">:set example^=value</span> - Prepend a single value to the array.</li>
+            <li><span class="command-block">:set example=["value1", "value2"]</span> - Set to the array of values, equal to "value1,value2", but with support for commas.</li>
+            <li><span class="command-block">:set example=[["value1", "optional_options"], ["value2"]]</span> - Set to the array of values, equal to "value1~optional_options,value2", but with support for commas.</li>
+            <li><span class="command-block">:set example={"value1": "optional_options", "value2": ""}</span> - Same as above.</li>
+            <li><span class="command-block">:set example+=["value1", "value2"]</span> - Append multiple values to the array.</li>
+            <li><span class="command-block">:set example+=[["value1", "optional_options"], ["value2", ""]]</span> - Append multiple values to the array, equal to "value1~optional_options,value2~", but with support for commas.</li>
+            <li><span class="command-block">:set example+={"value1": "optional_options", "value2": ""}</span> - Same as above.</li>
+            <li><span class="command-block">:set example-=["value1", "value2"]</span> - Remove multiple values from the array.</li>
+            <li><span class="command-block">:set example-=[["value1", "optional_options"], ["value2", ""]]</span> - Remove multiple values from the array, equal to "value1~optional_options,value2~", but with support for commas, priority for exact matches in the array for each "value", if not found, it will remove any matches up to the first "~" in each value of the array.</li>
+            <li><span class="command-block">:set example-={"value1": "optional_options", "value2": ""}</span> - Same as above.</li>
+            <li><span class="command-block">:set example^=["value1", "value2"]</span> - Prepend multiple values to the array.</li>
+            <li><span class="command-block">:set example^=[["value1", "optional_options"], ["value2", ""]]</span> - Prepend multiple values to the array, equal to "value1~optional_options,value2~", but with support for commas..</li>
+            <li><span class="command-block">:set example^={"value1": "optional_options", "value2": ""}</span> - Same as above.</li>
         </ul>
         <h4 id="object">Object</h4>
         These type of settings accept a comma separated string, with each entry being tilde separated, or actual Arrays/Objects using JSON. It can be set directly, like a string, but can also be appended or modified per entry. The Object syntax is preferred as you don't need to worry about the commas and tildes separating the entries.
-        TODO, many more examples and better docs for ^= vs += differences.
         <ul>
-            <li><span class="command-block">:set example</span> - Read the value of an object</li>
-            <li><span class="command-block">:set noexample</span> - Empty the object</li>
-            <li><span class="command-block">:set example+=key~value</span> - Append the value to the object</li>
-            <li><span class="command-block">:set example-=key~value</span> - Remove an entry from the object, priority for exact matches in the object for "key~value", if not found, it will remove any matches for just the key. For example, for <a href="#searchwords">searchwords</a>, this allows you to remove a searchword from the object with just the prefix of the searchword (instead of typing "prefix~searchurl" in full).</li>
-            <li><span class="command-block">:set example^=key~value</span> - TODO</li>
-            <li><span class="command-block">:set example=[["key1", "value1"], ["key2", "value2"]]</span> - Set to an object, equal to "key1~value1,key2~value2", but with support for commas and tildes</li>
-            <li><span class="command-block">:set example={"key1": "value1", "key1": "value2"}</span> - Set to an object, equal to "key1~value1,key2~value2", but with support for commas and tildes</li>
+            <li><span class="command-block">:set example</span> - Read the value of an object.</li>
+            <li><span class="command-block">:set noexample</span> - Empty the object.</li>
+            <li><span class="command-block">:set example+=key~value</span> - Append a single value to the object, existing keys are replaced with the new value.</li>
+            <li><span class="command-block">:set example-=key~value</span> - Remove a single entry from the object, priority for exact matches in the object for "key~value", if not found, it will remove any matches for just the key. For example, for <a href="#searchwords">searchwords</a>, this allows you to remove a searchword from the object with just the prefix of the searchword (instead of typing "prefix~searchurl" in full).</li>
+            <li><span class="command-block">:set example^=key~value</span> - Reserved, but currently unused.</li>
+            <li><span class="command-block">:set example={"key1": "value1", "key2": "value2"}</span> - Set to an object, equal to "key1~value1,key2~value2", but with support for commas and tildes.</li>
+            <li><span class="command-block">:set example=[["key1", "value1"], ["key2", "value2"]]</span> - Same as above.</li>
+            <li><span class="command-block">:set example+={"key1": "value1", "key2": "value2"}</span> - Append multiple entries to an object, equal to "key1~value1,key2~value2", but with support for commas and tildes, existing keys are replaced with new values.</li>
+            <li><span class="command-block">:set example+=[["key1", "value1"], ["key2", "value2"]]</span> - Same as above.</li>
+            <li><span class="command-block">:set example-={"key1": "value1", "key2": "value2"}</span> - Remove multiple entries from an object, equal to "key1~value1,key2~value2", but with support for commas and tildes, priority for exact matches in the object for "key~value", if not found, it will remove any matches for just the key. For example, for <a href="#searchwords">searchwords</a>, this allows you to remove a searchword from the object with just the prefix of the searchword (instead of typing "prefix~searchurl" in full).</li>
+            <li><span class="command-block">:set example-=[["key1", "value1"], ["key2", "value2"]]</span> - Same as above.</li>
+            <li><span class="command-block">:set example^={"key1": "value1", "key2": "value2"}</span> - Reserved, but currently unused.</li>
+            <li><span class="command-block">:set example^=[["key1", "value1"], ["key2", "value2"]]</span> - Same as above.</li>
         </ul>
         <h4 id="interval">Interval</h4>
         These type of settings accept a time interval. A time interval consists of a number followed by a time unit, for example 1day or 3months. The number can be any valid positive number, while the unit can be any of: second, minute, hour, day, month or year. The unit can optionally be followed by a plural "s", such as seconds or days. These type of settings have no special commands, besides the shared ones and the plain read option:
