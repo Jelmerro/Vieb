@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default theme suggest position to be below the tabs
 - Setting "mousevisualmode" now works with double and triple click selections
 - Default screenshot suggestions, highlight behavior and styling to be more prominent
+- Setting "modifiers" to use full key names: for example `<Ctrl>` instead of just `Ctrl`
 
 ## Removed
 

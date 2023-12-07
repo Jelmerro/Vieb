@@ -2024,7 +2024,7 @@ const handleKeyboard = async e => {
     }
     const id = toIdentifier(e)
     const matchingMod = getSetting("modifiers").some(
-        mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
+        mod => mod === id || id.endsWith(`-${mod.slice(1, -1)}>`))
     if (matchingMod) {
         return
     }

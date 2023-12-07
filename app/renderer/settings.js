@@ -204,7 +204,13 @@ const defaultSettings = {
     "menuvieb": "both",
     "mintabwidth": 28,
     "modifiers": [
-        "Ctrl", "Shift", "Alt", "Meta", "NumLock", "CapsLock", "ScrollLock"
+        "<Ctrl>",
+        "<Shift>",
+        "<Alt>",
+        "<Meta>",
+        "<NumLock>",
+        "<CapsLock>",
+        "<ScrollLock>"
     ],
     /** @type {"all"|string[]} */
     "mouse": "all",
@@ -996,17 +1002,19 @@ const checkOther = (src, setting, value) => {
             }
         }
     }
+    const {keyNames, splitMapString} = require("./input")
     if (setting === "modifiers") {
         if (!Array.isArray(value)) {
             return false
         }
-        const {keyNames} = require("./input")
         for (const name of value) {
-            if (name.length > 1
-                && !keyNames.some(key => key.vim.includes(name))) {
-                notify(`Key name '${name}' in modifiers is not `
-                    + "recognized as a valid key", {src, "type": "warn"})
-                return false
+            if (name.length > 1) {
+                if (!keyNames.some(l => l.vim.map(k => `<${k}>`).includes(name))
+                    || name === "<Any>") {
+                    notify(`Key name '${name}' in modifiers is not `
+                        + "recognized as a valid key", {src, "type": "warn"})
+                    return false
+                }
             }
         }
     }
@@ -1046,7 +1054,6 @@ const checkOther = (src, setting, value) => {
                 return false
             }
         }
-        const {keyNames, splitMapString} = require("./input")
         for (const val of Object.values(value)) {
             const {valid, maps} = splitMapString(val)
             if (!valid) {
