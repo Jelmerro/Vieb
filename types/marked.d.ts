@@ -34,8 +34,6 @@ declare module 'marked-base-url' {
 }
 
 declare module 'marked-highlight' {
-  type SyncHighlightFunction = (code: string, language: string) => string;
-  type AsyncHighlightFunction = (code: string, language: string) => Promise<string>;
   interface SynchronousOptions {
     highlight: SyncHighlightFunction;
     async?: boolean;
