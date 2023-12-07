@@ -176,7 +176,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #logo {-webkit-app-region: drag;height: 1.8em;width: 1.8em;margin: .1em;min-width: 1.8em;min-height: 1.8em;}
 #mode-container {display: flex;width: 7em;text-align: center;margin: .1em 0;justify-content: center;}
 #mode {text-transform: capitalize;font-size: 1.3em;font-weight: bold;display: flex;align-items: center;}
-#record-name, #repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;display: none;}
+#record-name, #repeat-counter, #pressed-keys {margin: auto .2em;align-items: center;display: none;}
 /* modes */
 #mode-container, #helppage .normal, .normal {color: var(--mode-normal-fg);background: var(--mode-normal-bg);}
 [current-mode=command] #mode-container, #helppage .command, .command {color: var(--mode-command-fg);background: var(--mode-command-bg);}
