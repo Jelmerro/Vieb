@@ -136,8 +136,9 @@ const isUrl = location => {
  * @param {string} location
  */
 const searchword = location => {
-    for (const mapping of getSetting("searchwords").split(",")) {
-        const [word, url] = mapping.split("~")
+    const searchwords = getSetting("searchwords")
+    for (const word of Object.keys(searchwords)) {
+        const url = searchwords[word]
         if (word && url) {
             const q = location.replace(`${word} `, "")
             if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
@@ -786,6 +787,15 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
     }).catch(rej)
 })
 
+/** Return the position and dimensions of the page container. */
+const pageContainerPos = () => {
+    const pagelayout = document.getElementById("page-container")
+    if (!pagelayout) {
+        return {"bottom": 0, "left": 0, "right": 0, "top": 0}
+    }
+    return pagelayout.getBoundingClientRect()
+}
+
 /**
  * Calculate the offset in pixels for each dimension of an element.
  * @param {HTMLElement} page
@@ -1423,7 +1433,7 @@ const stringToUrl = location => {
         url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
     }
     if (!isUrl(url)) {
-        const engines = getSetting("searchengine").split(",")
+        const engines = getSetting("searchengine")
         const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""
@@ -1586,6 +1596,7 @@ module.exports = {
     compareVersions,
     fetchUrl,
     fetchJSON,
+    pageContainerPos,
     pageOffset,
     execCommand,
     isValidIntervalValue,

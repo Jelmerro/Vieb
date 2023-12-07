@@ -47,10 +47,15 @@ const loadSponsorblock = () => {
         previousBlockEls = []
         const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
         previousDuration = vid.duration
-        const categories = getWebviewSetting("sponsorblockcategories")
-            ?.split(",") ?? ("sponsor~lime,intro~cyan,outro~blue,"
-            + "interaction~red,selfpromo~yellow,music_offtopic").split(",")
-        const categoryNames = categories.map(cat => cat.split("~")[0])
+        const categories = getWebviewSetting("sponsorblockcategories") ?? {
+            "interaction": "red",
+            "intro": "cyan",
+            "music_offtopic": "",
+            "outro": "blue",
+            "selfpromo": "yellow",
+            "sponsor": "lime"
+        }
+        const categoryNames = Object.keys(categories)
         fetchJSON(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}`
             + `&categories=${JSON.stringify(categoryNames)}`).then(response => {
             const progressEl = document.querySelector(
@@ -59,8 +64,8 @@ const loadSponsorblock = () => {
             for (const skip of segments) {
                 const blockEl = document.createElement("div")
                 blockEl.style.position = "absolute"
-                blockEl.style.backgroundColor = categories.find(ca => ca.split(
-                    "~")[0] === skip.category)?.split("~")[1] || "lime"
+                blockEl.style.backgroundColor = Object.entries(categories)
+                    .find(([key]) => key === skip.category)?.[1] ?? "lime"
                 blockEl.style.zIndex = "100000000"
                 blockEl.style.height = "100%"
                 blockEl.style.minHeight = ".5em"

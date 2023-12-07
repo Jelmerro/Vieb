@@ -594,25 +594,22 @@ const translatepage = async(api, url, lang, apiKey) => {
 }
 
 const randomTOCId = `vieb-toc-${Math.random()}`
+let scrollPositionTOC = 0
 
 /**
  * Show the table of contents in a shadowroot with custom styling applied.
  * @param {string} customStyling
  * @param {number} fontsize
- * @param {boolean} opened
  */
-const showTOC = (customStyling, fontsize, opened = false) => {
+const showTOC = (customStyling, fontsize) => {
     if (document.getElementById(randomTOCId)) {
         return
     }
     const headings = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")]
-    const toc = document.createElement("details")
+    const toc = document.createElement("div")
     toc.id = "toc"
-    toc.open = opened
-    const summary = document.createElement("summary")
     const title = document.createElement("h1")
     title.textContent = "TOC"
-    summary.append(title)
     const baseUl = document.createElement("ul")
     baseUl.setAttribute("depth", "1")
     const lists = [baseUl]
@@ -621,7 +618,7 @@ const showTOC = (customStyling, fontsize, opened = false) => {
     topUrl.hash = ""
     topLink.href = topUrl.href
     topLink.textContent = "TOP"
-    toc.append(summary, topLink, baseUl)
+    toc.append(title, topLink, baseUl)
 
     /** Returns the current taversing depth of the toc. */
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
@@ -640,12 +637,12 @@ const showTOC = (customStyling, fontsize, opened = false) => {
             lists.push(list)
         }
         const listItem = document.createElement("li")
-        const baseHeadingId = heading.id || heading.textContent
-            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "") || ""
+        const baseHeadingId = heading.id || `toc_${heading.textContent
+            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "")
+            || Math.round(Math.random() * 1000000000000000)}`
         let headingId = baseHeadingId
         let duplicateHeadingCounter = 2
-        while (headingNames.includes(headingId)
-            || document.getElementById(headingId)) {
+        while (headingNames.includes(headingId)) {
             headingId = `${baseHeadingId}${duplicateHeadingCounter}`
             duplicateHeadingCounter += 1
         }
@@ -676,6 +673,10 @@ const showTOC = (customStyling, fontsize, opened = false) => {
     customStylesheet.textContent += `\n#toc {font-size: ${fontsize}px;}`
     tocShadow.append(defaultStylesheet, customStylesheet, toc)
     document.body.append(tocContainer)
+    toc.scrollTop = scrollPositionTOC
+    toc.addEventListener("scroll", () => {
+        scrollPositionTOC = toc.scrollTop
+    })
 }
 
 /** Hide the table of contents from view by removing it entirely. */
@@ -703,8 +704,7 @@ const rerenderTOC = (customStyling, fontsize) => {
     const existingTOC = document.getElementById(randomTOCId)
     if (existingTOC) {
         hideTOC()
-        showTOC(customStyling, fontsize,
-            existingTOC.shadowRoot?.querySelector("details")?.open)
+        showTOC(customStyling, fontsize)
     }
 }
 

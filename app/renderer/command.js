@@ -73,35 +73,8 @@ const listSetting = (src, setting) => {
         notify(`--- Options ---\n${listCurrentSettings(true)}`, {src})
         return
     }
-    if (setting === "dialogconfirm") {
-        notify("DEPRECATION: dialogconfirm default value will be changed, "
-            + "making 'notifyallow' the new default from 11.0.0 onward.",
-        {src, "type": "warn"})
-    }
-    if (setting === "nativetheme" && getSetting("nativetheme") === "system") {
-        notify("DEPRECATION: nativetheme value 'system' will be removed, "
-            + "making 'dark' the new default from 11.0.0 onward.",
-        {src, "type": "warn"})
-    }
-    if (setting === "permissionmediadevices"
-        && getSetting("permissionmediadevices") === "ask") {
-        notify("DEPRECATION: permissionmediadevices value 'ask' "
-            + "will be removed from 11.0.0 onward.",
-        {src, "type": "warn"})
-    }
-    if (setting === "suspendplayingtab") {
-        notify("DEPRECATION: suspendplayingtab will be replaced with "
-            + "suspendtimeoutignore in 11.0.0 onward.",
-        {src, "type": "warn"})
-    }
-    if (setting.startsWith("restore")) {
-        notify(`DEPRECATION: ${setting} will be replace with `
-            + `${setting.replace("restore", "")} in 11.0.0 onward.`,
-        {src, "type": "warn"})
-    }
-    notify(`The setting '${setting}' has the value '${getSetting(setting)}'`, {
-        src
-    })
+    notify(`The setting '${setting}' has the value: ${
+        JSON.stringify(getSetting(setting))}`, {src})
 }
 
 /**
@@ -126,77 +99,251 @@ const isValidSettingName = name => {
 }
 
 /**
+ * Check if an unknown or any value is an array of strings.
+ * @param {unknown|any} value
+ * @returns {value is string[]}
+ */
+const isStringArray = value => Array.isArray(value)
+    && value.every(s => typeof s === "string")
+
+/**
+ * Check if an unknown or any value is an array of arrays each having strings,
+ * at least one, maybe two, but no more.
+ * @param {unknown|any} value
+ * @returns {value is string[][]}
+ */
+const isStringArrayArray = value => Array.isArray(value)
+    && value.every(a => Array.isArray(a)
+        && (a.length === 1 || a.length === 2)
+            && a.every(s => typeof s === "string"))
+
+/**
+ * Check if an unknown or any value is an object containing only string values.
+ * @param {unknown|any} value
+ * @returns {value is {[key: string]: string}}
+ */
+const isStringObject = value => typeof value === "object"
+    && Object.values(value).every(s => typeof s === "string")
+    && !isStringArray(value)
+
+/**
  * Modifiy a list or a number.
  * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
- * @param {"append"|"remove"|"special"} method
+ * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifyListOrNumber = (src, setting, value, method) => {
-    const {
-        freeText, listLike, listLikeTilde, set, isNumberSetting
-    } = require("./settings")
-    const isNumber = isNumberSetting(setting)
-    const isFreeText = freeText.includes(setting)
-    const isListLike = listLike.includes(setting)
-    const isListLikeTilde = listLikeTilde.includes(setting)
-    if (!isNumber && !isFreeText && !isListLike && !listLikeTilde) {
+const modifyListOrObject = (src, setting, value, method) => {
+    const {set, isArraySetting, isObjectSetting} = require("./settings")
+    const isList = isArraySetting(setting)
+    const isObject = isObjectSetting(setting)
+    const {mouseFeatures} = require("./settings")
+    /** @type {{[key: string]: string}|string[]|string[][]|unknown} */
+    let parsed = {}
+    try {
+        parsed = JSON.parse(value)
+    } catch {
         notify(
-            `Can't modify '${setting}' as if it were a number or list`,
+            `Invalid JSON in '${setting}' value:\n${value}`,
             {src, "type": "warn"})
         return
     }
-    if (method === "append") {
-        if (isListLike) {
-            set(src, setting, `${getSetting(setting)},${value}`)
+    if (!isStringArray(parsed)
+        && !isStringArrayArray(parsed) && !isStringObject(parsed)) {
+        notify(
+            `Invalid structure/type found in '${setting}' value:\n${value}\n`
+            + "Can only be an object with strings, a list of strings, "
+            + "or a list with lists of 1 or 2 strings", {src, "type": "warn"})
+        return
+    }
+    if (isList) {
+        let addition = parsed
+        if (isStringObject(addition)) {
+            /** @type {string[]} */
+            const additionList = []
+            Object.entries(addition).forEach(([key, val]) => {
+                additionList.push(`${key}~${val}`)
+            })
+            addition = additionList
         }
-        if (isListLikeTilde) {
-            set(src, setting, `${getSetting(setting)}~${value}`)
+        if (isStringArrayArray(addition)) {
+            /** @type {string[]} */
+            const additionList = []
+            addition.forEach(([key, val]) => {
+                additionList.push(`${key}~${val}`)
+            })
+            addition = additionList
+        }
+        let current = getSetting(setting)
+        if (current === "all") {
+            current = mouseFeatures
+        }
+        if (method === "replace") {
+            set(src, setting, addition)
+        }
+        if (method === "append") {
+            set(src, setting, [...current, ...addition])
+        }
+        if (method === "remove") {
+            let newValue = current
+            for (const entry of addition) {
+                newValue = newValue.filter(e => e && e !== entry)
+            }
+            if (JSON.stringify(newValue) === JSON.stringify(current)) {
+                for (const entry of addition) {
+                    newValue = newValue.filter(
+                        e => e.split("~")[0] !== entry.split("~")[0])
+                }
+            }
+            set(src, setting, newValue)
+        }
+        if (method === "special") {
+            set(src, setting, [...addition, ...current])
+        }
+    } else if (isObject) {
+        let addition = parsed
+        if (isStringArray(addition)) {
+            /** @type {{[key: string]: string}} */
+            const additionObj = {}
+            addition.forEach(val => {
+                additionObj[val.split("~")[0]] = val
+                    .split("~").slice(1).join("~") ?? ""
+            })
+            addition = additionObj
+        }
+        if (isStringArrayArray(addition)) {
+            /** @type {{[key: string]: string}} */
+            const additionObj = {}
+            addition.forEach(([key, val]) => {
+                additionObj[key] = val ?? ""
+            })
+            addition = additionObj
+        }
+        if (method === "replace") {
+            set(src, setting, addition)
+            return
+        }
+        const newValue = getSetting(setting)
+        if (method === "append") {
+            Object.entries(addition).forEach(([key, val]) => {
+                newValue[key] = val
+            })
+        }
+        if (method === "remove") {
+            Object.entries(addition).forEach(([key]) => {
+                delete newValue[key]
+            })
+        }
+        if (method === "special") {
+            notify("This syntax is reserved for future use, "
+                + "but has no purpose yet.", {src, "type": "warn"})
+            return
+        }
+        set(src, setting, newValue)
+    }
+}
+
+/**
+ * Modifiy a list or a number.
+ * @param {import("./common").RunSource} src
+ * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {string} value
+ * @param {"append"|"remove"|"special"|"replace"} method
+ */
+const modifySetting = (src, setting, value, method = "replace") => {
+    const {
+        set, isNumberSetting, isStringSetting, isArraySetting, isObjectSetting
+    } = require("./settings")
+    const isNumber = isNumberSetting(setting)
+    const isText = isStringSetting(setting)
+    const isList = isArraySetting(setting)
+    const isObject = isObjectSetting(setting)
+    const {mouseFeatures} = require("./settings")
+    if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
+        || value.startsWith("[") && value.endsWith("]"))) {
+        modifyListOrObject(src, setting, value, method)
+        return
+    }
+    if (method === "replace") {
+        if (isList) {
+            const arr = value.split(",").filter(v => v.trim())
+            modifyListOrObject(src, setting, JSON.stringify(arr), method)
+            return
+        }
+        if (isObject) {
+            /** @type {{[key: string]: string}} */
+            const obj = {}
+            const arr = value.split(",").filter(v => v.trim())
+            for (const val of arr) {
+                obj[val.split("~")[0]] = val
+                    .split("~").slice(1).join("~") ?? ""
+            }
+            modifyListOrObject(src, setting, JSON.stringify(obj), method)
+            return
+        }
+        set(src, setting, value)
+        return
+    }
+    if (!isNumber && !isText && !isList && !isObject) {
+        notify(
+            `Can't modify '${setting}' as if it were a number, `
+            + `text, list or object`, {src, "type": "warn"})
+        return
+    }
+    if (method === "append") {
+        if (isObject) {
+            const obj = getSetting(setting)
+            obj[value.split("~")[0]] = value
+                .split("~").slice(1).join("~") ?? ""
+            set(src, setting, obj)
+        }
+        if (isList) {
+            set(src, setting, [...getSetting(setting), value])
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) + Number(value))
         }
-        if (isFreeText) {
+        if (isText) {
             set(src, setting, getSetting(setting) + value)
         }
     }
     if (method === "remove") {
-        if (isListLike) {
-            let current = String(getSetting(setting)).split(",")
-            if (setting === "mouse" && current?.[0] === "all") {
-                const {mouseFeatures} = require("./settings")
+        if (isObject) {
+            const obj = getSetting(setting)
+            delete obj[value.split("~")[0]]
+            set(src, setting, obj)
+        }
+        if (isList) {
+            let current = getSetting(setting)
+            if (current === "all") {
                 current = mouseFeatures
             }
-            let newValue = current.filter(e => e && e !== value).join(",")
-            if (newValue === current.join(",")) {
+            let newValue = current.filter(e => e && e !== value)
+            if (JSON.stringify(newValue) === JSON.stringify(current)) {
                 newValue = current.filter(
-                    e => e.split("~")[0] !== value.split("~")[0]).join(",")
+                    e => e.split("~")[0] !== value.split("~")[0])
             }
-            set(src, setting, newValue)
-        }
-        if (isListLikeTilde) {
-            const current = String(getSetting(setting)).split("~")
-            const newValue = current.filter(e => e && e !== value).join("~")
             set(src, setting, newValue)
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) - Number(value))
         }
-        if (isFreeText) {
+        if (isText) {
             set(src, setting, String(getSetting(setting)).replace(value, ""))
         }
     }
     if (method === "special") {
-        if (isListLike) {
-            set(src, setting, `${value},${getSetting(setting)}`)
+        if (isObject) {
+            notify("This syntax is reserved for future use, "
+                + "but has no purpose yet.", {src, "type": "warn"})
         }
-        if (isListLikeTilde) {
-            set(src, setting, `${value}~${getSetting(setting)}`)
+        if (isList) {
+            set(src, setting, [value, ...getSetting(setting)])
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) * Number(value))
         }
-        if (isFreeText) {
+        if (isText) {
             set(src, setting, value + getSetting(setting))
         }
     }
@@ -219,12 +366,11 @@ const setCommand = (src, args) => {
         }
         return
     }
-    const {set} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(src, setting, value, "append")
+                modifySetting(src, setting, value, "append")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -232,7 +378,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(src, setting, value, "remove")
+                modifySetting(src, setting, value, "remove")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -240,23 +386,34 @@ const setCommand = (src, args) => {
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(src, setting, value, "special")
+                modifySetting(src, setting, value, "special")
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
             }
         } else if ((/^\w+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "=")
-            set(src, setting, value)
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifySetting(src, setting, value)
+            } else {
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
+            }
         } else if ((/^\w+:/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, ":")
-            set(src, setting, value)
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifySetting(src, setting, value)
+            } else {
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
+            }
         } else if ((/^\w+!.+/).test(part)) {
             const [setting] = part.split("!")
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
                 const index = values.indexOf(String(getSetting(setting)))
-                set(src, setting, values[index + 1] || values[0])
+                modifySetting(src,
+                    setting, values[index + 1] || values[0])
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -267,10 +424,11 @@ const setCommand = (src, args) => {
                 const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
-                    set(src, setting, String(!value))
+                    modifySetting(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
                     const index = validOptions[setting].indexOf(String(value))
-                    set(src, setting, validOptions[setting][index + 1]
+                    modifySetting(src, setting,
+                        validOptions[setting][index + 1]
                         || validOptions[setting][0])
                 } else {
                     notify(
@@ -294,13 +452,13 @@ const setCommand = (src, args) => {
             }
         } else if (isValidSettingName(part) && part !== "all"
             && typeof getSetting(part) === "boolean") {
-            set(src, part, "true")
+            modifySetting(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 if (typeof value === "boolean") {
-                    set(src, part.replace("inv", ""), String(!value))
+                    modifySetting(src, settingName, String(!value))
                 } else {
                     notify(`The setting '${settingName}' can not be flipped`,
                         {src, "type": "warn"})
@@ -315,13 +473,17 @@ const setCommand = (src, args) => {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
-                const {listLike, listLikeTilde} = require("./settings")
+                const {
+                    isArraySetting, isObjectSetting, isNumberSetting
+                } = require("./settings")
                 if (typeof value === "boolean") {
-                    set(src, settingName, "false")
-                } else if (listLike.includes(part.replace("no", ""))) {
-                    set(src, settingName, "")
-                } else if (listLikeTilde.includes(part.replace("no", ""))) {
-                    set(src, settingName, "")
+                    modifySetting(src, settingName, "false")
+                } else if (isArraySetting(settingName)) {
+                    modifySetting(src, settingName, "")
+                } else if (isObjectSetting(settingName)) {
+                    modifySetting(src, settingName, "")
+                } else if (isNumberSetting(settingName)) {
+                    modifySetting(src, settingName, "0")
                 } else {
                     listSetting(src, settingName)
                 }
@@ -671,7 +833,7 @@ const tabForBufferArg = (args, filter = null) => {
 /** Quit the entire app entirely, including all quit settings and cleanup. */
 const quitall = () => {
     ipcRenderer.send("hide-window")
-    const keepQuickmarkNames = getSetting("quickmarkpersistence").split(",")
+    const keepQuickmarkNames = getSetting("quickmarkpersistence")
     const clearMark = ["scroll", "marks", "pointer"]
         .filter(t => !keepQuickmarkNames.includes(t))
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
@@ -939,9 +1101,10 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
  * Write the html of a page to disk based on tab index or current.
  * @param {import("./common").RunSource} src
  * @param {string|null} customLoc
+ * @param {"mhtml"|"html"} extension
  * @param {number|null} tabIdx
  */
-const writePage = (src, customLoc = null, tabIdx = null) => {
+const writePage = (src, customLoc, extension, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
@@ -950,12 +1113,16 @@ const writePage = (src, customLoc = null, tabIdx = null) => {
     if (!page || page instanceof HTMLDivElement) {
         return
     }
-    const loc = resolveFileArg(src, customLoc, "html", page)
+    let type = "HTMLComplete"
+    if (extension === "mhtml") {
+        type = "MHTML"
+    }
+    const loc = resolveFileArg(src, customLoc, extension, page)
     if (!loc) {
         return
     }
     const webContentsId = page.getWebContentsId()
-    ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
+    ipcRenderer.invoke("save-page", webContentsId, loc, type).then(() => {
         notify(`Page saved at '${loc}'`, {src})
     }).catch(err => {
         notify(`Could not save the page:\n${err}`, {src, "type": "err"})
@@ -969,21 +1136,33 @@ const writePage = (src, customLoc = null, tabIdx = null) => {
  * @param {string} range
  */
 const write = (src, args, range) => {
-    if (args.length > 1) {
-        notify("The write command takes only a single optional argument:\n"
-            + "the location where to write the page", {src, "type": "warn"})
+    if (args.length > 2) {
+        notify("The write command takes two optionals argument:\n"
+            + "the location where to write the page and a type of file",
+        {src, "type": "warn"})
         return
     }
-    if (range && args[0]) {
-        notify("Range cannot be combined with a custom location",
+    let [path, type = "html"] = args
+    if (!["mhtml", "html"].includes(type) || ["mhtml", "html"].includes(path)) {
+        [type, path] = args
+    }
+    if (type !== "html" && type !== "mhtml") {
+        notify("Write type must be one of 'html' or 'mhtml'",
+            {src, "type": "warn"})
+        return
+    }
+    if (range && path) {
+        notify("Write command range cannot be combined with a custom location",
             {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => writePage(src, null, t))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            writePage(src, null, type, t)
+        }
         return
     }
-    writePage(src, args[0])
+    writePage(src, path, type)
 }
 
 /**
@@ -2520,22 +2699,64 @@ const parseAndValidateArgs = commandStr => {
     let currentArg = ""
     let escapedDouble = false
     let escapedSingle = false
+    const infoJSON = {
+        "curly": 0,
+        "double": false,
+        "single": false,
+        "square": 0
+    }
     const noEscape = noEscapeCommands.includes(command)
-    for (const char of argsString) {
-        if (char === "'" && !escapedDouble && !noEscape) {
-            escapedSingle = !escapedSingle
-            continue
+    const setCommandParsing = "set".startsWith(command)
+    if (setCommandParsing) {
+        for (const char of argsString) {
+            const evenNumberOfEscapesSlashes = (currentArg
+                .match(/\\*$/)?.[0]?.length ?? 0) % 2 === 0
+            if (!evenNumberOfEscapesSlashes) {
+                currentArg += char
+                continue
+            }
+            if (char === `"`) {
+                infoJSON.double = !infoJSON.double
+            }
+            if (char === "`") {
+                infoJSON.single = !infoJSON.single
+            }
+            if (!infoJSON.single && !infoJSON.double) {
+                if (char === "{") {
+                    infoJSON.curly += 1
+                } else if (char === "}") {
+                    infoJSON.curly -= 1
+                }
+                if (char === "[") {
+                    infoJSON.square += 1
+                } else if (char === "]") {
+                    infoJSON.square -= 1
+                }
+                if (char === " " && !infoJSON.curly && !infoJSON.square) {
+                    args.push(currentArg)
+                    currentArg = ""
+                    continue
+                }
+            }
+            currentArg += char
         }
-        if (char === "\"" && !escapedSingle && !noEscape) {
-            escapedDouble = !escapedDouble
-            continue
+    } else {
+        for (const char of argsString) {
+            if (char === "'" && !escapedDouble && !noEscape) {
+                escapedSingle = !escapedSingle
+                continue
+            }
+            if (char === `"` && !escapedSingle && !noEscape) {
+                escapedDouble = !escapedDouble
+                continue
+            }
+            if (char === " " && !escapedDouble && !escapedSingle) {
+                args.push(currentArg)
+                currentArg = ""
+                continue
+            }
+            currentArg += char
         }
-        if (char === " " && !escapedDouble && !escapedSingle) {
-            args.push(currentArg)
-            currentArg = ""
-            continue
-        }
-        currentArg += char
     }
     if (currentArg) {
         args.push(currentArg)
@@ -2544,6 +2765,32 @@ const parseAndValidateArgs = commandStr => {
     if (command.endsWith("!") && !command.endsWith("!!")) {
         confirm = true
         command = command.slice(0, -1)
+    }
+    if (setCommandParsing) {
+        let parsingError = ""
+        const invalidJSON = args.some(a => {
+            const value = a.replace(/^\w+(.?=|:)/, "")
+            if (value.startsWith("{") && value.endsWith("}")
+                || value.startsWith("[") && value.endsWith("]")) {
+                try {
+                    JSON.parse(value)
+                    return false
+                } catch (e) {
+                    parsingError = String(e)
+                    return true
+                }
+            }
+            return false
+        })
+        return {
+            args,
+            command,
+            confirm,
+            "error": parsingError,
+            range,
+            "valid": infoJSON.curly === 0 && infoJSON.square === 0
+                && !infoJSON.single && !infoJSON.double && !invalidJSON
+        }
     }
     return {
         args,
@@ -2617,11 +2864,15 @@ const execute = (com, opts = {}) => {
     }
     const p = parseAndValidateArgs(commandStr)
     let {command} = p
-    const {range, args, valid, confirm} = p
+    const {range, args, valid, confirm, error} = p
     if (!valid) {
-        notify(
-            "Command could not be executed, unmatched quotes or backslash:"
-            + `\n${commandStr}`, {src, "type": "warn"})
+        if ("set".startsWith(command)) {
+            notify("Command could not be executed, invalid JSON provided:"
+                + `\n${commandStr}\n${error}`, {src, "type": "warn"})
+        } else {
+            notify("Command could not be executed, unmatched quotes or "
+                + `backslash:\n${commandStr}`, {src, "type": "warn"})
+        }
         return
     }
     const matches = Object.keys(commands).concat(Object.keys(userCommands))

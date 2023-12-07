@@ -186,7 +186,7 @@ const loadThemes = (loadedFully = false) => {
     }
     if (getWebviewSetting("darkreader")
         && getWebviewSetting("darkreaderscope")?.includes(scope)) {
-        const blocked = getWebviewSetting("darkreaderblocklist")?.split("~")
+        const blocked = (getWebviewSetting("darkreaderblocklist") ?? [])
             .find(m => window.location.href.match(m))
         if (!blocked) {
             enableDarkReader()

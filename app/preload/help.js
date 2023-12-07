@@ -99,7 +99,9 @@ const processHash = () => {
  * @param {string} text
  */
 const addTextWithLinksToTypes = (baseEl, text) => {
-    const types = ["Boolean", "List", "String", "Interval", "Number", "Enum"]
+    const types = [
+        "Boolean", "String", "Interval", "Number", "Enum", "Array", "Object"
+    ]
     text.split(RegExp(`(${types.join("|")})`, "g")).forEach(s => {
         /** @type {HTMLAnchorElement|Text} */
         let el = document.createElement("a")
@@ -156,21 +158,13 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
             originalLabel.textContent = "Default:"
             settingStatus.append(originalLabel)
             const original = document.createElement("kbd")
-            if (typeof setting.default === "string") {
-                original.textContent = `"${setting.default}"`
-            } else {
-                original.textContent = `${setting.default}`
-            }
+            original.textContent = `${JSON.stringify(setting.default)}`
             settingStatus.append(original)
             const currentLabel = document.createElement("span")
             currentLabel.textContent = "Current:"
             settingStatus.append(currentLabel)
             const current = document.createElement("kbd")
-            if (typeof setting.default === "string") {
-                current.textContent = `"${setting.current}"`
-            } else {
-                current.textContent = `${setting.current}`
-            }
+            current.textContent = `${JSON.stringify(setting.current)}`
             settingStatus.append(current)
             const allowedValuesLabel = document.createElement("span")
             allowedValuesLabel.textContent = "Accepted:"
@@ -322,7 +316,7 @@ window.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".example-buttons")?.append(button)
     }
 })
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.querySelector("img")
     if (icon && mainImg) {
         mainImg.src = icon

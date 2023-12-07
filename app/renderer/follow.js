@@ -63,7 +63,7 @@ const informPreload = (first = false) => {
         elemTypesToFollow = getSetting("followelementpointer")
     }
     if (followLinkDestination !== "current") {
-        elemTypesToFollow = "url"
+        elemTypesToFollow = ["url"]
     }
     if (first) {
         ipcRenderer.send("follow-mode-start", currentPage()?.getWebContentsId(),

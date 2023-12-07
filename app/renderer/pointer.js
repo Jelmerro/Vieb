@@ -35,7 +35,8 @@ const {
     writeJSON,
     urlToString,
     domainName,
-    pageOffset
+    pageOffset,
+    pageContainerPos
 } = require("../util")
 
 let X = 0
@@ -64,8 +65,8 @@ const updateElement = () => {
     const {top, left, bottom, right} = pageOffset(page)
     X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
-    pointerEl.style.left = `${X + left}px`
-    pointerEl.style.top = `${Y + top}px`
+    pointerEl.style.left = `${X}px`
+    pointerEl.style.top = `${Y}px`
     currentPage()?.setAttribute("pointer-x", `${X}`)
     currentPage()?.setAttribute("pointer-y", `${Y}`)
     if (currentMode() === "pointer") {
@@ -109,7 +110,7 @@ const handleScrollDiffEvent = diff => {
 const releaseKeys = () => {
     try {
         sendToPageOrSubFrame("send-input-event",
-            {"type": "leave", "x": X, "y": Y})
+            {"type": "leave", "x": X, "y": Math.max(1, Y)})
         sendToPageOrSubFrame("action", "selectionRemove", zoomX(), zoomY())
     } catch {
         // Can't release keys, probably because of opening a new tab
@@ -152,15 +153,15 @@ const moveToMouse = () => {
                     // @ts-expect-error el is checked to be a webview above
                     switchToTab(tabForPage(el))
                 }
-                const pagePos = pageOffset(el)
+                const containerPos = pageContainerPos()
                 if (currentMode() === "visual") {
-                    X = mousePos.x - pagePos.left
-                    Y = mousePos.y - pagePos.top
+                    X = mousePos.x - containerPos.left
+                    Y = mousePos.y - containerPos.top
                     updateElement()
                 } else {
                     start({
-                        "x": mousePos.x - pagePos.left,
-                        "y": mousePos.y - pagePos.top
+                        "x": mousePos.x - containerPos.left,
+                        "y": mousePos.y - containerPos.top
                     })
                 }
             }
@@ -753,8 +754,9 @@ const toggleMediaControls = () => sendToPageOrSubFrame(
 const inspectElement = () => {
     const page = currentPage()
     if (page) {
-        const {top, left} = pageOffset(page)
-        page.inspectElement(Math.round(X + left), Math.round(Y + top))
+        const containerPos = pageContainerPos()
+        page.inspectElement(Math.round(X + containerPos.left),
+            Math.round(Y + containerPos.top))
     }
 }
 

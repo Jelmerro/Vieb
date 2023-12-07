@@ -192,7 +192,7 @@ const getSetting = name => getStored("settings")[name]
  */
 const getMouseConf = val => {
     const mouse = getSetting("mouse")
-    return mouse?.split(",").includes("all") || mouse?.split(",").includes(val)
+    return mouse === "all" || mouse.includes(val)
 }
 
 /**
@@ -265,7 +265,9 @@ const updateScreenshotHighlight = (hide = false) => {
     const url = getUrl()
     const dims = url?.value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-    const screenCmd = url?.value.replace(/^:/g, "").trim().startsWith("screen")
+    const cmd = url?.value.replace(/^:/g, "").trim() ?? ""
+    const screenCmd = cmd.match(/^screenc(opy )?.*/)
+        || cmd.match(/^screens(hot )?.*/)
     const highlight = document.getElementById("screenshot-highlight")
     if (!highlight) {
         return

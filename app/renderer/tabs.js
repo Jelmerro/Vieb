@@ -109,8 +109,8 @@ const updateUrl = (webview, force = false) => {
  */
 const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
-    const {empty} = require("./favicons")
-    empty(webview)
+    const {loading} = require("./favicons")
+    loading(webview, true)
 }
 
 /**
@@ -118,9 +118,8 @@ const resetTabInfo = webview => {
  * @param {Electron.WebviewTag} webview
  */
 const rerollUserAgent = webview => {
-    const customUA = getSetting("useragent")
-    if (customUA) {
-        const agents = customUA.split("~")
+    const agents = getSetting("useragent")
+    if (agents.length) {
         const agent = userAgentTemplated(
             agents.at(Math.random() * agents.length) ?? "")
         webview.setUserAgent(agent)
@@ -197,7 +196,7 @@ const recreateWebview = (src, webview, customSrc = null) => {
  */
 const checkContainerNames = (src, webview, location) => {
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    const sessionName = getSetting("containernames").split(",").find(
+    const sessionName = getSetting("containernames").find(
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
         ?.split("~")[1]
     if (sessionName && sessionName !== webview.getAttribute("container")) {
@@ -424,6 +423,22 @@ const switchToTab = tabOrIndex => {
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
     setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
+    const loadingProgress = document.getElementById("loading-progress")
+    if (loadingProgress) {
+        if (["line", "all"].includes(getSetting("loadingindicator"))) {
+            try {
+                if (newCurrentPage?.isLoading()) {
+                    loadingProgress.style.display = "flex"
+                } else {
+                    loadingProgress.style.display = "none"
+                }
+            } catch {
+                loadingProgress.style.display = "none"
+            }
+        } else {
+            loadingProgress.style.display = "none"
+        }
+    }
 }
 
 /**
@@ -585,7 +600,7 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
                     } a {color: ${linkcolor || "#0cf"};}`
                     injectCustomStyleRequest(webview, "theme", style)
                 }
-            })
+            }).catch(() => null)
         })
         if (!force) {
             return
@@ -753,13 +768,15 @@ const addWebviewListeners = webview => {
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())
         }
-        const tocPages = getSetting("tocpages").split(",").filter(t => t)
+        const tocPages = getSetting("tocpages")
         const readableUrl = urlToString(webview.src)
         if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
             const {getCustomStyling} = require("./settings")
             const fontsize = getSetting("guifontsize")
-            sendToPageOrSubFrame("action", "showTOC",
-                getCustomStyling(), fontsize)
+            setTimeout(() => {
+                sendToPageOrSubFrame("action", "showTOC",
+                    getCustomStyling(), fontsize)
+            }, 50)
         }
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")
@@ -907,18 +924,17 @@ const addWebviewListeners = webview => {
             }
             const {forSite} = require("./favicons")
             const {suggestTopSites, titleForPage} = require("./history")
-            const favoritePages = getSetting("favoritepages").split(",")
-                .filter(u => u).map(u => {
-                    let url = u
-                    if (!hasProtocol(url)) {
-                        url = `https://${url}`
-                    }
-                    return {
-                        "icon": forSite(url) || forSite(`${url}/`),
-                        "name": titleForPage(url) || titleForPage(`${url}/`),
-                        "url": urlToString(url)
-                    }
-                })
+            const favoritePages = getSetting("favoritepages").map(u => {
+                let url = u
+                if (!hasProtocol(url)) {
+                    url = `https://${url}`
+                }
+                return {
+                    "icon": forSite(url) || forSite(`${url}/`),
+                    "name": titleForPage(url) || titleForPage(`${url}/`),
+                    "url": urlToString(url)
+                }
+            })
             const topPages = suggestTopSites()
             if (getSetting("suggesttopsites") && topPages.length) {
                 webview.send("insert-new-tab-info", topPages, favoritePages)
@@ -1025,7 +1041,7 @@ const unsuspendPage = page => {
     webview.setAttribute("webpreferences", prefs)
     const url = page.getAttribute("src") || ""
     const loc = url.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    const sessionName = getSetting("containernames").split(",").find(
+    const sessionName = getSetting("containernames").find(
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
         ?.split("~")[1] ?? page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
@@ -1194,7 +1210,7 @@ const addTab = opts => {
     if (opts.session) {
         sessionName = opts.session
     } else if (opts.url) {
-        sessionName = getSetting("containernames").split(",").find(
+        sessionName = getSetting("containernames").find(
             c => opts.url?.match(c.split("~")[0]))?.split("~")[1]
             || sessionName
     }
@@ -1263,7 +1279,7 @@ const addTab = opts => {
         tabs?.append(tab)
     }
     tab.setAttribute("link-id", `${linkId}`)
-    const color = getSetting("containercolors").split(",").find(
+    const color = getSetting("containercolors").find(
         c => sessionName.match(c.split("~")[0]))
     if (color) {
         [, tab.style.color] = color.split("~")
@@ -1367,7 +1383,7 @@ const init = () => {
                 }
             }
             const startup = getSetting("startuppages")
-            for (const tab of startup.split(",")) {
+            for (const tab of startup) {
                 const parts = tab.split("~")
                 const url = parts.shift() ?? ""
                 const container = parts.shift() ?? ""
@@ -1441,13 +1457,12 @@ const init = () => {
                 addTab({"src": "source", "url": specialPagePath("help")})
             }
         }
-        ipcRenderer.send("window-state-init",
-            getSetting("restorewindowposition")
-                && getSetting("windowposition"),
-            getSetting("restorewindowsize")
-                && getSetting("windowsize"),
-            getSetting("restorewindowmaximize")
-                && getSetting("windowmaximize"))
+        ipcRenderer.send("window-state-init", {
+            "full": getSetting("windowfullscreen"),
+            "max": getSetting("windowmaximize"),
+            "pos": getSetting("windowposition"),
+            "size": getSetting("windowsize")
+        })
     })
 }
 

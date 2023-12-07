@@ -102,6 +102,7 @@ const applyLayout = () => {
     const visiblePages = []
     /** @type {HTMLSpanElement[]} */
     const visibleTabs = []
+    const containerPos = pagelayout.getBoundingClientRect()
     pagelayout.querySelectorAll("*[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
         const page = listPages().find(p => p.getAttribute("link-id") === id)
@@ -112,8 +113,8 @@ const applyLayout = () => {
         visiblePages.push(page)
         visibleTabs.push(tab)
         const dimensions = element.getBoundingClientRect()
-        page.style.left = `${Math.round(dimensions.x)}px`
-        page.style.top = `${Math.round(dimensions.y)}px`
+        page.style.left = `${Math.round(dimensions.x - containerPos.x)}px`
+        page.style.top = `${Math.round(dimensions.y - containerPos.y)}px`
         page.style.width = `${Math.round(dimensions.width)}px`
         page.style.height = `${Math.round(dimensions.height)}px`
     })
@@ -142,16 +143,12 @@ const applyLayout = () => {
     const susCall = (tab, linkId, timeout) => {
         const index = listTabs().indexOf(tab)
         let shouldSuspend = true
-        getSetting("suspendtimeoutignore").split(",").forEach(ignore => {
+        getSetting("suspendtimeoutignore").forEach(ignore => {
             const {rangeToTabIdxs} = require("./command")
             if (rangeToTabIdxs("other", ignore).tabs.includes(index)) {
                 shouldSuspend = false
             }
         })
-        if (getSetting("suspendtimeoutignore") === "ga//") {
-            shouldSuspend = getSetting("suspendplayingtab")
-                || !tab.hasAttribute("media-playing")
-        }
         if (shouldSuspend) {
             delete timers[linkId]
             const {suspendTab} = require("./tabs")

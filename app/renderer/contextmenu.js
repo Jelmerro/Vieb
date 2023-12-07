@@ -28,7 +28,8 @@ const {
     isUrl,
     propPixels,
     execCommand,
-    isElement
+    isElement,
+    pageContainerPos
 } = require("../util")
 const {
     listTabs,
@@ -731,8 +732,9 @@ const webviewMenu = (src, options, force = false) => {
     }
     const {clipboard} = require("electron")
     const {backInHistory, forwardInHistory, refreshTab} = require("./actions")
-    const webviewY = propPixels(page.style, "top")
-    const webviewX = propPixels(page.style, "left")
+    const containerPos = pageContainerPos()
+    const webviewY = propPixels(page.style, "top") + containerPos.top
+    const webviewX = propPixels(page.style, "left") + containerPos.left
     const zoom = page.getZoomFactor()
     contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
@@ -763,7 +765,8 @@ const webviewMenu = (src, options, force = false) => {
     createMenuItem({
         /** Menu item: Open the devtools and inspect the pointed element. */
         "action": () => page.inspectElement(
-            Math.round(options.x + webviewX), Math.round(options.y + webviewY)),
+            Math.round(options.x * zoom + webviewX),
+            Math.round(options.y * zoom + webviewY)),
         "title": "Inspect"
     })
     const {updateKeysOnScreen} = require("./input")

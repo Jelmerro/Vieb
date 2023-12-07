@@ -689,19 +689,24 @@ const keyNames = [
     },
     {"js": ["|"], "vim": ["Bar"]},
     {"js": ["\\"], "vim": ["Bslash"]},
-    {"js": ["ArrowLeft"], "vim": ["Left"]},
-    {"js": ["ArrowRight"], "vim": ["Right"]},
-    {"js": ["ArrowUp"], "vim": ["Up"]},
-    {"js": ["ArrowDown"], "vim": ["Down"]},
+    {"electron": "Left", "js": ["ArrowLeft"], "vim": ["Left"]},
+    {"electron": "Right", "js": ["ArrowRight"], "vim": ["Right"]},
+    {"electron": "Up", "js": ["ArrowUp"], "vim": ["Up"]},
+    {"electron": "Down", "js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape", "Esc"], "vim": ["Esc"]},
-    {"js": [" "], "vim": ["Space", " "]},
+    {"electron": "Space", "js": [" "], "vim": ["Space", " "]},
     {"js": ["Delete", "\u0000"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
-    {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
-    {"electron": "ArrowRight", "js": ["kArrowRight"], "vim": ["kRight"]},
-    {"electron": "ArrowUp", "js": ["kArrowUp"], "vim": ["kUp"]},
-    {"electron": "ArrowDown", "js": ["kArrowDown"], "vim": ["kDown"]},
+    {"electron": "Numlock", "js": ["NumLock"], "vim": ["NumLock"]},
+    {"electron": "Capslock", "js": ["CapsLock"], "vim": ["CapsLock"]},
+    {"electron": "Scrollock", "js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    {"electron": "Contextmenu", "js": ["ContextMenu"], "vim": ["ContextMenu"]},
+    // Numpad keys
+    {"electron": "Left", "js": ["kArrowLeft"], "vim": ["kLeft"]},
+    {"electron": "Right", "js": ["kArrowRight"], "vim": ["kRight"]},
+    {"electron": "Up", "js": ["kArrowUp"], "vim": ["kUp"]},
+    {"electron": "Down", "js": ["kArrowDown"], "vim": ["kDown"]},
     {"electron": "numadd", "js": ["k+", "kPlus"], "vim": ["kPlus"]},
     {"electron": "numsub", "js": ["k-", "kMinus"], "vim": ["kMinus"]},
     {"electron": "nummult", "js": ["k*", "kMultiply"], "vim": ["kMultiply"]},
@@ -750,10 +755,6 @@ const keyNames = [
     {"js": ["PageDown"], "vim": ["PageDown"]},
     {"js": ["Help"], "vim": ["Help"]},
     {"js": ["Pause"], "vim": ["Pause"]},
-    {"js": ["NumLock"], "vim": ["NumLock"]},
-    {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
-    {"js": ["ContextMenu"], "vim": ["ContextMenu"]},
     // Fictional keys with custom implementation
     {"js": ["Any"], "vim": ["Any"]}
 ]
@@ -944,7 +945,8 @@ const moveScreenshotFrame = (x, y) => {
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
         const url = getUrl()
         const dims = url?.value.split(" ").find(
-            arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
+            arg => arg?.match(/^[0-9,]+$/g))
+        const dimsIndex = url?.value.split(" ").indexOf(dims ?? "") ?? 1
         if (currentMode() !== "command" || !currentPage()) {
             return
         }
@@ -979,12 +981,17 @@ const moveScreenshotFrame = (x, y) => {
         if (rect.height === 0 || rect.height > pageHeight - rect.y) {
             rect.height = pageHeight - rect.y
         }
+        const newDims = `${rect.width},${rect.height},${rect.x},${rect.y}`
         if (dims && url) {
-            url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
-                rect.height},${rect.x},${rect.y}`)
+            url.value = url.value.split(" ").map((v, i) => {
+                if (i === dimsIndex) {
+                    return newDims
+                }
+                return v
+            }).join(" ")
         } else if (url) {
-            url.value = `${url.value.split(" ").slice(0, -1).join(" ")
-            } ${rect.width},${rect.height},${rect.x},${rect.y}`
+            url.value = `${url.value.split(" ").slice(0, 2)
+                .filter(t => t).join(" ")} ${newDims}`
         }
         updateScreenshotHighlight()
         requestSuggestUpdate()
@@ -1201,6 +1208,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
     const isUpper = id.toUpperCase() === id
     if (id.length === 1 && isLetter && isUpper) {
         options.shiftKey = true
+        options.shift = true
         options.modifiers.push("shift")
     } else {
         keyNames.forEach(key => {
@@ -1882,6 +1890,107 @@ const typeCharacterIntoNavbar = (character, force = false) => {
 }
 
 /**
+ * Fast check if an object is empty or not.
+ * @param {object} obj
+ */
+const isEmptyObject = obj => {
+    // This is the fastest way, but not very elegant sadly
+    // eslint-disable-next-line
+    for (const _ in obj) {
+        return false
+    }
+    return true
+}
+
+/**
+ * Sanitize any mapstring to the shortest valid version.
+ * @param {import("./common").RunSource} src
+ * @param {string} mapString
+ * @param {boolean} allowSpecials
+ */
+const sanitiseMapString = (src, mapString, allowSpecials = false) => {
+    const {maps, valid, leftover} = splitMapString(mapString)
+    if (!valid) {
+        notify(`Unmatched < > in mapping '${mapString}': ${leftover}`,
+            {src, "type": "warn"})
+        return ""
+    }
+    return maps.map(m => {
+        if (m === ">") {
+            return ">"
+        }
+        let key = m
+        /** @type {string[]} */
+        let modifiers = []
+        let knownKey = false
+        if (allowSpecials) {
+            const simpleKey = key.toLowerCase().replace(/(^<|>$)/g, "")
+                .replace(/^a(ction)?\./g, "")
+                .replace(/^p(ointer)?\./g, "p.")
+            for (const action of supportedActions) {
+                if (simpleKey === action.toLowerCase()) {
+                    knownKey = true
+                    key = action.replace(/^p(ointer)?\./g, "p.")
+                    key = `<${key.replace(/^a(ction)?\./g, "")}>`
+                    break
+                }
+                if (`a.${simpleKey}` === action.toLowerCase()) {
+                    knownKey = true
+                    key = `<${action.replace(/^.*\./g, "")}>`
+                    break
+                }
+            }
+            if (simpleKey.startsWith(":")) {
+                knownKey = true
+            }
+            if (knownKey) {
+                return key
+            }
+        }
+        if (m.length > 1) {
+            const splitKeys = m.replace(/(^<|>$)/g, "")
+                .split("-").filter(s => s)
+            modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
+            ;[key] = splitKeys.slice(-1)
+        }
+        for (const name of keyNames) {
+            if (name.vim.some(vk => vk.toUpperCase() === key.toUpperCase())) {
+                [key] = name.vim
+                knownKey = true
+                break
+            }
+        }
+        if (!knownKey && key.length > 1) {
+            notify(`Unsupported key in mapping which was skipped: ${key}`,
+                {src, "type": "warn"})
+            return ""
+        }
+        if (!key) {
+            return ""
+        }
+        let modString = ""
+        if (key.toLowerCase() !== key.toUpperCase() && key.length === 1) {
+            if (modifiers.includes("S") && key.toLowerCase() === key) {
+                modifiers = modifiers.filter(mod => mod !== "S")
+                key = key.toUpperCase()
+            }
+            if (modifiers.includes("S") && key.toLowerCase() !== key) {
+                modifiers = modifiers.filter(mod => mod !== "S")
+            }
+        }
+        for (const mod of ["C", "M", "A", "S"]) {
+            if (modifiers.includes(mod)) {
+                modString += `${mod}-`
+            }
+        }
+        if (modString || key.length > 1) {
+            return `<${modString}${key}>`
+        }
+        return key
+    }).join("")
+}
+
+/**
  * Handle all keyboard input.
  * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
  *   altKey: boolean
@@ -1914,10 +2023,28 @@ const handleKeyboard = async e => {
         return
     }
     const id = toIdentifier(e)
-    const matchingMod = getSetting("modifiers").split(",").some(
-        mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
+    const matchingMod = getSetting("modifiers").some(
+        mod => mod === id || id.endsWith(`-${mod.slice(1, -1)}>`))
     if (matchingMod) {
         return
+    }
+    const passthroughkeys = getSetting("passthroughkeys")
+    if (currentMode() === "normal" && !isEmptyObject(passthroughkeys)) {
+        const url = currentPage()?.src ?? ""
+        const matchedUrl = Object.keys(passthroughkeys).find(k => url.match(k))
+        if (matchedUrl) {
+            const keys = splitMapString(passthroughkeys[matchedUrl]).maps
+                .map(k => sanitiseMapString(keyboardEventSource, k))
+            if (keys.includes(id)) {
+                ipcRenderer.sendSync("insert-mode-blockers", "pass")
+                const options = {...fromIdentifier(id), "bubbles": false}
+                await sendKeysToWebview(options, id, keyboardEventSource)
+                blockNextInsertKey = false
+                repeatCounter = 0
+                updateKeysOnScreen()
+                return
+            }
+        }
     }
     const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
@@ -2087,94 +2214,6 @@ const mappingModified = (mode, mapping) => {
         }
     }
     return true
-}
-
-/**
- * Sanitize any mapstring to the shortest valid version.
- * @param {import("./common").RunSource} src
- * @param {string} mapString
- * @param {boolean} allowSpecials
- */
-const sanitiseMapString = (src, mapString, allowSpecials = false) => {
-    const {maps, valid, leftover} = splitMapString(mapString)
-    if (!valid) {
-        notify(`Unmatched < > in mapping '${mapString}': ${leftover}`,
-            {src, "type": "warn"})
-        return ""
-    }
-    return maps.map(m => {
-        if (m === ">") {
-            return ">"
-        }
-        let key = m
-        /** @type {string[]} */
-        let modifiers = []
-        let knownKey = false
-        if (allowSpecials) {
-            const simpleKey = key.toLowerCase().replace(/(^<|>$)/g, "")
-                .replace(/^a(ction)?\./g, "")
-                .replace(/^p(ointer)?\./g, "p.")
-            for (const action of supportedActions) {
-                if (simpleKey === action.toLowerCase()) {
-                    knownKey = true
-                    key = action.replace(/^p(ointer)?\./g, "p.")
-                    key = `<${key.replace(/^a(ction)?\./g, "")}>`
-                    break
-                }
-                if (`a.${simpleKey}` === action.toLowerCase()) {
-                    knownKey = true
-                    key = `<${action.replace(/^.*\./g, "")}>`
-                    break
-                }
-            }
-            if (simpleKey.startsWith(":")) {
-                knownKey = true
-            }
-            if (knownKey) {
-                return key
-            }
-        }
-        if (m.length > 1) {
-            const splitKeys = m.replace(/(^<|>$)/g, "")
-                .split("-").filter(s => s)
-            modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
-            ;[key] = splitKeys.slice(-1)
-        }
-        for (const name of keyNames) {
-            if (name.vim.some(vk => vk.toUpperCase() === key.toUpperCase())) {
-                [key] = name.vim
-                knownKey = true
-                break
-            }
-        }
-        if (!knownKey && key.length > 1) {
-            notify(`Unsupported key in mapping which was skipped: ${key}`,
-                {src, "type": "warn"})
-            return ""
-        }
-        if (!key) {
-            return ""
-        }
-        let modString = ""
-        if (key.toLowerCase() !== key.toUpperCase() && key.length === 1) {
-            if (modifiers.includes("S") && key.toLowerCase() === key) {
-                modifiers = modifiers.filter(mod => mod !== "S")
-                key = key.toUpperCase()
-            }
-            if (modifiers.includes("S") && key.toLowerCase() !== key) {
-                modifiers = modifiers.filter(mod => mod !== "S")
-            }
-        }
-        for (const mod of ["C", "M", "A", "S"]) {
-            if (modifiers.includes(mod)) {
-                modString += `${mod}-`
-            }
-        }
-        if (modString || key.length > 1) {
-            return `<${modString}${key}>`
-        }
-        return key
-    }).join("")
 }
 
 /**
@@ -2493,7 +2532,8 @@ const init = () => {
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
             }
         }
-        const overPageElements = "#page-container, #screenshot-highlight"
+        const overPageElements = "#follow, #screenshot-highlight, #pointer, "
+            + "#url-hover, #loading-progress"
         if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
             const page = currentPage()
             if (getMouseConf("pageoutsideinsert") && page) {
@@ -2788,6 +2828,7 @@ module.exports = {
     resetInputHistory,
     resetScreenshotDrag,
     sanitiseMapString,
+    splitMapString,
     startRecording,
     stopRecording,
     typeCharacterIntoNavbar,

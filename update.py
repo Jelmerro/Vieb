@@ -29,7 +29,7 @@ def find_version(text, version):
 
 def main():
     print("\n  = Checking dependencies\n")
-    with open("package.json") as f:
+    with open("package.json", encoding="utf-8") as f:
         package = json.load(f)
     for dep_type in ["devDependencies", "dependencies"]:
         for dep, version in package.get(dep_type, {}).items():
@@ -54,7 +54,7 @@ def main():
                 package[dep_type][dep] = wanted
             else:
                 print(f"- failed to find {wanted} version for {dep}")
-    with open("package.json", "w") as f:
+    with open("package.json", "w", encoding="utf-8") as f:
         json.dump(package, f, indent=2)
         f.write("\n")
     shutil.rmtree("./node_modules", ignore_errors=True)
@@ -69,17 +69,16 @@ def main():
     print("\n  = Deduplicating dependencies\n")
     subprocess.run(["npm", "dedup", "--legacy-peer-deps"], check=True)
     print("\n  = Fixing package-lock issues\n")
-    with open("package-lock.json") as f:
+    with open("package-lock.json", encoding="utf-8") as f:
         package_lock = json.load(f)
     for package in package_lock["packages"]:
-        if "electron" in package_lock["packages"][package].get("peerDependencies", {}):
+        if "electron" in package_lock["packages"][package].get(
+                "peerDependencies", {}):
             del package_lock["packages"][package]["peerDependencies"]
-    with open("package-lock.json", "w") as f:
+    with open("package-lock.json", "w", encoding="utf-8") as f:
         json.dump(package_lock, f, indent=2)
         f.write("\n")
     subprocess.run(["npm", "ci"], check=True)
-    print("\n  = Patch packages\n")
-    subprocess.run(["npm", "run", "patch"], check=True)
 
 
 if __name__ == "__main__":

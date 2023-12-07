@@ -41,7 +41,8 @@ const {
     getMouseConf,
     updateScreenshotHighlight,
     getUrl,
-    pageForTab
+    pageForTab,
+    currentPage
 } = require("./common")
 
 /** @type {string[]} */
@@ -316,7 +317,7 @@ const suggestExplore = search => {
         return
     }
     const {suggestHist} = require("./history")
-    getSetting("suggestorder").split(",").filter(s => s).forEach(suggest => {
+    getSetting("suggestorder").filter(s => s).forEach(suggest => {
         const args = suggest.split("~")
         const type = args.shift()
         let count = 10
@@ -342,8 +343,9 @@ const suggestExplore = search => {
             if (!order) {
                 order = "alpha"
             }
-            const words = getSetting("searchwords").split(",").map(s => {
-                const [title, url] = s.split("~")
+            const searchwords = getSetting("searchwords")
+            const words = Object.keys(searchwords).map(title => {
+                const url = searchwords[title]
                 let filledUrl = searchword(search).url
                 if (filledUrl === search) {
                     filledUrl = url
@@ -400,7 +402,7 @@ const addCommand = (
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")
-            execute(command)
+            execute(command, {"src": "user"})
             const {clear} = require("./contextmenu")
             clear()
         }
@@ -471,35 +473,83 @@ const suggestCommand = searchStr => {
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
     const {validOptions} = require("./settings")
-    // Command: screenshot
-    if ("screenshot".startsWith(command)
+    // Command: screenshot and screencopy
+    if (command.startsWith("screen")
         && !range && !confirm && args.length < 3) {
-        let [dims] = args
-        let [, location] = args
-        if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
-            [, dims] = args
-            ;[location] = args
+        let fullCommand = "screenshot"
+        if (command.startsWith("screenc")) {
+            fullCommand = "screencopy"
         }
-        dims = ` ${dims || ""}`
+        let [dims, location] = args
+        let dimsFirst = true
+        if (!dims?.match(/^[0-9,]+$/g)
+            || location && !dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+            [location, dims] = args
+            dimsFirst = false
+        }
+        if (dims && !dims?.match(/^[0-9,]+$/g)) {
+            return
+        }
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
+        const rect = {
+            "height": Number(dims?.split(",")[1] ?? pageHeight),
+            "width": Number(dims?.split(",")[0] ?? pageWidth),
+            "x": Number(dims?.split(",")[2] ?? 0),
+            "y": Number(dims?.split(",")[3] ?? 0)
+        }
+        const dimsSuggest = `${rect.width},${rect.height},${rect.x},${rect.y}`
         location = expandPath(location || "")
-        if (location.startsWith("\"") && location.endsWith("\"")) {
-            location = location.slice(1, location.length - 1)
+        if (location && !isAbsolutePath(location)) {
+            location = joinPath(downloadPath(), location)
         }
-        if (!location && !dims) {
-            addCommand("screenshot ~")
-            addCommand("screenshot /")
-            if (downloadPath()) {
-                addCommand(`screenshot ${downloadPath()}`)
+        if (fullCommand === "screencopy") {
+            if (!dims) {
+                addCommand(`${fullCommand}`)
             }
-        }
-        if (location || search.endsWith(" ")) {
-            if (!isAbsolutePath(location)) {
-                location = joinPath(downloadPath(), location)
+            addCommand(`${fullCommand} ${dimsSuggest}`)
+        } else if (location) {
+            const fileSuggestions = suggestFiles(location)
+            fileSuggestions.forEach(l => {
+                let loc = l.path
+                if (l.path.includes(" ")) {
+                    loc = `"${loc}"`
+                }
+                if (dimsFirst) {
+                    addCommand(`${fullCommand} ${dimsSuggest} ${loc}`)
+                } else if (dims) {
+                    addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
+                } else {
+                    addCommand(`${fullCommand} ${loc}`)
+                    addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
+                }
+            })
+            if (!fileSuggestions.length) {
+                if (dimsFirst) {
+                    addCommand(`${fullCommand} ${dimsSuggest} ${location}`)
+                } else if (dims) {
+                    addCommand(`${fullCommand} ${location} ${dimsSuggest}`)
+                } else {
+                    addCommand(`${fullCommand} ${location}`)
+                    addCommand(`${fullCommand} ${location} ${dimsSuggest}`)
+                }
             }
-            suggestFiles(location).forEach(l => addCommand(
-                `screenshot${dims} ${l.path}`))
-        } else if (dims) {
-            addCommand(`screenshot${dims}`)
+        } else {
+            if (!dims) {
+                addCommand(`${fullCommand} ~`)
+            }
+            addCommand(`${fullCommand} ~ ${dimsSuggest}`)
+            addCommand(`${fullCommand} ${dimsSuggest} ~`)
+            if (!dims) {
+                addCommand(`${fullCommand} /`)
+            }
+            addCommand(`${fullCommand} / ${dimsSuggest}`)
+            addCommand(`${fullCommand} ${dimsSuggest} /`)
+            if (!dims) {
+                addCommand(`${fullCommand} ${downloadPath()}`)
+            }
+            addCommand(`${fullCommand} ${downloadPath()} ${dimsSuggest}`)
+            addCommand(`${fullCommand} ${dimsSuggest} ${downloadPath()}`)
         }
     }
     updateScreenshotHighlight()
@@ -527,26 +577,92 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: write
-    if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(args.join(" "))
-        if (location.startsWith("\"") && location.endsWith("\"")) {
-            location = location.slice(1, location.length - 1)
+    if ("write".startsWith(command) && !confirm && args.length < 3) {
+        let [path = "", type = ""] = args
+        if (!["mhtml", "html"].includes(type)
+            && ["mhtml", "html"].some(h => h.startsWith(path))) {
+            [type = "", path = ""] = args
         }
-        if (!location && !range) {
-            addCommand("write ~")
-            addCommand("write /")
-            if (downloadPath()) {
-                addCommand(`write ${downloadPath()}`)
+        path = expandPath(path)
+        let typeSuggest = "html"
+        if (type.startsWith("m")) {
+            typeSuggest = "mhtml"
+        }
+        if (!path && !range) {
+            if (type) {
+                if (args[0] === type) {
+                    addCommand(`write ${typeSuggest}`)
+                    addCommand(`write ${typeSuggest} ~`)
+                    addCommand(`write ${typeSuggest} /`)
+                    addCommand(`write ${typeSuggest} ${downloadPath()}`)
+                } else {
+                    addCommand(`write ~ ${typeSuggest}`)
+                    addCommand(`write / ${typeSuggest}`)
+                    addCommand(`write ${downloadPath()} ${typeSuggest}`)
+                }
+            } else {
+                addCommand(`write`.trim())
+                addCommand(`write ~`.trim())
+                addCommand(`write ~ html`.trim())
+                addCommand(`write html ~`.trim())
+                addCommand(`write ~ mhtml`.trim())
+                addCommand(`write mhtml ~`.trim())
+                addCommand(`write /`.trim())
+                addCommand(`write / html`.trim())
+                addCommand(`write html /`.trim())
+                addCommand(`write / mhtml`.trim())
+                addCommand(`write mhtml /`.trim())
+                addCommand(`write ${downloadPath()}`.trim())
+                addCommand(`write ${downloadPath()} html`.trim())
+                addCommand(`write html ${downloadPath()}`.trim())
+                addCommand(`write ${downloadPath()} mhtml`.trim())
+                addCommand(`write mhtml ${downloadPath()}`.trim())
             }
         }
-        if (location || search.endsWith(" ") && !range) {
-            if (!isAbsolutePath(location)) {
-                location = joinPath(downloadPath(), location)
+        if ((path || search.endsWith(" ")) && !range) {
+            if (!isAbsolutePath(path)) {
+                path = joinPath(downloadPath(), path)
             }
-            suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
+            const fileSuggestions = suggestFiles(path)
+            fileSuggestions.forEach(l => {
+                let loc = l.path
+                if (l.path.includes(" ")) {
+                    loc = `"${loc}"`
+                }
+                if (type) {
+                    if (args[0] === type) {
+                        addCommand(`write ${typeSuggest} ${loc}`)
+                    } else {
+                        addCommand(`write ${loc} ${typeSuggest}`)
+                    }
+                } else {
+                    addCommand(`write ${loc}`)
+                    addCommand(`write ${loc} html`)
+                    addCommand(`write ${loc} mhtml`)
+                    addCommand(`write html ${loc}`)
+                    addCommand(`write mtml ${loc}`)
+                }
+            })
+            if (!fileSuggestions.length) {
+                if (type && args[0] === type) {
+                    addCommand(`write ${typeSuggest} ${path}`)
+                } else if (type) {
+                    addCommand(`write ${path} ${typeSuggest}`)
+                } else {
+                    addCommand(`write ${path}`)
+                    addCommand(`write ${path} html`)
+                    addCommand(`write ${path} mhtml`)
+                }
+            }
         }
         if (range) {
-            addCommand(`${range}write`)
+            if (type) {
+                addCommand(`${range}write ${typeSuggest}`)
+            } else {
+                addCommand(`${range}write`)
+                addCommand(`${range}write html`)
+                addCommand(`${range}write mhtml`)
+            }
             const tabs = listTabs()
             rangeToTabIdxs("user", range, true).tabs.map(num => {
                 const tab = tabs.at(num)
@@ -555,7 +671,7 @@ const suggestCommand = searchStr => {
                 }
                 const index = tabs.indexOf(tab)
                 return {
-                    "command": `${index}write`,
+                    "command": `${index}write ${typeSuggest}`.trim(),
                     "icon": pageForTab(tab)?.getAttribute("src") ?? "",
                     "title": tab.querySelector("span")?.textContent ?? "",
                     "url": pageForTab(tab)?.getAttribute("src") ?? ""
@@ -670,7 +786,8 @@ const suggestCommand = searchStr => {
             "number",
             "string",
             "enum",
-            "list",
+            "array",
+            "object",
             "interval",
             ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),

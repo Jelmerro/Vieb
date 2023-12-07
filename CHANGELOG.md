@@ -11,6 +11,53 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+## Added
+
+- Settings of type list and object, that can also be set with lists or objects with ":set"
+- Setting "loadingindicator" to control where the page load status should be shown
+- Setting "passthroughkeys" to send keys to the page per site/domain/regex without leaving normal mode
+- Option to write command to save pages as MHTML instead of just HTML
+- Setting "windowfullscreen" to allow the fullscreen state to be kept after restart (default "restore")
+- Setting clear syntax from booleans ":set noexample", to work for objects, arrays and numbers too
+
+## Changed
+
+- Default value for "dialogconfirm" to "notifyallow"
+- Default value for "nativetheme" to "dark"
+- Disabled favicons to be empty instead of showing the broken image indicator
+- Mapsuggest and notification alignment in default colorscheme
+- Table of contents to be always open, it is either opened and shown or not shown at all
+- Table of contents to remember the scroll position on hide, until the page is reloaded, for easy toggling
+- Default theme suggest position to be below the tabs
+- Setting "mousevisualmode" now works with double and triple click selections
+- Default screenshot suggestions, highlight behavior and styling to be more prominent
+- Setting "modifiers" to use full key names: for example `<Ctrl>` instead of just `Ctrl`
+
+## Removed
+
+- Setting "suspendplayingtab" in favor of "suspendtimeoutignore" with the right range
+- Option "system" for "nativetheme"
+- Option "ask" for "permissionmediadevices"
+- Setting "restorewindowmaximize" in favor of "windowmaximize" with value "restore"
+- Setting "restorewindowposition" in favor of "windowposition" with value "restore"
+- Setting "restorewindowsize" in favor of "windowsize" with value "restore"
+
+## Fixed
+
+- Download success notification showing in info color instead of success color
+- Occasional error popup when viewing SVGs directly because of style injection refusal
+- Markdownviewer not supporting local images due to file access limits
+- GUI-related settings not hiding after follow and pointer actions due to pointer being in mouse override position
+- Mapped insert mode inputs with shifted keys sending the keys twice or not at all when unshifted variant exists
+- Non-recursive insert mode special keys not always being called with the correct name (hence arrows not working)
+
+### Versions
+
+- Electron 27.1.0 (unchanged)
+- Chromium 118.0.5993.144 (unchanged)
+
 ## [10.6.0](https://github.com/Jelmerro/Vieb/compare/10.5.0...10.6.0) - 2023-11-17
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.5.0...10.6.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.6.0)

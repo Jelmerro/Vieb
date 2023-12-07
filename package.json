@@ -1,7 +1,7 @@
 {
   "name": "vieb",
   "productName": "Vieb",
-  "version": "10.6.0",
+  "version": "11.0.0-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "fix": "eslint --fix app .eslintrc.js build.js",
     "lint": "npm run eslint && npm run tsc",
     "eslint": "eslint app .eslintrc.js build.js",
-    "patch": "patch-package",
+    "postinstall": "patch-package",
     "tsc": "tsc",
     "start": "electron app",
     "test": "node --test",

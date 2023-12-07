@@ -606,6 +606,10 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 const allowedFingerprints = {}
 /** @type {{
  *   [permission: string]: "allow"|"block"|"ask"|"allowkind"|"allowfull"
+ * } & {
+ *   permissionsallowed?: string[],
+ *   permissionsasked?: string[],
+ *   permissionsblocked?: string[]
  * }} */
 let permissions = {}
 
@@ -660,7 +664,7 @@ const permissionHandler = (_, pm, callback, details) => {
     /** @type {("ask"|"block"|"allow")[]} */
     const permissionOverrideTypes = ["ask", "block", "allow"]
     for (const override of permissionOverrideTypes) {
-        const permList = permissions[`permissions${override}ed`]?.split(",")
+        const permList = permissions[`permissions${override}ed`]
         for (const rule of permList || []) {
             if (!rule.trim() || settingRule) {
                 continue
@@ -1212,7 +1216,8 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  */
 /** @type {downloadItem[]} */
 let downloads = []
-let redirects = ""
+/** @type {string[]} */
+let redirects = []
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
 /** @type {"view"|"block"|"download"}} */
@@ -1223,8 +1228,8 @@ let resourceTypes = null
 let resourcesAllowed = []
 /** @type {string[]} */
 let resourcesBlocked = []
-/** @type {string[]} */
-let requestHeaders = []
+/** @type {{[key: string]: string}} */
+let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
@@ -1237,10 +1242,10 @@ ipcMain.on("set-redirects", (_, rdr) => {
 /**
  * Update the request header setting.
  * @param {Electron.IpcMainEvent} _
- * @param {string} headers
+ * @param {{[key: string]: string}} headers
  */
 const updateRequestHeaders = (_, headers) => {
-    requestHeaders = headers.split(",").filter(h => h)
+    requestHeaders = headers
 }
 
 ipcMain.on("update-request-headers", updateRequestHeaders)
@@ -1349,13 +1354,13 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
 /**
  * Update the list of spell languages to be used.
  * @param {Electron.IpcMainEvent} _
- * @param {string} langs
+ * @param {string[]} langs
  */
 const setSpelllangs = (_, langs) => {
     if (!langs) {
         return
     }
-    const parsedLangs = langs.split(",").map(l => {
+    const parsedLangs = langs.map(l => {
         let lang = l
         if (lang === "system") {
             lang = app.getLocale()
@@ -1565,7 +1570,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
-        redirects.split(",").forEach(r => {
+        redirects.forEach(r => {
             if (r.trim()) {
                 const [match, replace] = r.split("~")
                 url = url.replace(RegExp(match), replace)
@@ -1617,11 +1622,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
     newSess.webRequest.onBeforeSendHeaders((details, callback) => {
         const headers = details.requestHeaders
-        for (const head of requestHeaders) {
-            if (head.includes("~")) {
-                headers[head.split("~")[0]] = head.split("~").slice(1).join("~")
+        for (const head of Object.keys(requestHeaders)) {
+            if (head.startsWith("-")) {
+                delete headers[head.replace(/$-/, "")]
             } else {
-                delete headers[head]
+                headers[head] = requestHeaders[head]
             }
         }
         return callback({"cancel": false, "requestHeaders": headers})
@@ -1732,7 +1737,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         "action": {
                             "path": info.file, "type": "download-success"
                         },
-                        "src": downloadSrc
+                        "src": downloadSrc,
+                        "type": "success"
                     })
             } else {
                 mainWindow?.webContents.send("notify",
@@ -1820,7 +1826,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.end()
         })
     })
+    let markdownFilesUniqueId = ""
+    newSess.protocol.handle("markdownfiles", req => {
+        const url = new URL(req.url)
+        const id = url.searchParams.get("md-uuid")
+        url.search = ""
+        if (!markdownFilesUniqueId || !id || markdownFilesUniqueId !== id) {
+            return Response.error()
+        }
+        return net.fetch(url.href.replace(/^markdownfiles:/, "file:"))
+    })
     newSess.protocol.handle("markdownviewer", req => {
+        const {randomUUID} = require("crypto")
+        markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -1885,10 +1903,39 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         mdRenderer.html = text => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
             .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+        /**
+         * Add md-uuid to the url to allow requests to markdownfiles protocol.
+         * @param {string} href
+         * @param {string|undefined|null} title
+         * @param {string} alt
+         */
+        mdRenderer.image = (href, title, alt) => {
+            let safeUrl = href
+            try {
+                safeUrl = encodeURI(href).replace(/%25/g, "%")
+                if (url.startsWith("file:")
+                    && href.startsWith("markdownfiles")) {
+                    safeUrl += `?md-uuid=${markdownFilesUniqueId}`
+                }
+            } catch {
+                safeUrl = ""
+            }
+            let output = `<img src="${safeUrl}" alt="${alt}"`
+            if (title) {
+                output += ` title="${title}"`
+            }
+            output += ">"
+            return output
+        }
         markedObj.setOptions({"renderer": mdRenderer, "silent": true})
         try {
             const {baseUrl} = require("marked-base-url")
-            markedObj.use(baseUrl(url))
+            if (url.startsWith("file:")) {
+                const base = url.replace(/^file:/, "markdownfiles:")
+                markedObj.use(baseUrl(base))
+            } else {
+                markedObj.use(baseUrl(url))
+            }
         } catch {
             // Base url handling is optional.
         }
@@ -2070,14 +2117,14 @@ ipcMain.on("download-favicon", (_, options) => {
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 
 /**
- * Save the current window state, optionally just the maximization state.
- * @param {boolean} maximizeOnly
+ * Save the current window state, optionally just the maximize/fullscreen state.
+ * @param {boolean} statesOnly
  */
-const saveWindowState = (maximizeOnly = false) => {
+const saveWindowState = (statesOnly = false) => {
     try {
         mainWindow?.webContents?.send("window-update-gui")
         let state = readJSON(windowStateFile) || {}
-        if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
+        if (!statesOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
             const currentScreen = screen.getDisplayMatching(newBounds).workArea
             const sameW = newBounds.width === currentScreen.width
@@ -2091,13 +2138,14 @@ const saveWindowState = (maximizeOnly = false) => {
             }
         }
         state.maximized = mainWindow?.isMaximized()
+        state.fullscreen = mainWindow?.fullScreen
         writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
     }
 }
 
-ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
+ipcMain.on("window-state-init", (_, restore) => {
     if (!mainWindow) {
         return
     }
@@ -2109,28 +2157,35 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         bounds.width = Number(parsed.width)
         bounds.height = Number(parsed.height)
         bounds.maximized = !!parsed.maximized
+        bounds.fullscreen = !!parsed.fullscreen
     }
-    if (restorePos === "restore" || restorePos === true) {
+    if (restore.pos === "restore") {
         if (bounds.x > 0 && bounds.y > 0) {
             mainWindow.setPosition(bounds.x, bounds.y)
         }
-    } else if (restorePos !== "default" && restorePos !== false) {
-        const nums = restorePos.split("x").map(Number)
+    } else if (restore.pos !== "default") {
+        const nums = restore.pos.split("x").map(Number)
         mainWindow.setPosition(nums[0], nums[1])
     }
-    if (restoreSize === "restore" || restoreSize === true) {
+    if (restore.size === "restore") {
         if (bounds.width > 500 && bounds.height > 500) {
             mainWindow.setSize(bounds.width, bounds.height)
         }
-    } else if (restoreSize !== "default" && restoreSize !== false) {
-        const nums = restoreSize.split("x").map(Number)
+    } else if (restore.size !== "default") {
+        const nums = restore.size.split("x").map(Number)
         mainWindow.setSize(nums[0], nums[1])
     }
-    if (bounds.maximized && restoreMax === "restore") {
+    if (bounds.maximized && restore.max === "restore") {
         mainWindow.maximize()
     }
-    if (restoreMax === "true" || restoreMax === true) {
+    if (restore.max === "true") {
         mainWindow.maximize()
+    }
+    if (bounds.fullscreen && restore.full === "restore") {
+        mainWindow.fullScreen = true
+    }
+    if (restore.full === "true") {
+        mainWindow.fullScreen = true
     }
     mainWindow.show()
     mainWindow.focus()
@@ -2168,8 +2223,8 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
 ipcMain.on("update-native-theme", (_, newTheme) => {
     nativeTheme.themeSource = newTheme
 })
-ipcMain.handle("save-page", (_, id, loc) => {
-    webContents.fromId(id)?.savePage(loc, "HTMLComplete")
+ipcMain.handle("save-page", (_, id, loc, type) => {
+    webContents.fromId(id)?.savePage(loc, type)
 })
 ipcMain.on("hide-window", () => {
     if (!argDebugMode) {
@@ -2203,6 +2258,7 @@ ipcMain.handle("toggle-always-on-top", () => {
 ipcMain.handle("toggle-fullscreen", () => {
     if (mainWindow) {
         mainWindow.fullScreen = !mainWindow.fullScreen
+        saveWindowState(true)
     }
 })
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
@@ -2557,8 +2613,12 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
         if (subframe) {
             try {
                 const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                    const frameId = `${f.routingId}-${f.processId}`
-                    return frameId === subframe.id
+                    try {
+                        const frameId = `${f.routingId}-${f.processId}`
+                        return frameId === subframe.id
+                    } catch {
+                        return false
+                    }
                 })
                 if (actionName === "selectionRequest") {
                     frameRef?.send("action", actionName,
@@ -2594,8 +2654,12 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
     if (subframe) {
         try {
             const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
+                try {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                } catch {
+                    return false
+                }
             })
             frameRef?.send("contextmenu-data", {
                 ...info,
@@ -2612,8 +2676,13 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
 })
 ipcMain.on("contextmenu", (_, id) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(
-            f => f.send("contextmenu"))
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("contextmenu")
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
     } catch (ex) {
         errToMain(ex)
     }
@@ -2628,8 +2697,12 @@ ipcMain.on("focus-input", (_, id, location = null) => {
         if (subframe) {
             try {
                 const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                    const frameId = `${f.routingId}-${f.processId}`
-                    return frameId === subframe.id
+                    try {
+                        const frameId = `${f.routingId}-${f.processId}`
+                        return frameId === subframe.id
+                    } catch {
+                        return false
+                    }
                 })
                 frameRef?.send("focus-input", {
                     "x": location.x - subframe.absX,
@@ -2650,8 +2723,13 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
     }
     try {
         if (frameId) {
-            const frameRef = wc.mainFrame.framesInSubtree.find(
-                f => frameId === `${f.routingId}-${f.processId}`)
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                try {
+                    return frameId === `${f.routingId}-${f.processId}`
+                } catch {
+                    return false
+                }
+            })
             frameRef?.send("replace-input-field", correction, inputField)
             return
         }
@@ -2758,14 +2836,29 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
         if (!wc) {
             return
         }
-        wc.sendInputEvent({keyCode, "type": "keyDown"})
-        if (keyCode.length === 1) {
-            wc.sendInputEvent({keyCode, "type": "char"})
+        /** @type {"shift"[]} */
+        const modifiers = []
+        if (keyOptions.shift) {
+            modifiers.push("shift")
         }
-        wc.sendInputEvent({keyCode, "type": "keyUp"})
-        wc.mainFrame.framesInSubtree
-            .filter(f => f.routingId !== wc.mainFrame.routingId)
-            .forEach(f => f.send("keyboard-type-event", keyOptions))
+        wc.sendInputEvent({keyCode, modifiers, "type": "keyDown"})
+        if (keyCode.length === 1) {
+            wc.sendInputEvent({keyCode, modifiers, "type": "char"})
+        }
+        wc.sendInputEvent({keyCode, modifiers, "type": "keyUp"})
+        wc.mainFrame.framesInSubtree.filter(f => {
+            try {
+                return f.routingId !== wc.mainFrame.routingId
+            } catch {
+                return false
+            }
+        }).forEach(f => {
+            try {
+                f.send("keyboard-type-event", keyOptions)
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
     } catch (ex) {
         errToMain(ex)
     }
@@ -2784,8 +2877,12 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
     if (subframe) {
         try {
             const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
+                try {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                } catch {
+                    return false
+                }
             })
             if (inputInfo.type === "scroll") {
                 frameRef?.send("custom-mouse-event", "mousewheel", {

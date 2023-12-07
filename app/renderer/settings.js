@@ -87,9 +87,11 @@ const defaultSettings = {
     "closablepinnedtabs": false,
     /** @type {"all"|"persistall"|"useronly"|"persistuseronly"|"none"} */
     "commandhist": "persistuseronly",
-    "containercolors": "temp\\d+~#ff0",
+    /** @type {string[]} */
+    "containercolors": ["temp\\d+~#ff0"],
     "containerkeeponreopen": true,
-    "containernames": "",
+    /** @type {string[]} */
+    "containernames": [],
     "containernewtab": "s:usecurrent",
     /** @type {"automatic"|"always"|"never"} */
     "containershowname": "automatic",
@@ -98,14 +100,15 @@ const defaultSettings = {
     "countlimit": 100,
     "darkreader": false,
     "darkreaderbg": "#181a1b",
-    "darkreaderblocklist": "",
+    /** @type {string[]} */
+    "darkreaderblocklist": [],
     "darkreaderbrightness": 100,
     "darkreadercontrast": 100,
     "darkreaderfg": "#e8e6e3",
     "darkreadergrayscale": 0,
     /** @type {"dark"|"light"} */
     "darkreadermode": "dark",
-    "darkreaderscope": "page",
+    "darkreaderscope": ["page"],
     "darkreadersepia": 0,
     "darkreadertextstroke": 0,
     /** @type {"window"|"split"|"vsplit"|"tab"} */
@@ -115,7 +118,7 @@ const defaultSettings = {
     /** @type {(
      *   "show"|"notifyshow"|"block"|"notifyblock"|"allow"|"notifyallow"
      * )} */
-    "dialogconfirm": "notifyblock",
+    "dialogconfirm": "notifyallow",
     /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogprompt": "notifyblock",
     /** @type {"automatic"|"confirm"|"ask"|"block"} */
@@ -132,13 +135,27 @@ const defaultSettings = {
      *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"
      * )} */
     "favicons": "session",
-    "favoritepages": "",
-    /** @type {"all"|"alpha"|"alphanum"|"dvorakhome"
-     * |"numbers"|"qwertyhome"|"custom:${string}"} */
+    /** @type {string[]} */
+    "favoritepages": [],
     "followchars": "alpha",
-    "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
-    "followelementpointer":
-        "url,onclick,inputs-insert,inputs-click,media,image,other",
+    "followelement": [
+        "url",
+        "onclick",
+        "inputs-insert",
+        "inputs-click",
+        "media",
+        "image",
+        "other"
+    ],
+    "followelementpointer": [
+        "url",
+        "onclick",
+        "inputs-insert",
+        "inputs-click",
+        "media",
+        "image",
+        "other"
+    ],
     /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
     /** @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
@@ -169,12 +186,14 @@ const defaultSettings = {
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
+    /** @type {"none"|"spinner"|"line"|"all"} */
+    "loadingindicator": "spinner",
     "mapsuggest": 9000000000000000,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "mapsuggestposition": "topright",
     /** @type {import("./tabs").tabPosition} */
     "markposition": "newtab",
-    /** @type {import("./tabs").tabPosition | "default"} */
+    /** @type {import("./tabs").tabPosition|"default"} */
     "markpositionshifted": "default",
     "maxmapdepth": 10,
     /** @type {"always"|"globalasneeded"|"elementasneeded"|"never"} */
@@ -184,7 +203,16 @@ const defaultSettings = {
     /** @type {"both"|"navbar"|"tabbar"|"never"} */
     "menuvieb": "both",
     "mintabwidth": 28,
-    "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
+    "modifiers": [
+        "<Ctrl>",
+        "<Shift>",
+        "<Alt>",
+        "<Meta>",
+        "<NumLock>",
+        "<CapsLock>",
+        "<ScrollLock>"
+    ],
+    /** @type {"all"|string[]} */
     "mouse": "all",
     /** @type {"nothing"|"drag"} */
     "mousedisabledbehavior": "nothing",
@@ -194,8 +222,8 @@ const defaultSettings = {
     "mousevisualmode": "onswitch",
     /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
-    /** @type {"system"|"dark"|"light"} */
-    "nativetheme": "system",
+    /** @type {"dark"|"light"} */
+    "nativetheme": "dark",
     "newtaburl": "",
     "notificationduration": 6000,
     /** @type {"all"|"allowed"|"blocked"|"silent"|"none"} */
@@ -205,6 +233,8 @@ const defaultSettings = {
     "notificationlimitsmall": 3,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
+    /** @type {{[key: string]: string}} */
+    "passthroughkeys": {},
     /** @type {"view"|"block"|"download"|"external"} */
     "pdfbehavior": "download",
     /** @type {"block"|"ask"|"allow"} */
@@ -227,7 +257,7 @@ const defaultSettings = {
     "permissionhid": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionidledetection": "block",
-    /** @type {"block"|"ask"|"allow"|"allowkind"|"allowfull"} */
+    /** @type {"block"|"allow"|"allowkind"|"allowfull"} */
     "permissionmediadevices": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionmicrophone": "block",
@@ -243,9 +273,12 @@ const defaultSettings = {
     "permissionpersistentstorage": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionpointerlock": "block",
-    "permissionsallowed": "",
-    "permissionsasked": "",
-    "permissionsblocked": "",
+    /** @type {string[]} */
+    "permissionsallowed": [],
+    /** @type {string[]} */
+    "permissionsasked": [],
+    /** @type {string[]} */
+    "permissionsblocked": [],
     /** @type {"block"|"ask"|"allow"} */
     "permissionscreenwakelock": "block",
     /** @type {"block"|"ask"|"allow"} */
@@ -262,61 +295,80 @@ const defaultSettings = {
     "pointerposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
     "pointerpostype": "casing",
-    "quickmarkpersistence": "scroll,marks,pointer",
+    "quickmarkpersistence": ["scroll", "marks", "pointer"],
     "quitonlasttabclose": false,
-    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
-        + "~https://$3",
+    /** @type {string[]} */
+    "redirects": [
+        "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3"
+    ],
     "redirecttohttp": false,
     "reloadtaboncrash": false,
     /** @type {"always"|"special"|"newtab"|"never"} */
     "replacespecial": "special",
     /** @type {"always"|"newtab"|"never"} */
     "replacestartup": "never",
-    "requestheaders": "",
+    /** @type {{[key: string]: string}} */
+    "requestheaders": {},
     "requesttimeout": 20000,
-    "resourcesallowed": "",
-    "resourcesblocked": "",
-    "resourcetypes": "object,script,media,image,"
-        + "stylesheet,font,xhr,ping,websocket",
+    /** @type {string[]} */
+    "resourcesallowed": [],
+    /** @type {string[]} */
+    "resourcesblocked": [],
+    "resourcetypes": [
+        "object",
+        "script",
+        "media",
+        "image",
+        "stylesheet",
+        "font",
+        "xhr",
+        "ping",
+        "websocket"
+    ],
     /** @type {"all"|"pinned"|"regular"|"none"} */
     "restoretabs": "all",
-    "restorewindowmaximize": true,
-    "restorewindowposition": true,
-    "restorewindowsize": true,
     /** @type {"domain"|"url"} */
     "scrollposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
     "scrollpostype": "casing",
     /** @type {"global"|"local"|"both"} */
     "searchemptyscope": "global",
-    "searchengine": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    "searchengine": ["https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web"],
     /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
     /** @type {"global"|"local"|"inclocal"} */
     "searchscope": "global",
-    "searchwords": "",
+    /** @type {{[key: string]: string}} */
+    "searchwords": {},
     "shell": "",
     "showcmd": true,
     "smartcase": true,
     "spell": true,
-    "spelllang": "system",
+    "spelllang": ["system"],
     "splitbelow": false,
     "splitright": false,
     "sponsorblock": false,
-    "sponsorblockcategories": "sponsor~lime,intro~cyan,outro~blue,"
-        + "interaction~red,selfpromo~yellow,music_offtopic",
-    "startuppages": "",
-    "storenewvisits": "pages",
+    /** @type {{[key: string]: string}} */
+    "sponsorblockcategories": {
+        "interaction": "red",
+        "intro": "cyan",
+        "music_offtopic": "",
+        "outro": "blue",
+        "selfpromo": "yellow",
+        "sponsor": "lime"
+    },
+    /** @type {string[]} */
+    "startuppages": [],
+    "storenewvisits": ["pages"],
     "suggestbouncedelay": 100,
     "suggestcommands": 9000000000000000,
-    "suggestorder": "history,searchword,file",
+    "suggestorder": ["history", "searchword", "file"],
     "suggesttopsites": 10,
     "suspendbackgroundtab": true,
     /** @type {"all"|"regular"|"none"} */
     "suspendonrestore": "regular",
-    "suspendplayingtab": false,
     "suspendtimeout": 0,
-    "suspendtimeoutignore": "ga//",
+    "suspendtimeoutignore": ["ga//", "gp//"],
     /** @type {"left"|"right"|"previous"} */
     "tabclosefocus": "left",
     "tabcycle": true,
@@ -332,18 +384,21 @@ const defaultSettings = {
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 2000,
-    "tocpages": "",
+    /** @type {string[]} */
+    "tocpages": [],
     /** @type {"auto"|"deepl"|"libretranslate"} */
     "translateapi": "auto",
     "translatekey": "",
     "translatelang": "en-us",
     "translateurl": "https://api-free.deepl.com/v2/",
-    "useragent": "",
+    /** @type {string[]} */
+    "useragent": [],
     "userscript": false,
-    "userscriptscope": "page",
+    "userscriptscope": ["page"],
     "userstyle": false,
-    "userstylescope": "page",
+    "userstylescope": ["page"],
     "vimcommand": "gvim",
+    "windowfullscreen": "restore",
     "windowmaximize": "restore",
     "windowposition": "restore",
     "windowsize": "restore",
@@ -367,40 +422,6 @@ const freeText = [
     "translatekey",
     "vimcommand",
     "windowtitle"
-]
-const listLike = [
-    "containercolors",
-    "containernames",
-    "darkreaderscope",
-    "favoritepages",
-    "followelement",
-    "followelementpointer",
-    "modifiers",
-    "mouse",
-    "permissionsallowed",
-    "permissionsasked",
-    "permissionsblocked",
-    "quickmarkpersistence",
-    "redirects",
-    "requestheaders",
-    "resourcesallowed",
-    "resourcesblocked",
-    "searchengine",
-    "searchwords",
-    "spelllang",
-    "sponsorblockcategories",
-    "startuppages",
-    "storenewvisits",
-    "suggestorder",
-    "suspendtimeoutignore",
-    "resourcetypes",
-    "tocpages",
-    "userscriptscope",
-    "userstylescope"
-]
-const listLikeTilde = [
-    "darkreaderblocklist",
-    "useragent"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -457,6 +478,7 @@ const validOptions = {
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
+    "loadingindicator": ["none", "spinner", "line", "all"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "markposition": [
         "open",
@@ -485,7 +507,7 @@ const validOptions = {
     "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "largeonly", "smallonly", "never"],
-    "nativetheme": ["system", "dark", "light"],
+    "nativetheme": ["dark", "light"],
     "notificationforpermissions": [
         "all", "allowed", "blocked", "silent", "none"
     ],
@@ -504,9 +526,7 @@ const validOptions = {
     "permissiongeolocation": ["block", "ask", "allow"],
     "permissionhid": ["block", "allow"],
     "permissionidledetection": ["block", "ask", "allow"],
-    "permissionmediadevices": [
-        "block", "ask", "allow", "allowkind", "allowfull"
-    ],
+    "permissionmediadevices": ["block", "allow", "allowkind", "allowfull"],
     "permissionmicrophone": ["block", "ask", "allow"],
     "permissionmidi": ["block", "ask", "allow"],
     "permissionmidisysex": ["block", "ask", "allow"],
@@ -579,6 +599,7 @@ const validOptions = {
         "uk",
         "zh"
     ],
+    "windowfullscreen": ["true", "false", "restore"],
     "windowmaximize": ["true", "false", "restore"]
 }
 const numberRanges = {
@@ -628,6 +649,7 @@ let spelllangs = []
  * @param {string} value
  */
 const checkOption = (src, setting, value) => {
+    /** @type {typeof validOptions[setting]} */
     const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
     if (optionList) {
         const valid = optionList.includes(value)
@@ -664,10 +686,10 @@ const checkNumber = (src, setting, value) => {
 /**
  * Check if the provided suggest order is valid.
  * @param {import("./common").RunSource} src
- * @param {string} value
+ * @param {string[]} value
  */
 const checkSuggestOrder = (src, value) => {
-    for (const suggest of value.split(",").filter(s => s.trim())) {
+    for (const suggest of value) {
         const parts = (suggest.match(/~/g) || []).length
         if (parts > 2) {
             notify(
@@ -739,8 +761,8 @@ const checkSuggestOrder = (src, value) => {
 /**
  * Check if other more advanced settings are configured correctly.
  * @param {import("./common").RunSource} src
- * @param {string} setting
- * @param {number | string | boolean} value
+ * @param {keyof typeof defaultSettings} setting
+ * @param {number|string|boolean|string[]|{[key: string]: string}} value
  */
 const checkOther = (src, setting, value) => {
     // Special cases
@@ -789,10 +811,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containercolors") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const colorMatch of value.split(",").filter(c => c.trim())) {
+        for (const colorMatch of value) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -820,10 +842,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "containernames") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const containerMatch of value.split(",").filter(c => c.trim())) {
+        for (const containerMatch of value) {
             if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
                     + "Entries must have one or two ~ to separate the "
@@ -869,10 +891,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "darkreaderblocklist") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const match of value.split("~").filter(c => c.trim())) {
+        for (const match of value) {
             try {
                 RegExp(match)
             } catch {
@@ -884,10 +906,10 @@ const checkOther = (src, setting, value) => {
     }
     const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
     if (scopeConf.includes(setting)) {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const match of value.split(",").filter(c => c.trim())) {
+        for (const match of value) {
             if (!["file", "page", "special"].includes(match)) {
                 notify(`Invalid value '${match}' in ${setting}, `
                     + "must be one of: file, page or special",
@@ -913,10 +935,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "favoritepages") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const page of value.split(",").filter(p => p.trim())) {
+        for (const page of value) {
             if (!isUrl(page)) {
                 notify(`Invalid URL passed to favoritepages: ${page}`,
                     {src, "type": "warn"})
@@ -958,7 +980,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting.startsWith("followelement")) {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
         const ok = [
@@ -970,7 +992,7 @@ const checkOther = (src, setting, value) => {
             "image",
             "other"
         ]
-        for (const element of value.split(",").filter(e => e.trim())) {
+        for (const element of value) {
             if (!ok.includes(element)) {
                 notify(`Invalid element type passed: ${element}, `
                    + `must be any combination of: url, onclick,
@@ -980,26 +1002,28 @@ const checkOther = (src, setting, value) => {
             }
         }
     }
+    const {keyNames, splitMapString} = require("./input")
     if (setting === "modifiers") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        const {keyNames} = require("./input")
-        for (const name of value.split(",").filter(n => n.trim())) {
-            if (name.length > 1
-                && !keyNames.some(key => key.vim.includes(name))) {
-                notify(`Key name '${name}' is not recognized as a valid key`,
-                    {src, "type": "warn"})
-                return false
+        for (const name of value) {
+            if (name.length > 1) {
+                if (!keyNames.some(l => l.vim.map(k => `<${k}>`).includes(name))
+                    || name === "<Any>") {
+                    notify(`Key name '${name}' in modifiers is not `
+                        + "recognized as a valid key", {src, "type": "warn"})
+                    return false
+                }
             }
         }
     }
     if (setting === "mouse") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        const invalid = value.split(",").find(
-            v => !mouseFeatures.includes(v) && v !== "all")
+        const invalid = value.find(
+            m => !mouseFeatures.includes(m) && m !== "all")
         if (invalid) {
             notify(`Feature '${invalid}' is not a valid mouse feature`,
                 {src, "type": "warn"})
@@ -1016,14 +1040,55 @@ const checkOther = (src, setting, value) => {
             return false
         }
     }
+    if (setting === "passthroughkeys") {
+        if (typeof value !== "object" || Array.isArray(value)) {
+            return false
+        }
+        for (const val of Object.keys(value)) {
+            try {
+                RegExp(val)
+            } catch {
+                notify(
+                    `Invalid regular expression in passthroughkeys: ${val}`,
+                    {src, "type": "warn"})
+                return false
+            }
+        }
+        for (const val of Object.values(value)) {
+            const {valid, maps} = splitMapString(val)
+            if (!valid) {
+                notify(`Invalid keys in passthroughkeys entry: ${val}`,
+                    {src, "type": "warn"})
+                return false
+            }
+            for (let name of maps) {
+                if (name.length === 1) {
+                    continue
+                }
+                if (name.startsWith("<") && name.endsWith(">")) {
+                    name = name.slice(1, -1)
+                } else {
+                    notify(`Key name '${name}' in passthroughkeys is not `
+                        + "recognized as a valid key", {src, "type": "warn"})
+                    return false
+                }
+                if (!keyNames.some(key => key.vim.includes(name))) {
+                    notify(`Key name '${name}' in passthroughkeys is not `
+                        + "recognized as a valid key", {src, "type": "warn"})
+                    return false
+                }
+            }
+        }
+        return true
+    }
     const permissionSettings = [
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const override of value.split(",").filter(o => o.trim())) {
+        for (const override of value) {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
@@ -1078,9 +1143,10 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("ediadevices")) {
-                    notify("DEPRECATION: permissionmediadevices value 'ask' "
-                        + "will be removed from 11.0.0 onward.",
-                    {src, "type": "warn"})
+                    notify(
+                        "Mediadevices permission can't be asked, "
+                        + "only allowed or blocked", {src, "type": "warn"})
+                    return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
                     notify(
@@ -1092,10 +1158,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "quickmarkpersistence" && value !== "") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const mType of value.split(",").filter(l => l.trim())) {
+        for (const mType of value) {
             if (!["scroll", "marks", "pointer"].includes(mType)) {
                 notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
                     {src, "type": "warn"})
@@ -1104,10 +1170,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "redirects") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const redirect of value.split(",").filter(r => r.trim())) {
+        for (const redirect of value) {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -1126,10 +1192,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const override of value.split(",").filter(o => o.trim())) {
+        for (const override of value) {
             const [match, ...names] = override.split("~")
             try {
                 RegExp(match)
@@ -1139,7 +1205,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             for (const name of names) {
-                const supported = defaultSettings.resourcetypes.split(",")
+                const supported = defaultSettings.resourcetypes
                 if (!supported.includes(name)) {
                     notify(`Invalid resource type in ${setting}: ${name}`,
                         {src, "type": "warn"})
@@ -1149,11 +1215,11 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "resourcetypes" && value !== "") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const rsrc of value.split(",").filter(l => l.trim())) {
-            if (!defaultSettings.resourcetypes.split(",").includes(rsrc)) {
+        for (const rsrc of value) {
+            if (!defaultSettings.resourcetypes.includes(rsrc)) {
                 notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
                     {src, "type": "warn"})
                 return false
@@ -1161,10 +1227,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchengine") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (let baseUrl of value.split(",").filter(e => e.trim())) {
+        for (let baseUrl of value) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
                 notify(`Invalid searchengine value: ${baseUrl}\n`
@@ -1182,19 +1248,13 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "searchwords") {
-        if (typeof value !== "string") {
+        if (typeof value !== "object" || Array.isArray(value)) {
             return false
         }
         /** @type {string[]} */
         const knownSearchwords = []
-        for (const searchword of value.split(",").filter(s => s.trim())) {
-            if ((searchword.match(/~/g) || []).length !== 1) {
-                notify(`Invalid searchwords entry: ${searchword}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "searchword from the URL", {src, "type": "warn"})
-                return false
-            }
-            const [keyword, url] = searchword.split("~")
+        for (const searchword of Object.entries(value)) {
+            const [keyword, url] = searchword
             const simpleKeyword = keyword.replace(/_/g, "")
             if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
@@ -1220,10 +1280,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const lang of value.split(",").filter(l => l.trim())) {
+        for (const lang of value) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
                     {src, "type": "warn"})
@@ -1232,22 +1292,15 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "sponsorblockcategories") {
-        if (typeof value !== "string") {
+        if (typeof value !== "object" || Array.isArray(value)) {
             return false
         }
         /** @type {string[]} */
         const knownCategories = []
-        const allCategories = defaultSettings.sponsorblockcategories
-            .split(",").map(s => s.split("~")[0])
-        for (const catColorPair of value.split(",").filter(c => c.trim())) {
-            if ((catColorPair.match(/~/g) || []).length > 1) {
-                notify(`Invalid ${setting} entry: ${catColorPair}\n`
-                    + "Entries must have zero or one ~ to separate the "
-                    + "category name and color name/hex",
-                {src, "type": "warn"})
-                return false
-            }
-            const [category, color] = catColorPair.split("~")
+        const allCategories = Object.keys(
+            defaultSettings.sponsorblockcategories)
+        for (const catColorPair of Object.entries(value)) {
+            const [category, color] = catColorPair
             if (!allCategories.includes(category)) {
                 notify(`Invalid category in ${setting}: ${category}`,
                     {src, "type": "warn"})
@@ -1272,10 +1325,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "startuppages") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const page of value.split(",").filter(p => p.trim())) {
+        for (const page of value) {
             const parts = page.split("~")
             const url = parts.shift() ?? ""
             const cname = parts.shift()
@@ -1319,7 +1372,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
         const valid = [
@@ -1330,7 +1383,7 @@ const checkOther = (src, setting, value) => {
             "readerview",
             "markdownviewer"
         ]
-        for (const visitType of value.split(",").filter(v => v.trim())) {
+        for (const visitType of value) {
             if (!valid.includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
                     + `must be one of: ${valid.join(", ")}`,
@@ -1340,16 +1393,16 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "suggestorder") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
         return checkSuggestOrder(src, value)
     }
     if (setting === "suspendtimeoutignore") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const ignore of value.split(",")) {
+        for (const ignore of value) {
             const {rangeToTabIdxs} = require("./command")
             if (!rangeToTabIdxs(src, ignore).valid) {
                 return false
@@ -1357,10 +1410,10 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "tocpages") {
-        if (typeof value !== "string") {
+        if (!Array.isArray(value)) {
             return false
         }
-        for (const match of value.split(",").filter(c => c.trim())) {
+        for (const match of value) {
             try {
                 RegExp(match)
             } catch {
@@ -1405,11 +1458,19 @@ const checkOther = (src, setting, value) => {
 }
 
 /**
- * Check if a setting is of type enum, so it has to validate the valid opts.
+ * Check if a given setting name exists at all.
  * @param {string} set
  * @returns {set is keyof typeof defaultSettings}
  */
 const isExistingSetting = set => set in defaultSettings
+
+/**
+ * Check if a setting is of type boolean.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<boolean, defaultSettings>}
+ */
+const isBooleanSetting = set => isExistingSetting(set)
+    && typeof defaultSettings[set] === "boolean"
 
 /**
  * Check if a setting is of type enum, so it has to validate the valid opts.
@@ -1426,17 +1487,45 @@ const isEnumSetting = set => set in validOptions
 const isNumberSetting = set => set in numberRanges
 
 /**
+ * Check if a setting is of type string[], to treat it like an array.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<string[], defaultSettings>|"mouse"}
+ */
+const isArraySetting = set => isExistingSetting(set)
+    && (Array.isArray(defaultSettings[set]) || set === "mouse")
+
+/**
+ * Check if a setting is of type object with string key/value.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<{[key: string]: string}, defaultSettings>}
+ */
+const isObjectSetting = set => isExistingSetting(set)
+    && !isArraySetting(set) && typeof defaultSettings[set] === "object"
+
+/**
+ * Check if a setting is of type string.
+ * @param {string} set
+ * @returns {set is GetKeysOfType<string, defaultSettings>}
+ */
+const isStringSetting = set => isExistingSetting(set)
+    && typeof defaultSettings[set] === "string"
+
+/**
  * Check if a setting will be valid for a given value.
+ * @template {keyof typeof defaultSettings} T
  * @param {import("./common").RunSource} src
- * @param {keyof typeof defaultSettings} setting
- * @param {string | number | boolean} value
+ * @param {T} setting
+ * @param {typeof defaultSettings[T]} value
  */
 const isValidSetting = (src, setting, value) => {
     const expectedType = typeof allSettings[setting]
-    /** @type {string | number | boolean} */
-    let parsedValue = String(value)
+    /** @type {string|number|boolean|string[]|{[key: string]: string}} */
+    let parsedValue = value
     if (expectedType === "number" && !isNaN(Number(parsedValue))) {
         parsedValue = Number(value)
+    }
+    if (expectedType === "string") {
+        parsedValue = String(value)
     }
     if (expectedType === "boolean") {
         if (["true", "false"].includes(String(parsedValue))) {
@@ -1502,7 +1591,7 @@ const updatePdfOption = () => {
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
-            const color = allSettings.containercolors.split(",").find(
+            const color = allSettings.containercolors.find(
                 c => page.getAttribute("container")?.match(c.split("~")[0]))
             const tab = tabForPage(page)
             if (tab && color) {
@@ -1516,7 +1605,7 @@ const updateContainerSettings = (full = true) => {
     if (!container) {
         return
     }
-    const color = allSettings.containercolors.split(",").find(
+    const color = allSettings.containercolors.find(
         c => container.match(c.split("~")[0]))
     const show = allSettings.containershowname
     const containerNameEl = document.getElementById("containername")
@@ -1542,7 +1631,8 @@ const updateContainerSettings = (full = true) => {
  * @param {boolean} fromExecute
  */
 const updateDownloadSettings = (fromExecute = false) => {
-    /** @type {{[setting: string]: boolean|number|string}} */
+    /** @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
@@ -1591,7 +1681,8 @@ const webviewSettings = [
 /** Update the settings in the webviewsettings file that are used there. */
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-    /** @type {{[setting: string]: string|number|boolean}} */
+    /** @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}} */
     const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
@@ -1606,7 +1697,8 @@ const updateWebviewSettings = () => {
 
 /** Update the permissions in the main thread on change. */
 const updatePermissionSettings = () => {
-    /** @type {{[setting: string]: string|number|boolean}} */
+    /** @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}} */
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {
@@ -1635,9 +1727,16 @@ const suggestionList = () => {
             for (const option of validOptions[setting]) {
                 listOfSuggestions.push(`${setting}=${option}`)
             }
+        } else if (isObjectSetting(setting) || isArraySetting(setting)
+            || isNumberSetting(setting)) {
+            listOfSuggestions.push(`${setting}=`)
+            listOfSuggestions.push(`${setting}=${
+                JSON.stringify(defaultSettings[setting])}`)
+            listOfSuggestions.push(`no${setting}`)
         } else {
             listOfSuggestions.push(`${setting}=`)
-            listOfSuggestions.push(`${setting}=${defaultSettings[setting]}`)
+            listOfSuggestions.push(`${setting}=${
+                JSON.stringify(defaultSettings[setting])}`)
         }
         if (setting === "clearhistoryinterval") {
             listOfSuggestions.push(`${setting}=session`)
@@ -1681,8 +1780,7 @@ const suggestionList = () => {
         }
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
-        const isListLike = listLike.includes(setting)
-            || listLikeTilde.includes(setting)
+        const isListLike = typeof defaultSettings[setting] === "object"
         if (isNumber || isFreeText || isListLike) {
             listOfSuggestions.push(`${setting}+=`)
             listOfSuggestions.push(`${setting}^=`)
@@ -1743,13 +1841,15 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     let typeLabel = "String"
     /** @type {string|string[]} */
     let allowedValues = ""
-    if (listLike.includes(setting)) {
-        typeLabel = "List"
-        allowedValues = "Comma-separated list"
+    if (isArraySetting(setting)) {
+        typeLabel = "Array"
+        allowedValues
+            = "Comma String, Array, Array of Arrays or Object"
     }
-    if (listLikeTilde.includes(setting)) {
-        typeLabel = "List"
-        allowedValues = "Tilde-separated list"
+    if (isObjectSetting(setting)) {
+        typeLabel = "Object"
+        allowedValues
+            = "Comma String, Array, Array of Arrays or Object"
     }
     if (isEnumSetting(setting)) {
         typeLabel = "Enum"
@@ -1842,50 +1942,84 @@ const updateHelpPage = src => {
 
 /**
  * Set the value of a setting, if considered valid, else notify the user.
+ * @template {keyof typeof defaultSettings} T
  * @param {import("./common").RunSource} src
- * @param {string} setting
- * @param {string | number | boolean} value
+ * @param {T} setting
+ * @param {typeof defaultSettings[T]} value
  */
 const set = (src, setting, value) => {
-    if (!isExistingSetting(setting)) {
-        notify(`The setting '${setting}' doesn't exist`, {src, "type": "warn"})
-        return false
-    }
     if (isValidSetting(src, setting, value)) {
-        // The ts-expect-error statements are there because of this issue:
-        // https://github.com/microsoft/TypeScript/issues/31663
         const {applyLayout} = require("./pagelayout")
-        if (typeof allSettings[setting] === "boolean") {
-            // @ts-expect-error #bug in TS since very long
-            allSettings[setting] = typeof value !== "number"
-                && ["true", true].includes(value)
-        } else if (typeof allSettings[setting] === "number") {
-            // @ts-expect-error #bug in TS since very long
+        if (isBooleanSetting(setting)) {
+            allSettings[setting] = value === "true" || value === true
+        } else if (isNumberSetting(setting)) {
             allSettings[setting] = Number(value)
-        } else if (listLike.includes(setting)) {
-            // Remove empty and duplicate elements from the comma separated list
+        } else if (isEnumSetting(setting)) {
+            // @ts-expect-error this is properly checked with "checkOption"
+            allSettings[setting] = String(value)
+        } else if (isStringSetting(setting)) {
+            // @ts-expect-error properly checked: is a string, but not an enum
+            allSettings[setting] = String(value)
+        } else if (isArraySetting(setting)) {
             if (typeof value === "string") {
-                // @ts-expect-error #bug in TS since very long
-                allSettings[setting] = Array.from(new Set(value
-                    .split(",").map(e => e.trim()).filter(e => e))).join(",")
+                try {
+                    allSettings[setting] = JSON.parse(value)
+                } catch {
+                    allSettings[setting] = value.split(",").filter(t => t)
+                }
+            } else if (Array.isArray(value)) {
+                allSettings[setting] = value
+            } else {
+                notify("Please report a bug, this should never happen",
+                    {src, "type": "error"})
             }
-        } else if (listLikeTilde.includes(setting)) {
-            // Remove empty and duplicate elements from the comma separated list
+        } else if (isObjectSetting(setting)) {
             if (typeof value === "string") {
-                // @ts-expect-error #bug in TS since very long
-                allSettings[setting] = Array.from(new Set(value
-                    .split("~").map(e => e.trim()).filter(e => e))).join("~")
+                try {
+                    const parsed = JSON.parse(value)
+                    if (Array.isArray(parsed)) {
+                        /** @type {{[key: string]: string}} */
+                        const element = {}
+                        parsed.forEach(el => {
+                            const [key, val] = el.split("~")
+                            element[key] = val
+                        })
+                        allSettings[setting] = element
+                    } else {
+                        allSettings[setting] = parsed
+                    }
+                } catch {
+                    /** @type {{[key: string]: string}} */
+                    const element = {}
+                    value.split(",").filter(t => t).forEach(el => {
+                        const [key, val] = el.split("~")
+                        element[key] = val
+                    })
+                    allSettings[setting] = element
+                }
+            } else if (Array.isArray(value)) {
+                /** @type {{[key: string]: string}} */
+                const element = {}
+                value.forEach(el => {
+                    const [key, val] = el.split("~")
+                    element[key] = val
+                })
+                allSettings[setting] = element
+            } else if (typeof value === "object") {
+                // @ts-expect-error for some reason setting could be never,
+                // the type seems correct, so ignoring seems safe for now.
+                allSettings[setting] = value
+            } else {
+                notify("Please report a bug, this should never happen",
+                    {src, "type": "error"})
             }
-        } else {
-            // @ts-expect-error #bug in TS since very long
-            allSettings[setting] = value
         }
         if (setting === "mouse") {
             let newval = allSettings.mouse
             if (!mouseFeatures.some(f => !newval.includes(f))) {
                 newval = "all"
             }
-            if (newval.split(",").includes("all")) {
+            if (newval !== "all" && newval.includes("all")) {
                 newval = "all"
             }
             allSettings.mouse = newval
@@ -1901,11 +2035,6 @@ const set = (src, setting, value) => {
         }
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
-        }
-        if (setting === "dialogconfirm") {
-            notify("DEPRECATION: dialogconfirm default value will be changed, "
-                + "making 'notifyallow' the new default from 11.0.0 onward.",
-            {src, "type": "warn"})
         }
         if (setting === "useragent") {
             if (typeof value === "string") {
@@ -1940,11 +2069,6 @@ const set = (src, setting, value) => {
         if (setting === "mouse" || setting === "mousedisabledbehavior") {
             updateMouseSettings()
         }
-        if (setting === "nativetheme" && value === "system") {
-            notify("DEPRECATION: nativetheme value 'system' will be removed, "
-                + "making 'dark' the new default from 11.0.0 onward.",
-            {src, "type": "warn"})
-        }
         if (setting === "nativetheme") {
             updateNativeTheme()
         }
@@ -1963,9 +2087,9 @@ const set = (src, setting, value) => {
         }
         if (setting.includes("resource")) {
             ipcRenderer.send("update-resource-settings",
-                allSettings.resourcetypes.trim().split(",").filter(r => r),
-                allSettings.resourcesblocked.trim().split(",").filter(r => r),
-                allSettings.resourcesallowed.trim().split(",").filter(r => r))
+                allSettings.resourcetypes,
+                allSettings.resourcesblocked,
+                allSettings.resourcesallowed)
         }
         if (setting === "taboverflow") {
             const tabs = document.getElementById("tabs")
@@ -2017,23 +2141,8 @@ const set = (src, setting, value) => {
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
         }
-        if (setting === "permissionmediadevices" && value === "ask") {
-            notify("DEPRECATION: permissionmediadevices value 'ask' "
-                + "will be removed from 11.0.0 onward.",
-            {src, "type": "warn"})
-        }
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
-        }
-        if (setting.startsWith("restore")) {
-            notify(`DEPRECATION: ${setting} will be replace with `
-                + `${setting.replace("restore", "")} in 11.0.0 onward.`,
-            {src, "type": "warn"})
-        }
-        if (setting === "suspendplayingtab") {
-            notify("DEPRECATION: suspendplayingtab will be replaced with "
-                + "suspendtimeoutignore in 11.0.0 onward.",
-            {src, "type": "warn"})
         }
         if (setting === "suspendtimeout") {
             const {restartSuspendTimeouts} = require("./pagelayout")
@@ -2063,6 +2172,7 @@ const loadFromDisk = (firstRun, src = "source") => {
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
     }
     if (isFile(joinPath(appData(), "erwicmode"))) {
+        /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
         Object.keys(erwicDefaults).forEach(t => {
             set(src, t, erwicDefaults[t])
@@ -2113,7 +2223,7 @@ const reset = (src, setting) => {
 
 /**
  * Escape value chars as needed.
- * @param {string | number} value
+ * @param {string|number} value
  */
 const escapeValueChars = value => {
     if (typeof value === "number") {
@@ -2158,29 +2268,23 @@ const listCurrentSettings = (full = false) => {
             } else {
                 setCommands += `no${setting}\n`
             }
-            return
-        }
-        if (listLike.includes(setting) && typeof value === "string") {
-            const entries = value.split(",")
-            if (entries.length > 1 || value.match(/( |'|")/g)) {
+        } else if (Array.isArray(value)) {
+            const defaultStringVal = JSON.stringify(defaultSettings[setting])
+            if (JSON.stringify(value) !== defaultStringVal) {
                 setCommands += `${setting}=\n`
-                entries.forEach(entry => {
+                value.forEach(entry => {
                     setCommands += `${setting}+=${escapeValueChars(entry)}\n`
                 })
-                return
             }
-        }
-        if (listLikeTilde.includes(setting) && typeof value === "string") {
-            const entries = value.split("~")
-            if (entries.length > 1 || value.match(/( |'|")/g)) {
-                setCommands += `${setting}=\n`
-                entries.forEach(entry => {
-                    setCommands += `${setting}+=${escapeValueChars(entry)}\n`
-                })
-                return
+        } else if (typeof value === "object") {
+            const valueString = JSON.stringify(value)
+            const defaultStringVal = JSON.stringify(defaultSettings[setting])
+            if (valueString !== defaultStringVal) {
+                setCommands += `${setting}=${valueString}\n`
             }
+        } else {
+            setCommands += `${setting}=${escapeValueChars(value)}\n`
         }
-        setCommands += `${setting}=${escapeValueChars(value)}\n`
     })
     return setCommands
 }
@@ -2233,7 +2337,7 @@ const init = () => {
         spelllangs = langs || []
         spelllangs.push("system")
         if (!isValidSetting("source", "spelllang", allSettings.spelllang)) {
-            set("source", "spelllang", "system")
+            set("source", "spelllang", ["system"])
         }
         ipcRenderer.send("set-spelllang", allSettings.spelllang)
     })
@@ -2259,12 +2363,13 @@ module.exports = {
     freeText,
     getCustomStyling,
     init,
+    isArraySetting,
     isEnumSetting,
     isExistingSetting,
     isNumberSetting,
+    isObjectSetting,
+    isStringSetting,
     listCurrentSettings,
-    listLike,
-    listLikeTilde,
     loadFromDisk,
     mouseFeatures,
     reset,
