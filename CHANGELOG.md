@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Greasemonkey scripts that broke when the header was directly next to the script
+- Greasemonkey scripts not working if multiple match the same domain by using an IIFE
 
 ### Versions
 

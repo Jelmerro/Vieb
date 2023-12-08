@@ -217,7 +217,7 @@ const runGMScript = (webview, rawContents) => {
     }
     const GM_xmlHttpRequest = GM.xmlHttpRequest
     const GM_xmlhttpRequest = GM.xmlHttpRequest
-    const unsafeWindow = window`
+    const unsafeWindow = window\n`
     /** @type {import("picomatch")|null} */
     let picomatch = null
     try {
@@ -250,7 +250,9 @@ const runGMScript = (webview, rawContents) => {
                 webview.src, info.excludes, {"bash": true})
         }
         if (included && !excluded) {
-            const script = `${preload}\n${scriptLines.join("\n")}`
+            const start = "(() => {\n"
+            const end = ";\n})()"
+            const script = `${start}${preload}${scriptLines.join("\n")}${end}`
             webview.executeJavaScript(script, true).catch(() => null)
         }
     }
