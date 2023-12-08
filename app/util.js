@@ -957,7 +957,7 @@ const notify = opts => {
     if (typeof opts === "string") {
         console.warn(opts)
     } else {
-        message = translate(opts.id, opts.fields ?? [])
+        message = translate(opts.id, {"fields": opts.fields ?? []})
     }
     if (opts.src === "execute") {
         const {appendFileSync} = require("fs")

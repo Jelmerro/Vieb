@@ -10,13 +10,38 @@ const {
 
 /** @type {{[lang: string]: string}} */
 const translations = {}
+const safeElements = [
+    "#text",
+    "body",
+    "a",
+    "kdb",
+    "li",
+    "ul",
+    "ol",
+    "span",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "p"
+]
+const safeAttributes = ["class", "href"]
 
+/** Returns a list of languages according to the language files present. */
 const validLanguages = () => {
     const files = listDir(joinPath(__dirname, "translations")) ?? []
     return files.filter(f => f.endsWith(".json"))
         .map(f => f.replace(/\.json$/, ""))
 }
 
+/**
+ * Load a translation language from disk.
+ * @param {string} lang
+ * @throws {Error} When the language key is invalid.
+ */
 const loadLang = lang => {
     if (translations[lang]) {
         return
@@ -32,16 +57,15 @@ const loadLang = lang => {
 /**
  * Translate a field.
  * @param {string} id
- * @param {(string|number)[]} fields
- * @param {null|string} customLang
+ * @param {{fields?: (string|number)[], customLang?: null|string}} opts
  * @returns {string}
  */
-const translate = (id, fields = [], customLang = null) => {
+const translate = (id, opts = {"customLang": null, "fields": []}) => {
     if (!translations.en) {
         const filePath = joinPath(__dirname, "translations/en.json")
         translations.en = readJSON(filePath)
     }
-    const currentLang = customLang ?? getSetting("lang")
+    const currentLang = opts.customLang ?? getSetting("lang")
     if (!translations[currentLang]) {
         loadLang(currentLang)
     }
@@ -55,15 +79,53 @@ const translate = (id, fields = [], customLang = null) => {
         translation = translation[key]
     }
     if (translation) {
-        fields.forEach((value, key) => {
+        opts.fields?.forEach((value, key) => {
             translation = translation.replace(`$${key + 1}`, String(value))
         })
         return translation
     }
     if (currentLang !== "en") {
-        return translate(id, fields, "en")
+        return translate(id, {...opts, "customLang": "en"})
     }
     return id
+}
+
+/**
+ * Filter bad elements from a node recursively.
+ * @param {ChildNode} node
+ */
+const onlyKeepSafeNodes = node => {
+    if (!safeElements.includes(node.nodeName.toLowerCase())) {
+        console.warn("Removed node from translations:", node)
+        node.remove()
+        return
+    }
+    if (node instanceof Element) {
+        for (const attr of node.attributes) {
+            if (!safeAttributes.includes(attr.name)) {
+                console.warn(
+                    `Removed attribute ${attr.name} from translations:`, node)
+                node.removeAttribute(attr.name)
+            }
+        }
+    }
+    node.childNodes.forEach(onlyKeepSafeNodes)
+}
+
+/**
+ * Translate a field, then parse it as HTML and return a list of safe elements.
+ * @param {string} id
+ * @param {{fields?: (string|number)[], customLang?: null|string}} opts
+ */
+const translateAsHTML = (id, opts = {"customLang": null, "fields": []}) => {
+    const value = translate(id, opts)
+    const parsed = new DOMParser().parseFromString(value, "text/html")
+    const body = parsed.querySelector("body")
+    if (!body) {
+        return []
+    }
+    onlyKeepSafeNodes(body)
+    return [...body.childNodes]
 }
 
 /**
@@ -92,5 +154,6 @@ const argsAsHumanList = (args, linkWord = "or", quotes = "single") => {
 module.exports = {
     argsAsHumanList,
     translate,
+    translateAsHTML,
     validLanguages
 }

@@ -174,9 +174,9 @@ const receiveHistory = history => {
                 return
             }
             scanningProgress.textContent = translate(
-                "pages.history.readingProgress", [
+                "pages.history.readingProgress", {"fields": [
                     lineNumber, goal, formatDate(hist.date)
-                ])
+                ]})
             let max = viewItemCount
             if (max < 100) {
                 max = 100

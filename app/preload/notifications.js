@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", () => {
             contents.innerHTML = notification.message
             contents.className = notification.type
             element.append(contents)
-            listEl.append(element)
+            listEl.prepend(element)
         })
         if (listEl.textContent === "") {
             listEl.textContent = translate("pages.notifications.empty")

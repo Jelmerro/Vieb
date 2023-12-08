@@ -26,10 +26,10 @@ let lastUpdate = new Date()
 /**
  * Send an update to the main thread regarding the download status.
  * @param {"removeall"|"remove"|"pause"|"resume"|null} action
- * @param {number|null} downloadId
+ * @param {string|null} downloadUuid
  */
-const update = (action = null, downloadId = null) => {
-    ipcRenderer.send("download-list-request", action, downloadId)
+const update = (action = null, downloadUuid = null) => {
+    ipcRenderer.send("download-list-request", action, downloadUuid)
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -55,21 +55,20 @@ window.addEventListener("DOMContentLoaded", () => {
 /**
  * Add a download to the list.
  * @param {import("../index").downloadItem} download
- * @param {number} id
  */
-const addDownload = (download, id) => {
+const addDownload = download => {
     const element = document.createElement("div")
     element.className = "download"
     // Toggle pause and remove buttons
     const remove = document.createElement("img")
     remove.className = "remove"
     remove.src = joinPath(__dirname, "../img/trash.png")
-    remove.addEventListener("click", () => update("remove", id))
+    remove.addEventListener("click", () => update("remove", download.uuid))
     element.append(remove)
     let togglePause = document.createElement("img")
     togglePause.className = "toggle-pause"
     togglePause.src = joinPath(__dirname, "../img/pause.png")
-    togglePause.addEventListener("click", () => update("pause", id))
+    togglePause.addEventListener("click", () => update("pause", download.uuid))
     element.append(togglePause)
     // Title
     const title = document.createElement("div")
@@ -103,7 +102,8 @@ const addDownload = (download, id) => {
         togglePause.parentNode?.replaceChild(
             togglePause.cloneNode(true), togglePause)
         togglePause = document.createElement("img")
-        togglePause.addEventListener("click", () => update("resume", id))
+        togglePause.addEventListener(
+            "click", () => update("resume", download.uuid))
     }
     // Other info
     const misc = document.createElement("div")
@@ -140,16 +140,15 @@ const addDownload = (download, id) => {
     }
     misc.append(speed)
     element.append(misc)
-    document.getElementById("list")?.append(element)
+    document.getElementById("list")?.prepend(element)
 }
 
 /**
  * Update a download element with new data.
  * @param {import("../index").downloadItem} download
  * @param {Element} element
- * @param {number} id
  */
-const updateDownload = (download, element, id) => {
+const updateDownload = (download, element) => {
     const progress = element.querySelector("progress")
     const title = element.querySelector(".title")
     const speedEl = element.querySelector(".speed")
@@ -207,7 +206,7 @@ const updateDownload = (download, element, id) => {
     let remove = element.querySelector(".remove")
     remove?.parentNode?.replaceChild(remove.cloneNode(true), remove)
     remove = element.querySelector(".remove")
-    remove?.addEventListener("click", () => update("remove", id))
+    remove?.addEventListener("click", () => update("remove", download.uuid))
     togglePause.setAttribute("src", joinPath(__dirname, "../img/pause.png"))
     togglePause.parentNode?.replaceChild(
         togglePause.cloneNode(true), togglePause)
@@ -215,7 +214,7 @@ const updateDownload = (download, element, id) => {
     if (!(togglePause instanceof HTMLElement)) {
         return
     }
-    togglePause.addEventListener("click", () => update("pause", id))
+    togglePause.addEventListener("click", () => update("pause", download.uuid))
     progress.style.display = ""
     togglePause.style.display = ""
     if (download.state === "completed") {
@@ -235,7 +234,8 @@ const updateDownload = (download, element, id) => {
         togglePause.parentNode?.replaceChild(
             togglePause.cloneNode(true), togglePause)
         togglePause = element.querySelector(".toggle-pause")
-        togglePause?.addEventListener("click", () => update("resume", id))
+        togglePause?.addEventListener(
+            "click", () => update("resume", download.uuid))
     }
     // State
     const state = element.querySelector(".state")
@@ -252,7 +252,7 @@ const updateDownload = (download, element, id) => {
  */
 const generateDownloadList = (_, l) => {
     /** @type {import("../index").downloadItem[]} */
-    const list = JSON.parse(l)
+    const list = JSON.parse(l).reverse()
     // List
     if (list.length === 0) {
         const listEl = document.getElementById("list")
@@ -276,25 +276,17 @@ const generateDownloadList = (_, l) => {
             removeAll.style.display = ""
         }
     }
-    if (listOnPage.length > list.length) {
+    if (listOnPage.length === list.length) {
         for (let i = 0; i < listOnPage.length; i++) {
-            if (list[i]) {
-                updateDownload(list[i], listOnPage[i], i)
-            } else {
-                try {
-                    document.querySelectorAll("#list .download")[i].remove()
-                } catch {
-                    // List might be shorter the second time this is called
-                }
-            }
+            updateDownload(list[i], listOnPage[i])
         }
     } else {
-        for (let i = 0; i < list.length; i++) {
-            if (listOnPage[i]) {
-                updateDownload(list[i], listOnPage[i], i)
-            } else {
-                addDownload(list[i], i)
-            }
+        const listEl = document.getElementById("list")
+        if (listEl) {
+            listEl.textContent = ""
+        }
+        for (let i = list.length - 1; i >= 0; i--) {
+            addDownload(list[i])
         }
     }
     lastUpdate = new Date()

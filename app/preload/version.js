@@ -18,7 +18,7 @@
 "use strict"
 
 const {appConfig, compareVersions} = require("../util")
-const {translate} = require("../translate")
+const {translate, translateAsHTML} = require("../translate")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 const {name, icon, version} = appConfig() ?? {}
@@ -42,10 +42,12 @@ const checkForUpdates = () => {
                     const diff = compareVersions(version, release.tag_name)
                     if (diff === "older") {
                         versionCheck.textContent = translate(
-                            "pages.version.newerFound", [release.tag_name])
+                            "pages.version.newerFound",
+                            {"fields": [release.tag_name]})
                     } else if (diff === "newer") {
                         versionCheck.textContent = translate(
-                            "pages.version.alreadyNewer", [release.tag_name])
+                            "pages.version.alreadyNewer",
+                            {"fields": [release.tag_name]})
                     } else if (diff === "even") {
                         versionCheck.textContent = translate(
                             "pages.version.latest")
@@ -89,8 +91,8 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     const descriptionEl = document.getElementById("description")
     if (descriptionEl) {
-        descriptionEl.innerHTML = translate("pages.version.description",
-            [process.versions.electron, process.versions.chrome])
+        descriptionEl.append(...translateAsHTML("pages.version.description",
+            {"fields": [process.versions.electron, process.versions.chrome]}))
     }
     // Regular init
     const nameEl = document.getElementById("name")

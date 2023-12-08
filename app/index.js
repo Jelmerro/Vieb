@@ -30,6 +30,7 @@ const {
     webContents,
     nativeTheme
 } = require("electron")
+const {randomUUID} = require("crypto")
 const {
     specialChars,
     writeJSON,
@@ -1213,6 +1214,7 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *     |"downloading"|"paused"|"removed"|"completed",
  *   total: number,
  *   url: string
+ *   uuid: string,
  * }} downloadItem
  */
 /** @type {downloadItem[]} */
@@ -1264,7 +1266,7 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
  * }} settings
  */
 const setDownloadSettings = (_, settings) => {
-    if (Object.keys(downloadSettings).length === 0) {
+    if (!downloadSettings.downloadmethod) {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
@@ -1288,6 +1290,9 @@ const setDownloadSettings = (_, settings) => {
 
 /** Write the download info to disk if downloads should be stored after quit. */
 const writeDownloadsToFile = () => {
+    if (!downloadSettings.downloadmethod) {
+        return
+    }
     downloads.forEach(d => {
         // Update downloads that are stuck on waiting to start,
         // but have already been destroyed by electron.
@@ -1307,11 +1312,12 @@ const writeDownloadsToFile = () => {
 }
 
 ipcMain.on("set-download-settings", setDownloadSettings)
-ipcMain.on("download-list-request", (e, action, downloadId) => {
+ipcMain.on("download-list-request", (e, action, downloadUuid) => {
+    const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
-        downloads.forEach(download => {
+        downloads.forEach(d => {
             try {
-                download.item.cancel()
+                d.item.cancel()
             } catch {
                 // Download was already removed or is already done
             }
@@ -1320,27 +1326,29 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
     }
     if (action === "pause") {
         try {
-            downloads[downloadId].item.pause()
+            download?.item.pause()
         } catch {
             // Download just finished or some other silly reason
         }
     }
     if (action === "resume") {
         try {
-            downloads[downloadId].item.resume()
+            download?.item.resume()
         } catch {
             // Download can't be resumed
         }
     }
     if (action === "remove") {
         try {
-            downloads[downloadId].state = "removed"
-            downloads[downloadId].item.cancel()
+            if (download) {
+                download.state = "removed"
+                download.item.cancel()
+            }
         } catch {
             // Download was already removed from the list or something
         }
         try {
-            downloads.splice(downloadId, 1)
+            downloads = downloads.filter(d => d !== download)
         } catch {
             // Download was already removed from the list or something
         }
@@ -1699,7 +1707,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "name": filename,
             "state": "waiting_to_start",
             "total": item.getTotalBytes(),
-            "url": item.getURL()
+            "url": item.getURL(),
+            "uuid": randomUUID()
         }
         downloads.push(info)
         const downloadSrc = downloadSettings.src
@@ -1839,7 +1848,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return net.fetch(url.href.replace(/^markdownfiles:/, "file:"))
     })
     newSess.protocol.handle("markdownviewer", req => {
-        const {randomUUID} = require("crypto")
         markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
