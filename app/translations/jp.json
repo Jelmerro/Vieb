@@ -1,0 +1,109 @@
+{
+    "settings": {
+        "errors": {
+            "oneof": "設定$1の値は$2のいずれかである必要がある。"
+        }
+    },
+    "pages": {
+        "history": {
+            "title": "歴史",
+            "filterPlaceholder": "歴史のフィルター",
+            "perpage": "ページあたりの歴史項目数",
+            "filterNoResults": "現在のフィルタの結果がない",
+            "filterEmpty": "まだ訪問したページがない",
+            "readingProgress": "$1/$2の歴史を読んでいる。現在、$3から歴史を遡っている。",
+            "loading": "ローディング"
+        },
+        "newtab": {
+            "title": "新しいタブ",
+            "topsites": "最多訪問",
+            "favorites": "お気に入り"
+        },
+        "version": {
+            "title": "バージョン",
+            "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られた。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができる。エレクトロン$1で動作し、クロミウムのバージョンは$2だ。",
+            "checkUpdate": "更新チェック",
+            "failed": "",
+            "latest": "",
+            "newerFound": "",
+            "alreadyNewer": "最新リリース$1は古い",
+            "loading": "ローディング",
+            "notChecked": "未確認",
+            "homepage": "ホームページ",
+            "repository": "リポジトリ",
+            "releases": "リリース",
+            "sponsor": "スポンサー",
+            "donate": "寄付",
+            "faq": "よくある質問",
+            "changelog": "変更履歴",
+            "matrix": "マトリックス",
+            "telegram": "テレグラム",
+            "discussions": "ディスカッション"
+        },
+        "downloads": {
+            "title": "ダウンロード",
+            "loading": "ローディング",
+            "clickToOpen": "クリックして開く",
+            "nothing": "まだ何もダウンロードしていない",
+            "states": {
+                "waiting_to_start": "開始待ち",
+                "downloading": "ダウンロードしている",
+                "cancelled": "キャンセルした",
+                "paused": "休止中",
+                "removed": "削除した",
+                "completed": "完成した"
+            }
+        },
+        "help": {
+            "title": "",
+            "examples": {
+                "chromium": "",
+                "firefox": "",
+                "vivaldi": "",
+                "qutebrowser": "",
+                "vimium": "",
+                "tridactyl": "",
+                "pentadactyl": "",
+                "surfingkeys": "",
+                "sakakey": "",
+                "vimvixen": ""
+            }
+        },
+        "notifications": {
+            "title": "通知",
+            "clickToOpen": "クリックして開く",
+            "loading": "ローディング",
+            "empty": "まだ通知がない"
+        },
+        "cookies": {
+            "title": "クッキー",
+            "loading": "ローディング",
+            "filterEmpty": "現在のフィルタの結果がない",
+            "empty": "まだクッキーがない",
+            "filterPlaceholder": "フィルタードメイン"
+        }
+    },
+    "util": {
+        "catchphrase": "ヴィム風エレクトロンブラウザ",
+        "comma": "と",
+        "commaSpaced": "と",
+        "or": "と",
+        "and": "と",
+        "doubleQuoteStart": "\"",
+        "doubleQuoteEnd": "\"",
+        "singleQuoteStart": "'",
+        "singleQuoteEnd": "'"
+    },
+    "contextmenu": {
+        "groups": {
+            "general": "",
+            "suggestions": "",
+            "text": "",
+            "image": "",
+            "frame": "",
+            "video": "",
+            "audio": "",
+            "link": ""
+        }
+    }
+}

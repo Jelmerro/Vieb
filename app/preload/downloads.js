@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {joinPath, formatDate, formatSize, urlToString} = require("../util")
 
 let lastUpdate = new Date()
@@ -31,7 +32,15 @@ const update = (action = null, downloadId = null) => {
     ipcRenderer.send("download-list-request", action, downloadId)
 }
 
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.downloads.title")
+    }
+    const list = document.getElementById("list")
+    if (list) {
+        list.textContent = translate("pages.downloads.loading")
+    }
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
@@ -64,7 +73,7 @@ const addDownload = (download, id) => {
     element.append(togglePause)
     // Title
     const title = document.createElement("div")
-    title.title = "Click to open"
+    title.title = translate("pages.downloads.clickToOpen")
     title.textContent = download.name
     title.className = "title"
     element.append(title)
@@ -101,14 +110,14 @@ const addDownload = (download, id) => {
     misc.className = "misc"
     const state = document.createElement("span")
     state.className = "state"
-    state.textContent = download.state
+    state.textContent = translate(`pages.downloads.states.${download.state}`)
     misc.append(state)
     const downloadUrl = document.createElement("a")
     downloadUrl.href = encodeURI(download.url)
     downloadUrl.textContent = urlToString(download.url)
     misc.append(downloadUrl)
     const file = document.createElement("span")
-    file.title = "Click to open"
+    file.title = translate("pages.downloads.clickToOpen")
     file.className = "filelocation"
     file.textContent = download.file
     title.addEventListener("click", () => {
@@ -231,7 +240,8 @@ const updateDownload = (download, element, id) => {
     // State
     const state = element.querySelector(".state")
     if (state) {
-        state.textContent = download.state
+        state.textContent = translate(
+            `pages.downloads.states.${download.state}`)
     }
 }
 
@@ -247,7 +257,7 @@ const generateDownloadList = (_, l) => {
     if (list.length === 0) {
         const listEl = document.getElementById("list")
         if (listEl) {
-            listEl.textContent = "Nothing has been downloaded yet"
+            listEl.textContent = translate("pages.downloads.nothing")
         }
         const removeAll = document.getElementById("remove-all")
         if (removeAll) {

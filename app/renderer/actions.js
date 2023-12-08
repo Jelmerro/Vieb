@@ -43,6 +43,7 @@ const {
     isFile,
     isDir,
     execCommand,
+    getSetting,
     isUrl
 } = require("../util")
 const {
@@ -50,7 +51,6 @@ const {
     currentTab,
     currentPage,
     currentMode,
-    getSetting,
     getStored,
     updateGuiVisibility,
     setStored,

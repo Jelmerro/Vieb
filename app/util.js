@@ -78,13 +78,22 @@ const dataUris = [
 ]
 
 /**
- * Get a setting value by setting name.
- * @template {keyof typeof import("./renderer/settings").defaultSettings} T
- * @param {T} val
- * @returns {typeof import("./renderer/settings").defaultSettings[T]}
+ * @typedef {(typeof import("./renderer/settings").defaultSettings & {
+ *   "fg": string
+ *   "bg": string
+ *   "linkcolor": string
+ * })} validSetting
  */
-const getSetting = val => JSON.parse(
-    sessionStorage.getItem("settings") ?? "")?.[val]
+/**
+ * Get a setting from the settings file.
+ * @template {keyof validSetting} T
+ * @param {T} set
+ * @returns {validSetting[T]}
+ */
+const getSetting = set => {
+    const settings = readJSON(joinPath(appData(), "settings")) ?? {}
+    return settings[set] ?? null
+}
 
 /**
  * Check if any string has a valid protocol or dataUri.
@@ -177,17 +186,6 @@ const expandPath = loc => {
         return loc.replace("~", homeDirPath)
     }
     return loc
-}
-
-/**
- * Capitalize a string to only have one capital letter at the start.
- * @param {string} s
- */
-const title = s => {
-    if (!s || !s[0]) {
-        return ""
-    }
-    return `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
 }
 
 /** Return per operating system the result of navigator.platform. */
@@ -941,8 +939,9 @@ const appData = () => {
 
 /**
  * Show the user a notification bubble and store it in the history.
- * @param {string} message
  * @param {{
+ *   id: string,
+ *   fields?: string[],
  *   action?: {
  *     type: "download-success",
  *     path: string,
@@ -952,7 +951,14 @@ const appData = () => {
  *   src: import("./renderer/common").RunSource
  * }} opts
  */
-const notify = (message, opts) => {
+const notify = opts => {
+    const {translate} = require("./translate")
+    let message = String(opts)
+    if (typeof opts === "string") {
+        console.warn(opts)
+    } else {
+        message = translate(opts.id, opts.fields ?? [])
+    }
     if (opts.src === "execute") {
         const {appendFileSync} = require("fs")
         appendFileSync(
@@ -971,7 +977,7 @@ const notify = (message, opts) => {
     if (opts.type?.startsWith("warn")) {
         properType = "warning"
     }
-    if (opts.type?.startsWith("err")) {
+    if (opts.type?.startsWith("err") || opts.type === undefined) {
         properType = "error"
     }
     if (opts.type?.startsWith("dial")) {
@@ -1084,26 +1090,6 @@ const readJSON = loc => {
     } catch {
         return null
     }
-}
-
-/**
- * @typedef {(typeof import("./renderer/settings").defaultSettings & {
- *   "fg": string
- *   "bg": string
- *   "linkcolor": string
- * })} webviewSetting
- */
-
-/**
- * Get a setting from the webviewsettings file inside preloads.
- * @template {keyof webviewSetting} T
- * @param {T} name
- * @returns {null|webviewSetting[T]}
- */
-const getWebviewSetting = name => {
-    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-    const settings = readJSON(webviewSettingsFile) ?? {}
-    return settings[name] ?? null
 }
 
 /**
@@ -1515,7 +1501,7 @@ const clearCache = () => {
         }
     }
     rm(joinPath(appData(), "vimformedits"))
-    rm(joinPath(appData(), "webviewsettings"))
+    rm(joinPath(appData(), "settings"))
 }
 
 /** Claer all cookies, including those inside partition dirs. */
@@ -1558,6 +1544,7 @@ const clearLocalStorage = () => {
 // Disabled import sort order as the order is optimized to reduce module loads
 /* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
+    getSetting,
     specialChars,
     specialCharsAllowSpaces,
     hasProtocol,
@@ -1565,7 +1552,6 @@ module.exports = {
     searchword,
     listNotificationHistory,
     expandPath,
-    title,
     userAgentTemplated,
     userAgentPlatform,
     defaultUseragent,
@@ -1611,7 +1597,6 @@ module.exports = {
     dirname,
     isAbsolutePath,
     // FILESYSTEM UTIL
-    getWebviewSetting,
     pathExists,
     isDir,
     isFile,

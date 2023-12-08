@@ -25,9 +25,9 @@ const {
     appData,
     expandPath,
     readFile,
-    pathToSpecialPageName
+    pathToSpecialPageName,
+    getSetting
 } = require("../util")
-const {getSetting} = require("./common")
 
 /**
  * Parse the GM userscript header.

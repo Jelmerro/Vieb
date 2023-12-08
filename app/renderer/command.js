@@ -50,13 +50,13 @@ const {
     isUrl,
     execCommand,
     intervalValueToDate,
+    getSetting,
     isValidIntervalValue
 } = require("../util")
 const {
     listTabs,
     currentTab,
     currentPage,
-    getSetting,
     pageForTab,
     tabForPage,
     listRealPages

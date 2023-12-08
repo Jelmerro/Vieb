@@ -24,19 +24,19 @@ const {
     urlToString,
     specialChars,
     notify,
-    title,
     isUrl,
     propPixels,
     execCommand,
     isElement,
+    getSetting,
     pageContainerPos
 } = require("../util")
+const {translate} = require("../translate")
 const {
     listTabs,
     currentPage,
     currentTab,
     currentMode,
-    getSetting,
     getMouseConf,
     tabForPage,
     getUrl,
@@ -149,7 +149,7 @@ const fixAlignmentNearBorders = () => {
 const createMenuGroup = name => {
     const item = document.createElement("div")
     item.className = "menu-group"
-    item.textContent = name
+    item.textContent = translate(`contextmenu.groups.${name}`)
     contextMenu?.append(item)
 }
 
@@ -575,7 +575,7 @@ const viebMenu = (src, options, force = false) => {
             "action": () => closeTab(src, listTabs().indexOf(tab), true),
             "title": "Close"
         })
-        createMenuGroup("General")
+        createMenuGroup("general")
         createMenuItem({
             /** Menu item: Add tab. */
             "action": () => addTab({src}),
@@ -791,7 +791,7 @@ const webviewMenu = (src, options, force = false) => {
         const {webFrame} = require("electron")
         const suggestions = webFrame.getWordSuggestions(word)
         if (suggestions.length) {
-            createMenuGroup("Suggestions")
+            createMenuGroup("suggestions")
         }
         for (const suggestion of suggestions) {
             createMenuItem({
@@ -805,7 +805,7 @@ const webviewMenu = (src, options, force = false) => {
             })
         }
     }
-    createMenuGroup("Text")
+    createMenuGroup("text")
     createMenuItem({
         /** Menu item: Select all text. */
         "action": () => sendToPageOrSubFrame("action", "selectionAll",
@@ -873,7 +873,7 @@ const webviewMenu = (src, options, force = false) => {
         })
     }
     if (options.img || options.backgroundImg || options.svgData) {
-        createMenuGroup("Image")
+        createMenuGroup("image")
         createMenuItem({
             /** Menu item: Navigate to an image. */
             "action": () => commonAction(src, "img", "open", options),
@@ -919,7 +919,7 @@ const webviewMenu = (src, options, force = false) => {
     const types = ["frame", "video", "audio", "link"]
     for (const type of types) {
         if (options[type] || options[`${type}Data`]?.controllable) {
-            createMenuGroup(title(type))
+            createMenuGroup(type)
         }
         if (options[type]) {
             createMenuItem({

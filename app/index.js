@@ -1209,7 +1209,8 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   file: string,
  *   name: string,
  *   item: Electron.DownloadItem
- *   state: string,
+ *   state: "waiting_to_start"|"cancelled"
+ *     |"downloading"|"paused"|"removed"|"completed",
  *   total: number,
  *   url: string
  * }} downloadItem
@@ -1689,6 +1690,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 return
             }
         }
+        /** @type {downloadItem} */
         const info = {
             "current": 0,
             "date": new Date(),

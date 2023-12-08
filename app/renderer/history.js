@@ -27,10 +27,10 @@ const {
     urlToString,
     pathToSpecialPageName,
     hasProtocol,
-    title,
-    specialChars
+    specialChars,
+    getSetting
 } = require("../util")
-const {getSetting} = require("./common")
+const {translate} = require("../translate")
 
 const histFile = joinPath(appData(), "hist")
 /** @type {{[url: string]: string}} */
@@ -330,8 +330,11 @@ const suggestTopSites = () => {
 const titleForPage = originalUrl => {
     const {getRedirect} = require("./favicons")
     const url = getRedirect(originalUrl)
-    return groupedHistory[url]?.title || title(
-        pathToSpecialPageName(url)?.name ?? "")
+    const specialPage = pathToSpecialPageName(url)
+    if (specialPage?.name) {
+        return translate(`pages.${specialPage.name}.title`)
+    }
+    return groupedHistory[url]?.title ?? ""
 }
 
 /**

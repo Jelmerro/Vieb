@@ -19,7 +19,7 @@
 /* eslint-disable no-extra-bind */
 
 const {ipcRenderer} = require("electron")
-const {matchesQuery, getWebviewSetting} = require("../util")
+const {matchesQuery, getSetting} = require("../util")
 
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
@@ -93,7 +93,7 @@ try {
 
     /** Override the device list based on permission settings. */
     window.navigator.mediaDevices.enumerateDevices = () => {
-        let setting = getWebviewSetting("permissionmediadevices") ?? "block"
+        let setting = getSetting("permissionmediadevices") ?? "block"
         const valid = ["block", "allow", "allowkind", "allowfull"]
         if (!valid.includes(setting)) {
             setting = "block"
@@ -104,7 +104,7 @@ try {
         /** @type {("block"|"allow")[]} */
         const permissionOverrideTypes = ["block", "allow"]
         for (const type of permissionOverrideTypes) {
-            const permList = getWebviewSetting(
+            const permList = getSetting(
                 `permissions${type}ed`)
             for (const r of permList ?? []) {
                 if (!r.trim() || settingRule) {
@@ -151,12 +151,12 @@ try {
         resolve, reject
     ) => {
         let setting = "block"
-        setting = getWebviewSetting("permissiondisplaycapture") || setting
+        setting = getSetting("permissiondisplaycapture") || setting
         let settingRule = ""
         /** @type {("ask"|"block"|"allow")[]} */
         const permissionOverrideTypes = ["ask", "block"]
         for (const type of permissionOverrideTypes) {
-            for (const r of getWebviewSetting(
+            for (const r of getSetting(
                 `permissions${type}ed`) ?? []) {
                 if (!r.trim() || settingRule) {
                     continue
@@ -196,9 +196,9 @@ try {
             const populateSourceToWindow = sources => {
                 const style = displayCaptureStyling
                     .replace(/%FONTSIZE%/g, String(
-                        getWebviewSetting("guifontsize")) || "14")
-                    .replace(/%FG%/g, getWebviewSetting("fg") || "#eee")
-                    .replace(/%BG%/g, getWebviewSetting("bg") || "#333")
+                        getSetting("guifontsize")) || "14")
+                    .replace(/%FG%/g, getSetting("fg") || "#eee")
+                    .replace(/%BG%/g, getSetting("bg") || "#333")
                     .replace(/%SHADE%/g, "#7777")
                 const selectionElem = document.createElement("div")
                 selectionElem.classList.add("desktop-capturer-selection")
@@ -353,7 +353,7 @@ if (window.BatteryManager) {
  * @param {string} defaultText
  */
 window.prompt = (title, defaultText = "") => {
-    const promptBehavior = getWebviewSetting("dialogprompt") ?? "notifyblock"
+    const promptBehavior = getSetting("dialogprompt") ?? "notifyblock"
     if (promptBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
@@ -370,7 +370,7 @@ window.prompt = (title, defaultText = "") => {
  * @param {string|undefined} text
  */
 window.confirm = text => {
-    const confirmBehavior = getWebviewSetting("dialogconfirm") ?? "notifyblock"
+    const confirmBehavior = getSetting("dialogconfirm") ?? "notifyblock"
     if (confirmBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
@@ -395,7 +395,7 @@ window.confirm = text => {
  * @param {string|undefined} text
  */
 window.alert = text => {
-    const alertBehavior = getWebviewSetting("dialogalert") ?? "notifyblock"
+    const alertBehavior = getSetting("dialogalert") ?? "notifyblock"
     if (alertBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",

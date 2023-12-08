@@ -19,14 +19,13 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    matchesQuery, notify, specialChars, isUrl, pageOffset
+    matchesQuery, notify, specialChars, isUrl, pageOffset, getSetting
 } = require("../util")
 const {
     listTabs,
     currentTab,
     currentPage,
     currentMode,
-    getSetting,
     setTopOfPageWithMouse,
     getMouseConf,
     updateScreenshotHighlight,

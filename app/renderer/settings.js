@@ -47,6 +47,7 @@ const {
     tabForPage,
     listReadyPages
 } = require("./common")
+const {argsAsHumanList, validLanguages} = require("../translate")
 
 const mouseFeatures = [
     "pageininsert",
@@ -186,6 +187,7 @@ const defaultSettings = {
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
+    "lang": "en",
     /** @type {"none"|"spinner"|"line"|"all"} */
     "loadingindicator": "spinner",
     "mapsuggest": 9000000000000000,
@@ -478,6 +480,7 @@ const validOptions = {
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
+    "lang": validLanguages(),
     "loadingindicator": ["none", "spinner", "line", "all"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "markposition": [
@@ -654,13 +657,12 @@ const checkOption = (src, setting, value) => {
     if (optionList) {
         const valid = optionList.includes(value)
         if (!valid) {
-            const lastOption = optionList.pop()
-            let text = `'${optionList.join("', '")}' or '${lastOption}'`
-            if (optionList.length === 0) {
-                text = `'${lastOption}'`
-            }
-            notify(`The value of setting '${setting}' can only be one of:`
-                + ` ${text}`, {src, "type": "warn"})
+            notify({
+                "fields": [setting, argsAsHumanList(optionList)],
+                "id": "settings.errors.oneof",
+                src,
+                "type": "warn"
+            })
         }
         return valid
     }
@@ -1645,42 +1647,10 @@ const updateDownloadSettings = (fromExecute = false) => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
-/** @type {(keyof typeof defaultSettings)[]} */
-const webviewSettings = [
-    "darkreader",
-    "darkreaderbg",
-    "darkreaderblocklist",
-    "darkreaderbrightness",
-    "darkreadercontrast",
-    "darkreaderfg",
-    "darkreadergrayscale",
-    "darkreadermode",
-    "darkreaderscope",
-    "darkreadersepia",
-    "darkreadertextstroke",
-    "dialogalert",
-    "dialogconfirm",
-    "dialogprompt",
-    "guifontsize",
-    "guiscrollbar",
-    "historyperpage",
-    "inputfocusalignment",
-    "pdfbehavior",
-    "permissiondisplaycapture",
-    "permissionmediadevices",
-    "permissionsallowed",
-    "permissionsasked",
-    "permissionsblocked",
-    "searchpointeralignment",
-    "sponsorblock",
-    "sponsorblockcategories",
-    "userstyle",
-    "userstylescope"
-]
-
-/** Update the settings in the webviewsettings file that are used there. */
-const updateWebviewSettings = () => {
-    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+/** Update the settings in the file so they are updated in main/preload. */
+const updateSettings = () => {
+    sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    const settingsFile = joinPath(appData(), "settings")
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
     const data = {
@@ -1689,10 +1659,10 @@ const updateWebviewSettings = () => {
         "linkcolor": getComputedStyle(document.body)
             .getPropertyValue("--link-color")
     }
-    webviewSettings.forEach(setting => {
+    Object.keys(allSettings).forEach(setting => {
         data[setting] = allSettings[setting]
     })
-    writeJSON(webviewSettingsFile, data)
+    writeJSON(settingsFile, data)
 }
 
 /** Update the permissions in the main thread on change. */
@@ -1818,7 +1788,7 @@ const getCustomStyling = () => customStyling
 /** Update the custom styling in the webview using colorscheme and fontsize. */
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
-    updateWebviewSettings()
+    updateSettings()
     const {addColorschemeStylingToWebview} = require("./tabs")
     listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
     const {applyLayout} = require("./pagelayout")
@@ -2024,7 +1994,7 @@ const set = (src, setting, value) => {
             }
             allSettings.mouse = newval
         }
-        sessionStorage.setItem("settings", JSON.stringify(allSettings))
+        updateSettings()
         // Update settings elsewhere
         if (setting === "adblocker") {
             if (value === "off") {
@@ -2058,6 +2028,9 @@ const set = (src, setting, value) => {
         }
         if (setting.startsWith("gui")) {
             updateGuiVisibility()
+        }
+        if (setting === "lang") {
+            // TODO live update perhaps
         }
         if (setting === "mintabwidth") {
             listTabs().forEach(tab => {
@@ -2100,9 +2073,6 @@ const set = (src, setting, value) => {
             }
             currentTab()?.scrollIntoView({"inline": "center"})
             applyLayout()
-        }
-        if (webviewSettings.includes(setting)) {
-            updateWebviewSettings()
         }
         if (setting.startsWith("darkreader")) {
             listReadyPages().forEach(p => {
@@ -2197,7 +2167,7 @@ const loadFromDisk = (firstRun, src = "source") => {
     updateContainerSettings()
     updateDownloadSettings()
     updatePermissionSettings()
-    updateWebviewSettings()
+    updateSettings()
     updateMouseSettings()
     updateNativeTheme()
     updateRequestHeaders()

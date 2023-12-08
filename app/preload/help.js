@@ -18,7 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, title, readFile, appConfig} = require("../util")
+const {translate} = require("../translate")
+const {joinPath, readFile, appConfig} = require("../util")
 const {icon} = appConfig() ?? {}
 const modes = "nicsefpvm".split("")
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
@@ -295,16 +296,16 @@ window.addEventListener("DOMContentLoaded", () => {
         "tridactyl",
         "pentadactyl",
         "surfingkeys",
-        "saka key",
-        "vim vixen"
+        "sakakey",
+        "vimvixen"
     ]
     for (const example of examples) {
         const button = document.createElement("button")
-        button.textContent = title(example)
+        button.textContent = translate(`pages.help.examples.${example}`)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
             const text = readFile(joinPath(
-                __dirname, `../examples/${example.replace(/\s/g, "")}`)) ?? ""
+                __dirname, `../examples/${example}`)) ?? ""
             link.href = window.URL.createObjectURL(
                 new Blob([text], {"type": "text/plain"}))
             link.download = `${example}.viebrc`

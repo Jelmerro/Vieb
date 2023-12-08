@@ -18,9 +18,19 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.notifications.title")
+    }
+    const list = document.getElementById("list")
+    if (list) {
+        list.textContent = translate("pages.notifications.loading")
+    }
+
     /**
      * Show the list of notifications.
      * @param {Electron.IpcRendererEvent} _
@@ -37,7 +47,7 @@ window.addEventListener("DOMContentLoaded", () => {
             element.className = "notification"
             if (notification.click?.type === "download-success") {
                 element.classList.add("filelocation")
-                element.title = "Click to open"
+                element.title = translate("pages.noptifications.clickToOpen")
                 element.addEventListener("click", () => {
                     ipcRenderer.send("open-download", notification.click?.path)
                 })
@@ -53,7 +63,7 @@ window.addEventListener("DOMContentLoaded", () => {
             listEl.append(element)
         })
         if (listEl.textContent === "") {
-            listEl.textContent = "There have been no notifications so far"
+            listEl.textContent = translate("pages.notifications.empty")
         }
     }
 

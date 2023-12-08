@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {
     joinPath,
     appData,
@@ -35,10 +36,10 @@ const {
     hasProtocol,
     sameDomain,
     notify,
-    title,
     listNotificationHistory,
     propPixels,
     userAgentTemplated,
+    getSetting,
     deleteFile
 } = require("../util")
 const {
@@ -47,7 +48,6 @@ const {
     currentTab,
     currentPage,
     currentMode,
-    getSetting,
     guiRelatedUpdate,
     setTopOfPageWithMouse,
     getMouseConf,
@@ -781,18 +781,19 @@ const addWebviewListeners = webview => {
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")
         if (specialPageName && name) {
-            name.textContent = title(specialPageName)
+            name.textContent = translate(`pages.${specialPageName}.title`)
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existing = titleForPage(webview.src)
-        if (isLocal && !specialPageName && name) {
-            name.textContent = readableUrl
-        } else if (name && hasProtocol(name.textContent ?? "")
-            && existing && !isCustomView) {
-            name.textContent = existing
-        } else if (name?.textContent) {
-            updateTitle(webview.src, name.textContent)
+        if (name) {
+            if (isLocal && !existing) {
+                name.textContent = readableUrl
+            } else if (hasProtocol(name.textContent ?? "") && !isCustomView) {
+                name.textContent = existing
+            } else if (name.textContent) {
+                updateTitle(webview.src, name.textContent)
+            }
         }
         if (erwicMode) {
             const preload = webview.getAttribute("user-script-file")
