@@ -11,11 +11,26 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Greasemonkey scripts to work with single match argument instead of multiple include statements
+
+### Fixed
+
+- Greasemonkey scripts that broke when the header was directly next to the script
+
+### Versions
+
+- Electron 28.0.0 (unchanged)
+- Chromium 120.0.6099.56 (unchanged)
+
 ## [11.0.0](https://github.com/Jelmerro/Vieb/compare/10.6.0...11.0.0) - 2023-12-07
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.6.0...11.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/11.0.0)
 
-## Added
+### Added
 
 - Settings of type list and object, that can also be set with lists or objects with ":set"
 - Setting "loadingindicator" to control where the page load status should be shown
@@ -24,7 +39,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "windowfullscreen" to allow the fullscreen state to be kept after restart (default "restore")
 - Setting clear syntax from booleans ":set noexample", to work for objects, arrays and numbers too
 
-## Changed
+### Changed
 
 - Default value for "dialogconfirm" to "notifyallow"
 - Default value for "nativetheme" to "dark"
@@ -36,8 +51,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "mousevisualmode" now works with double and triple click selections
 - Default screenshot suggestions, highlight behavior and styling to be more prominent
 - Setting "modifiers" to use full key names: for example `<Ctrl>` instead of just `Ctrl`
+- Escaping in set commands now only works with double quotes, no longer with single
 
-## Removed
+### Removed
 
 - Setting "suspendplayingtab" in favor of "suspendtimeoutignore" with the right range
 - Option "system" for "nativetheme"
@@ -46,7 +62,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "restorewindowposition" in favor of "windowposition" with value "restore"
 - Setting "restorewindowsize" in favor of "windowsize" with value "restore"
 
-## Fixed
+### Fixed
 
 - Download success notification showing in info color instead of success color
 - Occasional error popup when viewing SVGs directly because of style injection refusal
