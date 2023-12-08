@@ -1017,7 +1017,8 @@ app.on("ready", () => {
         "show": false,
         "webPreferences": {
             "partition": "login",
-            "preload": joinPath(__dirname, "popups/login.js")
+            "preload": joinPath(__dirname, "popups/login.js"),
+            "sandbox": false
         }
     }
     if (customIcon) {
@@ -1047,7 +1048,8 @@ app.on("ready", () => {
         "show": false,
         "webPreferences": {
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "popups/notification.js")
+            "preload": joinPath(__dirname, "popups/notification.js"),
+            "sandbox": false
         }
     }
     if (customIcon) {
@@ -1078,7 +1080,8 @@ app.on("ready", () => {
         "show": false,
         "webPreferences": {
             "partition": "prompt",
-            "preload": joinPath(__dirname, "popups/prompt.js")
+            "preload": joinPath(__dirname, "popups/prompt.js"),
+            "sandbox": false
         }
     }
     if (customIcon) {
@@ -1135,8 +1138,7 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.resizable = false
     loginWindow.show()
     loginWindow.focus()
-    loginWindow.webContents.send("login-information",
-        fontsize, customCSS, `${auth.host}: ${auth.realm}`)
+    loginWindow.webContents.send("login-information", fontsize, customCSS, auth)
 })
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {

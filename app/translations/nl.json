@@ -98,6 +98,21 @@
             "title": "Versie"
         }
     },
+    "popups": {
+        "login": {
+            "info": "$1 meldt het volgende:\n$2",
+            "password": "Wachtwoord",
+            "title": "Inloggen",
+            "username": "Gebruikersnaam"
+        },
+        "notification": {
+            "loading": "Aan het laden...",
+            "shortcuts": "Spatie/d/j: scherm/pagina/regel omlaag, b/u/k: omhoog, q: verlaten"
+        },
+        "prompt": {
+            "title": "Prompt"
+        }
+    },
     "settings": {
         "errors": {
             "oneof": "De instelling $1 kan alleen maar een van de volgende waardes hebben: $2"

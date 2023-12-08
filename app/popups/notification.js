@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 
 let fontsize = 14
 
@@ -36,11 +37,13 @@ ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     if (!notification) {
         return
     }
+    notification.textContent = translate("popups.notification.loading")
     notification.scrollBy(0, -1000000000)
     notification.innerHTML = message
     const footer = document.querySelector("footer")
     if (footer) {
         footer.style.color = `var(--notification-${lvl}`
+        footer.textContent = translate("popups.notification.shortcuts")
     }
     fontsize = fs
     document.body.style.fontSize = `${fontsize}px`

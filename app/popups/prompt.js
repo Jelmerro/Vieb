@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 
 window.addEventListener("load", () => {
     const input = document.querySelector("input")
@@ -25,6 +26,10 @@ window.addEventListener("load", () => {
         return
     }
     ipcRenderer.on("prompt-info", (_, fontsize, customCSS, title, text) => {
+        const h3 = document.querySelector("h3")
+        if (h3) {
+            h3.textContent = translate("popups.prompt.title")
+        }
         const info = document.getElementById("info")
         if (info) {
             info.textContent = title

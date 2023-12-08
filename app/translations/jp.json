@@ -98,6 +98,21 @@
             "title": "バージョン"
         }
     },
+    "popups": {
+        "login": {
+            "info": "$1は「$2」って",
+            "password": "パスワード",
+            "title": "ログイン",
+            "username": "ユーザー名"
+        },
+        "notification": {
+            "loading": "ローディング",
+            "shortcuts": "スペースはスクリーンダウンだ。dはページダウンだ。jはラインダウンだ。bはスクリーンアップだ。uはページアップだ。kはラインアップだ。qは終了だ。"
+        },
+        "prompt": {
+            "title": "プロンプト"
+        }
+    },
     "settings": {
         "errors": {
             "oneof": "設定$1の値は$2のいずれかである必要がある。"

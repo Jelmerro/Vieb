@@ -98,6 +98,21 @@
             "title": "Version"
         }
     },
+    "popups": {
+        "login": {
+            "info": "$1 said the following:\n$2",
+            "password": "Password",
+            "title": "Login",
+            "username": "Username"
+        },
+        "notification": {
+            "loading": "Loading...",
+            "shortcuts": "SPACE/d/j: screen/page/line down, b/u/k: up, q: quit"
+        },
+        "prompt": {
+            "title": "Prompt"
+        }
+    },
     "settings": {
         "errors": {
             "oneof": "The value of setting $1 can only be one of: $2"
