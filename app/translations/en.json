@@ -81,6 +81,14 @@
             "filterEmpty": "No results for current filter",
             "empty": "There are no cookies stored yet",
             "filterPlaceholder": "Filter domain"
+        },
+        "filebrowser": {
+            "permissionDenied": "Permission denied",
+            "empty": "Empty directory"
+        },
+        "failedload": {
+            "sslError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>You can enable automatic HTTP redirects with <kbd>:set redirecttohttp</kbd>.<br>Alternatively, you can choose to go there just once via this HTTP link: <a href=\"$2\">$2</a><br>Finally, you can control what to do with invalid certificates by changing <kbd>permissioncertificateerror</kbd>.",
+            "otherError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>The first step you could try is reloading the page, by default mapped to <kbd>r</kbd> in normal mode. If the error persists, make sure you typed the url correctly. Alternatively, the website might not support the '$2' protocol. Finally, please check your internet connection and DNS settings."
         }
     },
     "util": {

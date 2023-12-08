@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {joinPath, basePath, dirname} = require("../util")
 
 /**
@@ -78,12 +79,12 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
     }
     if (!allowed) {
         const error = document.createElement("span")
-        error.textContent = "Permission denied"
+        error.textContent = translate("pages.filebrowser.permissionDenied")
         error.className = "error"
         main.append(error)
     } else if (directories.length === 0 && files.length === 0) {
         const error = document.createElement("span")
-        error.textContent = "Empty directory"
+        error.textContent = translate("pages.filebrowser.empty")
         error.className = "error"
         main.append(error)
     } else {

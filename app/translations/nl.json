@@ -81,6 +81,14 @@
             "filterEmpty": "Er zijn geen cookies voor het huidige filter",
             "empty": "Er zijn nog geen cookies bewaard",
             "filterPlaceholder": "Filter domein"
+        },
+        "filebrowser": {
+            "permissionDenied": "Toestemming geweigerd",
+            "empty": "Lege map"
+        },
+        "failedload": {
+            "sslError": "<h2>Onbereikbare pagina</h2>De pagina kon niet met succes geladen worden. De onderstaande foutmelding kwam voor:<br><h3>$1</h3>Je kunt automatische HTTP verwijzingen aanzetten met <kbd>:set redirecttohttp</kbd>.<br>Als alternatief kun je er ook voor kiezen om eenmalig naar de HTTP link te gaan: <a href=\"$2\">$2</a><br>Tot slot kun je instellen wat er met onjuiste certificaten moet gebeuren via <kbd>permissioncertificateerror</kbd>.",
+            "otherError": "<h2>Onbereikbare pagina</h2>De pagina kon niet met succes geladen worden. De onderstaande foutmelding kwam voor:<br><h3>$1</h3>De eerst stap die je kunt proberen is het herladen van de pagina, standaard kan dit met <kbd>r</kbd> in normale modus. Als het probleem zich voor blijft doen, controleer dan of de url correct is. Anders is het ook mogelijk dat de website het '$2' protocol niet ondersteund. Tot slot kun je de internetverbinding controleren en de DNS instellingen nakijken."
         }
     },
     "util": {

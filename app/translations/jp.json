@@ -81,6 +81,14 @@
             "filterEmpty": "現在のフィルタの結果がない",
             "empty": "まだクッキーがない",
             "filterPlaceholder": "フィルタードメイン"
+        },
+        "filebrowser": {
+            "permissionDenied": "不許可",
+            "empty": "空のディレクトリ"
+        },
+        "failedload": {
+            "sslError": "",
+            "otherError": ""
         }
     },
     "util": {

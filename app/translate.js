@@ -13,8 +13,9 @@ const translations = {}
 const safeElements = [
     "#text",
     "body",
+    "br",
     "a",
-    "kdb",
+    "kbd",
     "li",
     "ul",
     "ol",
@@ -80,7 +81,8 @@ const translate = (id, opts = {"customLang": null, "fields": []}) => {
     }
     if (translation) {
         opts.fields?.forEach((value, key) => {
-            translation = translation.replace(`$${key + 1}`, String(value))
+            translation = translation.replace(
+                RegExp(`\\$${key + 1}`, "g"), String(value))
         })
         return translation
     }
