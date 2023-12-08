@@ -69,7 +69,7 @@ let args = process.argv.slice(1)
 if (args[0].endsWith("i18n") || args[0].endsWith("i18n.js")) {
     args = args.slice(1)
 }
-if (args[0] === "structure") {
+if (args[0] === "lint") {
     const enKeys = listKeys(translations.en)
     let returnCode = 0
     Object.keys(translations).filter(k => k !== "en").forEach(lang => {
@@ -79,20 +79,20 @@ if (args[0] === "structure") {
             returnCode = 1
         })
     })
-    process.exit(returnCode)
-}
-if (args[0] === "values") {
     Object.keys(translations).forEach(lang => {
         listKeys(translations[lang]).forEach(key => {
             const val = getVal(lang, key)
             if (!val) {
                 console.warn(`Empty value for ${key} in lang file ${lang}`)
+                returnCode = 1
             }
             if (numberOfFields("en", key) !== numberOfFields(lang, key)) {
                 console.warn(`Incorrect number of template fields in ${key}`)
+                returnCode = 1
             }
         })
     })
+    process.exit(returnCode)
 }
 if (args[0] === "addlang") {
     if (args.length !== 2) {
@@ -141,9 +141,25 @@ if (args[0] === "addkey") {
             obj[key.split(".").at(-1)] = ""
         }
         const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
-        writeJSON(filePath, translations[lang], {"indent": 4})
+        writeJSON(filePath, translations[lang], {
+            "indent": 4,
+            /**
+             * Re-create object values so that the order is alphabetic.
+             * @param {string} _key
+             * @param {string} value
+             */
+            "replacer": (_key, value) => {
+                if (typeof value !== "object" || Array.isArray(value)) {
+                    return value
+                }
+                return Object.keys(value).sort().reduce((sorted, k) => {
+                    sorted[k] = value[k]
+                    return sorted
+                }, {})
+            }
+        })
     })
 }
 if (!args[0]) {
-    console.info("Either supply: 'structure', 'values', 'addlang' or 'addkey'")
+    console.info("Either supply: 'lint', 'addlang' or 'addkey'")
 }

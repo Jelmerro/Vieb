@@ -1,117 +1,117 @@
 {
+    "contextmenu": {
+        "groups": {
+            "audio": "Audio",
+            "frame": "Frame",
+            "general": "General",
+            "image": "Image",
+            "link": "Link",
+            "suggestions": "Suggestions",
+            "text": "Text",
+            "video": "Video"
+        }
+    },
+    "pages": {
+        "cookies": {
+            "empty": "There are no cookies stored yet",
+            "filterEmpty": "No results for current filter",
+            "filterPlaceholder": "Filter domain",
+            "loading": "Loading...",
+            "title": "Cookies"
+        },
+        "downloads": {
+            "clickToOpen": "Click to open",
+            "loading": "Loading...",
+            "nothing": "Nothing has been downloaded yet",
+            "states": {
+                "cancelled": "Cancelled",
+                "completed": "Completed",
+                "downloading": "Downloading",
+                "paused": "Paused",
+                "removed": "Removed",
+                "waiting_to_start": "Waiting to start"
+            },
+            "title": "Downloads"
+        },
+        "failedload": {
+            "otherError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>The first step you could try is reloading the page, by default mapped to <kbd>r</kbd> in normal mode. If the error persists, make sure you typed the url correctly. Alternatively, the website might not support the '$2' protocol. Finally, please check your internet connection and DNS settings.",
+            "sslError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>You can enable automatic HTTP redirects with <kbd>:set redirecttohttp</kbd>.<br>Alternatively, you can choose to go there just once via this HTTP link: <a href=\"$2\">$2</a><br>Finally, you can control what to do with invalid certificates by changing <kbd>permissioncertificateerror</kbd>."
+        },
+        "filebrowser": {
+            "empty": "Empty directory",
+            "permissionDenied": "Permission denied"
+        },
+        "help": {
+            "examples": {
+                "chromium": "Chromium",
+                "firefox": "Firefox",
+                "pentadactyl": "Pentadactyl",
+                "qutebrowser": "qutebrowser",
+                "sakakey": "Saka Key",
+                "surfingkeys": "Surfingkeys",
+                "tridactyl": "Tridactyl",
+                "vimium": "Vimium",
+                "vimvixen": "Vim Vixen",
+                "vivaldi": "Vivaldi"
+            },
+            "title": "Help"
+        },
+        "history": {
+            "filterEmpty": "No pages have been visited yet",
+            "filterNoResults": "No results for current filter",
+            "filterPlaceholder": "Filter history",
+            "loading": "Loading...",
+            "perpage": "Entries per page",
+            "readingProgress": "Reading history $1/$2, currently going back to history from $3",
+            "title": "History"
+        },
+        "newtab": {
+            "favorites": "Favorites",
+            "title": "Newtab",
+            "topsites": "Top sites"
+        },
+        "notifications": {
+            "clickToOpen": "Click to open",
+            "empty": "There have been no notifications so far",
+            "loading": "Loading...",
+            "title": "Notifications"
+        },
+        "version": {
+            "alreadyNewer": "Latest release $1 is older",
+            "changelog": "changelog",
+            "checkUpdate": "Check for updates",
+            "description": "Vieb is made by <a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a> and <a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">contributors</a>. It enables you to interact with the web using Vim inspired keybindings. Vieb runs on Electron $1 and the Chromium version is $2.",
+            "discussions": "discussions",
+            "donate": "donate",
+            "failed": "Failed to fetch updates",
+            "faq": "faq",
+            "homepage": "homepage",
+            "latest": "Your Vieb is up to date",
+            "loading": "Loading...",
+            "matrix": "matrix",
+            "newerFound": "New version $1 is available",
+            "notChecked": "Not checked yet",
+            "releases": "releases",
+            "repository": "repository",
+            "sponsor": "sponsor",
+            "telegram": "telegram",
+            "title": "Version"
+        }
+    },
     "settings": {
         "errors": {
             "oneof": "The value of setting $1 can only be one of: $2"
         }
     },
-    "pages": {
-        "history": {
-            "title": "History",
-            "filterPlaceholder": "Filter history",
-            "perpage": "Entries per page",
-            "filterNoResults": "No results for current filter",
-            "filterEmpty": "No pages have been visited yet",
-            "readingProgress": "Reading history $1/$2, currently going back to history from $3",
-            "loading": "Loading..."
-        },
-        "newtab": {
-            "title": "Newtab",
-            "topsites": "Top sites",
-            "favorites": "Favorites"
-        },
-        "version": {
-            "title": "Version",
-            "description": "Vieb is made by <a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a> and <a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">contributors</a>. It enables you to interact with the web using Vim inspired keybindings. Vieb runs on Electron $1 and the Chromium version is $2.",
-            "checkUpdate": "Check for updates",
-            "failed": "Failed to fetch updates",
-            "latest": "Your Vieb is up to date",
-            "newerFound": "New version $1 is available",
-            "alreadyNewer": "Latest release $1 is older",
-            "loading": "Loading...",
-            "notChecked": "Not checked yet",
-            "homepage": "homepage",
-            "repository": "repository",
-            "releases": "releases",
-            "sponsor": "sponsor",
-            "donate": "donate",
-            "faq": "faq",
-            "changelog": "changelog",
-            "matrix": "matrix",
-            "telegram": "telegram",
-            "discussions": "discussions"
-        },
-        "downloads": {
-            "title": "Downloads",
-            "loading": "Loading...",
-            "clickToOpen": "Click to open",
-            "nothing": "Nothing has been downloaded yet",
-            "states": {
-                "waiting_to_start": "Waiting to start",
-                "downloading": "Downloading",
-                "cancelled": "Cancelled",
-                "paused": "Paused",
-                "removed": "Removed",
-                "completed": "Completed"
-            }
-        },
-        "help": {
-            "title": "Help",
-            "examples": {
-                "chromium": "Chromium",
-                "firefox": "Firefox",
-                "vivaldi": "Vivaldi",
-                "qutebrowser": "qutebrowser",
-                "vimium": "Vimium",
-                "tridactyl": "Tridactyl",
-                "pentadactyl": "Pentadactyl",
-                "surfingkeys": "Surfingkeys",
-                "sakakey": "Saka Key",
-                "vimvixen": "Vim Vixen"
-            }
-        },
-        "notifications": {
-            "title": "Notifications",
-            "clickToOpen": "Click to open",
-            "loading": "Loading...",
-            "empty": "There have been no notifications so far"
-        },
-        "cookies": {
-            "title": "Cookies",
-            "loading": "Loading...",
-            "filterEmpty": "No results for current filter",
-            "empty": "There are no cookies stored yet",
-            "filterPlaceholder": "Filter domain"
-        },
-        "filebrowser": {
-            "permissionDenied": "Permission denied",
-            "empty": "Empty directory"
-        },
-        "failedload": {
-            "sslError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>You can enable automatic HTTP redirects with <kbd>:set redirecttohttp</kbd>.<br>Alternatively, you can choose to go there just once via this HTTP link: <a href=\"$2\">$2</a><br>Finally, you can control what to do with invalid certificates by changing <kbd>permissioncertificateerror</kbd>.",
-            "otherError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>The first step you could try is reloading the page, by default mapped to <kbd>r</kbd> in normal mode. If the error persists, make sure you typed the url correctly. Alternatively, the website might not support the '$2' protocol. Finally, please check your internet connection and DNS settings."
-        }
-    },
     "util": {
+        "and": " and ",
         "catchphrase": "Vim Inspired Electron Browser",
         "comma": ",",
         "commaSpaced": ", ",
-        "or": " or ",
-        "and": " and ",
-        "doubleQuoteStart": "\"",
         "doubleQuoteEnd": "\"",
-        "singleQuoteStart": "'",
-        "singleQuoteEnd": "'"
-    },
-    "contextmenu": {
-        "groups": {
-            "general": "General",
-            "suggestions": "Suggestions",
-            "text": "Text",
-            "image": "Image",
-            "frame": "Frame",
-            "video": "Video",
-            "audio": "Audio",
-            "link": "Link"
-        }
+        "doubleQuoteStart": "\"",
+        "or": " or ",
+        "singleQuoteEnd": "'",
+        "singleQuoteStart": "'"
     }
 }

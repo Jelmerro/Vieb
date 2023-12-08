@@ -1,117 +1,117 @@
 {
+    "contextmenu": {
+        "groups": {
+            "audio": "オーディオ",
+            "frame": "フレーム",
+            "general": "一般",
+            "image": "画像",
+            "link": "リンク",
+            "suggestions": "提案",
+            "text": "テキスト",
+            "video": "動画"
+        }
+    },
+    "pages": {
+        "cookies": {
+            "empty": "まだクッキーがない",
+            "filterEmpty": "現在のフィルタの結果がない",
+            "filterPlaceholder": "フィルタードメイン",
+            "loading": "ローディング",
+            "title": "クッキー"
+        },
+        "downloads": {
+            "clickToOpen": "クリックして開く",
+            "loading": "ローディング",
+            "nothing": "まだ何もダウンロードしていない",
+            "states": {
+                "cancelled": "キャンセルした",
+                "completed": "完成した",
+                "downloading": "ダウンロードしている",
+                "paused": "休止中",
+                "removed": "削除した",
+                "waiting_to_start": "開始待ち"
+            },
+            "title": "ダウンロード"
+        },
+        "failedload": {
+            "otherError": "",
+            "sslError": ""
+        },
+        "filebrowser": {
+            "empty": "空のディレクトリ",
+            "permissionDenied": "不許可"
+        },
+        "help": {
+            "examples": {
+                "chromium": "クロミウム",
+                "firefox": "ファイアーフォックス",
+                "pentadactyl": "Pentadactyl",
+                "qutebrowser": "qutebrowser",
+                "sakakey": "Saka Key",
+                "surfingkeys": "Surfingkeys",
+                "tridactyl": "Tridactyl",
+                "vimium": "Vimium",
+                "vimvixen": "Vim Vixen",
+                "vivaldi": "ヴィヴァルディ"
+            },
+            "title": "ヘルプ"
+        },
+        "history": {
+            "filterEmpty": "まだ訪問したページがない",
+            "filterNoResults": "現在のフィルタの結果がない",
+            "filterPlaceholder": "歴史のフィルター",
+            "loading": "ローディング",
+            "perpage": "ページあたりの歴史項目数",
+            "readingProgress": "$1/$2の歴史を読んでいる。現在、$3から歴史を遡っている。",
+            "title": "歴史"
+        },
+        "newtab": {
+            "favorites": "お気に入り",
+            "title": "新しいタブ",
+            "topsites": "最多訪問"
+        },
+        "notifications": {
+            "clickToOpen": "クリックして開く",
+            "empty": "まだ通知がない",
+            "loading": "ローディング",
+            "title": "通知"
+        },
+        "version": {
+            "alreadyNewer": "最新リリース$1は古い",
+            "changelog": "変更履歴",
+            "checkUpdate": "更新チェック",
+            "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られた。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができる。エレクトロン$1で動作し、クロミウムのバージョンは$2だ。",
+            "discussions": "ディスカッション",
+            "donate": "寄付",
+            "failed": "更新の取得に失敗した",
+            "faq": "よくある質問",
+            "homepage": "ホームページ",
+            "latest": "Viebは最新だ",
+            "loading": "ローディング",
+            "matrix": "マトリックス",
+            "newerFound": "新しいバージョン$1が利用可能だ",
+            "notChecked": "未確認",
+            "releases": "リリース",
+            "repository": "リポジトリ",
+            "sponsor": "スポンサー",
+            "telegram": "テレグラム",
+            "title": "バージョン"
+        }
+    },
     "settings": {
         "errors": {
             "oneof": "設定$1の値は$2のいずれかである必要がある。"
         }
     },
-    "pages": {
-        "history": {
-            "title": "歴史",
-            "filterPlaceholder": "歴史のフィルター",
-            "perpage": "ページあたりの歴史項目数",
-            "filterNoResults": "現在のフィルタの結果がない",
-            "filterEmpty": "まだ訪問したページがない",
-            "readingProgress": "$1/$2の歴史を読んでいる。現在、$3から歴史を遡っている。",
-            "loading": "ローディング"
-        },
-        "newtab": {
-            "title": "新しいタブ",
-            "topsites": "最多訪問",
-            "favorites": "お気に入り"
-        },
-        "version": {
-            "title": "バージョン",
-            "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られた。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができる。エレクトロン$1で動作し、クロミウムのバージョンは$2だ。",
-            "checkUpdate": "更新チェック",
-            "failed": "更新の取得に失敗した",
-            "latest": "Viebは最新だ",
-            "newerFound": "新しいバージョン$1が利用可能だ",
-            "alreadyNewer": "最新リリース$1は古い",
-            "loading": "ローディング",
-            "notChecked": "未確認",
-            "homepage": "ホームページ",
-            "repository": "リポジトリ",
-            "releases": "リリース",
-            "sponsor": "スポンサー",
-            "donate": "寄付",
-            "faq": "よくある質問",
-            "changelog": "変更履歴",
-            "matrix": "マトリックス",
-            "telegram": "テレグラム",
-            "discussions": "ディスカッション"
-        },
-        "downloads": {
-            "title": "ダウンロード",
-            "loading": "ローディング",
-            "clickToOpen": "クリックして開く",
-            "nothing": "まだ何もダウンロードしていない",
-            "states": {
-                "waiting_to_start": "開始待ち",
-                "downloading": "ダウンロードしている",
-                "cancelled": "キャンセルした",
-                "paused": "休止中",
-                "removed": "削除した",
-                "completed": "完成した"
-            }
-        },
-        "help": {
-            "title": "ヘルプ",
-            "examples": {
-                "chromium": "クロミウム",
-                "firefox": "ファイアーフォックス",
-                "vivaldi": "ヴィヴァルディ",
-                "qutebrowser": "qutebrowser",
-                "vimium": "Vimium",
-                "tridactyl": "Tridactyl",
-                "pentadactyl": "Pentadactyl",
-                "surfingkeys": "Surfingkeys",
-                "sakakey": "Saka Key",
-                "vimvixen": "Vim Vixen"
-            }
-        },
-        "notifications": {
-            "title": "通知",
-            "clickToOpen": "クリックして開く",
-            "loading": "ローディング",
-            "empty": "まだ通知がない"
-        },
-        "cookies": {
-            "title": "クッキー",
-            "loading": "ローディング",
-            "filterEmpty": "現在のフィルタの結果がない",
-            "empty": "まだクッキーがない",
-            "filterPlaceholder": "フィルタードメイン"
-        },
-        "filebrowser": {
-            "permissionDenied": "不許可",
-            "empty": "空のディレクトリ"
-        },
-        "failedload": {
-            "sslError": "",
-            "otherError": ""
-        }
-    },
     "util": {
+        "and": "と",
         "catchphrase": "ヴィム風エレクトロンブラウザ",
         "comma": "と",
         "commaSpaced": "と",
-        "or": "と",
-        "and": "と",
-        "doubleQuoteStart": "\"",
         "doubleQuoteEnd": "\"",
-        "singleQuoteStart": "'",
-        "singleQuoteEnd": "'"
-    },
-    "contextmenu": {
-        "groups": {
-            "general": "一般",
-            "suggestions": "提案",
-            "text": "テキスト",
-            "image": "画像",
-            "frame": "フレーム",
-            "video": "動画",
-            "audio": "オーディオ",
-            "link": "リンク"
-        }
+        "doubleQuoteStart": "\"",
+        "or": "と",
+        "singleQuoteEnd": "'",
+        "singleQuoteStart": "'"
     }
 }
