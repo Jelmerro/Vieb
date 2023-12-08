@@ -1198,13 +1198,15 @@ const appendFile = (loc, data, opts = {"src": "other"}) => {
  * @param {{
  *   err?: string,
  *   success?: string,
- *   src: import("./renderer/common").RunSource
+ *   src: import("./renderer/common").RunSource,
+ *   replacer?: null|((this: any, key: string, value: string) => string),
  *   indent?: number|undefined
- * }|{indent: number}} opts
+ * }} opts
  */
-const writeJSON = (loc, data, opts = {"src": "other"}) => {
+const writeJSON = (loc, data, opts = {"replacer": null, "src": "other"}) => {
     try {
-        fs.writeFileSync(loc, JSON.stringify(data, null, opts.indent))
+        fs.writeFileSync(loc, JSON.stringify(
+            data, opts.replacer ?? undefined, opts.indent))
         if ("success" in opts) {
             notify(opts.success, {"src": opts.src})
         }

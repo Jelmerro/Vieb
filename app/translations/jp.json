@@ -23,9 +23,9 @@
             "title": "バージョン",
             "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られた。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができる。エレクトロン$1で動作し、クロミウムのバージョンは$2だ。",
             "checkUpdate": "更新チェック",
-            "failed": "",
-            "latest": "",
-            "newerFound": "",
+            "failed": "更新の取得に失敗した",
+            "latest": "Viebは最新だ",
+            "newerFound": "新しいバージョン$1が利用可能だ",
             "alreadyNewer": "最新リリース$1は古い",
             "loading": "ローディング",
             "notChecked": "未確認",
@@ -55,18 +55,18 @@
             }
         },
         "help": {
-            "title": "",
+            "title": "ヘルプ",
             "examples": {
-                "chromium": "",
-                "firefox": "",
-                "vivaldi": "",
-                "qutebrowser": "",
-                "vimium": "",
-                "tridactyl": "",
-                "pentadactyl": "",
-                "surfingkeys": "",
-                "sakakey": "",
-                "vimvixen": ""
+                "chromium": "クロミウム",
+                "firefox": "ファイアーフォックス",
+                "vivaldi": "ヴィヴァルディ",
+                "qutebrowser": "qutebrowser",
+                "vimium": "Vimium",
+                "tridactyl": "Tridactyl",
+                "pentadactyl": "Pentadactyl",
+                "surfingkeys": "Surfingkeys",
+                "sakakey": "Saka Key",
+                "vimvixen": "Vim Vixen"
             }
         },
         "notifications": {
@@ -96,14 +96,14 @@
     },
     "contextmenu": {
         "groups": {
-            "general": "",
-            "suggestions": "",
-            "text": "",
-            "image": "",
-            "frame": "",
-            "video": "",
-            "audio": "",
-            "link": ""
+            "general": "一般",
+            "suggestions": "提案",
+            "text": "テキスト",
+            "image": "画像",
+            "frame": "フレーム",
+            "video": "動画",
+            "audio": "オーディオ",
+            "link": "リンク"
         }
     }
 }

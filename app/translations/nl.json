@@ -1,0 +1,109 @@
+{
+    "settings": {
+        "errors": {
+            "oneof": "De instelling $1 kan alleen maar een van de volgende waardes hebben: $2"
+        }
+    },
+    "pages": {
+        "history": {
+            "title": "Geschiedenis",
+            "filterPlaceholder": "Filter geschiedenis",
+            "perpage": "Aantal per pagina",
+            "filterNoResults": "Er zijn geen resultaten voor het huidige filter",
+            "filterEmpty": "Er zijn nog geen pagina's bezocht",
+            "readingProgress": "Geschiedenis $1 van $2 aan het lezen, geschiedenis gaat voorlopig terug t/m $3",
+            "loading": "Aan het laden..."
+        },
+        "newtab": {
+            "title": "Nieuw tabblad",
+            "topsites": "Meest bezochte sites",
+            "favorites": "Favorieten"
+        },
+        "version": {
+            "title": "Versie",
+            "description": "Vieb is gemaakt door <a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a> en <a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">contribuanten</a>. Het maakt het mogelijk om het web te gebruiken met Vim-geïnspireerde toetsenbord snelkoppelingen. Vieb draait op Electron $1 en de Chromium versie is $2.",
+            "checkUpdate": "Controleer op updates",
+            "failed": "Ophalen informatie mislukt",
+            "latest": "Je hebt de nieuwste versie",
+            "newerFound": "Er is een nieuwe versie $1 beschikbaar",
+            "alreadyNewer": "De nieuwste versie $1 is ouder",
+            "loading": "Aan het laden...",
+            "notChecked": "Nog niet gecontroleerd",
+            "homepage": "thuispagina",
+            "repository": "repository",
+            "releases": "releases",
+            "sponsor": "sponsor",
+            "donate": "doneren",
+            "faq": "veelgestelde vragen",
+            "changelog": "wijziging lijst",
+            "matrix": "matrix",
+            "telegram": "telegram",
+            "discussions": "discussies"
+        },
+        "downloads": {
+            "title": "Downloads",
+            "loading": "Aan het laden...",
+            "clickToOpen": "Klik om te openen",
+            "nothing": "Er is nog niks gedownload",
+            "states": {
+                "waiting_to_start": "Wachten om te beginnen",
+                "downloading": "Aan het downloaden",
+                "cancelled": "Geannuleerd",
+                "paused": "Gepauzeerd",
+                "removed": "Verwijderd",
+                "completed": "Voltooid"
+            }
+        },
+        "help": {
+            "title": "Hulp",
+            "examples": {
+                "chromium": "Chromium",
+                "firefox": "Firefox",
+                "vivaldi": "Vivaldi",
+                "qutebrowser": "qutebrowser",
+                "vimium": "Vimium",
+                "tridactyl": "Tridactyl",
+                "pentadactyl": "Pentadactyl",
+                "surfingkeys": "Surfingkeys",
+                "sakakey": "Saka Key",
+                "vimvixen": "Vim Vixen"
+            }
+        },
+        "notifications": {
+            "title": "Notificaties",
+            "clickToOpen": "Klik om te openen",
+            "loading": "Aan het laden...",
+            "empty": "Er zijn nog geen notificaties geweest"
+        },
+        "cookies": {
+            "title": "Cookies",
+            "loading": "Aan het laden...",
+            "filterEmpty": "Er zijn geen cookies voor het huidige filter",
+            "empty": "Er zijn nog geen cookies bewaard",
+            "filterPlaceholder": "Filter domein"
+        }
+    },
+    "util": {
+        "catchphrase": "Vim-geïnspireerde Electron Browser",
+        "comma": ",",
+        "commaSpaced": ", ",
+        "or": " of ",
+        "and": " en ",
+        "doubleQuoteStart": "\"",
+        "doubleQuoteEnd": "\"",
+        "singleQuoteStart": "'",
+        "singleQuoteEnd": "'"
+    },
+    "contextmenu": {
+        "groups": {
+            "general": "Algemeen",
+            "suggestions": "Suggesties",
+            "text": "Tekst",
+            "image": "Afbeelding",
+            "frame": "Frame",
+            "video": "Video",
+            "audio": "Audio",
+            "link": "Link"
+        }
+    }
+}

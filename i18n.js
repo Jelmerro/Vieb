@@ -94,9 +94,35 @@ if (args[0] === "values") {
         })
     })
 }
-if (args[0] === "add") {
+if (args[0] === "addlang") {
+    if (args.length !== 2) {
+        console.warn("Addlang command requires a single language argument.")
+        process.exit(1)
+    }
+    const [, lang] = args
+    if (translations[lang]) {
+        console.warn("Language already exists.")
+        process.exit(1)
+    }
+    const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
+    writeJSON(filePath, translations.en, {
+        "indent": 4,
+        /**
+         * Replace string values with empty keys.
+         * @param {string} _key
+         * @param {string} value
+         */
+        "replacer": (_key, value) => {
+            if (typeof value === "string") {
+                return ""
+            }
+            return value
+        }
+    })
+}
+if (args[0] === "addkey") {
     if (args.length !== 3 && args.length !== 2) {
-        console.warn("Add command requires at least 1 argument, at most 2.")
+        console.warn("Addkey command requires at least 1 argument, at most 2.")
         console.warn("The first for the key, the second for the english text.")
         process.exit(1)
     }
@@ -119,5 +145,5 @@ if (args[0] === "add") {
     })
 }
 if (!args[0]) {
-    console.info("Either supply: 'structure', 'values' or 'add'")
+    console.info("Either supply: 'structure', 'values', 'addlang' or 'addkey'")
 }
