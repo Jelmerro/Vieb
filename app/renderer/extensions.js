@@ -36,27 +36,34 @@ const {
  */
 const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         && !line.includes("==UserScript==") && !line.includes("==/UserScript==")
-).reduce((obj, line) => {
-    const arr = line.trim().replace(/^\/\//, "").trim().split(/\s+/)
-    let key = arr[0].slice(1)
-    if (key === "include" || key === "exclude") {
-        key += "s"
-    }
-    const value = arr.slice(1).join(" ")
-    // @ts-expect-error Creation of keys on empty object is not allowed
-    if (obj[key] === undefined) {
-        // @ts-expect-error Creation of keys on empty object is not allowed
-        obj[key] = value
-    // @ts-expect-error Creation of keys on empty object is not allowed
-    } else if (Array.isArray(obj[key])) {
-        // @ts-expect-error Creation of keys on empty object is not allowed
-        obj[key].push(value)
-    } else {
-        // @ts-expect-error Creation of keys on empty object is not allowed
-        obj[key] = [obj[key], value]
-    }
-    return obj
-}, {})
+).reduce(
+    /**
+     * Block.
+     * @param {{[key: string]: string|string[]}} obj
+     * @param {string} line
+     */
+    (obj, line) => {
+        const arr = line.trim().replace(/^\/\//, "").trim().split(/\s+/)
+        let key = arr[0].slice(1)
+        if (key === "include" || key === "exclude") {
+            key += "s"
+        }
+        const value = arr.slice(1).join(" ")
+        if (obj[key] === undefined) {
+            if (["match", "includes", "excludes"].includes(key)) {
+                obj[key] = [value]
+            } else {
+                obj[key] = value
+            }
+        } else if (Array.isArray(obj[key])) {
+            // @ts-expect-error Explicitly checked above, somehow still errors.
+            obj[key].push(value)
+        } else {
+            // @ts-expect-error This converts the string to an array.
+            obj[key] = [obj[key], value]
+        }
+        return obj
+    }, {})
 
 /**
  * Run a GM script in the page.
@@ -219,11 +226,14 @@ const runGMScript = (webview, rawContents) => {
         // No picomatch available, assume scripts should run everywhere
     }
     if (info?.name && scriptLines.length) {
-        if (!Array.isArray(info.includes)) {
+        if (Array.isArray(info.includes)) {
+            if (Array.isArray(info.match)) {
+                info.includes = [...info.includes, ...info.match]
+            }
+        } else if (Array.isArray(info.match)) {
+            info.includes = [...info.match]
+        } else {
             info.includes = ["*"]
-        }
-        if (Array.isArray(info.match)) {
-            info.includes = [...info.includes, ...info.match]
         }
         if (!Array.isArray(info.excludes)) {
             info.excludes = []
@@ -240,7 +250,7 @@ const runGMScript = (webview, rawContents) => {
                 webview.src, info.excludes, {"bash": true})
         }
         if (included && !excluded) {
-            const script = preload + scriptLines.join("\n")
+            const script = `${preload}\n${scriptLines.join("\n")}`
             webview.executeJavaScript(script, true).catch(() => null)
         }
     }
