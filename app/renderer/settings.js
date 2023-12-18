@@ -585,6 +585,7 @@ const validOptions = {
         "id",
         "it",
         "ja",
+        "jp",
         "ko",
         "lt",
         "lv",

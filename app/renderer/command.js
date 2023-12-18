@@ -2312,6 +2312,9 @@ const translatepage = (src, args) => {
         return
     }
     lang = lang?.toLowerCase() ?? getSetting("translatelang")
+    if (lang === "jp") {
+        lang = "ja"
+    }
     if (api === "libretranslate" && lang.startsWith("en")) {
         lang = "en"
     }
