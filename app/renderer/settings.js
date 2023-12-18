@@ -1521,7 +1521,13 @@ const isStringSetting = set => isExistingSetting(set)
  * @param {typeof defaultSettings[T]} value
  */
 const isValidSetting = (src, setting, value) => {
-    const expectedType = typeof allSettings[setting]
+    let expectedType = typeof allSettings[setting]
+    if (setting === "mouse") {
+        expectedType = "object"
+        if (typeof value === "string") {
+            expectedType = "string"
+        }
+    }
     /** @type {string|number|boolean|string[]|{[key: string]: string}} */
     let parsedValue = value
     if (expectedType === "number" && !isNaN(Number(parsedValue))) {
@@ -1928,9 +1934,6 @@ const set = (src, setting, value) => {
         } else if (isEnumSetting(setting)) {
             // @ts-expect-error this is properly checked with "checkOption"
             allSettings[setting] = String(value)
-        } else if (isStringSetting(setting)) {
-            // @ts-expect-error properly checked: is a string, but not an enum
-            allSettings[setting] = String(value)
         } else if (isArraySetting(setting)) {
             if (typeof value === "string") {
                 try {
@@ -1984,6 +1987,9 @@ const set = (src, setting, value) => {
                 notify("Please report a bug, this should never happen",
                     {src, "type": "error"})
             }
+        } else if (isStringSetting(setting)) {
+            // @ts-expect-error properly checked: is a string, but not an enum
+            allSettings[setting] = String(value)
         }
         if (setting === "mouse") {
             let newval = allSettings.mouse

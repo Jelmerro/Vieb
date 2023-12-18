@@ -298,7 +298,11 @@ const modifySetting = (src, setting, value, method = "replace") => {
             set(src, setting, obj)
         }
         if (isList) {
-            set(src, setting, [...getSetting(setting), value])
+            let current = getSetting(setting)
+            if (current === "all") {
+                current = mouseFeatures
+            }
+            set(src, setting, [...current, value])
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) + Number(value))
@@ -338,7 +342,11 @@ const modifySetting = (src, setting, value, method = "replace") => {
                 + "but has no purpose yet.", {src, "type": "warn"})
         }
         if (isList) {
-            set(src, setting, [value, ...getSetting(setting)])
+            let current = getSetting(setting)
+            if (current === "all") {
+                current = mouseFeatures
+            }
+            set(src, setting, [value, ...current])
         }
         if (isNumber) {
             set(src, setting, getSetting(setting) * Number(value))
