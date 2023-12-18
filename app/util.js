@@ -78,6 +78,94 @@ const dataUris = [
 ]
 
 /**
+ * Join multiple path parts into a single resolved path.
+ * @param {string[]} paths
+ */
+const joinPath = (...paths) => {
+    const {resolve, join} = require("path")
+    return resolve(join(...paths))
+}
+
+/**
+ * Expand a path that is prefixed with ~ to the user's home folder.
+ * @param {string} loc
+ */
+const expandPath = loc => {
+    if (loc.startsWith("~")) {
+        if (!homeDirPath) {
+            homeDirPath = process.env.HOME || process.env.USERPROFILE
+                || require("os").homedir()
+        }
+        return loc.replace("~", homeDirPath)
+    }
+    return loc
+}
+
+/**
+ * Returns the app configuration settings.
+ */
+const appConfig = () => {
+    if (!configSettings) {
+        const {ipcRenderer} = require("electron")
+        configSettings = ipcRenderer.sendSync("app-config")
+        if (!configSettings) {
+            return null
+        }
+        let files = [configSettings.override]
+        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
+        const userFirstConfig = expandPath("~/.vieb/viebrc")
+        const userGlobalConfig = expandPath("~/.viebrc")
+        if (!configSettings.override) {
+            if (configSettings.order === "user-only") {
+                files = [userGlobalConfig, userFirstConfig]
+            }
+            if (configSettings.order === "datafolder-only") {
+                files = [datafolderConfig]
+            }
+            if (configSettings.order === "user-first") {
+                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
+            }
+            if (configSettings.order === "datafolder-first") {
+                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
+            }
+        }
+        configSettings.files = files
+        configSettings.config = configSettings.override || datafolderConfig
+    }
+    return configSettings
+}
+
+/**
+ * Returns the appdata path (works from both main, renderer and preloads).
+ */
+const appData = () => {
+    if (!appDataPath) {
+        try {
+            const {app} = require("electron")
+            return app.getPath("appData")
+        } catch {
+            // Not in main thread
+        }
+        appDataPath = appConfig()?.appdata ?? ""
+    }
+    return appDataPath
+}
+
+/**
+ * Read the file contents of a file and parse it as JSON.
+ * @param {string} loc
+ * @returns {any|null}
+ */
+const readJSON = loc => {
+    try {
+        const {readFileSync} = require("fs")
+        return JSON.parse(readFileSync(loc).toString())
+    } catch {
+        return null
+    }
+}
+
+/**
  * @typedef {(typeof import("./renderer/settings").defaultSettings & {
  *   "fg": string
  *   "bg": string
@@ -172,21 +260,6 @@ const searchword = location => {
 
 /** Return the notification history. */
 const listNotificationHistory = () => notificationHistory
-
-/**
- * Expand a path that is prefixed with ~ to the user's home folder.
- * @param {string} loc
- */
-const expandPath = loc => {
-    if (loc.startsWith("~")) {
-        if (!homeDirPath) {
-            homeDirPath = process.env.HOME || process.env.USERPROFILE
-                || require("os").homedir()
-        }
-        return loc.replace("~", homeDirPath)
-    }
-    return loc
-}
 
 /** Return per operating system the result of navigator.platform. */
 const userAgentPlatform = () => {
@@ -877,66 +950,6 @@ const intervalValueToDate = value => {
     return date
 }
 
-// PATH UTIL
-
-const path = require("path")
-
-/**
- * Join multiple path parts into a single resolved path.
- * @param {string[]} paths
- */
-const joinPath = (...paths) => path.resolve(path.join(...paths))
-
-/**
- * Returns the app configuration settings.
- */
-const appConfig = () => {
-    if (!configSettings) {
-        const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config")
-        if (!configSettings) {
-            return null
-        }
-        let files = [configSettings.override]
-        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
-        const userFirstConfig = expandPath("~/.vieb/viebrc")
-        const userGlobalConfig = expandPath("~/.viebrc")
-        if (!configSettings.override) {
-            if (configSettings.order === "user-only") {
-                files = [userGlobalConfig, userFirstConfig]
-            }
-            if (configSettings.order === "datafolder-only") {
-                files = [datafolderConfig]
-            }
-            if (configSettings.order === "user-first") {
-                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
-            }
-            if (configSettings.order === "datafolder-first") {
-                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
-            }
-        }
-        configSettings.files = files
-        configSettings.config = configSettings.override || datafolderConfig
-    }
-    return configSettings
-}
-
-/**
- * Returns the appdata path (works from both main, renderer and preloads).
- */
-const appData = () => {
-    if (!appDataPath) {
-        try {
-            const {app} = require("electron")
-            return app.getPath("appData")
-        } catch {
-            // Not in main thread
-        }
-        appDataPath = appConfig()?.appdata ?? ""
-    }
-    return appDataPath
-}
-
 /**
  * Show the user a notification bubble and store it in the history.
  * @param {{
@@ -1061,35 +1074,27 @@ const downloadPath = () => expandPath(getSetting("downloadpath")
  * Return the last part of the path, usually the filename.
  * @param {string} loc
  */
-const basePath = loc => path.basename(loc)
+const basePath = loc => {
+    const {basename} = require("path")
+    return basename(loc)
+}
 
 /**
  * Return the directory name of the path.
  * @param {string} loc
  */
-const dirname = loc => path.dirname(loc)
+const dirname = loc => {
+    const path = require("path")
+    return path.dirname(loc)
+}
 
 /**
  * Check if a path is absolute or not.
  * @param {string} loc
  */
-const isAbsolutePath = loc => path.isAbsolute(loc)
-
-// FILESYSTEM UTIL
-
-const fs = require("fs")
-
-/**
- * Read the file contents of a file and parse it as JSON.
- * @param {string} loc
- * @returns {any|null}
- */
-const readJSON = loc => {
-    try {
-        return JSON.parse(fs.readFileSync(loc).toString())
-    } catch {
-        return null
-    }
+const isAbsolutePath = loc => {
+    const {isAbsolute} = require("path")
+    return isAbsolute(loc)
 }
 
 /**
@@ -1098,7 +1103,8 @@ const readJSON = loc => {
  */
 const pathExists = loc => {
     try {
-        return fs.existsSync(loc)
+        const {existsSync} = require("fs")
+        return existsSync(loc)
     } catch {
         return false
     }
@@ -1110,7 +1116,8 @@ const pathExists = loc => {
  */
 const isDir = loc => {
     try {
-        return fs.statSync(loc).isDirectory()
+        const {statSync} = require("fs")
+        return statSync(loc).isDirectory()
     } catch {
         return false
     }
@@ -1122,7 +1129,8 @@ const isDir = loc => {
  */
 const isFile = loc => {
     try {
-        return fs.statSync(loc).isFile()
+        const {statSync} = require("fs")
+        return statSync(loc).isFile()
     } catch {
         return false
     }
@@ -1135,7 +1143,8 @@ const isFile = loc => {
  */
 const readFile = loc => {
     try {
-        return fs.readFileSync(loc).toString()
+        const {readFileSync} = require("fs")
+        return readFileSync(loc).toString()
     } catch {
         return null
     }
@@ -1153,7 +1162,8 @@ const readFile = loc => {
  */
 const writeFile = (loc, data, opts = {"src": "other"}) => {
     try {
-        fs.writeFileSync(loc, data)
+        const {writeFileSync} = require("fs")
+        writeFileSync(loc, data)
         if (opts.success) {
             notify(opts.success, {"src": opts.src})
         }
@@ -1178,7 +1188,8 @@ const writeFile = (loc, data, opts = {"src": "other"}) => {
  */
 const appendFile = (loc, data, opts = {"src": "other"}) => {
     try {
-        fs.appendFileSync(loc, data)
+        const {appendFileSync} = require("fs")
+        appendFileSync(loc, data)
         if (opts.success) {
             notify(opts.success, {"src": opts.src})
         }
@@ -1198,14 +1209,15 @@ const appendFile = (loc, data, opts = {"src": "other"}) => {
  * @param {{
  *   err?: string,
  *   success?: string,
- *   src: import("./renderer/common").RunSource,
+ *   src?: import("./renderer/common").RunSource,
  *   replacer?: null|((this: any, key: string, value: string) => string),
  *   indent?: number|undefined
  * }} opts
  */
 const writeJSON = (loc, data, opts = {"replacer": null, "src": "other"}) => {
     try {
-        fs.writeFileSync(loc, JSON.stringify(
+        const {writeFileSync} = require("fs")
+        writeFileSync(loc, JSON.stringify(
             data, opts.replacer ?? undefined, opts.indent))
         if ("success" in opts) {
             notify(opts.success, {"src": opts.src})
@@ -1229,7 +1241,8 @@ const writeJSON = (loc, data, opts = {"replacer": null, "src": "other"}) => {
  */
 const deleteFile = (loc, opts = {"src": "other"}) => {
     try {
-        fs.unlinkSync(loc)
+        const {unlinkSync} = require("fs")
+        unlinkSync(loc)
         return true
     } catch {
         if (opts.err) {
@@ -1250,7 +1263,8 @@ const deleteFile = (loc, opts = {"src": "other"}) => {
  */
 const makeDir = (loc, opts = {"src": "other"}) => {
     try {
-        fs.mkdirSync(loc, {"recursive": true})
+        const {mkdirSync} = require("fs")
+        mkdirSync(loc, {"recursive": true})
         if (opts.success) {
             notify(opts.success, {"src": opts.src})
         }
@@ -1271,7 +1285,8 @@ const makeDir = (loc, opts = {"src": "other"}) => {
  */
 const listDir = (loc, absolute = false, dirsOnly = false) => {
     try {
-        let files = fs.readdirSync(loc)
+        const {readdirSync} = require("fs")
+        let files = readdirSync(loc)
         if (dirsOnly) {
             files = files.filter(f => isDir(joinPath(loc, f)))
         }
@@ -1289,7 +1304,10 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
  * @param {string} file
  * @param {(info: import("fs").Stats, oldInfo: import("fs").Stats) => void} call
  */
-const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
+const watchFile = (file, call) => {
+    const {"watchFile": watchFileFS} = require("fs")
+    return watchFileFS(file, {"interval": 500}, call)
+}
 
 /**
  * Get the modified date for a file location.
@@ -1297,7 +1315,8 @@ const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
  */
 const modifiedAt = loc => {
     try {
-        return fs.statSync(loc).mtime
+        const {statSync} = require("fs")
+        return statSync(loc).mtime
     } catch {
         return new Date("1970-01-01")
     }
@@ -1347,6 +1366,7 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
  * @param {string} urlPath
  */
 const pathToSpecialPageName = urlPath => {
+    const {normalize} = require("path/posix")
     const appName = appConfig()?.name.toLowerCase() ?? ""
     if (urlPath?.startsWith?.(`${appName}://`)) {
         const parts = urlPath.replace(`${appName}://`, "").split("#")
@@ -1361,8 +1381,7 @@ const pathToSpecialPageName = urlPath => {
     if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
             const specialPage = specialPagePath(page).replace(/^file:\/+/g, "")
-            const normalizedUrl = path.posix.normalize(
-                urlPath.replace(/^file:\/+/g, ""))
+            const normalizedUrl = normalize(urlPath.replace(/^file:\/+/g, ""))
             if (normalizedUrl.startsWith(specialPage)) {
                 return {
                     "name": page,
@@ -1372,7 +1391,7 @@ const pathToSpecialPageName = urlPath => {
             }
             try {
                 const decodedPath = decodeURI(urlPath)
-                const decodedNormalizedUrl = path.posix.normalize(
+                const decodedNormalizedUrl = normalize(
                     decodedPath.replace(/^file:\/+/g, ""))
                 if (decodedNormalizedUrl.startsWith(specialPage)) {
                     return {
@@ -1543,82 +1562,78 @@ const clearLocalStorage = () => {
     }
 }
 
-// Disabled import sort order as the order is optimized to reduce module loads
-/* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
-    getSetting,
-    specialChars,
-    specialCharsAllowSpaces,
-    hasProtocol,
-    isUrl,
-    searchword,
-    listNotificationHistory,
-    expandPath,
-    userAgentTemplated,
-    userAgentPlatform,
-    defaultUseragent,
-    firefoxVersion,
-    firefoxUseragent,
-    domainName,
-    sameDomain,
-    formatDate,
-    findFrameInfo,
-    framePosition,
-    propPixels,
-    isElement,
-    isHTMLElement,
-    isHTMLIFrameElement,
-    isInputOrTextElement,
-    isHTMLAnchorElement,
-    isHTMLLinkElement,
-    isHTMLImageElement,
-    isSVGElement,
-    isHTMLVideoElement,
-    isHTMLAudioElement,
-    matchesQuery,
-    findElementAtPosition,
-    querySelectorAll,
-    findClickPosition,
     activeElement,
-    formatSize,
-    compareVersions,
-    fetchUrl,
-    fetchJSON,
-    pageContainerPos,
-    pageOffset,
-    execCommand,
-    isValidIntervalValue,
-    intervalValueToDate,
-    // PATH UTIL
-    joinPath,
     appConfig,
     appData,
-    notify,
-    downloadPath,
+    appendFile,
     basePath,
+    clearCache,
+    clearCookies,
+    clearLocalStorage,
+    clearTempContainers,
+    compareVersions,
+    defaultUseragent,
+    deleteFile,
     dirname,
+    domainName,
+    downloadPath,
+    execCommand,
+    expandPath,
+    fetchJSON,
+    fetchUrl,
+    findClickPosition,
+    findElementAtPosition,
+    findFrameInfo,
+    firefoxUseragent,
+    firefoxVersion,
+    formatDate,
+    formatSize,
+    framePosition,
+    getSetting,
+    hasProtocol,
+    intervalValueToDate,
     isAbsolutePath,
-    // FILESYSTEM UTIL
-    pathExists,
     isDir,
+    isElement,
     isFile,
+    isHTMLAnchorElement,
+    isHTMLAudioElement,
+    isHTMLElement,
+    isHTMLIFrameElement,
+    isHTMLImageElement,
+    isHTMLLinkElement,
+    isHTMLVideoElement,
+    isInputOrTextElement,
+    isSVGElement,
+    isUrl,
+    isValidIntervalValue,
+    joinPath,
+    listDir,
+    listNotificationHistory,
+    makeDir,
+    matchesQuery,
+    modifiedAt,
+    notify,
+    pageContainerPos,
+    pageOffset,
+    pathExists,
+    pathToSpecialPageName,
+    propPixels,
+    querySelectorAll,
     readFile,
     readJSON,
-    writeFile,
-    appendFile,
-    writeJSON,
-    deleteFile,
-    makeDir,
-    listDir,
-    watchFile,
-    modifiedAt,
     rm,
-    pathToSpecialPageName,
+    sameDomain,
+    searchword,
+    specialChars,
+    specialCharsAllowSpaces,
     specialPagePath,
     stringToUrl,
     urlToString,
-    clearTempContainers,
-    clearCache,
-    clearCookies,
-    clearLocalStorage
+    userAgentPlatform,
+    userAgentTemplated,
+    watchFile,
+    writeFile,
+    writeJSON
 }
