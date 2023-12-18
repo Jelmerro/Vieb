@@ -1,4 +1,17 @@
 {
+    "actions": {
+        "errors": {
+            "translations": {
+                "deepl": "",
+                "general": "",
+                "libretranslate": ""
+            }
+        },
+        "toc": {
+            "title": "",
+            "top": ""
+        }
+    },
     "contextmenu": {
         "groups": {
             "audio": "オーディオ",

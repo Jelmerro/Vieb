@@ -1,4 +1,17 @@
 {
+    "actions": {
+        "errors": {
+            "translations": {
+                "deepl": "Error from Deepl: $1",
+                "general": "Failed to connect to server, see console",
+                "libretranslate": "Error from LibreTranslate: $1"
+            }
+        },
+        "toc": {
+            "title": "TOC",
+            "top": "TOP"
+        }
+    },
     "contextmenu": {
         "groups": {
             "audio": "Audio",
