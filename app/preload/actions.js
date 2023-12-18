@@ -511,7 +511,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             if (srcResponse.error) {
                 return ipcRenderer.sendToHost("notify", {
                     "fields": [srcResponse.error],
-                    "id": "actions.errors.translations.libretranslate",
+                    "id": "actions.translations.errors.libretranslate",
                     "src": "user",
                     "type": "err"
                 })
@@ -529,7 +529,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             if (response.error) {
                 return ipcRenderer.sendToHost("notify", {
                     "fields": [response.error],
-                    "id": "actions.errors.translations.libretranslate",
+                    "id": "actions.translations.errors.libretranslate",
                     "src": "user",
                     "type": "err"
                 })
@@ -552,7 +552,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             }
         } catch (e) {
             ipcRenderer.sendToHost("notify", {
-                "id": "actions.errors.translations.general",
+                "id": "actions.translations.errors.general",
                 "src": "user",
                 "type": "err"
             })
@@ -576,7 +576,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         if (response.message) {
             return ipcRenderer.sendToHost("notify", {
                 "fields": [response.message],
-                "id": "actions.errors.translations.deepl",
+                "id": "actions.translations.errors.deepl",
                 "src": "user",
                 "type": "err"
             })
@@ -599,7 +599,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         }
     } catch (e) {
         ipcRenderer.sendToHost("notify", {
-            "id": "actions.errors.translations.general",
+            "id": "actions.translations.errors.general",
             "src": "user",
             "type": "err"
         })

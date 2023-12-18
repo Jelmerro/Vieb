@@ -1,8 +1,8 @@
 {
     "actions": {
         "commandSuccess": "Command exited successfully!",
-        "errors": {
-            "translations": {
+        "translations": {
+            "errors": {
                 "deepl": "Error from Deepl: $1",
                 "general": "Failed to connect to server, see console",
                 "libretranslate": "Error from LibreTranslate: $1"

@@ -1,8 +1,8 @@
 {
     "actions": {
         "commandSuccess": "",
-        "errors": {
-            "translations": {
+        "translations": {
+            "errors": {
                 "deepl": "",
                 "general": "",
                 "libretranslate": ""
