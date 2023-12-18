@@ -1,11 +1,17 @@
 {
     "actions": {
+        "commandSuccess": "Command exited successfully!",
         "errors": {
             "translations": {
                 "deepl": "Error from Deepl: $1",
                 "general": "Failed to connect to server, see console",
                 "libretranslate": "Error from LibreTranslate: $1"
             }
+        },
+        "rss": {
+            "clipboard": "RSS feed '$1' copied to clipboard",
+            "header": "--- RSS Links on the page ---\n$1",
+            "notFound": "No RSS feeds found on this page"
         },
         "toc": {
             "title": "TOC",

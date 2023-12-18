@@ -1,11 +1,17 @@
 {
     "actions": {
+        "commandSuccess": "",
         "errors": {
             "translations": {
                 "deepl": "",
                 "general": "",
                 "libretranslate": ""
             }
+        },
+        "rss": {
+            "clipboard": "",
+            "header": "",
+            "notFound": ""
         },
         "toc": {
             "title": "",

@@ -978,11 +978,13 @@ const editWithVim = args => {
             command = execCommand(commandStr, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`,
-                        {"src": args.src, "type": "err"})
+                    notify({"id": `${err}`, "src": args.src, "type": "err"})
                 } else if (reportExit === "all") {
-                    notify(stdout.toString() || "Command exitted successfully!",
-                        {"src": args.src, "type": "suc"})
+                    notify({
+                        "id": stdout.toString() || "actions.commandSuccess",
+                        "src": args.src,
+                        "type": "suc"
+                    })
                 }
             })
         }
@@ -1262,8 +1264,7 @@ const getPageRSSLinks = async args => {
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
-        notify("No RSS feeds found on this page",
-            {"src": args.src, "type": "warn"})
+        notify({"id": "actions.rss.notFound", "src": args.src, "type": "warn"})
         return null
     }
     return feedUrls.slice(0, 10).map((feed = "") => {
@@ -1284,8 +1285,12 @@ const pageRSSLinksList = async args => {
         return
     }
     const feedsString = feedUrls.map((url, i) => `${i} - ${url}`).join("\n")
-    notify(`--- RSS links on the page ---\n${feedsString}`,
-        {"src": args.src, "type": "warn"})
+    notify({
+        "fields": [feedsString],
+        "id": "actions.rss.header",
+        "src": args.src,
+        "type": "warn"
+    })
 }
 
 /** Copy an RSS link to the clipboard by index.
@@ -1302,8 +1307,12 @@ const pageRSSLinkToClipboard = async args => {
     }
     const feedUrl = feedUrls[!isNaN(Number(key)) && Number(key) || 0] ?? ""
     clipboard.writeText(feedUrl)
-    notify(`RSS feed '${feedUrl}' copied to clipboard`,
-        {"src": args.src, "type": "suc"})
+    notify({
+        "fields": [feedUrl],
+        "id": "actions.rss.clipboard",
+        "src": args.src,
+        "type": "suc"
+    })
 }
 
 /** Copy the current page url to the system clipboard. */
