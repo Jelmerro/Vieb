@@ -59,7 +59,7 @@ const getVal = (lang, key) => {
 const numberOfFields = (lang, key) => {
     const enValue = getVal(lang, key)
     for (let i = 1; i < 100; i++) {
-        if (!enValue.includes(`$${i}`)) {
+        if (enValue === undefined || !enValue.includes(`$${i}`)) {
             return i - 1
         }
     }
@@ -83,7 +83,11 @@ if (args[0] === "lint") {
         listKeys(translations[lang]).forEach(key => {
             const val = getVal(lang, key)
             if (!val) {
-                console.warn(`Empty value for ${key} in lang file ${lang}`)
+                if (getVal("en", key)) {
+                    console.warn(`Empty value for ${key} in lang file ${lang}`)
+                } else {
+                    console.warn(`Extra key ${key} in lang file ${lang}`)
+                }
                 returnCode = 1
             }
             if (numberOfFields("en", key) !== numberOfFields(lang, key)) {

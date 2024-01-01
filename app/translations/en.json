@@ -1,13 +1,6 @@
 {
     "actions": {
         "commandSuccess": "Command exited successfully!",
-        "translations": {
-            "errors": {
-                "deepl": "Error from Deepl: $1",
-                "general": "Failed to connect to server, see console",
-                "libretranslate": "Error from LibreTranslate: $1"
-            }
-        },
         "rss": {
             "clipboard": "RSS feed '$1' copied to clipboard",
             "header": "--- RSS Links on the page ---\n$1",
@@ -16,6 +9,13 @@
         "toc": {
             "title": "TOC",
             "top": "TOP"
+        },
+        "translations": {
+            "errors": {
+                "deepl": "Error from Deepl: $1",
+                "general": "Failed to connect to server, see console",
+                "libretranslate": "Error from LibreTranslate: $1"
+            }
         }
     },
     "contextmenu": {
@@ -134,7 +134,99 @@
     },
     "settings": {
         "errors": {
-            "oneof": "The value of setting $1 can only be one of: $2"
+            "clearhistoryinterval": "clearhistoryinterval can only be set to 'none', 'session' or a valid interval such as '1day' or '3months', not: $1",
+            "container": {
+                "colorName": "Invalid color, must be a valid color name or hex, not: $1",
+                "colorRegex": "Invalid regular expression in containercolors: $1",
+                "colorSeparator": "Invalid $1 entry: $2\nEntries must have exactly one ~ to separate the name regular expression and the color name/hex",
+                "invalidspecial": "Special container name for '$1' can only be one of: $2",
+                "namesNewtab": "Invalid containernamesnewtab param: $1",
+                "namesRegex": "Invalid regular expression in containernames: $1",
+                "namesSeparator": "Invalid $1 entry: $2\nEntries must have one or two ~ to separate the regular expression, container name and newtab param",
+                "namesSpecialchars": "No special characters besides underscores are allowed in the name of a container, invalid $1: $2",
+                "specialchars": "No special characters besides underscores are allowed in the name of a container, invalid $1: $2"
+            },
+            "darkreader": {
+                "blocklistRegex": "Invalid regular expression in $1: $2",
+                "color": "Invalid color, must be a valid color name or hex, not: $1"
+            },
+            "downloadpathIsFolder": "The downloadpath is not a directory: $1",
+            "downloadpathMissing": "The downloadpath does not exist: $1",
+            "favoritepages": "Invalid URL passed to favoritepages: $1",
+            "fileload": "Read error for config file located at '$1'",
+            "followchars": {
+                "duplicate": "All followchars characters must be unique, no duplicates",
+                "invalidSet": "Invalid value: $1, must be any of: alpha, alphanum, dvorakhome, numbers, qwertyhome, or a custom list starting with 'custom:'",
+                "notEnough": "The followchars value must be at least two characters"
+            },
+            "followelement": "Invalid element type passed: $1, must be any combination of: $2",
+            "invalidScope": "Invalid value '$1' in '$2', must be one of: file, page or special",
+            "markpersistencetype": "Invalid quickmark type passed to quickmarkpersistence: $1",
+            "modifiers": "Key name '$1' in modifiers is not recognized as a valid key",
+            "mouseFeature": "Feature '$1' is not a valid mouse feature",
+            "newtaburl": "The newtaburl value must be a valid url or empty, not: $1",
+            "numberRange": "The value of setting '$1' must be between $2 and $3",
+            "oneof": "The value of setting '$1' can only be one of: $2",
+            "passthrough": {
+                "keyname": "Key name '$1' in passthroughkeys is not recognized as a valid key",
+                "keys": "Invalid keys in passthroughkeys entry: $1",
+                "regex": "Invalid regular expression in passthroughkeys: $1"
+            },
+            "permission": {
+                "captureallowed": "Display capture permission can't be allowed, only asked or blocked",
+                "hidasked": "HID permission can't be asked, only allowed or blocked",
+                "mediadevicesasked": "Mediadevices permission can't be asked, only allowed or blocked",
+                "name": "Invalid name for a permission: $1",
+                "regex": "Invalid regular expression in permission: $1",
+                "separator": "Invalid $1 entry: $2\nEntries must have at least one ~ to separate the domain regular expression and permission names",
+                "serialasked": "Serial device permission can't be asked, only allowed or blocked",
+                "usbasked": "USB device permission can't be asked, only allowed or blocked"
+            },
+            "redirect": {
+                "regex": "Invalid regular expression in redirect: $1",
+                "separator": "Invalid redirect entry: $1\nEntires must have exactly one ~ to separate the regular expression from the replacement"
+            },
+            "resources": {
+                "regex": "Invalid regular expression in $1: $2",
+                "type": "Invalid resource type in $1: $2"
+            },
+            "searchengine": {
+                "replace": "Invalid searchengine value: $1\nEach URL must contain a %s parameter, which will be replaced by the search string",
+                "url": "Invalid searchengine value: $1\nURL must be a valid URL"
+            },
+            "searchwords": {
+                "duplicate": "Invalid searchwords entry: $1\nThe searchword $2 was already defined. A searchword must be defined only once",
+                "separator": "Invalid searchwords entry: $1\nSearchwords before the ~ must not contain any special characters besides underscores",
+                "url": "Invalid searchwords entry: $1\nURLs for searchwords must exist and must contain a %s parameter, which will be replaced by the search string"
+            },
+            "spelllang": "Invalid language passed to spelllang: $1",
+            "sponsorblock": {
+                "color": "Invalid color in sponsorblockcategories, must be a valid color name or hex, not $1",
+                "duplicate": "Invalid category in sponsorblockcategories, the category '$1' was already defined. A category must be defined only once",
+                "name": "Invalid category in sponsorblockcategories: $1"
+            },
+            "startuppages": {
+                "invalidopts": "Invalid option '$1' given to startuppages, only 'muted' and 'pinned' are accepted",
+                "name": "No special characters besides underscores are allowed in the name of a container, invalid startuppages container: $1",
+                "toomany": "Too many options give to startuppages entry: $1",
+                "url": "Invalid URL passed to startuppages: $1"
+            },
+            "storenewvisits": "Invalid type of history passed: $1, must be one of: $2",
+            "suggestorder": {
+                "duplicateCount": "Count configuration for a suggestorder entry can only be set once per entry",
+                "duplicateSort": "Order configuration for a suggestorder entry can only be set once per entry",
+                "empty": "Configuration for suggestorder af the type can not be empty",
+                "invalidSort": "Order configuration is invalid, supported orders for $1 are: $2",
+                "tilde": "Invalid suggestorder entry: $1\nEntires must have at most two ~ to separate the type from the count and the order (both are optional)",
+                "type": "Invalid suggestorder type: $1\nSuggestion type must be one of: history, file or searchword"
+            },
+            "tocpages": "Invalid regular expression in tocpages: $1",
+            "translateurl": "The translateurl value must be a valid url, not: $1",
+            "type": "The value of setting '$1' is of an incorrect type, expected '$2' but got '$3' instead",
+            "windowsize": {
+                "format": "The $1 value must be two numbers joined with an x, such as 800x600",
+                "minimum": "The windowsize value sizes must be at least 500, not $1"
+            }
         }
     },
     "util": {

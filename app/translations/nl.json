@@ -1,13 +1,6 @@
 {
     "actions": {
         "commandSuccess": "",
-        "translations": {
-            "errors": {
-                "deepl": "",
-                "general": "",
-                "libretranslate": ""
-            }
-        },
         "rss": {
             "clipboard": "",
             "header": "",
@@ -16,6 +9,13 @@
         "toc": {
             "title": "",
             "top": ""
+        },
+        "translations": {
+            "errors": {
+                "deepl": "",
+                "general": "",
+                "libretranslate": ""
+            }
         }
     },
     "contextmenu": {
@@ -134,7 +134,99 @@
     },
     "settings": {
         "errors": {
-            "oneof": "De instelling $1 kan alleen maar een van de volgende waardes hebben: $2"
+            "clearhistoryinterval": "",
+            "container": {
+                "colorName": "",
+                "colorRegex": "",
+                "colorSeparator": "",
+                "invalidspecial": "",
+                "namesNewtab": "",
+                "namesRegex": "",
+                "namesSeparator": "",
+                "namesSpecialchars": "",
+                "specialchars": ""
+            },
+            "darkreader": {
+                "blocklistRegex": "",
+                "color": ""
+            },
+            "downloadpathIsFolder": "",
+            "downloadpathMissing": "",
+            "favoritepages": "",
+            "fileload": "",
+            "followchars": {
+                "duplicate": "",
+                "invalidSet": "",
+                "notEnough": ""
+            },
+            "followelement": "",
+            "invalidScope": "",
+            "markpersistencetype": "",
+            "modifiers": "",
+            "mouseFeature": "",
+            "newtaburl": "",
+            "numberRange": "",
+            "oneof": "De instelling $1 kan alleen maar een van de volgende waardes hebben: $2",
+            "passthrough": {
+                "keyname": "",
+                "keys": "",
+                "regex": ""
+            },
+            "permission": {
+                "captureallowed": "",
+                "hidasked": "",
+                "mediadevicesasked": "",
+                "name": "",
+                "regex": "",
+                "separator": "",
+                "serialasked": "",
+                "usbasked": ""
+            },
+            "redirect": {
+                "regex": "",
+                "separator": ""
+            },
+            "resources": {
+                "regex": "",
+                "type": ""
+            },
+            "searchengine": {
+                "replace": "",
+                "url": ""
+            },
+            "searchwords": {
+                "duplicate": "",
+                "separator": "",
+                "url": ""
+            },
+            "spelllang": "",
+            "sponsorblock": {
+                "color": "",
+                "duplicate": "",
+                "name": ""
+            },
+            "startuppages": {
+                "invalidopts": "",
+                "name": "",
+                "toomany": "",
+                "url": ""
+            },
+            "storenewvisits": "",
+            "suggestorder": {
+                "duplicateCount": "",
+                "duplicateSort": "",
+                "empty": "",
+                "invalidSort": "",
+                "tilde": "",
+                "type": ""
+            },
+            "tocpages": "",
+            "translateurl": "",
+            "type": "",
+            "windowsize": {
+                "format": "",
+                "minimum": ""
+            }
         }
     },
     "util": {
