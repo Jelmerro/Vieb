@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2023 Jelmer van Arnhem
+* Copyright (C) 2021-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,8 @@ const fixAlignmentNearBorders = () => {
 
 /**
  * Create a new menu group with name.
- * @param {string} name
+ * @param {"audio"|"frame"|"general"|"image"
+ *   |"link"|"suggestions"|"text"|"video"} name
  */
 const createMenuGroup = name => {
     const item = document.createElement("div")
@@ -381,10 +382,28 @@ const commonAction = (src, type, action, options) => {
             execCommand(`${ext} "${extData}"`, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, {src, "type": "err"})
+                    notify({
+                        "fields": [`${err}`],
+                        "id": "actions.command.failed",
+                        src,
+                        "type": "error"
+                    })
                 } else if (reportExit === "all") {
-                    notify(stdout.toString() || "Command exitted successfully!",
-                        {src, "type": "suc"})
+                    const output = stdout.toString()
+                    if (output) {
+                        notify({
+                            "fields": [output],
+                            "id": "actions.command.successWithOutput",
+                            src,
+                            "type": "suc"
+                        })
+                    } else {
+                        notify({
+                            "id": "actions.command.success",
+                            src,
+                            "type": "suc"
+                        })
+                    }
                 }
             })
         }

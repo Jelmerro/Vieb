@@ -1151,7 +1151,7 @@ const checkOther = (src, setting, value) => {
             if (!valid) {
                 notify({
                     "fields": [val],
-                    "id": "settings.passthrough.keys",
+                    "id": "settings.errors.passthrough.keys",
                     src,
                     "type": "warn"
                 })
@@ -1166,7 +1166,7 @@ const checkOther = (src, setting, value) => {
                 } else {
                     notify({
                         "fields": [name],
-                        "id": "settings.passthrough.keyname",
+                        "id": "settings.errors.passthrough.keyname",
                         src,
                         "type": "warn"
                     })
@@ -1175,7 +1175,7 @@ const checkOther = (src, setting, value) => {
                 if (!keyNames.some(key => key.vim.includes(name))) {
                     notify({
                         "fields": [name],
-                        "id": "settings.passthrough.keyname",
+                        "id": "settings.errors.passthrough.keyname",
                         src,
                         "type": "warn"
                     })

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2023 Jelmer van Arnhem
+* Copyright (C) 2020-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ window.addEventListener("DOMContentLoaded", () => {
             element.className = "notification"
             if (notification.click?.type === "download-success") {
                 element.classList.add("filelocation")
-                element.title = translate("pages.noptifications.clickToOpen")
+                element.title = translate("pages.notifications.clickToOpen")
                 element.addEventListener("click", () => {
                     ipcRenderer.send("open-download", notification.click?.path)
                 })

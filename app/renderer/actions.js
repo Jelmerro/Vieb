@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -978,13 +978,28 @@ const editWithVim = args => {
             command = execCommand(commandStr, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify({"id": `${err}`, "src": args.src, "type": "err"})
-                } else if (reportExit === "all") {
                     notify({
-                        "id": stdout.toString() || "actions.commandSuccess",
+                        "fields": [`${err}`],
+                        "id": "actions.command.failed",
                         "src": args.src,
-                        "type": "suc"
+                        "type": "error"
                     })
+                } else if (reportExit === "all") {
+                    const output = stdout.toString()
+                    if (output) {
+                        notify({
+                            "fields": [output],
+                            "id": "actions.command.successWithOutput",
+                            "src": args.src,
+                            "type": "suc"
+                        })
+                    } else {
+                        notify({
+                            "id": "actions.command.success",
+                            "src": args.src,
+                            "type": "suc"
+                        })
+                    }
                 }
             })
         }

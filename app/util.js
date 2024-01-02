@@ -19,6 +19,10 @@
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/
+/** @typedef {"cookies"|"downloads"|"help"
+ * |"history"|"newtab"|"notifications"|"version"} SpecialPage
+ */
+/** @type {SpecialPage[]} */
 const specialPages = [
     "cookies",
     "downloads",
@@ -953,7 +957,7 @@ const intervalValueToDate = value => {
 /**
  * Show the user a notification bubble and store it in the history.
  * @param {{
- *   id: string,
+ *   id: import("../types/i18n").TranslationKeys,
  *   fields?: string[],
  *   action?: {
  *     type: "download-success",
@@ -966,12 +970,11 @@ const intervalValueToDate = value => {
  */
 const notify = opts => {
     const {translate} = require("./translate")
-    let message = String(opts)
     if (typeof opts === "string") {
         console.warn(opts)
-    } else {
-        message = translate(opts.id, {"fields": opts.fields ?? []})
+        return
     }
+    const message = translate(opts.id, {"fields": opts.fields ?? []})
     if (opts.src === "execute") {
         const {appendFileSync} = require("fs")
         appendFileSync(
@@ -1151,7 +1154,7 @@ const readFile = loc => {
 }
 
 /**
- * Write data to a file, optionally with success and error notifications.
+ * Write data to a file, returns success state.
  * @param {string} loc
  * @param {string|Buffer} data
  */
@@ -1167,77 +1170,53 @@ const writeFile = (loc, data) => {
 }
 
 /**
- * Append data to a file, optionally with success and error notifications.
+ * Append data to a file, returns success state.
  * @param {string} loc
- * @param {string} data
- * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
+ * @param {string|Buffer} data
  */
-const appendFile = (loc, data, opts = {"src": "other"}) => {
+const appendFile = (loc, data) => {
     try {
         const {appendFileSync} = require("fs")
         appendFileSync(loc, data)
-        if (opts.success) {
-            notify(opts.success, {"src": opts.src})
-        }
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
 
 /**
- * Write JSON data to a file, optionally with indentation and notifications.
+ * Write JSON data to a file, optionally with indentation and replacer.
  * @param {string} loc
  * @param {any} data
  * @param {{
- *   err?: string,
- *   success?: string,
- *   src?: import("./renderer/common").RunSource,
  *   replacer?: null|((this: any, key: string, value: string) => string),
  *   indent?: number|undefined
  * }} opts
  */
-const writeJSON = (loc, data, opts = {"replacer": null, "src": "other"}) => {
+const writeJSON = (loc, data, opts = {"replacer": null}) => {
     try {
         const {writeFileSync} = require("fs")
         writeFileSync(loc, JSON.stringify(
             data, opts.replacer ?? undefined, opts.indent))
-        if ("success" in opts) {
-            notify(opts.success, {"src": opts.src})
-        }
         return true
     } catch {
-        if ("err" in opts) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
 
 /**
- * Delete a file at a location, optinally with error message.
+ * Delete a file at a location, returns success state.
  * @param {string} loc
- * @param {{
- *   err?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
  */
-const deleteFile = (loc, opts = {"src": "other"}) => {
+const deleteFile = loc => {
     try {
         const {unlinkSync} = require("fs")
         unlinkSync(loc)
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "warn"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
@@ -1245,24 +1224,14 @@ const deleteFile = (loc, opts = {"src": "other"}) => {
 /**
  * Make a directory at a location, optionally with feedback notifications.
  * @param {string} loc
- * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
  */
-const makeDir = (loc, opts = {"src": "other"}) => {
+const makeDir = loc => {
     try {
         const {mkdirSync} = require("fs")
         mkdirSync(loc, {"recursive": true})
-        if (opts.success) {
-            notify(opts.success, {"src": opts.src})
-        }
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
@@ -1326,6 +1295,13 @@ const rm = f => {
 }
 
 /**
+ * Checks if a given page is a special page.
+ * @param {any} page
+ * @returns {page is SpecialPage}
+ */
+const isSpecialPage = page => specialPages.includes(page)
+
+/**
  * Get the url of a special page given a name and an optional section.
  * @param {string} userPage
  * @param {string|null} section
@@ -1333,7 +1309,7 @@ const rm = f => {
  */
 const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     let page = userPage
-    if (!specialPages.includes(userPage) && !skipExistCheck) {
+    if (!isSpecialPage(userPage) && !skipExistCheck) {
         page = "help"
     }
     let url = joinPath(__dirname, `./pages/${page}.html`)
@@ -1354,15 +1330,18 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
 /**
  * Convert any url/path to the name and section of a special page if relevant.
  * @param {string} urlPath
+ * @returns {{name: SpecialPage, section: string}|null}
  */
 const pathToSpecialPageName = urlPath => {
     const {normalize} = require("path/posix")
     const appName = appConfig()?.name.toLowerCase() ?? ""
     if (urlPath?.startsWith?.(`${appName}://`)) {
         const parts = urlPath.replace(`${appName}://`, "").split("#")
-        let [name] = parts
-        if (!specialPages.includes(name)) {
-            name = "help"
+        const [partName] = parts
+        /** @type {SpecialPage} */
+        let name = "help"
+        if (isSpecialPage(partName)) {
+            name = partName
         }
         return {
             name, "section": decodeURIComponent(parts.slice(1).join("#") || "")
@@ -1402,9 +1381,9 @@ const pathToSpecialPageName = urlPath => {
         "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
         + "/resources/app[.]asar/app/pages/")
     if (urlPath.match(appImagePathPattern)) {
-        return {
-            "name": urlPath.replace(appImagePathPattern, "").replace(/\..+/, ""),
-            "section": ""
+        const name = urlPath.replace(appImagePathPattern, "").replace(/\..+/, "")
+        if (isSpecialPage(name)) {
+            return {name, "section": ""}
         }
     }
     return null

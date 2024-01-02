@@ -1,6 +1,10 @@
 {
     "actions": {
-        "commandSuccess": "Command exited successfully!",
+        "command": {
+            "failed": "Command error:\n$1",
+            "success": "Command successful!",
+            "successWithOutput": "Command success:\n$1"
+        },
         "rss": {
             "clipboard": "RSS feed '$1' copied to clipboard",
             "header": "--- RSS Links on the page ---\n$1",
@@ -355,6 +359,7 @@
         "commaSpaced": ", ",
         "doubleQuoteEnd": "\"",
         "doubleQuoteStart": "\"",
+        "none": "",
         "or": " or ",
         "singleQuoteEnd": "'",
         "singleQuoteStart": "'"

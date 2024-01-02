@@ -1,6 +1,10 @@
 {
     "actions": {
-        "commandSuccess": "",
+        "command": {
+            "failed": "",
+            "success": "",
+            "successWithOutput": ""
+        },
         "rss": {
             "clipboard": "",
             "header": "",
@@ -355,6 +359,7 @@
         "commaSpaced": "と",
         "doubleQuoteEnd": "\"",
         "doubleQuoteStart": "\"",
+        "none": "",
         "or": "と",
         "singleQuoteEnd": "'",
         "singleQuoteStart": "'"

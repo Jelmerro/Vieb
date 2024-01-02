@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -287,6 +287,10 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
 ipcRenderer.on("settings", updateSettingsList)
 window.addEventListener("hashchange", processHash)
 window.addEventListener("DOMContentLoaded", () => {
+    /** @type {(
+     *   "chromium"|"firefox"|"vivaldi"|"qutebrowser"|"vimium"|"tridactyl"|
+     *   "pentadactyl"|"surfingkeys"|"sakakey"|"vimvixen"
+     * )[]} */
     const examples = [
         "chromium",
         "firefox",
