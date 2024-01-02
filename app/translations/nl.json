@@ -18,6 +18,118 @@
             }
         }
     },
+    "commands": {
+        "arguments": {
+            "folderMissing": ""
+        },
+        "buffers": "",
+        "close": {
+            "noMatch": "",
+            "range": ""
+        },
+        "colorscheme": {
+            "argCount": "",
+            "current": "",
+            "missing": ""
+        },
+        "delmarks": {
+            "argCount": "",
+            "keyname": ""
+        },
+        "devtools": {
+            "argCount": "",
+            "invalid": ""
+        },
+        "help": {
+            "argCount": ""
+        },
+        "hide": {
+            "range": "",
+            "visible": ""
+        },
+        "makedefault": {
+            "failed": "",
+            "installed": "",
+            "other": ""
+        },
+        "marks": {
+            "argCount": "",
+            "list": "",
+            "noKey": "",
+            "none": "",
+            "url": ""
+        },
+        "mkviebrc": {
+            "argCount": "",
+            "invalid": ""
+        },
+        "mute": {
+            "argCount": "",
+            "noMatch": "",
+            "range": ""
+        },
+        "pin": {
+            "argCount": "",
+            "noMatch": "",
+            "range": ""
+        },
+        "ranges": {
+            "combined": "",
+            "commas": "",
+            "flags": "",
+            "indexOrSearch": "",
+            "invalid": ""
+        },
+        "restoremark": {
+            "argCount": "",
+            "keyname": "",
+            "position": ""
+        },
+        "screencopy": {
+            "argCount": "",
+            "dimensions": ""
+        },
+        "screenshot": {
+            "argCount": "",
+            "dimensions": "",
+            "failed": "",
+            "success": ""
+        },
+        "settings": {
+            "invalidJSON": "",
+            "invalidStructure": "",
+            "listSingle": "",
+            "missing": "",
+            "noChanges": "",
+            "noFlipping": "",
+            "noModify": "",
+            "optionsList": "",
+            "reserved": ""
+        },
+        "source": {
+            "absolute": "",
+            "argCount": "",
+            "missing": "",
+            "readError": "",
+            "recursive": "",
+            "startup": ""
+        },
+        "split": {
+            "range": "",
+            "visible": ""
+        },
+        "suspend": {
+            "range": "",
+            "visible": ""
+        },
+        "write": {
+            "argCount": "",
+            "combined": "",
+            "failed": "",
+            "success": "",
+            "type": ""
+        }
+    },
     "contextmenu": {
         "groups": {
             "audio": "Audio",
@@ -162,6 +274,7 @@
             "followelement": "",
             "invalidScope": "",
             "markpersistencetype": "",
+            "missing": "",
             "modifiers": "",
             "mouseFeature": "",
             "newtaburl": "",
@@ -223,10 +336,16 @@
             "tocpages": "",
             "translateurl": "",
             "type": "",
+            "unchanged": "",
             "windowsize": {
                 "format": "",
                 "minimum": ""
             }
+        },
+        "files": {
+            "failed": "",
+            "missingloc": "",
+            "success": ""
         }
     },
     "util": {

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1154,24 +1154,14 @@ const readFile = loc => {
  * Write data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string|Buffer} data
- * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
  */
-const writeFile = (loc, data, opts = {"src": "other"}) => {
+const writeFile = (loc, data) => {
     try {
         const {writeFileSync} = require("fs")
         writeFileSync(loc, data)
-        if (opts.success) {
-            notify(opts.success, {"src": opts.src})
-        }
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }

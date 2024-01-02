@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ const {
     tabForPage,
     listRealPages
 } = require("./common")
+const {argsAsHumanList} = require("../translate")
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
@@ -70,11 +71,18 @@ const {
 const listSetting = (src, setting) => {
     if (setting === "all") {
         const {listCurrentSettings} = require("./settings")
-        notify(`--- Options ---\n${listCurrentSettings(true)}`, {src})
+        notify({
+            "fields": [listCurrentSettings(true)],
+            "id": "commands.settings.optionsList",
+            src
+        })
         return
     }
-    notify(`The setting '${setting}' has the value: ${
-        JSON.stringify(getSetting(setting))}`, {src})
+    notify({
+        "fields": [setting, JSON.stringify(getSetting(setting))],
+        "id": "commands.settings.listSingle",
+        src
+    })
 }
 
 /**
@@ -143,17 +151,22 @@ const modifyListOrObject = (src, setting, value, method) => {
     try {
         parsed = JSON.parse(value)
     } catch {
-        notify(
-            `Invalid JSON in '${setting}' value:\n${value}`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [setting, value],
+            "id": "commands.settings.invalidJSON",
+            src,
+            "type": "warn"
+        })
         return
     }
     if (!isStringArray(parsed)
         && !isStringArrayArray(parsed) && !isStringObject(parsed)) {
-        notify(
-            `Invalid structure/type found in '${setting}' value:\n${value}\n`
-            + "Can only be an object with strings, a list of strings, "
-            + "or a list with lists of 1 or 2 strings", {src, "type": "warn"})
+        notify({
+            "fields": [setting, value],
+            "id": "commands.settings.invalidStructure",
+            src,
+            "type": "warn"
+        })
         return
     }
     if (isList) {
@@ -235,8 +248,11 @@ const modifyListOrObject = (src, setting, value, method) => {
             })
         }
         if (method === "special") {
-            notify("This syntax is reserved for future use, "
-                + "but has no purpose yet.", {src, "type": "warn"})
+            notify({
+                "id": "commands.settings.reserved",
+                src,
+                "type": "warn"
+            })
             return
         }
         set(src, setting, newValue)
@@ -285,9 +301,12 @@ const modifySetting = (src, setting, value, method = "replace") => {
         return
     }
     if (!isNumber && !isText && !isList && !isObject) {
-        notify(
-            `Can't modify '${setting}' as if it were a number, `
-            + `text, list or object`, {src, "type": "warn"})
+        notify({
+            "fields": [setting],
+            "id": "commands.settings.noModify",
+            src,
+            "type": "warn"
+        })
         return
     }
     if (method === "append") {
@@ -338,8 +357,11 @@ const modifySetting = (src, setting, value, method = "replace") => {
     }
     if (method === "special") {
         if (isObject) {
-            notify("This syntax is reserved for future use, "
-                + "but has no purpose yet.", {src, "type": "warn"})
+            notify({
+                "id": "commands.settings.reserved",
+                src,
+                "type": "warn"
+            })
         }
         if (isList) {
             let current = getSetting(setting)
@@ -367,10 +389,13 @@ const setCommand = (src, args) => {
         const {listCurrentSettings} = require("./settings")
         const allChanges = listCurrentSettings()
         if (allChanges) {
-            notify(`--- Options ---\n${allChanges}`, {src})
+            notify({
+                "fields": [allChanges],
+                "id": "commands.settings.optionsList",
+                src
+            })
         } else {
-            notify("No settings have been changed compared to the default",
-                {src})
+            notify({"id": "commands.settings.noChanges", src})
         }
         return
     }
@@ -380,40 +405,60 @@ const setCommand = (src, args) => {
             if (isValidSettingName(setting) && setting !== "all") {
                 modifySetting(src, setting, value, "append")
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
             if (isValidSettingName(setting) && setting !== "all") {
                 modifySetting(src, setting, value, "remove")
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
             if (isValidSettingName(setting) && setting !== "all") {
                 modifySetting(src, setting, value, "special")
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if ((/^\w+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "=")
             if (isValidSettingName(setting) && setting !== "all") {
                 modifySetting(src, setting, value)
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if ((/^\w+:/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, ":")
             if (isValidSettingName(setting) && setting !== "all") {
                 modifySetting(src, setting, value)
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if ((/^\w+!.+/).test(part)) {
             const [setting] = part.split("!")
@@ -423,8 +468,12 @@ const setCommand = (src, args) => {
                 modifySetting(src,
                     setting, values[index + 1] || values[0])
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
@@ -439,13 +488,20 @@ const setCommand = (src, args) => {
                         validOptions[setting][index + 1]
                         || validOptions[setting][0])
                 } else {
-                    notify(
-                        `The setting '${setting}' can not be flipped`,
-                        {src, "type": "warn"})
+                    notify({
+                        "fields": [setting],
+                        "id": "commands.settings.noFlipping",
+                        src,
+                        "type": "warn"
+                    })
                 }
             } else {
-                notify(`The setting '${setting}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if (part.endsWith("&")) {
             const {reset} = require("./settings")
@@ -455,8 +511,12 @@ const setCommand = (src, args) => {
             if (isValidSettingName(settingName)) {
                 listSetting(src, settingName)
             } else {
-                notify(`The setting '${settingName}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [settingName],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if (isValidSettingName(part) && part !== "all"
             && typeof getSetting(part) === "boolean") {
@@ -468,14 +528,22 @@ const setCommand = (src, args) => {
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, String(!value))
                 } else {
-                    notify(`The setting '${settingName}' can not be flipped`,
-                        {src, "type": "warn"})
+                    notify({
+                        "fields": [settingName],
+                        "id": "commands.settings.noFlipping",
+                        src,
+                        "type": "warn"
+                    })
                 }
             } else if (isValidSettingName(part)) {
                 listSetting(src, part)
             } else {
-                notify(`The setting '${part}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [part],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if (part.startsWith("no")) {
             const settingName = part.replace("no", "")
@@ -498,13 +566,22 @@ const setCommand = (src, args) => {
             } else if (isValidSettingName(part)) {
                 listSetting(src, part)
             } else {
-                notify(`The setting '${part}' doesn't exist`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [part],
+                    "id": "commands.settings.missing",
+                    src,
+                    "type": "warn"
+                })
             }
         } else if (isValidSettingName(part)) {
             listSetting(src, part)
         } else {
-            notify(`The setting '${part}' doesn't exist`, {src, "type": "warn"})
+            notify({
+                "fields": [part],
+                "id": "commands.settings.missing",
+                src,
+                "type": "warn"
+            })
         }
     }
 }
@@ -520,8 +597,7 @@ const sourcedFiles = []
  */
 const source = (src, origin, args) => {
     if (args.length !== 1) {
-        notify("Source requires exactly argument representing the filename",
-            {src, "type": "warn"})
+        notify({"id": "commands.source.argCount", src, "type": "warn"})
         return
     }
     let [absFile] = args
@@ -530,31 +606,37 @@ const source = (src, origin, args) => {
         if (origin) {
             absFile = joinPath(dirname(origin), absFile)
         } else {
-            notify("Filename must be absolute when sourcing files at runtime",
-                {src, "type": "err"})
+            notify({"id": "commands.source.absolute", src, "type": "error"})
             return
         }
     }
     if (absFile === origin) {
-        notify("Recursive sourcing of files is not supported",
-            {src, "type": "err"})
+        notify({"id": "commands.source.recursive", src, "type": "error"})
         return
     }
     if ([
         appConfig()?.override, ...appConfig()?.files ?? []
     ].includes(absFile)) {
-        notify("It's not possible to source a file that is loaded on startup",
-            {src, "type": "err"})
+        notify({"id": "commands.source.startup", src, "type": "error"})
         return
     }
     if (!isFile(absFile)) {
-        notify("Specified file could not be found", {src, "type": "err"})
+        notify({
+            "fields": [absFile],
+            "id": "commands.source.missing",
+            src,
+            "type": "error"
+        })
         return
     }
     const parsed = readFile(absFile)
     if (!parsed) {
-        notify(`Read error for config file located at '${absFile}'`,
-            {src, "type": "err"})
+        notify({
+            "fields": [absFile],
+            "id": "commands.source.readError",
+            src,
+            "type": "error"
+        })
         return
     }
     if (origin) {
@@ -579,8 +661,12 @@ const translateSearchRangeToIdx = (src, range, silent) => {
     const allFlags = "giaszrtupn".split("")
     if (!flags.split("").every(f => allFlags.includes(f))) {
         if (!silent) {
-            notify(`Range '${range}' contains invalid flags`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [range],
+                "id": "commands.ranges.flags",
+                src,
+                "type": "warn"
+            })
         }
         return {"tabs": [], "valid": false}
     }
@@ -679,8 +765,12 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
     }
     const valid = !isNaN(number)
     if (!valid && !silent) {
-        notify(`Range '${rangePart}' invalid, must have indices or a search`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [rangePart],
+            "id": "commands.ranges.indexOrSearch",
+            src,
+            "type": "warn"
+        })
     }
     return {"num": number, valid}
 }
@@ -699,32 +789,47 @@ const rangeToTabIdxs = (src, range, silent = false) => {
         const [start, end, tooManyArgs] = range.split(",")
         if (tooManyArgs !== undefined) {
             if (!silent) {
-                notify("Too many commas in range, at most 1 is allowed",
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [range],
+                    "id": "commands.ranges.commas",
+                    src,
+                    "type": "warn"
+                })
             }
             return {"tabs": [], "valid": false}
         }
         if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
             if (!silent) {
-                notify("Can't combine global search with 2 indexes, either supp"
-                    + "ly two indexes/searches OR use a global search",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [range],
+                    "id": "commands.ranges.combined",
+                    src,
+                    "type": "warn"
+                })
             }
             return {"tabs": [], "valid": false}
         }
         const startPos = translateRangePosToIdx(src, 0, start, silent)
         if (!startPos.valid) {
             if (!silent) {
-                notify(`Range section '${start}' is not a valid range`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [start],
+                    "id": "commands.ranges.invalid",
+                    src,
+                    "type": "warn"
+                })
             }
             return {"tabs": [], "valid": false}
         }
         const endPos = translateRangePosToIdx(src, startPos.num, end, silent)
         if (!endPos.valid) {
             if (!silent) {
-                notify(`Range section '${end}' is not a valid range`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [end],
+                    "id": "commands.ranges.invalid",
+                    src,
+                    "type": "warn"
+                })
             }
             return {"tabs": [], "valid": false}
         }
@@ -912,12 +1017,15 @@ let currentscheme = "default"
  */
 const colorscheme = (src, name = null, trailingArgs = null) => {
     if (trailingArgs) {
-        notify("The colorscheme command takes a single optional argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.colorscheme.argCount", src, "type": "warn"})
         return
     }
     if (!name) {
-        notify(currentscheme, {src})
+        notify({
+            "fields": [currentscheme],
+            "id": "commands.colorscheme.current",
+            src
+        })
         return
     }
     let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
@@ -928,7 +1036,12 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
         css = readFile(joinPath(__dirname, `../colors/${name}.css`))
     }
     if (!css) {
-        notify(`Cannot find colorscheme '${name}'`, {src, "type": "warn"})
+        notify({
+            "fields": [name],
+            "id": "commands.colorscheme.missing",
+            src,
+            "type": "warn"
+        })
         return
     }
     if (name === "default") {
@@ -963,8 +1076,7 @@ const restart = () => {
  */
 const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
-        notify("The devtools command takes a single optional argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.devtools.argCount", src, "type": "warn"})
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
@@ -987,8 +1099,13 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
             add(id, "ver", getSetting("splitbelow"))
         }
     } else {
-        notify(`Invalid devtools position '${position}' specified, must be one`
-            + " of: window, vsplit, split or tab", {src, "type": "warn"})
+        const valid = argsAsHumanList(["window", "vsplit", "split", "tab"])
+        notify({
+            "fields": [position, valid],
+            "id": "commands.devtools.invalid",
+            src,
+            "type": "warn"
+        })
     }
 }
 
@@ -1035,8 +1152,7 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
  */
 const help = (src, forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify("The help command takes a single optional argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.help.argCount", src, "type": "warn"})
         return
     }
     openSpecialPage(src, "help", forceNewtab, section)
@@ -1093,8 +1209,12 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
             file = joinPath(`${file}${pathSep}`, name)
         }
         if (!isDir(dirname(file))) {
-            notify(`Folder '${dirname(file)}' does not exist!`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [dirname(file)],
+                "id": "commands.arguments.folderMissing",
+                src,
+                "type": "warn"
+            })
             return
         }
         loc = file
@@ -1131,9 +1251,19 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
     }
     const webContentsId = page.getWebContentsId()
     ipcRenderer.invoke("save-page", webContentsId, loc, type).then(() => {
-        notify(`Page saved at '${loc}'`, {src})
+        notify({
+            "fields": [loc],
+            "id": "commands.write.success",
+            src,
+            "type": "success"
+        })
     }).catch(err => {
-        notify(`Could not save the page:\n${err}`, {src, "type": "err"})
+        notify({
+            "fields": [err],
+            "id": "commands.write.failed",
+            src,
+            "type": "error"
+        })
     })
 }
 
@@ -1145,9 +1275,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
  */
 const write = (src, args, range) => {
     if (args.length > 2) {
-        notify("The write command takes two optionals argument:\n"
-            + "the location where to write the page and a type of file",
-        {src, "type": "warn"})
+        notify({"id": "commands.write.argCount", src, "type": "warn"})
         return
     }
     let [path, type = "html"] = args
@@ -1155,13 +1283,16 @@ const write = (src, args, range) => {
         [type, path] = args
     }
     if (type !== "html" && type !== "mhtml") {
-        notify("Write type must be one of 'html' or 'mhtml'",
-            {src, "type": "warn"})
+        notify({
+            "fields": [type],
+            "id": "commands.write.type",
+            src,
+            "type": "warn"
+        })
         return
     }
     if (range && path) {
-        notify("Write command range cannot be combined with a custom location",
-            {src, "type": "warn"})
+        notify({"id": "commands.write.combined", src, "type": "warn"})
         return
     }
     if (range) {
@@ -1212,13 +1343,11 @@ const translateDimsToRect = dims => {
  */
 const screencopy = (src, args) => {
     if (args.length > 1) {
-        notify("The screencopy command only accepts optional dimensions",
-            {src, "type": "warn"})
+        notify({"id": "commands.screencopy.argCount", src, "type": "warn"})
         return
     }
     if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
-        notify("Dimensions must match 'width,height,x,y' with round numbers",
-            {src, "type": "warn"})
+        notify({"id": "commands.screencopy.dimensions", src, "type": "warn"})
         return
     }
     if (!currentPage()) {
@@ -1247,11 +1376,22 @@ const takeScreenshot = (src, dims, location) => {
     }
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            writeFile(loc, img.toPNG(), {
-                "err": "Something went wrong saving the image",
-                src,
-                "success": `Screenshot saved at ${loc}`
-            })
+            const success = writeFile(loc, img.toPNG())
+            if (success) {
+                notify({
+                    "fields": [loc],
+                    "id": "commands.screenshot.success",
+                    src,
+                    "type": "success"
+                })
+            } else {
+                notify({
+                    "fields": [loc],
+                    "id": "commands.screenshot.failed",
+                    src,
+                    "type": "success"
+                })
+            }
         })
     }, 20)
 }
@@ -1263,9 +1403,7 @@ const takeScreenshot = (src, dims, location) => {
  */
 const screenshot = (src, args) => {
     if (args.length > 2) {
-        notify("The screenshot command takes only two optional arguments:\nthe "
-            + "location where to write the image and the dimensions",
-        {src, "type": "warn"})
+        notify({"id": "commands.screenshot.argCount", src, "type": "warn"})
         return
     }
     let [dims, location] = args
@@ -1273,8 +1411,7 @@ const screenshot = (src, args) => {
         [location, dims] = args
     }
     if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
-        notify("Dimensions must match 'width,height,x,y' with round numbers",
-            {src, "type": "warn"})
+        notify({"id": "commands.screenshot.dimensions", src, "type": "warn"})
         return
     }
     takeScreenshot(src, dims, location)
@@ -1288,9 +1425,7 @@ const screenshot = (src, args) => {
  */
 const mkviebrc = (src, full = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify(
-            "The mkviebrc command takes a single optional argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.mkviebrc.argCount", src, "type": "warn"})
         return
     }
     let exportAll = false
@@ -1298,9 +1433,12 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
         if (full === "full") {
             exportAll = true
         } else {
-            notify(
-                "The only optional argument supported is: 'full'",
-                {src, "type": "warn"})
+            notify({
+                "fields": [full],
+                "id": "commands.mkviebrc.invalid",
+                src,
+                "type": "warn"
+            })
             return
         }
     }
@@ -1331,13 +1469,16 @@ const buffer = (src, args) => {
  * List all the buffers currently opened by tab index.
  * @param {import("./common").RunSource} src
  */
-const buffers = src => notify(listTabs().map((tab, index) => {
-    const page = pageForTab(tab)
-    if (!page) {
-        return `${index}: `
-    }
-    return `${index}: ${urlToString(page.getAttribute("src") ?? "")}`
-}).join("\n"), {src})
+const buffers = src => {
+    const output = listTabs().map((tab, index) => {
+        const page = pageForTab(tab)
+        if (!page) {
+            return `${index}: `
+        }
+        return `${index}: ${urlToString(page.getAttribute("src") ?? "")}`
+    }).join("\n")
+    notify({"fields": [output], "id": "commands.buffers", src})
+}
 
 /**
  * Open command, navigate to a url by argument, mostly useful for mappings.
@@ -1360,7 +1501,7 @@ const open = (src, args) => {
  */
 const suspend = (src, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", {src, "type": "warn"})
+        notify({"id": "commands.suspend.range", src, "type": "warn"})
         return
     }
     if (range) {
@@ -1376,9 +1517,7 @@ const suspend = (src, args, range = null) => {
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify(
-                "Only tabs not currently visible can be suspended",
-                {src, "type": "warn"})
+            notify({"id": "commands.suspend.visible", src, "type": "warn"})
         } else {
             const {suspendTab} = require("./tabs")
             suspendTab(src, tab)
@@ -1394,7 +1533,7 @@ const suspend = (src, args, range = null) => {
  */
 const hideCommand = (src, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", {src, "type": "warn"})
+        notify({"id": "commands.hide.range", src, "type": "warn"})
         return
     }
     if (range) {
@@ -1415,7 +1554,7 @@ const hideCommand = (src, args, range = null) => {
                 hide(page)
             }
         } else {
-            notify("Only visible pages can be hidden", {src, "type": "warn"})
+            notify({"id": "commands.hide.visible", src, "type": "warn"})
         }
     }
 }
@@ -1428,8 +1567,7 @@ const hideCommand = (src, args, range = null) => {
  */
 const setMute = (src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
-        notify("Command mute! requires a single boolean argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.mute.argCount", src, "type": "warn"})
         return
     }
     let targets = [currentTab()]
@@ -1460,7 +1598,7 @@ const setMute = (src, args, range) => {
  */
 const mute = (src, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", {src, "type": "warn"})
+        notify({"id": "commands.mute.range", src, "type": "warn"})
         return
     }
     if (range) {
@@ -1472,8 +1610,7 @@ const mute = (src, args, range = null) => {
         tab = tabForBufferArg(args)
     }
     if (!tab) {
-        notify("Can't find matching page, no tabs (un)muted",
-            {src, "type": "warn"})
+        notify({"id": "commands.mute.noMatch", src, "type": "warn"})
         return
     }
     if (tab.getAttribute("muted")) {
@@ -1497,8 +1634,7 @@ const mute = (src, args, range = null) => {
  */
 const setPin = (src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
-        notify("Command pin! requires a single boolean argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.pin.argCount", src, "type": "warn"})
         return
     }
     let targets = [currentTab()]
@@ -1532,7 +1668,7 @@ const setPin = (src, args, range) => {
  */
 const pin = (src, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", {src, "type": "warn"})
+        notify({"id": "commands.pin.range", src, "type": "warn"})
         return
     }
     if (range) {
@@ -1556,8 +1692,7 @@ const pin = (src, args, range) => {
         tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
     }
     if (!tab) {
-        notify("Can't find matching page, no tabs (un)pinned",
-            {src, "type": "warn"})
+        notify({"id": "commands.pin.noMatch", src, "type": "warn"})
         return
     }
     const tabContainer = document.getElementById("tabs")
@@ -1585,7 +1720,7 @@ const pin = (src, args, range) => {
  */
 const addSplit = (src, method, leftOrAbove, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", {src, "type": "warn"})
+        notify({"id": "commands.split.range", src, "type": "warn"})
         return
     }
     if (range) {
@@ -1607,7 +1742,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
     const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify("Page is already visible", {src, "type": "warn"})
+            notify({"id": "commands.split.visible", src, "type": "warn"})
         } else {
             const page = pageForTab(tab)
             if (page) {
@@ -1634,7 +1769,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
  */
 const close = (src, force, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", {src, "type": "warn"})
+        notify({"id": "commands.close.range", src, "type": "warn"})
         return
     }
     const {closeTab} = require("./tabs")
@@ -1654,7 +1789,7 @@ const close = (src, force, args, range) => {
         closeTab(src, listTabs().indexOf(tab), force)
         return
     }
-    notify("Can't find matching page, no tabs closed", {src, "type": "warn"})
+    notify({"id": "commands.close.noMatch", src, "type": "warn"})
 }
 
 /**
@@ -1677,8 +1812,7 @@ const callAction = (args, src) => {
  */
 const makedefault = src => {
     if (process.execPath.endsWith("electron")) {
-        notify("Command only works for installed versions of Vieb",
-            {src, "type": "err"})
+        notify({"id": "commands.makedefault.installed", src, "type": "error"})
         return
     }
     ipcRenderer.send("make-default-app")
@@ -1686,9 +1820,12 @@ const makedefault = src => {
         execCommand(
             "xdg-settings set default-web-browser vieb.desktop", err => {
                 if (err?.message) {
-                    notify(
-                        "Script to set Vieb as the default browser failed:"
-                        + `\n${err.message}`, {src, "type": "err"})
+                    notify({
+                        "fields": [err.message],
+                        "id": "commands.makedefault.failed",
+                        src,
+                        "type": "error"
+                    })
                 }
             })
     } else if (process.platform === "win32") {
@@ -1701,17 +1838,18 @@ const makedefault = src => {
         execCommand(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, err => {
             if (err?.message) {
-                notify(
-                    "Script to set Vieb as the default browser failed:"
-                        + `\n${err.message}`, {src, "type": "err"})
+                notify({
+                    "fields": [err.message],
+                    "id": "commands.makedefault.failed",
+                    src,
+                    "type": "error"
+                })
             }
         })
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
-        notify("If you didn't get a notification to set Vieb as your defau"
-            + "lt browser, this command does not work for this OS.",
-        {src, "type": "warn"})
+        notify({"id": "commands.makedefault.other", src, "type": "warn"})
     }
 }
 
@@ -1809,8 +1947,7 @@ const tabnew = (src, session = null, url = null) => {
  */
 const marks = (src, args) => {
     if (args.length > 2) {
-        notify("Command marks only accepts a maxmimum of two args",
-            {src, "type": "warn"})
+        notify({"id": "commands.marks.argCount", src, "type": "warn"})
         return
     }
     if (args.length === 2) {
@@ -1818,8 +1955,12 @@ const marks = (src, args) => {
         if (isUrl(args[1])) {
             makeMark({"key": args[0], src, "url": args[1]})
         } else {
-            notify(`Mark url must be a valid url: ${args[1]}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [args[1]],
+                "id": "commands.marks.url",
+                src,
+                "type": "warn"
+            })
         }
         return
     }
@@ -1843,12 +1984,22 @@ const marks = (src, args) => {
     }
     if (relevantMarks.length === 0) {
         if (args.length && Object.keys(qm.marks ?? {}).length) {
-            notify("No marks found for current keys", {src, "type": "warn"})
+            notify({
+                "fields": args,
+                "id": "commands.marks.noKey",
+                src,
+                "type": "warn"
+            })
         } else {
-            notify("No marks found", {src, "type": "warn"})
+            notify({"id": "commands.marks.none", src, "type": "warn"})
         }
     } else {
-        notify(relevantMarks.join("\n"), {src})
+        notify({
+            "fields": [relevantMarks.join("\n")],
+            "id": "commands.marks.list",
+            src,
+            "type": "warn"
+        })
     }
 }
 
@@ -1859,13 +2010,11 @@ const marks = (src, args) => {
  */
 const restoremark = (src, args) => {
     if (args.length > 2) {
-        notify("Command restoremark only accepts up to two args",
-            {src, "type": "warn"})
+        notify({"id": "commands.restoremark.argCount", src, "type": "warn"})
         return
     }
     if (args.length === 0) {
-        notify("Command restoremark requires at least one key argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.restoremark.keyname", src, "type": "warn"})
         return
     }
     const {restoreMark} = require("./actions")
@@ -1883,9 +2032,14 @@ const restoremark = (src, args) => {
     if (isValidPosition(position)) {
         restoreMark({key, position, src})
     } else {
-        notify(`Invalid mark restore ${position}' position, must be one of: `
-            + `${validOptions.markpositionshifted.join(", ")}`,
-        {src, "type": "warn"})
+        notify({
+            "fields": [
+                position, argsAsHumanList(validOptions.markpositionshifted)
+            ],
+            "id": "commands.restoremark.argCount",
+            src,
+            "type": "warn"
+        })
     }
 }
 
@@ -1897,7 +2051,7 @@ const restoremark = (src, args) => {
  */
 const delmarks = (src, all, args) => {
     if (all && args.length) {
-        notify("Command takes no arguments: delmarks!", {src, "type": "warn"})
+        notify({"id": "commands.delmarks.argCount", src, "type": "warn"})
         return
     }
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
@@ -1907,8 +2061,7 @@ const delmarks = (src, all, args) => {
         return
     }
     if (args.length !== 1) {
-        notify("Command delmarks only accepts a single keyname",
-            {src, "type": "warn"})
+        notify({"id": "commands.delmarks.keyname", src, "type": "warn"})
         return
     }
     const [key] = args

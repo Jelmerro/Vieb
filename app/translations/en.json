@@ -18,6 +18,118 @@
             }
         }
     },
+    "commands": {
+        "arguments": {
+            "folderMissing": "Folder '$1' does not exist!"
+        },
+        "buffers": "$1",
+        "close": {
+            "noMatch": "Can't find matching page, no tabs closed",
+            "range": "Range cannot be combined with searching in close command"
+        },
+        "colorscheme": {
+            "argCount": "The colorscheme command takes a single optional argument",
+            "current": "colorscheme: $1",
+            "missing": "Cannot find colorscheme '$1'"
+        },
+        "delmarks": {
+            "argCount": "Command delmarks! takes no arguments",
+            "keyname": "Command delmarks only accepts a single keyname"
+        },
+        "devtools": {
+            "argCount": "The devtools command takes a single optional argument",
+            "invalid": "Invalid devtools position '$1' specified, must be one of: $2"
+        },
+        "help": {
+            "argCount": "The help command takes a single optional argumnet"
+        },
+        "hide": {
+            "range": "Range cannot be combined with searching in hide command",
+            "visible": "Only visible pages can be hidden"
+        },
+        "makedefault": {
+            "failed": "Script to set Vieb as the default browser failed:\n$1",
+            "installed": "Command only works for installed versions of Vieb",
+            "other": "If you didn't get a notification to set Vieb as your default browser, this command probably does not work for your OS"
+        },
+        "marks": {
+            "argCount": "Command marks only accepts a maximum of two args",
+            "list": "$1",
+            "noKey": "No marks found for keys '$1'",
+            "none": "No marks found",
+            "url": "Mark url must be a valid url, not '$1'"
+        },
+        "mkviebrc": {
+            "argCount": "The mkviebrc command takes a single optional argument 'full'",
+            "invalid": "The only optional argument supported is 'full', not: $1"
+        },
+        "mute": {
+            "argCount": "Command mute! requires a single boolean argument",
+            "noMatch": "Can't find a matching page, no tabs (un)muted",
+            "range": "Range cannot be combined with searching in mute command"
+        },
+        "pin": {
+            "argCount": "Command pin! requires a single boolean argument",
+            "noMatch": "Can't find a matching page, no tabs (un)pinned",
+            "range": "Range cannot be combined with searching in pin command"
+        },
+        "ranges": {
+            "combined": "Can't combine a global search with two indexes in range '$1', either supply two indexes/searches OR use a global search",
+            "commas": "Too many commas in range '$1', at most 1 is allowed",
+            "flags": "Range '$1' contains invalid flags",
+            "indexOrSearch": "Range '$1' invalid, must have indices or a search",
+            "invalid": "Range section '$1' is not a valid range"
+        },
+        "restoremark": {
+            "argCount": "Command restoremark only accepts up to two args",
+            "keyname": "Command restoremark requires at least key name as the first argument",
+            "position": "Invalid mark restore position '$1', must be one of: $2"
+        },
+        "screencopy": {
+            "argCount": "The screencopy command only accepts optional dimensions",
+            "dimensions": "Screencopy dimensions must match 'width,height,x,y' with round numbers"
+        },
+        "screenshot": {
+            "argCount": "The screenshot command takes only two optional arguments:\nthe location where to write the image and the dimensions",
+            "dimensions": "Screenshot dimensions must match 'width,height,x,y' with round numbers",
+            "failed": "Could not write the image to '$1'",
+            "success": "Screenshot saved at '$1'"
+        },
+        "settings": {
+            "invalidJSON": "Invalid JSON in '$1' value:\n$2",
+            "invalidStructure": "Invalid structure/type found in '$1' value:\n$2\nCan only be an object with strings, a list of strings, or a list with lists of 1 or 2 strings",
+            "listSingle": "The setting '$1' has the value: $2",
+            "missing": "The setting '$1' doesn't exist",
+            "noChanges": "No settings have been changed compared to the default",
+            "noFlipping": "The setting '$1' can not be flipped",
+            "noModify": "Can't modify '$1' as if it were a number, text, list or object",
+            "optionsList": "---- Options ---\n$1",
+            "reserved": "This syntax is reserved for future use, but has no purpose yet."
+        },
+        "source": {
+            "absolute": "Filename must be absolute when sourcing files at runtime",
+            "argCount": "Source requires exactly one argument representing the filename",
+            "missing": "Specified file could not be found at '$1'",
+            "readError": "Read error for config file located at '$1'",
+            "recursive": "Recursive sourcing of files is not supported",
+            "startup": "It's not possible to source a file that's loaded on startup"
+        },
+        "split": {
+            "range": "Range cannot be combined with searching in split command",
+            "visible": "Page is already visible, cannot be put into new split"
+        },
+        "suspend": {
+            "range": "Range cannot be combined with searching in suspend command",
+            "visible": "Only tabs not currently visible can be suspended"
+        },
+        "write": {
+            "argCount": "The write command takes two optional arguments\nthe location where to write the page and a type of file",
+            "combined": "Write command ranges cannot be combined with a custom location",
+            "failed": "Could not save the page:\n$1",
+            "success": "Page saved at '$1'",
+            "type": "Write type must be one of 'html' or 'mhtml', not: $1"
+        }
+    },
     "contextmenu": {
         "groups": {
             "audio": "Audio",
@@ -162,6 +274,7 @@
             "followelement": "Invalid element type passed: $1, must be any combination of: $2",
             "invalidScope": "Invalid value '$1' in '$2', must be one of: file, page or special",
             "markpersistencetype": "Invalid quickmark type passed to quickmarkpersistence: $1",
+            "missing": "The setting '$1' does not exist",
             "modifiers": "Key name '$1' in modifiers is not recognized as a valid key",
             "mouseFeature": "Feature '$1' is not a valid mouse feature",
             "newtaburl": "The newtaburl value must be a valid url or empty, not: $1",
@@ -223,10 +336,16 @@
             "tocpages": "Invalid regular expression in tocpages: $1",
             "translateurl": "The translateurl value must be a valid url, not: $1",
             "type": "The value of setting '$1' is of an incorrect type, expected '$2' but got '$3' instead",
+            "unchanged": "There are no options set, no mappings changed and no custom commands that have been added, no viebrc written",
             "windowsize": {
                 "format": "The $1 value must be two numbers joined with an x, such as 800x600",
                 "minimum": "The windowsize value sizes must be at least 500, not $1"
             }
+        },
+        "files": {
+            "failed": "Could not write to '$1'",
+            "missingloc": "No config location is known, could not write",
+            "success": "$1 saved to '$2'"
         }
     },
     "util": {
