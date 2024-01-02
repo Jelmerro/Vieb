@@ -36,6 +36,16 @@
             "current": "colorscheme: $1",
             "missing": "Cannot find colorscheme '$1'"
         },
+        "deletepointerpos": {
+            "overridePath": "Command delpointerpos! only accepts a single path",
+            "toofew": "Command delpointerpos requires at least the key name",
+            "toomany": "Command delpointerpos only accepts a key and an optional path"
+        },
+        "deletescrollpos": {
+            "overridePath": "Command delscrollpos! only accepts a single path",
+            "toofew": "Command delscrollpos requires at least the key name",
+            "toomany": "Command delscrollpos only accepts a key and an optional path"
+        },
         "delmarks": {
             "argCount": "Command delmarks! takes no arguments",
             "keyname": "Command delmarks only accepts a single keyname"
@@ -77,6 +87,13 @@
             "noMatch": "Can't find a matching page, no tabs (un)pinned",
             "range": "Range cannot be combined with searching in pin command"
         },
+        "pointerpos": {
+            "argCount": "Command pointerpos only accepts a maximum of three args",
+            "list": "$1",
+            "location": "Command pointerpos requires the x and y location after the key",
+            "noKey": "No pointer positions found for keys '$1'",
+            "none": "No pointer positions found"
+        },
         "ranges": {
             "combined": "Can't combine a global search with two indexes in range '$1', either supply two indexes/searches OR use a global search",
             "commas": "Too many commas in range '$1', at most 1 is allowed",
@@ -89,6 +106,14 @@
             "keyname": "Command restoremark requires at least key name as the first argument",
             "position": "Invalid mark restore position '$1', must be one of: $2"
         },
+        "restorepointerpos": {
+            "argCount": "Command restorepointerpos only accepts up to two args",
+            "keyname": "Command restorepointerpos requires at least one key argument"
+        },
+        "restorescrollpos": {
+            "argCount": "Command restorescrollpos only accepts up to two args",
+            "keyname": "Command restorescrollpos requires at least one key argument"
+        },
         "screencopy": {
             "argCount": "The screencopy command only accepts optional dimensions",
             "dimensions": "Screencopy dimensions must match 'width,height,x,y' with round numbers"
@@ -98,6 +123,13 @@
             "dimensions": "Screenshot dimensions must match 'width,height,x,y' with round numbers",
             "failed": "Could not write the image to '$1'",
             "success": "Screenshot saved at '$1'"
+        },
+        "scrollpos": {
+            "argCount": "Command scrollpos only accepts a maximum of three args",
+            "list": "$1",
+            "noKey": "No scroll positions found for keys '$1'",
+            "none": "No scroll positions found",
+            "pixels": "Command scrollpos requires the pixels argument after the key, not: $1"
         },
         "settings": {
             "invalidJSON": "Invalid JSON in '$1' value:\n$2",
@@ -125,6 +157,11 @@
         "suspend": {
             "range": "Range cannot be combined with searching in suspend command",
             "visible": "Only tabs not currently visible can be suspended"
+        },
+        "translatepage": {
+            "apiKey": "API key not set, see ': translatekey' for help",
+            "argCount": "Command translatepage only accepts a single optional language argument",
+            "language": "Invalid language '$1' supplied, see ':h translatelang' for help"
         },
         "write": {
             "argCount": "The write command takes two optional arguments\nthe location where to write the page and a type of file",

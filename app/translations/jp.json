@@ -36,6 +36,16 @@
             "current": "",
             "missing": ""
         },
+        "deletepointerpos": {
+            "overridePath": "",
+            "toofew": "",
+            "toomany": ""
+        },
+        "deletescrollpos": {
+            "overridePath": "",
+            "toofew": "",
+            "toomany": ""
+        },
         "delmarks": {
             "argCount": "",
             "keyname": ""
@@ -77,6 +87,13 @@
             "noMatch": "",
             "range": ""
         },
+        "pointerpos": {
+            "argCount": "",
+            "list": "",
+            "location": "",
+            "noKey": "",
+            "none": ""
+        },
         "ranges": {
             "combined": "",
             "commas": "",
@@ -89,6 +106,14 @@
             "keyname": "",
             "position": ""
         },
+        "restorepointerpos": {
+            "argCount": "",
+            "keyname": ""
+        },
+        "restorescrollpos": {
+            "argCount": "",
+            "keyname": ""
+        },
         "screencopy": {
             "argCount": "",
             "dimensions": ""
@@ -98,6 +123,13 @@
             "dimensions": "",
             "failed": "",
             "success": ""
+        },
+        "scrollpos": {
+            "argCount": "",
+            "list": "",
+            "noKey": "",
+            "none": "",
+            "pixels": ""
         },
         "settings": {
             "invalidJSON": "",
@@ -125,6 +157,11 @@
         "suspend": {
             "range": "",
             "visible": ""
+        },
+        "translatepage": {
+            "apiKey": "",
+            "argCount": "",
+            "language": ""
         },
         "write": {
             "argCount": "",

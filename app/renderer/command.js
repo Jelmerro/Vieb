@@ -2078,8 +2078,7 @@ const delmarks = (src, all, args) => {
  */
 const scrollpos = (src, args) => {
     if (args.length > 3) {
-        notify("Command scrollpos only accepts a maxmimum of three args",
-            {src, "type": "warn"})
+        notify({"id": "commands.scrollpos.argCount", src, "type": "warn"})
         return
     }
     if (args.length === 2 || args.length === 3) {
@@ -2093,8 +2092,12 @@ const scrollpos = (src, args) => {
                 path = pathOrPixels
             }
             if (isNaN(pixels)) {
-                notify("Command scrollpos requires at least one pixels "
-                    + "arg after the key", {src, "type": "warn"})
+                notify({
+                    "fields": [pixelsOrPath],
+                    "id": "commands.scrollpos.pixels",
+                    src,
+                    "type": "warn"
+                })
                 return
             }
         }
@@ -2145,13 +2148,21 @@ const scrollpos = (src, args) => {
         const notEmpty = Object.keys(qm.scroll.global).length
             || Object.keys(qm.scroll.local).length
         if (args.length && notEmpty) {
-            notify("No scroll positions found for current keys",
-                {src, "type": "warn"})
+            notify({
+                "fields": args,
+                "id": "commands.scrollpos.noKey",
+                src,
+                "type": "warn"
+            })
         } else {
-            notify("No scroll positions found", {src, "type": "warn"})
+            notify({"id": "commands.scrollpos.none", src, "type": "warn"})
         }
     } else {
-        notify(relevantPos.join("\n"), {src})
+        notify({
+            "fields": [relevantPos.join("\n")],
+            "id": "commands.scrollpos.list",
+            src
+        })
     }
 }
 
@@ -2162,13 +2173,13 @@ const scrollpos = (src, args) => {
  */
 const restorescrollpos = (src, args) => {
     if (args.length > 2) {
-        notify("Command restorescrollpos only accepts up to two args",
-            {src, "type": "warn"})
+        notify({
+            "id": "commands.restorescrollpos.argCount", src, "type": "warn"
+        })
         return
     }
     if (args.length === 0) {
-        notify("Command restorescrollpos requires at least one key argument",
-            {src, "type": "warn"})
+        notify({"id": "commands.restorescrollpos.keyname", src, "type": "warn"})
         return
     }
     const {restoreScrollPos} = require("./actions")
@@ -2198,8 +2209,11 @@ const delscrollpos = (src, all, args) => {
     }
     if (all) {
         if (args.length > 1) {
-            notify("Command delscrollpos! only accepts a single path",
-                {src, "type": "warn"})
+            notify({
+                "id": "commands.deletescrollpos.overridePath",
+                src,
+                "type": "warn"
+            })
             return
         }
         if (args[0] === "*") {
@@ -2219,13 +2233,11 @@ const delscrollpos = (src, all, args) => {
         return
     }
     if (args.length === 0) {
-        notify("Command delscrollpos requires at least the key",
-            {src, "type": "warn"})
+        notify({"id": "commands.deletescrollpos.toofew", src, "type": "warn"})
         return
     }
     if (args.length > 2) {
-        notify("Command delscrollpos only accepts a key and an optional path",
-            {src, "type": "warn"})
+        notify({"id": "commands.deletescrollpos.toomany", src, "type": "warn"})
         return
     }
     if (args[1]) {
@@ -2264,8 +2276,7 @@ const delscrollpos = (src, all, args) => {
  */
 const pointerpos = (src, args) => {
     if (args.length > 4) {
-        notify("Command pointerpos only accepts a maxmimum of three args",
-            {src, "type": "warn"})
+        notify({"id": "commands.pointerpos.argCount", src, "type": "warn"})
         return
     }
     if (args.length > 1) {
@@ -2273,8 +2284,7 @@ const pointerpos = (src, args) => {
         const [key, x, y, path] = args
         const location = {"x": Number(x), "y": Number(y)}
         if (isNaN(location.x) || isNaN(location.y)) {
-            notify("Command pointerpos requires the x and y "
-                + "location after the key", {src, "type": "warn"})
+            notify({"id": "commands.pointerpos.location", src, "type": "warn"})
             return
         }
         storePos({key, location, path})
@@ -2327,13 +2337,21 @@ const pointerpos = (src, args) => {
         const notEmpty = Object.keys(qm.pointer.global).length
             || Object.keys(qm.pointer.local).length
         if (args.length && notEmpty) {
-            notify("No pointer positions found for current keys",
-                {src, "type": "warn"})
+            notify({
+                "fields": args,
+                "id": "commands.pointerpos.noKey",
+                src,
+                "type": "warn"
+            })
         } else {
-            notify("No pointer positions found", {src, "type": "warn"})
+            notify({"id": "commands.pointerpos.none", src, "type": "warn"})
         }
     } else {
-        notify(relevantPos.join("\n"), {src})
+        notify({
+            "fields": [relevantPos.join("\n")],
+            "id": "commands.pointerpos.list",
+            src
+        })
     }
 }
 
@@ -2344,13 +2362,15 @@ const pointerpos = (src, args) => {
  */
 const restorepointerpos = (src, args) => {
     if (args.length > 2) {
-        notify("Command restorepointerpos only accepts up to two args",
-            {src, "type": "warn"})
+        notify({
+            "id": "commands.restorepointerpos.argCount", src, "type": "warn"
+        })
         return
     }
     if (args.length === 0) {
-        notify("Command restorepointerpos requires at least one key argument",
-            {src, "type": "warn"})
+        notify({
+            "id": "commands.restorepointerpos.keyname", src, "type": "warn"
+        })
         return
     }
     const {restorePos} = require("./pointer")
@@ -2380,8 +2400,11 @@ const delpointerpos = (src, all, args) => {
     }
     if (all) {
         if (args.length > 1) {
-            notify("Command delpointerpos! only accepts a single path",
-                {src, "type": "warn"})
+            notify({
+                "id": "commands.deletepointerpos.overridePath",
+                src,
+                "type": "warn"
+            })
             return
         }
         if (args[0] === "*") {
@@ -2401,13 +2424,11 @@ const delpointerpos = (src, all, args) => {
         return
     }
     if (args.length === 0) {
-        notify("Command delpointerpos requires at least the key",
-            {src, "type": "warn"})
+        notify({"id": "commands.deletepointerpos.toofew", src, "type": "warn"})
         return
     }
     if (args.length > 2) {
-        notify("Command delpointerpos only accepts a key and an optional path",
-            {src, "type": "warn"})
+        notify({"id": "commands.deletepointerpos.toomany", src, "type": "warn"})
         return
     }
     if (args[1]) {
@@ -2446,8 +2467,7 @@ const delpointerpos = (src, all, args) => {
  */
 const translatepage = (src, args) => {
     if (args.length > 1) {
-        notify("Command translatepage only accepts a single optional language",
-            {src, "type": "warn"})
+        notify({"id": "commands.translatepage.argCount", src, "type": "warn"})
         return
     }
     const url = getSetting("translateurl").replace(/\/*$/g, "")
@@ -2461,15 +2481,18 @@ const translatepage = (src, args) => {
     }
     const apiKey = getSetting("translatekey").trim()
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
-        notify("API key not set, see ':h translatekey' for help",
-            {src, "type": "warn"})
+        notify({"id": "commands.translatepage.apiKey", src, "type": "warn"})
         return
     }
     const {validOptions} = require("./settings")
     let [lang] = args
     if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
-        notify(`Invalid language '${lang}' supplied, `
-            + "see ':h translatelang' for help", {src, "type": "warn"})
+        notify({
+            "fields": [lang],
+            "id": "commands.translatepage.language",
+            src,
+            "type": "warn"
+        })
         return
     }
     lang = lang?.toLowerCase() ?? getSetting("translatelang")
