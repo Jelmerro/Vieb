@@ -27,6 +27,13 @@
             "folderMissing": "Folder '$1' does not exist!"
         },
         "buffers": "$1",
+        "clear": {
+            "argCount": "The clear command takes exactly two arguments:\na type and an interval",
+            "intervalInvalid": "The clear command interval must be 'all', a valid url or a valid interval, such as '1day', or inverted like 'last3hours'",
+            "intervalMissing": "The clear command interval is required",
+            "typeInvalid": "The clear command type must be one of: history",
+            "typeMissing": "The clear command requires a type argument to clear"
+        },
         "close": {
             "noMatch": "Can't find matching page, no tabs closed",
             "range": "Range cannot be combined with searching in close command"
@@ -123,6 +130,13 @@
             "dimensions": "Screenshot dimensions must match 'width,height,x,y' with round numbers",
             "failed": "Could not write the image to '$1'",
             "success": "Screenshot saved at '$1'"
+        },
+        "scriptnames": {
+            "argType": "Scriptnames! argument must be the number of a script",
+            "editor": "Command to edit files with vim failed, please update the 'vimcommand' setting",
+            "noArgs": "Command takes no arguments: scriptnames",
+            "notFound": "No script found with index '$1', see ':scriptnames!'",
+            "singleArg": "Scriptnames! takes one optional index argument"
         },
         "scrollpos": {
             "argCount": "Command scrollpos only accepts a maximum of three args",
@@ -399,6 +413,7 @@
         "none": "",
         "or": " or ",
         "singleQuoteEnd": "'",
-        "singleQuoteStart": "'"
+        "singleQuoteStart": "'",
+        "untranslated": "$1"
     }
 }

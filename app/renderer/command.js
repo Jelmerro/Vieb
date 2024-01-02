@@ -2523,22 +2523,19 @@ const translatepage = (src, args) => {
  */
 const clear = (src, type, interval, trailingArgs = null) => {
     if (trailingArgs) {
-        notify("The clear command takes at most two arguments: "
-            + "a type and optionally an interval", {src, "type": "warn"})
+        notify({"id": "commands.clear.argCount", src, "type": "warn"})
         return
     }
     if (!type) {
-        notify("The clear command requires a type argument to clear",
-            {src, "type": "warn"})
+        notify({"id": "commands.clear.typeMissing", src, "type": "warn"})
         return
     }
     if (!interval) {
-        notify("The clear command interval is required", {src, "type": "warn"})
+        notify({"id": "commands.clear.intervalMissing", src, "type": "warn"})
         return
     }
     if (!["history"].includes(type)) {
-        notify("The clear command type must be one of: "
-            + "history", {src, "type": "warn"})
+        notify({"id": "commands.clear.typeInvalid", src, "type": "warn"})
         return
     }
     if (type === "history") {
@@ -2557,9 +2554,9 @@ const clear = (src, type, interval, trailingArgs = null) => {
             const {removeHistoryByPartialUrl} = require("./history")
             removeHistoryByPartialUrl(interval)
         } else {
-            notify("The clear command interval must be all, a valid url or a "
-                + "valid interval, such as 1day, or inverted like last3hours",
-            {src})
+            notify({
+                "id": "commands.clear.intervalInvalid", src, "type": "warn"
+            })
         }
     }
 }
@@ -2653,7 +2650,9 @@ const commands = {
     "devtools": ({src, args}) => openDevTools(src, ...args),
     "downloads": ({src}) => openSpecialPage(src, "downloads", false),
     "downloads!": ({src}) => openSpecialPage(src, "downloads", true),
-    "echo": ({args, src}) => notify(args.join(" "), {src}),
+    "echo": ({args, src}) => notify({
+        "fields": [args.join(" ")], "id": "util.untranslated", src
+    }),
     "h": ({src, args}) => help(src, false, ...args),
     "h!": ({src, args}) => help(src, true, ...args),
     "hardcopy": ({src, range}) => hardcopy(src, range),
@@ -2702,40 +2701,51 @@ const commands = {
     "screenshot": ({src, args}) => screenshot(src, args),
     "scriptnames": ({args, src}) => {
         if (args?.length) {
-            notify("Command takes no arguments: scriptnames",
-                {src, "type": "warn"})
+            notify({"id": "commands.scriptnames.noArgs", src, "type": "warn"})
             return
         }
-        notify(appConfig()?.files.map(
-            (f, i) => `${i + 1}: ${f}`).join("\n") ?? "", {src})
+        const names = appConfig()?.files.map(
+            (f, i) => `${i + 1}: ${f}`).join("\n") ?? ""
+        notify({"fields": [names], "id": "util.untranslated", src})
     },
     "scriptnames!": ({args, src}) => {
         const scripts = [...appConfig()?.files ?? [], ...sourcedFiles]
         if (args.length === 0) {
-            notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"), {src})
+            const names = scripts.map((f, i) => `${i + 1}: ${f}`).join("\n")
+            notify({"fields": [names], "id": "util.untranslated", src})
         } else if (args.length === 1) {
             const number = Number(args[0])
             if (isNaN(number)) {
-                notify("Scriptnames! argument must be a number for a script",
-                    {src, "type": "warn"})
+                notify({
+                    "id": "commands.scriptnames.argType", src, "type": "warn"
+                })
                 return
             }
             const script = scripts[number - 1]
             if (!script) {
-                notify(`No script found with index '${number}'`
-                    + ", see ':scriptnames!'", {src, "type": "warn"})
+                notify({
+                    "fields": [String(number)],
+                    "id": "commands.scriptnames.notFound",
+                    src,
+                    "type": "warn"
+                })
                 return
             }
             execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
                 if (err) {
-                    notify("Command to edit files with vim failed, "
-                        + "please update the 'vimcommand' setting",
-                    {src, "type": "err"})
+                    notify({
+                        "id": "commands.scriptnames.editor",
+                        src,
+                        "type": "error"
+                    })
                 }
             })
         } else {
-            notify("Scriptnames with the ! added takes one optional argument",
-                {src, "type": "warn"})
+            notify({
+                "id": "commands.scriptnames.singleArg",
+                src,
+                "type": "error"
+            })
         }
     },
     "scrollpos": ({src, args}) => scrollpos(src, args),

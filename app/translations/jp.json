@@ -27,6 +27,13 @@
             "folderMissing": ""
         },
         "buffers": "",
+        "clear": {
+            "argCount": "",
+            "intervalInvalid": "",
+            "intervalMissing": "",
+            "typeInvalid": "",
+            "typeMissing": ""
+        },
         "close": {
             "noMatch": "",
             "range": ""
@@ -123,6 +130,13 @@
             "dimensions": "",
             "failed": "",
             "success": ""
+        },
+        "scriptnames": {
+            "argType": "",
+            "editor": "",
+            "noArgs": "",
+            "notFound": "",
+            "singleArg": ""
         },
         "scrollpos": {
             "argCount": "",
@@ -399,6 +413,7 @@
         "none": "",
         "or": "と",
         "singleQuoteEnd": "'",
-        "singleQuoteStart": "'"
+        "singleQuoteStart": "'",
+        "untranslated": ""
     }
 }
