@@ -61,7 +61,7 @@ const {
     tabForPage,
     listRealPages
 } = require("./common")
-const {argsAsHumanList} = require("../translate")
+const {argsAsHumanList, translate} = require("../translate")
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
@@ -2813,46 +2813,65 @@ const {mapOrList, unmap, clearmap} = require("./input")
  */
 const addCommand = (src, overwrite, args) => {
     if (overwrite && args.length < 2) {
-        notify("Can't combine ! with reading a value", {src, "type": "warn"})
+        notify({"id": "commands.command.combined", src, "type": "warn"})
         return
     }
     if (args.length === 0) {
-        const commandString = Object.keys(userCommands).map(
-            c => `${c} => ${userCommands[c]}`).join("\n").trim()
+        const commandString = Object.keys(userCommands).map(c => translate(
+            "commands.command.listSingle", {"fields": [c, userCommands[c]]})
+        ).join("\n").trim()
         if (commandString) {
-            notify(`--- User defined commands ---\n${commandString}`, {src})
+            notify({
+                "fields": [commandString], "id": "commands.command.list", src
+            })
         } else {
-            notify("There are no user defined commands", {src})
+            notify({"id": "commands.command.none", src})
         }
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
     if (command.includes("/") || command.includes("\\")) {
-        notify("Command name cannot contain any slashes", {src, "type": "warn"})
+        notify({"id": "commands.command.slashes", src, "type": "warn"})
         return
     }
     if (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
-        notify("Command name cannot start with a number or special character",
-            {src, "type": "warn"})
+        notify({"id": "commands.command.special", src, "type": "warn"})
         return
     }
     const params = args.slice(1)
     if (commands[command]) {
-        notify(`Command can not be a built-in command: ${command}`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [command],
+            "id": "commands.command.builtin",
+            src,
+            "type": "warn"
+        })
         return
     }
     if (params.length === 0) {
         if (userCommands[command]) {
-            notify(`${command} => ${userCommands[command]}`, {src})
+            notify({
+                "fields": [command, userCommands[command]],
+                "id": "commands.command.listSingle",
+                src
+            })
         } else {
-            notify(`Not an editor command: ${command}`, {src, "type": "warn"})
+            notify({
+                "fields": [command],
+                "id": "commands.command.missing",
+                src,
+                "type": "warn"
+            })
         }
         return
     }
     if (!overwrite && userCommands[command]) {
-        notify(`Duplicate custom command definition (add ! to overwrite): ${
-            command}`, {src, "type": "warn"})
+        notify({
+            "fields": [command],
+            "id": "commands.command.duplicate",
+            src,
+            "type": "warn"
+        })
         return
     }
     const {sanitiseMapString} = require("./input")
@@ -2866,17 +2885,19 @@ const addCommand = (src, overwrite, args) => {
  */
 const deleteCommand = (src, args) => {
     if (args.length !== 1) {
-        notify(
-            "Exactly one command name is required for delcommand",
-            {src, "type": "warn"})
+        notify({"id": "commands.delcommand.argCount", src, "type": "warn"})
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
     if (userCommands[command]) {
         delete userCommands[args[0]]
     } else {
-        notify(`No such user defined command: ${command}`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [command],
+            "id": "commands.delcommand.missing",
+            src,
+            "type": "warn"
+        })
     }
 }
 

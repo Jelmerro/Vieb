@@ -43,6 +43,21 @@
             "current": "",
             "missing": ""
         },
+        "command": {
+            "builtin": "",
+            "combined": "",
+            "duplicate": "",
+            "list": "",
+            "listSingle": "",
+            "missing": "",
+            "none": "",
+            "slashes": "",
+            "special": ""
+        },
+        "delcommand": {
+            "argCount": "",
+            "missing": ""
+        },
         "deletepointerpos": {
             "overridePath": "",
             "toofew": "",

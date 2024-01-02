@@ -43,6 +43,21 @@
             "current": "colorscheme: $1",
             "missing": "Cannot find colorscheme '$1'"
         },
+        "command": {
+            "builtin": "Command can not be a built-in command: $1",
+            "combined": "Can't combine ! with reading a value for editing commands",
+            "duplicate": "Duplicate custom command definition (add ! to overwrite): $1",
+            "list": "--- User defined commands ---\n$1",
+            "listSingle": "$1 => $2",
+            "missing": "Not an editor command: $1",
+            "none": "There are no user defined commands",
+            "slashes": "Command name cannot contain any slashes",
+            "special": "Command name cannot start with a number nor special character"
+        },
+        "delcommand": {
+            "argCount": "Exactly one command name is required for delcommand",
+            "missing": "No such user defined command: $1"
+        },
         "deletepointerpos": {
             "overridePath": "Command delpointerpos! only accepts a single path",
             "toofew": "Command delpointerpos requires at least the key name",
