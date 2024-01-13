@@ -1,5 +1,6 @@
 {
     "actions": {
+        "alreadyRecording": "Already recording, ignoring record action",
         "command": {
             "failed": "Command error:\n$1",
             "success": "Command successful!",
@@ -75,6 +76,18 @@
         "devtools": {
             "argCount": "The devtools command takes a single optional argument",
             "invalid": "Invalid devtools position '$1' specified, must be one of: $2"
+        },
+        "execute": {
+            "ambiguous": "Command is ambiguous, please be more specific: $1",
+            "argCount": "Command takes no arguments: $1",
+            "invalidJSON": "Command could not be executed, invalid JSON provided:\n$1\n$2",
+            "noConfirm": "No ! allowed for: $1",
+            "noRange": "Command does not accept a range: $1",
+            "notFound": "Not an editor command: $1",
+            "unmatched": "Command could not be executed, unmatched quotes or backslash:\n$1"
+        },
+        "externalcommand": {
+            "missing": "No command set to open links externally, please update the 'externalcommand' setting"
         },
         "help": {
             "argCount": "The help command takes a single optional argumnet"
@@ -211,6 +224,19 @@
             "text": "Text",
             "video": "Video"
         }
+    },
+    "mappings": {
+        "defaultMapping": "No custom mappings found",
+        "defaultMappingForKey": "No custom mapping found for key: $1",
+        "errors": {
+            "overwritten": "Mappings are always overwritten, no need for !",
+            "unmapArgCount": "The $1unmap command requires exactly one mapping",
+            "unmatched": "Unmatched < > in mapping '$1': $2",
+            "unsupported": "Unsupported key in mapping which was skipped: $1"
+        },
+        "list": "$1",
+        "noMappings": "No mappings found",
+        "noMappingsForKey": "No mapping found for key: $1"
     },
     "pages": {
         "cookies": {

@@ -3071,10 +3071,28 @@ const execute = (com, opts = {}) => {
             execCommand(commandStr.replace("!", ""), (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, {src, "type": "err"})
+                    notify({
+                        "fields": [`${err}`],
+                        "id": "actions.command.failed",
+                        src,
+                        "type": "error"
+                    })
                 } else if (reportExit === "all") {
-                    notify(stdout.toString() || "Command exitted successfully!",
-                        {src, "type": "suc"})
+                    const output = stdout.toString()
+                    if (output) {
+                        notify({
+                            "fields": [output],
+                            "id": "actions.command.successWithOutput",
+                            src,
+                            "type": "suc"
+                        })
+                    } else {
+                        notify({
+                            "id": "actions.command.success",
+                            src,
+                            "type": "suc"
+                        })
+                    }
                 }
             })
         }
@@ -3085,11 +3103,19 @@ const execute = (com, opts = {}) => {
     const {range, args, valid, confirm, error} = p
     if (!valid) {
         if ("set".startsWith(command)) {
-            notify("Command could not be executed, invalid JSON provided:"
-                + `\n${commandStr}\n${error}`, {src, "type": "warn"})
+            notify({
+                "fields": [commandStr, error ?? ""],
+                "id": "commands.execute.invalidJSON",
+                src,
+                "type": "warn"
+            })
         } else {
-            notify("Command could not be executed, unmatched quotes or "
-                + `backslash:\n${commandStr}`, {src, "type": "warn"})
+            notify({
+                "fields": [commandStr],
+                "id": "commands.execute.unmatched",
+                src,
+                "type": "warn"
+            })
         }
         return
     }
@@ -3102,19 +3128,31 @@ const execute = (com, opts = {}) => {
         if (command === "source" && opts.settingsFile) {
             source(src, opts.settingsFile, args)
         } else if (noArgumentComands.includes(command) && args.length > 0) {
-            notify(`Command takes no arguments: ${command}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [command],
+                "id": "commands.execute.argCount",
+                src,
+                "type": "warn"
+            })
         } else if (commands[command]) {
             if (!rangeCompatibleCommands.includes(command) && range) {
-                notify(`Command does not accept a range: ${command}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [command],
+                    "id": "commands.execute.noRange",
+                    src,
+                    "type": "warn"
+                })
                 return
             }
             if (confirm) {
                 command += "!"
                 if (!commands[command]) {
-                    notify(`No ! allowed for: ${command.slice(0, -1)}`,
-                        {src, "type": "warn"})
+                    notify({
+                        "fields": [command.slice(0, -1)],
+                        "id": "commands.execute.noConfirm",
+                        src,
+                        "type": "warn"
+                    })
                     return
                 }
             }
@@ -3127,12 +3165,19 @@ const execute = (com, opts = {}) => {
             }, 5)
         }
     } else if (matches.length > 1) {
-        notify(
-            `Command is ambiguous, please be more specific: ${command}`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [command],
+            "id": "commands.execute.ambiguous",
+            src,
+            "type": "warn"
+        })
     } else {
-        notify(`Not an editor command: ${command}`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [command],
+            "id": "commands.execute.notFound",
+            src,
+            "type": "warn"
+        })
     }
 }
 

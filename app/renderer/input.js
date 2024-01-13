@@ -1910,8 +1910,12 @@ const isEmptyObject = obj => {
 const sanitiseMapString = (src, mapString, allowSpecials = false) => {
     const {maps, valid, leftover} = splitMapString(mapString)
     if (!valid) {
-        notify(`Unmatched < > in mapping '${mapString}': ${leftover}`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [mapString, leftover],
+            "id": "mappings.errors.unmatched",
+            src,
+            "type": "warn"
+        })
         return ""
     }
     return maps.map(m => {
@@ -1960,8 +1964,12 @@ const sanitiseMapString = (src, mapString, allowSpecials = false) => {
             }
         }
         if (!knownKey && key.length > 1) {
-            notify(`Unsupported key in mapping which was skipped: ${key}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [key],
+                "id": "mappings.errors.unsupported",
+                src,
+                "type": "warn"
+            })
             return ""
         }
         if (!key) {
@@ -2316,18 +2324,17 @@ const mapOrList = (
     src, mode, args, noremap = false, includeDefault = false
 ) => {
     if (includeDefault && args.length > 1) {
-        notify("Mappings are always overwritten, no need for !",
-            {src, "type": "warn"})
+        notify({"id": "mappings.errors.overwritten", src, "type": "warn"})
         return
     }
     if (args.length === 0) {
         const mappings = listMappingsAsCommandList(src, mode, includeDefault)
         if (mappings) {
-            notify(mappings, {src})
+            notify({"fields": [mappings], "id": "mappings.list", src})
         } else if (includeDefault) {
-            notify("No mappings found", {src})
+            notify({"id": "mappings.noMappings", src})
         } else {
-            notify("No custom mappings found", {src})
+            notify({"id": "mappings.defaultMapping", src})
         }
         return
     }
@@ -2336,22 +2343,34 @@ const mapOrList = (
             const mapping = listMappingsAsCommandList(
                 src, mode, includeDefault, [args[0]]).trim()
             if (mapping) {
-                notify(mapping, {src})
+                notify({"fields": [mapping], "id": "mappings.list", src})
             } else if (includeDefault) {
-                notify("No mapping found for this sequence", {src})
+                notify({
+                    "fields": [args[0]], "id": "mappings.noMappingsForKey", src
+                })
             } else {
-                notify("No custom mapping found for this sequence", {src})
+                notify({
+                    "fields": [args[0]],
+                    "id": "mappings.defaultMappingForKey",
+                    src
+                })
             }
         } else {
             let mappings = listMappingsAsCommandList(
                 src, null, includeDefault, [args[0]])
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
-                notify(mappings, {src})
+                notify({"fields": [mappings], "id": "mappings.list", src})
             } else if (includeDefault) {
-                notify("No mapping found for this sequence", {src})
+                notify({
+                    "fields": [args[0]], "id": "mappings.noMappingsForKey", src
+                })
             } else {
-                notify("No custom mapping found for this sequence", {src})
+                notify({
+                    "fields": [args[0]],
+                    "id": "mappings.defaultMappingForKey",
+                    src
+                })
             }
         }
         return
@@ -2368,8 +2387,12 @@ const mapOrList = (
  */
 const unmap = (src, mode, args, anyAsWildcard) => {
     if (args.length !== 1) {
-        notify(`The ${mode}unmap command requires exactly one mapping`,
-            {src, "type": "warn"})
+        notify({
+            "fields": [mode ?? ""],
+            "id": "mappings.errors.unmapArgCount",
+            src,
+            "type": "warn"
+        })
         return
     }
     const mapStr = sanitiseMapString(src, args[0])
@@ -2430,9 +2453,7 @@ const clearmap = (src, mode, removeDefaults = false) => {
  */
 const startRecording = (name, src) => {
     if (recordingName) {
-        notify("Already recording, ignoring record action", {
-            src, "type": "warn"
-        })
+        notify({"id": "actions.alreadyRecording", src, "type": "warn"})
         return
     }
     recordingName = name

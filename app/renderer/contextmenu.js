@@ -363,9 +363,9 @@ const commonAction = (src, type, action, options) => {
     } else if (action === "external") {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {
-            notify("No command set to open links externally, "
-                + "please update the 'externalcommand' setting",
-            {src, "type": "warn"})
+            notify({
+                "id": "commands.externalcommand.missing", src, "type": "warn"
+            })
             return
         }
         if (relevantData) {

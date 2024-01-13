@@ -305,9 +305,14 @@ const saveTabs = () => {
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
-    writeJSON(tabFile, data, {
-        "err": "Failed to write current tabs to disk", "src": "other"
-    })
+    const success = writeJSON(tabFile, data)
+    if (!success) {
+        notify({
+            "fields": [tabFile],
+            "id": "settings.files.failed",
+            "src": "other"
+        })
+    }
 }
 
 /**
@@ -868,7 +873,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
-            notify(e.args[0], e.args[1])
+            notify(e.args[0])
         }
         if (e.channel === "url") {
             /* eslint-disable-next-line no-use-before-define */

@@ -1,5 +1,6 @@
 {
     "actions": {
+        "alreadyRecording": "",
         "command": {
             "failed": "",
             "success": "",
@@ -75,6 +76,18 @@
         "devtools": {
             "argCount": "",
             "invalid": ""
+        },
+        "execute": {
+            "ambiguous": "",
+            "argCount": "",
+            "invalidJSON": "",
+            "noConfirm": "",
+            "noRange": "",
+            "notFound": "",
+            "unmatched": ""
+        },
+        "externalcommand": {
+            "missing": ""
         },
         "help": {
             "argCount": ""
@@ -211,6 +224,19 @@
             "text": "テキスト",
             "video": "動画"
         }
+    },
+    "mappings": {
+        "defaultMapping": "",
+        "defaultMappingForKey": "",
+        "errors": {
+            "overwritten": "",
+            "unmapArgCount": "",
+            "unmatched": "",
+            "unsupported": ""
+        },
+        "list": "",
+        "noMappings": "",
+        "noMappingsForKey": ""
     },
     "pages": {
         "cookies": {
