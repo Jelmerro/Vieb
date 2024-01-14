@@ -82,11 +82,40 @@ window.addEventListener("DOMContentLoaded", () => {
     if (checkResultEl) {
         checkResultEl.textContent = translate("pages.version.notChecked")
     }
-    const versionLinks = document.getElementById("version-links")
-    if (versionLinks) {
-        for (const el of versionLinks.children) {
-            el.textContent = translate(`pages.version.${
-                el.textContent?.trim() ?? ""}`)
+    /** @type {{
+     *   src: string, id: import("../../types/i18n").TranslationKeys
+     * }[]} */
+    const versionLinks = [
+        {"id": "pages.version.homepage", "src": "vieb.dev"},
+        {"id": "pages.version.repository", "src": "github.com/Jelmerro/Vieb"},
+        {
+            "id": "pages.version.releases",
+            "src": "github.com/Jelmerro/Vieb/releases"
+        },
+        {"id": "pages.version.sponsor", "src": "github.com/sponsors/Jelmerro"},
+        {"id": "pages.version.donate", "src": "ko-fi.com/Jelmerro"},
+        {
+            "id": "pages.version.faq",
+            "src": "github.com/Jelmerro/Vieb/blob/master/FAQ.md"
+        },
+        {
+            "id": "pages.version.changelog",
+            "src": "github.com/Jelmerro/Vieb/blob/master/CHANGELOG.md"
+        },
+        {"id": "pages.version.matrix", "src": "matrix.to/#/#vieb:matrix.org"},
+        {"id": "pages.version.telegram", "src": "t.me/vieb_general"},
+        {
+            "id": "pages.version.discussions",
+            "src": "github.com/Jelmerro/Vieb/discussions"
+        }
+    ]
+    const versionLinksEl = document.getElementById("version-links")
+    if (versionLinksEl) {
+        for (const link of versionLinks) {
+            const linkEl = document.createElement("a")
+            linkEl.href = `https://${link.src}`
+            linkEl.textContent = translate(link.id)
+            versionLinksEl.append(linkEl)
         }
     }
     const descriptionEl = document.getElementById("description")

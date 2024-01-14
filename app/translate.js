@@ -8,7 +8,8 @@ const {
     getSetting
 } = require("./util")
 
-/** @type {{[lang: string]: string}} */
+/** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */
+/** @type {StringOrObject} */
 const translations = {}
 const safeElements = [
     "#text",
@@ -74,16 +75,16 @@ const translate = (id, opts = {"customLang": null, "fields": []}) => {
     const path = id.split(".")
     let translation = obj
     for (const key of path) {
-        if (!translation) {
+        if (!translation || typeof translation === "string") {
             break
         }
         translation = translation[key]
     }
-    if (translation) {
-        opts.fields?.forEach((value, key) => {
+    if (translation && typeof translation === "string") {
+        for (const [key, value] of opts.fields?.entries() ?? []) {
             translation = translation.replace(
                 RegExp(`\\$${key + 1}`, "g"), String(value))
-        })
+        }
         return translation
     }
     if (currentLang !== "en") {
