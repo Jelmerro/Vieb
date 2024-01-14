@@ -325,6 +325,24 @@
             "title": "Version"
         }
     },
+    "permissions": {
+        "ask": {
+            "allowButton": "Allow",
+            "body": "The page has requested access to the permission '$1'. You can allow or deny it below, and choose if you want to make this the default for the current session when sites ask for this permission in the future. For help and options, see ':h $2', ':h permissionsallowed', ':h permissionsasked' and ':h permissionsblocked'.\n\npage:\n$3",
+            "bodyCertificate": "The page has a certificate error listed below. You can choose if you still want to continue visiting. Please do this after reviewing the certificate details. Because of the nature of certificates, any allowed certs will keep being trusted per domain until you restart Vieb. Changing the permission setting afterwards won't change this behavior. So while you can deny the same certificate multiple times, you only need to allow it once to be able to keep using it. For help and more options, see ':h permissioncertificateerror'.\n\npage:\n$1domain:\n$2\n\nISSUER $3\nSELF-SIGNED: $4\nSUBJECT: $5\nSTARTS: $6\nEXPIRES: $7\nFINGERPRINT: $8\n\nOnly allow certificates you have verified and can trust!",
+            "bodyExternal": "The page has requested to open an external application. You can allow or deny it below, and choose if you want to make this the default for the current session when sites ask to open urls in external programs in the future. For help and more options, see ':h permissionopenexternal', ':h permissionsallowed', ':h permissionsasked' and ':h permissionsblocked'.\n\npage:\n$2\n\nexternal:\n$3",
+            "denyButton": "Deny",
+            "label": "Remember for this session",
+            "title": "Allow this page to access '$1'?"
+        },
+        "automatic": {
+            "auto": "Automatic 'permissions$1ed' rule for '$2' activated at '$3' which was $4ed",
+            "ask": "Automatic 'permissionsasked' rule for '$1' activated at '$2' which was $3ed manually",
+            "global": "Globally $1ed '$2' at '$3' based on '$4'",
+            "manual": "Manually $1ed '$2' at '$3'"
+        },
+        "domainCachedAllowed": "Automatic domain caching rule for 'certificateerror' activated at '$1' which was allowed, because this same certificate was allowed before on this domain."
+    },
     "popups": {
         "login": {
             "info": "$1 said the following:\n$2",

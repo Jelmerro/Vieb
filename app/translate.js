@@ -58,7 +58,7 @@ const loadLang = lang => {
 /**
  * Translate a field.
  * @param {import("../types/i18n").TranslationKeys} id
- * @param {{fields?: (string|number)[], customLang?: null|string}} opts
+ * @param {{fields?: string[], customLang?: null|string}} opts
  * @returns {string}
  */
 const translate = (id, opts = {"customLang": null, "fields": []}) => {
@@ -117,7 +117,7 @@ const onlyKeepSafeNodes = node => {
 /**
  * Translate a field, then parse it as HTML and return a list of safe elements.
  * @param {import("../types/i18n").TranslationKeys} id
- * @param {{fields?: (string|number)[], customLang?: null|string}} opts
+ * @param {{fields?: string[], customLang?: null|string}} opts
  */
 const translateAsHTML = (id, opts = {"customLang": null, "fields": []}) => {
     const value = translate(id, opts)

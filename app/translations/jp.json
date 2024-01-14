@@ -325,6 +325,24 @@
             "title": "バージョン"
         }
     },
+    "permissions": {
+        "ask": {
+            "allowButton": "",
+            "body": "",
+            "bodyCertificate": "",
+            "bodyExternal": "",
+            "denyButton": "",
+            "label": "",
+            "title": ""
+        },
+        "automatic": {
+            "ask": "",
+            "auto": "",
+            "global": "",
+            "manual": ""
+        },
+        "domainCachedAllowed": ""
+    },
     "popups": {
         "login": {
             "info": "$1は「$2」って",

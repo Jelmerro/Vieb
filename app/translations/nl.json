@@ -325,6 +325,24 @@
             "title": "Versie"
         }
     },
+    "permissions": {
+        "ask": {
+            "allowButton": "",
+            "body": "",
+            "bodyCertificate": "",
+            "bodyExternal": "",
+            "denyButton": "",
+            "label": "",
+            "title": ""
+        },
+        "automatic": {
+            "ask": "",
+            "auto": "",
+            "global": "",
+            "manual": ""
+        },
+        "domainCachedAllowed": ""
+    },
     "popups": {
         "login": {
             "info": "$1 meldt het volgende:\n$2",

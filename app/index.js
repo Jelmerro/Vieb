@@ -54,6 +54,7 @@ const {
     rm,
     watchFile
 } = require("./util")
+const {translate} = require("./translate")
 
 const version = process.env.npm_package_version || app.getVersion()
 if (!app.getName().toLowerCase().startsWith("vieb")) {
@@ -699,11 +700,12 @@ const permissionHandler = (_, pm, callback, details) => {
     if (permission === "certificateerror") {
         if (allowedFingerprints[domain]
             ?.includes(details.cert?.fingerprint ?? "")) {
-            mainWindow.webContents.send("notify",
-                `Automatic domain caching rule for '${permission}' activated `
-                + `at '${details.requestingUrl}' which was allowed, because `
-                + `this same certificate was allowed before on this domain`,
-                {"src": "user", "type": "perm"})
+            mainWindow.webContents.send("notify", {
+                "fields": [permission, details.requestingUrl ?? ""],
+                "id": "permissions.domainCachedAllowed",
+                "src": "user",
+                "type": "perm"
+            })
             callback(true)
             return true
         }
@@ -716,21 +718,20 @@ const permissionHandler = (_, pm, callback, details) => {
         if (url.length > 1000) {
             url = `${url.split("").slice(0, 1000).join("")}...`
         }
-        let message = "The page has requested access to the permission "
-            + `'${permission}'. You can allow or deny this below, and choose if`
-            + " you want to make this the default for the current session when "
-            + "sites ask for this permission. For help and more options, see "
-            + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
-            + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
+        let message = translate("permissions.ask.body", {
+            "fields": [permission, permissionName, url]
+        })
         /** @type {string|undefined} */
         /** @type {import("electron").MessageBoxOptions} */
         const dialogOptions = {
             "buttons": ["Allow", "Deny"],
             "cancelId": 1,
-            "checkboxLabel": "Remember for this session",
+            "checkboxLabel": translate("permissions.ask.label"),
             "defaultId": 0,
             message,
-            "title": `Allow this page to access '${permission}'?`,
+            "title": translate("permissions.ask.title", {
+                "fields": [permission]
+            }),
             "type": "question"
         }
         if (permission === "openexternal") {
@@ -741,32 +742,23 @@ const permissionHandler = (_, pm, callback, details) => {
             if (exturl.length > 1000) {
                 exturl = `${exturl.split("").slice(0, 1000).join("")}...`
             }
-            message = "The page has requested to open an external application."
-                + " You can allow or deny this below, and choose if you want to"
-                + " make this the default for the current session when sites "
-                + "ask to open urls in external programs. For help and more "
-                + "options, see ':h permissionopenexternal', ':h permissionsall"
-                + "owed', ':h permissionsasked' and ':h permissionsblocked'."
-                + `\n\npage:\n${url}\n\nexternal:\n${exturl}`
+            message = translate("permissions.ask.bodyExternal", {
+                "fields": [url, exturl]
+            })
         }
         if (permission === "certificateerror") {
-            message = "The page has a certificate error listed below. You can "
-                + "choose if you still want to continue visiting. Please do "
-                + "this after reviewing the certificate details. Because of the"
-                + " nature of certificates, any allowed certs will keep being "
-                + "trusted per domain until you restart Vieb. Changing the "
-                + "permission setting afterwards won't change this behavior. "
-                + "So while you can deny the same certificate multiple times, "
-                + "you only need to allow it once to be able to keep using it."
-                + ` For help and more options, see ':h ${permissionName}'.`
-                + `\n\npage: ${url}\ndomain: ${domain}\n\n`
-                + `ISSUER: ${details.cert?.issuerName}\n`
-                + `SELF-SIGNED: ${!details.cert?.issuerCert}\n`
-                + `SUBJECT: ${details.cert?.subjectName}\n`
-                + `STARTS: ${formatDate(details.cert?.validStart)}\n`
-                + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
-                + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
-                + "Only allow certificates you have verified and can trust!"
+            message = translate("permissions.ask.bodyCertificate", {
+                "fields": [
+                    url,
+                    domain,
+                    details.cert?.issuerName ?? "",
+                    String(!details.cert?.issuerCert),
+                    details.cert?.subjectName ?? "",
+                    formatDate(details.cert?.validStart),
+                    formatDate(details.cert?.validExpiry),
+                    details.cert?.fingerprint ?? ""
+                ]
+            })
             delete dialogOptions.checkboxLabel
         }
         dialogOptions.message = message
@@ -780,15 +772,19 @@ const permissionHandler = (_, pm, callback, details) => {
                 action = "block"
             }
             if (settingRule) {
-                mainWindow.webContents.send("notify",
-                    `Ask rule for '${permission}' activated at '`
-                    + `${details.requestingUrl}' which was ${action}ed by user`,
-                    {"src": "user", "type": "perm"})
+                mainWindow.webContents.send("notify", {
+                    "fields": [permission, details.requestingUrl ?? "", action],
+                    "id": "permissions.automatic.ask",
+                    "src": "user",
+                    "type": "perm"
+                })
             } else {
-                mainWindow.webContents.send("notify",
-                    `Manually ${action}ed '${permission}' at `
-                    + `'${details.requestingUrl}'`,
-                    {"src": "user", "type": "perm"})
+                mainWindow.webContents.send("notify", {
+                    "fields": [action, permission, details.requestingUrl ?? ""],
+                    "id": "permissions.automatic.manual",
+                    "src": "user",
+                    "type": "perm"
+                })
             }
             const allow = action === "allow"
             const canSave = !allow || permission !== "displaycapture"
@@ -809,15 +805,29 @@ const permissionHandler = (_, pm, callback, details) => {
         })
     } else {
         if (settingRule) {
-            mainWindow.webContents.send("notify",
-                `Automatic rule for '${permission}' activated at `
-                + `'${details.requestingUrl}' which was ${setting}ed`,
-                {"src": "user", "type": "perm"})
+            mainWindow.webContents.send("notify", {
+                "fields": [
+                    setting,
+                    permission,
+                    details.requestingUrl ?? "",
+                    setting
+                ],
+                "id": "permissions.automatic.global",
+                "src": "user",
+                "type": "perm"
+            })
         } else {
-            mainWindow.webContents.send("notify",
-                `Globally ${setting}ed '${permission}' at `
-                + `'${details.requestingUrl}' based on '${permissionName}'`,
-                {"src": "user", "type": "perm"})
+            mainWindow.webContents.send("notify", {
+                "fields": [
+                    setting,
+                    permission,
+                    details.requestingUrl ?? "",
+                    permissionName
+                ],
+                "id": "permissions.automatic.global",
+                "src": "user",
+                "type": "perm"
+            })
         }
         const allow = setting === "allow"
         if (permission === "certificateerror" && allow) {
