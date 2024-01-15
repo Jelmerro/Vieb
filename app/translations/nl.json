@@ -23,6 +23,13 @@
             }
         }
     },
+    "adblocker": {
+        "aborted": "",
+        "failed": "",
+        "missing": "",
+        "updated": "",
+        "updating": ""
+    },
     "commands": {
         "arguments": {
             "folderMissing": ""
@@ -224,6 +231,11 @@
             "text": "Tekst",
             "video": "Video"
         }
+    },
+    "downloads": {
+        "failed": "",
+        "finished": "",
+        "started": ""
     },
     "mappings": {
         "defaultMapping": "",

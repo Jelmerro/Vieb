@@ -1464,9 +1464,11 @@ const reloadAdblocker = () => {
         // Adblocker module not present, skipping initialization
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
-        mainWindow?.webContents.send("notify",
-            "Adblocker module not present, ads will not be blocked!",
-            {"src": "user", "type": "err"})
+        mainWindow?.webContents.send("notify", {
+            "id": "adblocker.missing",
+            "src": "user",
+            "type": "error"
+        })
         return
     }
     blocker = ElectronBlocker.parse(filters)
@@ -1510,9 +1512,11 @@ const enableAdblocker = type => {
             if (!url) {
                 continue
             }
-            mainWindow?.webContents.send("notify",
-                `Updating ${list} to the latest version`,
-                {"src": "user"})
+            mainWindow?.webContents.send("notify", {
+                "fields": [list],
+                "id": "adblocker.updating",
+                "src": "user"
+            })
             session.fromPartition("persist:main")
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
@@ -1520,20 +1524,29 @@ const enableAdblocker = type => {
                 res.on("end", () => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     reloadAdblocker()
-                    mainWindow?.webContents.send("notify",
-                        `Updated and reloaded the latest ${list} successfully`,
-                        {"src": "user", "type": "suc"})
+                    mainWindow?.webContents.send("notify", {
+                        "fields": [list],
+                        "id": "adblocker.updated",
+                        "src": "user",
+                        "type": "success"
+                    })
                 })
                 res.on("data", chunk => {
                     body += chunk
                 })
             })
-            request.on("abort", () => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}: Request aborted`,
-                {"src": "user", "type": "err"}))
-            request.on("error", e => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`,
-                {"src": "user", "type": "err"}))
+            request.on("abort", () => mainWindow?.webContents.send("notify", {
+                "fields": [list],
+                "id": "adblocker.aborted",
+                "src": "user",
+                "type": "error"
+            }))
+            request.on("error", e => mainWindow?.webContents.send("notify", {
+                "fields": [list, e.message],
+                "id": "adblocker.failed",
+                "src": "user",
+                "type": "error"
+            }))
             request.end()
         }
     } else {
@@ -1727,8 +1740,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (downloadSrc === "execute") {
             downloadSettings.src = "user"
         }
-        mainWindow.webContents.send("notify",
-            `Download started:\n${info.name}`, {"src": downloadSrc})
+        mainWindow.webContents.send("notify", {
+            "fields": [info.name],
+            "id": "downloads.started",
+            "src": downloadSrc
+        })
         item.on("updated", (__, state) => {
             try {
                 info.current = item.getReceivedBytes()
@@ -1755,18 +1771,22 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 info.state = "cancelled"
             }
             if (info.state === "completed") {
-                mainWindow?.webContents.send("notify",
-                    `Download finished:\n${info.name}`, {
-                        "action": {
-                            "path": info.file, "type": "download-success"
-                        },
-                        "src": downloadSrc,
-                        "type": "success"
-                    })
+                mainWindow?.webContents.send("notify", {
+                    "action": {
+                        "path": info.file, "type": "download-success"
+                    },
+                    "fields": [info.name],
+                    "id": "downloads.finished",
+                    "src": downloadSrc,
+                    "type": "success"
+                })
             } else {
-                mainWindow?.webContents.send("notify",
-                    `Download failed:\n${info.name}`,
-                    {"src": downloadSrc, "type": "warn"})
+                mainWindow?.webContents.send("notify", {
+                    "fields": [info.name],
+                    "id": "downloads.failed",
+                    "src": downloadSrc,
+                    "type": "warning"
+                })
             }
         })
     })

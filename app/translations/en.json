@@ -23,6 +23,13 @@
             }
         }
     },
+    "adblocker": {
+        "aborted": "Failed to update $1: Request aborted",
+        "failed": "Failed to update $1:\n$2",
+        "missing": "Adblocker module not present, ads will not be blocked!",
+        "updated": "Updated and reloaded the latest $1 successfully",
+        "updating": "Updating $1 to the latest version"
+    },
     "commands": {
         "arguments": {
             "folderMissing": "Folder '$1' does not exist!"
@@ -225,6 +232,11 @@
             "video": "Video"
         }
     },
+    "downloads": {
+        "failed": "Download failed:\n$1",
+        "finished": "Download finished:\n$1",
+        "started": "Download started:\n$1"
+    },
     "mappings": {
         "defaultMapping": "No custom mappings found",
         "defaultMappingForKey": "No custom mapping found for key: $1",
@@ -336,8 +348,8 @@
             "title": "Allow this page to access '$1'?"
         },
         "automatic": {
-            "auto": "Automatic 'permissions$1ed' rule for '$2' activated at '$3' which was $4ed",
             "ask": "Automatic 'permissionsasked' rule for '$1' activated at '$2' which was $3ed manually",
+            "auto": "Automatic 'permissions$1ed' rule for '$2' activated at '$3' which was $4ed",
             "global": "Globally $1ed '$2' at '$3' based on '$4'",
             "manual": "Manually $1ed '$2' at '$3'"
         },
