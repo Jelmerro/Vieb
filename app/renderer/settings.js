@@ -662,7 +662,7 @@ const checkOption = (src, setting, value) => {
                 "fields": [setting, argsAsHumanList(optionList)],
                 "id": "settings.errors.oneof",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         return valid
@@ -683,7 +683,7 @@ const checkNumber = (src, setting, value) => {
             "fields": [setting, String(numberRange[0]), String(numberRange[1])],
             "id": "settings.errors.numberRange",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return false
     }
@@ -703,7 +703,7 @@ const checkSuggestOrder = (src, value) => {
                 "fields": [suggest],
                 "id": "settings.errors.suggestorder.tilde",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -714,7 +714,7 @@ const checkSuggestOrder = (src, value) => {
                 "fields": [type],
                 "id": "settings.errors.suggestorder.type",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -725,7 +725,7 @@ const checkSuggestOrder = (src, value) => {
                 notify({
                     "id": "settings.errors.suggestorder.empty",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -735,7 +735,7 @@ const checkSuggestOrder = (src, value) => {
                     notify({
                         "id": "settings.errors.suggestorder.duplicateCount",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -757,7 +757,7 @@ const checkSuggestOrder = (src, value) => {
                     notify({
                         "id": "settings.errors.suggestorder.duplicateSort",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -768,7 +768,7 @@ const checkSuggestOrder = (src, value) => {
                 "fields": [type, argsAsHumanList(validOrders)],
                 "id": "settings.errors.suggestorder.invalidSort",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -795,7 +795,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [value],
                 "id": "settings.errors.clearhistoryinterval",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         return valid
@@ -819,7 +819,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [setting, argsAsHumanList(specialNames)],
                 "id": "settings.errors.container.invalidspecial",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -829,7 +829,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [setting, value],
                 "id": "settings.errors.container.specialchars",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -844,7 +844,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, colorMatch],
                     "id": "settings.errors.container.colorSeparator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -856,7 +856,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [match],
                     "id": "settings.errors.container.colorRegex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -868,7 +868,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [color],
                     "id": "settings.errors.container.colorName",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -884,7 +884,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, containerMatch],
                     "id": "settings.errors.container.namesSeparator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -894,7 +894,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [containerMatch],
                     "id": "settings.errors.container.namesNewtab",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -905,7 +905,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [match],
                     "id": "settings.errors.container.namesRegex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -915,7 +915,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, simpleValue],
                     "id": "settings.errors.container.namesSpecialchars",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -933,7 +933,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [value],
                 "id": "settings.errors.darkreader.color",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -950,7 +950,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, match],
                     "id": "settings.errors.darkreader.blocklistRegex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -967,7 +967,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [match, setting],
                     "id": "settings.errors.invalidScope",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -983,7 +983,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [expandedPath],
                 "id": "settings.errors.downloadpathMissing",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -992,7 +992,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [expandedPath],
                 "id": "settings.errors.downloadpathIsFolder",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -1007,7 +1007,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [page],
                     "id": "settings.errors.favoritepages",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1030,7 +1030,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [value],
                 "id": "settings.errors.followchars.invalidSet",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -1040,7 +1040,7 @@ const checkOther = (src, setting, value) => {
                 notify({
                     "id": "settings.errors.followchars.notEnough",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1048,7 +1048,7 @@ const checkOther = (src, setting, value) => {
                 notify({
                     "id": "settings.errors.followchars.duplicate",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1073,7 +1073,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [element, argsAsHumanList(ok)],
                     "id": "settings.errors.followelement",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1092,7 +1092,7 @@ const checkOther = (src, setting, value) => {
                         "fields": [name],
                         "id": "settings.errors.modifiers",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1110,7 +1110,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [invalid],
                 "id": "settings.errors.mouseFeature",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -1124,7 +1124,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [value],
                 "id": "settings.errors.newtaburl",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -1141,7 +1141,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [val],
                     "id": "settings.errors.passthrough.regex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1153,7 +1153,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [val],
                     "id": "settings.errors.passthrough.keys",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1168,7 +1168,7 @@ const checkOther = (src, setting, value) => {
                         "fields": [name],
                         "id": "settings.errors.passthrough.keyname",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1177,7 +1177,7 @@ const checkOther = (src, setting, value) => {
                         "fields": [name],
                         "id": "settings.errors.passthrough.keyname",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1198,7 +1198,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, override],
                     "id": "settings.errors.permission.separator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1210,7 +1210,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [match],
                     "id": "settings.errors.permission.regex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1232,7 +1232,7 @@ const checkOther = (src, setting, value) => {
                         "fields": [name],
                         "id": "settings.errors.permission.name",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1240,7 +1240,7 @@ const checkOther = (src, setting, value) => {
                     notify({
                         "id": "settings.errors.permission.hidasked",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1248,7 +1248,7 @@ const checkOther = (src, setting, value) => {
                     notify({
                         "id": "settings.errors.permission.usbasked",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1256,7 +1256,7 @@ const checkOther = (src, setting, value) => {
                     notify({
                         "id": "settings.errors.permission.serialasked",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1264,7 +1264,7 @@ const checkOther = (src, setting, value) => {
                     notify({
                         "id": "settings.errors.permission.mediadevicesasked",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1272,7 +1272,7 @@ const checkOther = (src, setting, value) => {
                     notify({
                         "id": "settings.errors.permission.captureallowed",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1289,7 +1289,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [mType],
                     "id": "settings.errors.markpersistencetype",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1305,7 +1305,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [redirect],
                     "id": "settings.errors.redirect.separator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1317,7 +1317,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [match],
                     "id": "settings.errors.redirect.regex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1336,7 +1336,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, match],
                     "id": "settings.errors.resources.regex",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1347,7 +1347,7 @@ const checkOther = (src, setting, value) => {
                         "fields": [setting, name],
                         "id": "settings.errors.resources.type",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1364,7 +1364,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [setting, rsrc],
                     "id": "settings.errors.resources.type",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1381,7 +1381,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [baseUrl],
                     "id": "settings.errors.searchengine.replace",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1390,7 +1390,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [baseUrl],
                     "id": "settings.errors.searchengine.url",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1410,7 +1410,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [searchword.join("~")],
                     "id": "settings.errors.searchwords.separator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1419,7 +1419,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [searchword.join("~")],
                     "id": "settings.errors.searchwords.separator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1428,7 +1428,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [searchword.join("~"), keyword],
                     "id": "settings.errors.searchwords.separator",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1445,7 +1445,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [lang],
                     "id": "settings.errors.spelllang",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1466,7 +1466,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [category],
                     "id": "settings.errors.sponsorblock.name",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1478,7 +1478,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [color],
                     "id": "settings.errors.sponsorblock.color",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1487,7 +1487,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [category],
                     "id": "settings.errors.sponsorblock.duplicate",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1507,7 +1507,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [url],
                     "id": "settings.errors.startuppages.url",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1524,7 +1524,7 @@ const checkOther = (src, setting, value) => {
                         "fields": [cname],
                         "id": "settings.errors.startuppages.name",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return false
                 }
@@ -1534,7 +1534,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [page],
                     "id": "settings.errors.startuppages.toomany",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1543,7 +1543,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [parts[0]],
                     "id": "settings.errors.startuppages.invalidopts",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1552,7 +1552,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [parts[1]],
                     "id": "settings.errors.startuppages.invalidopts",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1576,7 +1576,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [visitType, argsAsHumanList(valid)],
                     "id": "settings.errors.storenewvisits",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1611,7 +1611,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [match],
                     "id": "settings.errors.tocpages",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1626,7 +1626,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [value],
                 "id": "settings.errors.translateurl",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -1643,7 +1643,7 @@ const checkOther = (src, setting, value) => {
                 "fields": [setting],
                 "id": "settings.errors.windowsize.format",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return false
         }
@@ -1654,7 +1654,7 @@ const checkOther = (src, setting, value) => {
                     "fields": [String(nums.find(v => v < 500))],
                     "id": "settings.errors.windowsize.minimum",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return false
             }
@@ -1749,7 +1749,7 @@ const isValidSetting = (src, setting, value) => {
             "fields": [setting, expectedType, typeof parsedValue],
             "id": "settings.errors.type",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return false
     }
@@ -2363,7 +2363,7 @@ const loadFromDisk = (firstRun, src = "source") => {
                     "fields": [conf],
                     "id": "settings.errors.fileload",
                     src,
-                    "type": "err"
+                    "type": "error"
                 })
                 continue
             }
@@ -2402,7 +2402,7 @@ const reset = (src, setting) => {
             "fields": [setting],
             "id": "settings.errors.missing",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
 }

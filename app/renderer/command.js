@@ -155,7 +155,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             "fields": [setting, value],
             "id": "commands.settings.invalidJSON",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -165,7 +165,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             "fields": [setting, value],
             "id": "commands.settings.invalidStructure",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -251,7 +251,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             notify({
                 "id": "commands.settings.reserved",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return
         }
@@ -305,7 +305,7 @@ const modifySetting = (src, setting, value, method = "replace") => {
             "fields": [setting],
             "id": "commands.settings.noModify",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -360,7 +360,7 @@ const modifySetting = (src, setting, value, method = "replace") => {
             notify({
                 "id": "commands.settings.reserved",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         if (isList) {
@@ -409,7 +409,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if ((/^\w+-=/).test(part)) {
@@ -421,7 +421,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if ((/^\w+\^=/).test(part)) {
@@ -433,7 +433,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if ((/^\w+=/).test(part)) {
@@ -445,7 +445,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if ((/^\w+:/).test(part)) {
@@ -457,7 +457,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if ((/^\w+!.+/).test(part)) {
@@ -472,7 +472,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if (part.endsWith("!")) {
@@ -492,7 +492,7 @@ const setCommand = (src, args) => {
                         "fields": [setting],
                         "id": "commands.settings.noFlipping",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                 }
             } else {
@@ -500,7 +500,7 @@ const setCommand = (src, args) => {
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if (part.endsWith("&")) {
@@ -515,7 +515,7 @@ const setCommand = (src, args) => {
                     "fields": [settingName],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if (isValidSettingName(part) && part !== "all"
@@ -532,7 +532,7 @@ const setCommand = (src, args) => {
                         "fields": [settingName],
                         "id": "commands.settings.noFlipping",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                 }
             } else if (isValidSettingName(part)) {
@@ -542,7 +542,7 @@ const setCommand = (src, args) => {
                     "fields": [part],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if (part.startsWith("no")) {
@@ -570,7 +570,7 @@ const setCommand = (src, args) => {
                     "fields": [part],
                     "id": "commands.settings.missing",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
         } else if (isValidSettingName(part)) {
@@ -580,7 +580,7 @@ const setCommand = (src, args) => {
                 "fields": [part],
                 "id": "commands.settings.missing",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
     }
@@ -597,7 +597,7 @@ const sourcedFiles = []
  */
 const source = (src, origin, args) => {
     if (args.length !== 1) {
-        notify({"id": "commands.source.argCount", src, "type": "warn"})
+        notify({"id": "commands.source.argCount", src, "type": "warning"})
         return
     }
     let [absFile] = args
@@ -665,7 +665,7 @@ const translateSearchRangeToIdx = (src, range, silent) => {
                 "fields": [range],
                 "id": "commands.ranges.flags",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         return {"tabs": [], "valid": false}
@@ -769,7 +769,7 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
             "fields": [rangePart],
             "id": "commands.ranges.indexOrSearch",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
     return {"num": number, valid}
@@ -793,7 +793,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
                     "fields": [range],
                     "id": "commands.ranges.commas",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
             return {"tabs": [], "valid": false}
@@ -804,7 +804,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
                     "fields": [range],
                     "id": "commands.ranges.combined",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
             return {"tabs": [], "valid": false}
@@ -816,7 +816,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
                     "fields": [start],
                     "id": "commands.ranges.invalid",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
             return {"tabs": [], "valid": false}
@@ -828,7 +828,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
                     "fields": [end],
                     "id": "commands.ranges.invalid",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
             }
             return {"tabs": [], "valid": false}
@@ -1017,7 +1017,7 @@ let currentscheme = "default"
  */
 const colorscheme = (src, name = null, trailingArgs = null) => {
     if (trailingArgs) {
-        notify({"id": "commands.colorscheme.argCount", src, "type": "warn"})
+        notify({"id": "commands.colorscheme.argCount", src, "type": "warning"})
         return
     }
     if (!name) {
@@ -1040,7 +1040,7 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
             "fields": [name],
             "id": "commands.colorscheme.missing",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -1076,7 +1076,7 @@ const restart = () => {
  */
 const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
-        notify({"id": "commands.devtools.argCount", src, "type": "warn"})
+        notify({"id": "commands.devtools.argCount", src, "type": "warning"})
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
@@ -1104,7 +1104,7 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
             "fields": [position, valid],
             "id": "commands.devtools.invalid",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
 }
@@ -1152,7 +1152,7 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
  */
 const help = (src, forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify({"id": "commands.help.argCount", src, "type": "warn"})
+        notify({"id": "commands.help.argCount", src, "type": "warning"})
         return
     }
     openSpecialPage(src, "help", forceNewtab, section)
@@ -1213,7 +1213,7 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
                 "fields": [dirname(file)],
                 "id": "commands.arguments.folderMissing",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return
         }
@@ -1275,7 +1275,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
  */
 const write = (src, args, range) => {
     if (args.length > 2) {
-        notify({"id": "commands.write.argCount", src, "type": "warn"})
+        notify({"id": "commands.write.argCount", src, "type": "warning"})
         return
     }
     let [path, type = "html"] = args
@@ -1287,12 +1287,12 @@ const write = (src, args, range) => {
             "fields": [type],
             "id": "commands.write.type",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
     if (range && path) {
-        notify({"id": "commands.write.combined", src, "type": "warn"})
+        notify({"id": "commands.write.combined", src, "type": "warning"})
         return
     }
     if (range) {
@@ -1343,11 +1343,11 @@ const translateDimsToRect = dims => {
  */
 const screencopy = (src, args) => {
     if (args.length > 1) {
-        notify({"id": "commands.screencopy.argCount", src, "type": "warn"})
+        notify({"id": "commands.screencopy.argCount", src, "type": "warning"})
         return
     }
     if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
-        notify({"id": "commands.screencopy.dimensions", src, "type": "warn"})
+        notify({"id": "commands.screencopy.dimensions", src, "type": "warning"})
         return
     }
     if (!currentPage()) {
@@ -1403,7 +1403,7 @@ const takeScreenshot = (src, dims, location) => {
  */
 const screenshot = (src, args) => {
     if (args.length > 2) {
-        notify({"id": "commands.screenshot.argCount", src, "type": "warn"})
+        notify({"id": "commands.screenshot.argCount", src, "type": "warning"})
         return
     }
     let [dims, location] = args
@@ -1411,7 +1411,7 @@ const screenshot = (src, args) => {
         [location, dims] = args
     }
     if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
-        notify({"id": "commands.screenshot.dimensions", src, "type": "warn"})
+        notify({"id": "commands.screenshot.dimensions", src, "type": "warning"})
         return
     }
     takeScreenshot(src, dims, location)
@@ -1425,7 +1425,7 @@ const screenshot = (src, args) => {
  */
 const mkviebrc = (src, full = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify({"id": "commands.mkviebrc.argCount", src, "type": "warn"})
+        notify({"id": "commands.mkviebrc.argCount", src, "type": "warning"})
         return
     }
     let exportAll = false
@@ -1437,7 +1437,7 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
                 "fields": [full],
                 "id": "commands.mkviebrc.invalid",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return
         }
@@ -1501,7 +1501,7 @@ const open = (src, args) => {
  */
 const suspend = (src, args, range = null) => {
     if (range && args.length) {
-        notify({"id": "commands.suspend.range", src, "type": "warn"})
+        notify({"id": "commands.suspend.range", src, "type": "warning"})
         return
     }
     if (range) {
@@ -1517,7 +1517,7 @@ const suspend = (src, args, range = null) => {
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify({"id": "commands.suspend.visible", src, "type": "warn"})
+            notify({"id": "commands.suspend.visible", src, "type": "warning"})
         } else {
             const {suspendTab} = require("./tabs")
             suspendTab(src, tab)
@@ -1533,7 +1533,7 @@ const suspend = (src, args, range = null) => {
  */
 const hideCommand = (src, args, range = null) => {
     if (range && args.length) {
-        notify({"id": "commands.hide.range", src, "type": "warn"})
+        notify({"id": "commands.hide.range", src, "type": "warning"})
         return
     }
     if (range) {
@@ -1554,7 +1554,7 @@ const hideCommand = (src, args, range = null) => {
                 hide(page)
             }
         } else {
-            notify({"id": "commands.hide.visible", src, "type": "warn"})
+            notify({"id": "commands.hide.visible", src, "type": "warning"})
         }
     }
 }
@@ -1567,7 +1567,7 @@ const hideCommand = (src, args, range = null) => {
  */
 const setMute = (src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
-        notify({"id": "commands.mute.argCount", src, "type": "warn"})
+        notify({"id": "commands.mute.argCount", src, "type": "warning"})
         return
     }
     let targets = [currentTab()]
@@ -1598,7 +1598,7 @@ const setMute = (src, args, range) => {
  */
 const mute = (src, args, range = null) => {
     if (range && args.length) {
-        notify({"id": "commands.mute.range", src, "type": "warn"})
+        notify({"id": "commands.mute.range", src, "type": "warning"})
         return
     }
     if (range) {
@@ -1610,7 +1610,7 @@ const mute = (src, args, range = null) => {
         tab = tabForBufferArg(args)
     }
     if (!tab) {
-        notify({"id": "commands.mute.noMatch", src, "type": "warn"})
+        notify({"id": "commands.mute.noMatch", src, "type": "warning"})
         return
     }
     if (tab.getAttribute("muted")) {
@@ -1634,7 +1634,7 @@ const mute = (src, args, range = null) => {
  */
 const setPin = (src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
-        notify({"id": "commands.pin.argCount", src, "type": "warn"})
+        notify({"id": "commands.pin.argCount", src, "type": "warning"})
         return
     }
     let targets = [currentTab()]
@@ -1668,7 +1668,7 @@ const setPin = (src, args, range) => {
  */
 const pin = (src, args, range) => {
     if (range && args.length) {
-        notify({"id": "commands.pin.range", src, "type": "warn"})
+        notify({"id": "commands.pin.range", src, "type": "warning"})
         return
     }
     if (range) {
@@ -1692,7 +1692,7 @@ const pin = (src, args, range) => {
         tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
     }
     if (!tab) {
-        notify({"id": "commands.pin.noMatch", src, "type": "warn"})
+        notify({"id": "commands.pin.noMatch", src, "type": "warning"})
         return
     }
     const tabContainer = document.getElementById("tabs")
@@ -1720,7 +1720,7 @@ const pin = (src, args, range) => {
  */
 const addSplit = (src, method, leftOrAbove, args, range = null) => {
     if (range && args.length) {
-        notify({"id": "commands.split.range", src, "type": "warn"})
+        notify({"id": "commands.split.range", src, "type": "warning"})
         return
     }
     if (range) {
@@ -1742,7 +1742,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
     const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify({"id": "commands.split.visible", src, "type": "warn"})
+            notify({"id": "commands.split.visible", src, "type": "warning"})
         } else {
             const page = pageForTab(tab)
             if (page) {
@@ -1769,7 +1769,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
  */
 const close = (src, force, args, range) => {
     if (range && args.length) {
-        notify({"id": "commands.close.range", src, "type": "warn"})
+        notify({"id": "commands.close.range", src, "type": "warning"})
         return
     }
     const {closeTab} = require("./tabs")
@@ -1789,7 +1789,7 @@ const close = (src, force, args, range) => {
         closeTab(src, listTabs().indexOf(tab), force)
         return
     }
-    notify({"id": "commands.close.noMatch", src, "type": "warn"})
+    notify({"id": "commands.close.noMatch", src, "type": "warning"})
 }
 
 /**
@@ -1849,7 +1849,7 @@ const makedefault = src => {
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
-        notify({"id": "commands.makedefault.other", src, "type": "warn"})
+        notify({"id": "commands.makedefault.other", src, "type": "warning"})
     }
 }
 
@@ -1947,7 +1947,7 @@ const tabnew = (src, session = null, url = null) => {
  */
 const marks = (src, args) => {
     if (args.length > 2) {
-        notify({"id": "commands.marks.argCount", src, "type": "warn"})
+        notify({"id": "commands.marks.argCount", src, "type": "warning"})
         return
     }
     if (args.length === 2) {
@@ -1959,7 +1959,7 @@ const marks = (src, args) => {
                 "fields": [args[1]],
                 "id": "commands.marks.url",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         return
@@ -1988,17 +1988,17 @@ const marks = (src, args) => {
                 "fields": args,
                 "id": "commands.marks.noKey",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         } else {
-            notify({"id": "commands.marks.none", src, "type": "warn"})
+            notify({"id": "commands.marks.none", src, "type": "warning"})
         }
     } else {
         notify({
             "fields": [relevantMarks.join("\n")],
             "id": "commands.marks.list",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
 }
@@ -2010,11 +2010,11 @@ const marks = (src, args) => {
  */
 const restoremark = (src, args) => {
     if (args.length > 2) {
-        notify({"id": "commands.restoremark.argCount", src, "type": "warn"})
+        notify({"id": "commands.restoremark.argCount", src, "type": "warning"})
         return
     }
     if (args.length === 0) {
-        notify({"id": "commands.restoremark.keyname", src, "type": "warn"})
+        notify({"id": "commands.restoremark.keyname", src, "type": "warning"})
         return
     }
     const {restoreMark} = require("./actions")
@@ -2038,7 +2038,7 @@ const restoremark = (src, args) => {
             ],
             "id": "commands.restoremark.argCount",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
 }
@@ -2051,7 +2051,7 @@ const restoremark = (src, args) => {
  */
 const delmarks = (src, all, args) => {
     if (all && args.length) {
-        notify({"id": "commands.delmarks.argCount", src, "type": "warn"})
+        notify({"id": "commands.delmarks.argCount", src, "type": "warning"})
         return
     }
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
@@ -2061,7 +2061,7 @@ const delmarks = (src, all, args) => {
         return
     }
     if (args.length !== 1) {
-        notify({"id": "commands.delmarks.keyname", src, "type": "warn"})
+        notify({"id": "commands.delmarks.keyname", src, "type": "warning"})
         return
     }
     const [key] = args
@@ -2078,7 +2078,7 @@ const delmarks = (src, all, args) => {
  */
 const scrollpos = (src, args) => {
     if (args.length > 3) {
-        notify({"id": "commands.scrollpos.argCount", src, "type": "warn"})
+        notify({"id": "commands.scrollpos.argCount", src, "type": "warning"})
         return
     }
     if (args.length === 2 || args.length === 3) {
@@ -2096,7 +2096,7 @@ const scrollpos = (src, args) => {
                     "fields": [pixelsOrPath],
                     "id": "commands.scrollpos.pixels",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return
             }
@@ -2152,10 +2152,10 @@ const scrollpos = (src, args) => {
                 "fields": args,
                 "id": "commands.scrollpos.noKey",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         } else {
-            notify({"id": "commands.scrollpos.none", src, "type": "warn"})
+            notify({"id": "commands.scrollpos.none", src, "type": "warning"})
         }
     } else {
         notify({
@@ -2174,12 +2174,14 @@ const scrollpos = (src, args) => {
 const restorescrollpos = (src, args) => {
     if (args.length > 2) {
         notify({
-            "id": "commands.restorescrollpos.argCount", src, "type": "warn"
+            "id": "commands.restorescrollpos.argCount", src, "type": "warning"
         })
         return
     }
     if (args.length === 0) {
-        notify({"id": "commands.restorescrollpos.keyname", src, "type": "warn"})
+        notify({
+            "id": "commands.restorescrollpos.keyname", src, "type": "warning"
+        })
         return
     }
     const {restoreScrollPos} = require("./actions")
@@ -2212,7 +2214,7 @@ const delscrollpos = (src, all, args) => {
             notify({
                 "id": "commands.deletescrollpos.overridePath",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return
         }
@@ -2233,11 +2235,15 @@ const delscrollpos = (src, all, args) => {
         return
     }
     if (args.length === 0) {
-        notify({"id": "commands.deletescrollpos.toofew", src, "type": "warn"})
+        notify({
+            "id": "commands.deletescrollpos.toofew", src, "type": "warning"
+        })
         return
     }
     if (args.length > 2) {
-        notify({"id": "commands.deletescrollpos.toomany", src, "type": "warn"})
+        notify({
+            "id": "commands.deletescrollpos.toomany", src, "type": "warning"
+        })
         return
     }
     if (args[1]) {
@@ -2276,7 +2282,7 @@ const delscrollpos = (src, all, args) => {
  */
 const pointerpos = (src, args) => {
     if (args.length > 4) {
-        notify({"id": "commands.pointerpos.argCount", src, "type": "warn"})
+        notify({"id": "commands.pointerpos.argCount", src, "type": "warning"})
         return
     }
     if (args.length > 1) {
@@ -2284,7 +2290,9 @@ const pointerpos = (src, args) => {
         const [key, x, y, path] = args
         const location = {"x": Number(x), "y": Number(y)}
         if (isNaN(location.x) || isNaN(location.y)) {
-            notify({"id": "commands.pointerpos.location", src, "type": "warn"})
+            notify({
+                "id": "commands.pointerpos.location", src, "type": "warning"
+            })
             return
         }
         storePos({key, location, path})
@@ -2341,10 +2349,10 @@ const pointerpos = (src, args) => {
                 "fields": args,
                 "id": "commands.pointerpos.noKey",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         } else {
-            notify({"id": "commands.pointerpos.none", src, "type": "warn"})
+            notify({"id": "commands.pointerpos.none", src, "type": "warning"})
         }
     } else {
         notify({
@@ -2363,13 +2371,13 @@ const pointerpos = (src, args) => {
 const restorepointerpos = (src, args) => {
     if (args.length > 2) {
         notify({
-            "id": "commands.restorepointerpos.argCount", src, "type": "warn"
+            "id": "commands.restorepointerpos.argCount", src, "type": "warning"
         })
         return
     }
     if (args.length === 0) {
         notify({
-            "id": "commands.restorepointerpos.keyname", src, "type": "warn"
+            "id": "commands.restorepointerpos.keyname", src, "type": "warning"
         })
         return
     }
@@ -2403,7 +2411,7 @@ const delpointerpos = (src, all, args) => {
             notify({
                 "id": "commands.deletepointerpos.overridePath",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return
         }
@@ -2424,11 +2432,15 @@ const delpointerpos = (src, all, args) => {
         return
     }
     if (args.length === 0) {
-        notify({"id": "commands.deletepointerpos.toofew", src, "type": "warn"})
+        notify({
+            "id": "commands.deletepointerpos.toofew", src, "type": "warning"
+        })
         return
     }
     if (args.length > 2) {
-        notify({"id": "commands.deletepointerpos.toomany", src, "type": "warn"})
+        notify({
+            "id": "commands.deletepointerpos.toomany", src, "type": "warning"
+        })
         return
     }
     if (args[1]) {
@@ -2467,7 +2479,9 @@ const delpointerpos = (src, all, args) => {
  */
 const translatepage = (src, args) => {
     if (args.length > 1) {
-        notify({"id": "commands.translatepage.argCount", src, "type": "warn"})
+        notify({
+            "id": "commands.translatepage.argCount", src, "type": "warning"
+        })
         return
     }
     const url = getSetting("translateurl").replace(/\/*$/g, "")
@@ -2481,7 +2495,7 @@ const translatepage = (src, args) => {
     }
     const apiKey = getSetting("translatekey").trim()
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
-        notify({"id": "commands.translatepage.apiKey", src, "type": "warn"})
+        notify({"id": "commands.translatepage.apiKey", src, "type": "warning"})
         return
     }
     const {validOptions} = require("./settings")
@@ -2491,7 +2505,7 @@ const translatepage = (src, args) => {
             "fields": [lang],
             "id": "commands.translatepage.language",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -2523,19 +2537,19 @@ const translatepage = (src, args) => {
  */
 const clear = (src, type, interval, trailingArgs = null) => {
     if (trailingArgs) {
-        notify({"id": "commands.clear.argCount", src, "type": "warn"})
+        notify({"id": "commands.clear.argCount", src, "type": "warning"})
         return
     }
     if (!type) {
-        notify({"id": "commands.clear.typeMissing", src, "type": "warn"})
+        notify({"id": "commands.clear.typeMissing", src, "type": "warning"})
         return
     }
     if (!interval) {
-        notify({"id": "commands.clear.intervalMissing", src, "type": "warn"})
+        notify({"id": "commands.clear.intervalMissing", src, "type": "warning"})
         return
     }
     if (!["history"].includes(type)) {
-        notify({"id": "commands.clear.typeInvalid", src, "type": "warn"})
+        notify({"id": "commands.clear.typeInvalid", src, "type": "warning"})
         return
     }
     if (type === "history") {
@@ -2555,7 +2569,7 @@ const clear = (src, type, interval, trailingArgs = null) => {
             removeHistoryByPartialUrl(interval)
         } else {
             notify({
-                "id": "commands.clear.intervalInvalid", src, "type": "warn"
+                "id": "commands.clear.intervalInvalid", src, "type": "warning"
             })
         }
     }
@@ -2701,7 +2715,9 @@ const commands = {
     "screenshot": ({src, args}) => screenshot(src, args),
     "scriptnames": ({args, src}) => {
         if (args?.length) {
-            notify({"id": "commands.scriptnames.noArgs", src, "type": "warn"})
+            notify({
+                "id": "commands.scriptnames.noArgs", src, "type": "warning"
+            })
             return
         }
         const names = appConfig()?.files.map(
@@ -2717,7 +2733,7 @@ const commands = {
             const number = Number(args[0])
             if (isNaN(number)) {
                 notify({
-                    "id": "commands.scriptnames.argType", src, "type": "warn"
+                    "id": "commands.scriptnames.argType", src, "type": "warning"
                 })
                 return
             }
@@ -2727,7 +2743,7 @@ const commands = {
                     "fields": [String(number)],
                     "id": "commands.scriptnames.notFound",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return
             }
@@ -2813,7 +2829,7 @@ const {mapOrList, unmap, clearmap} = require("./input")
  */
 const addCommand = (src, overwrite, args) => {
     if (overwrite && args.length < 2) {
-        notify({"id": "commands.command.combined", src, "type": "warn"})
+        notify({"id": "commands.command.combined", src, "type": "warning"})
         return
     }
     if (args.length === 0) {
@@ -2831,11 +2847,11 @@ const addCommand = (src, overwrite, args) => {
     }
     const command = args[0].replace(/^[:'" ]*/, "")
     if (command.includes("/") || command.includes("\\")) {
-        notify({"id": "commands.command.slashes", src, "type": "warn"})
+        notify({"id": "commands.command.slashes", src, "type": "warning"})
         return
     }
     if (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
-        notify({"id": "commands.command.special", src, "type": "warn"})
+        notify({"id": "commands.command.special", src, "type": "warning"})
         return
     }
     const params = args.slice(1)
@@ -2844,7 +2860,7 @@ const addCommand = (src, overwrite, args) => {
             "fields": [command],
             "id": "commands.command.builtin",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -2860,7 +2876,7 @@ const addCommand = (src, overwrite, args) => {
                 "fields": [command],
                 "id": "commands.command.missing",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         return
@@ -2870,7 +2886,7 @@ const addCommand = (src, overwrite, args) => {
             "fields": [command],
             "id": "commands.command.duplicate",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -2885,7 +2901,7 @@ const addCommand = (src, overwrite, args) => {
  */
 const deleteCommand = (src, args) => {
     if (args.length !== 1) {
-        notify({"id": "commands.delcommand.argCount", src, "type": "warn"})
+        notify({"id": "commands.delcommand.argCount", src, "type": "warning"})
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
@@ -2896,7 +2912,7 @@ const deleteCommand = (src, args) => {
             "fields": [command],
             "id": "commands.delcommand.missing",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
 }
@@ -3084,13 +3100,13 @@ const execute = (com, opts = {}) => {
                             "fields": [output],
                             "id": "actions.command.successWithOutput",
                             src,
-                            "type": "suc"
+                            "type": "success"
                         })
                     } else {
                         notify({
                             "id": "actions.command.success",
                             src,
-                            "type": "suc"
+                            "type": "success"
                         })
                     }
                 }
@@ -3107,14 +3123,14 @@ const execute = (com, opts = {}) => {
                 "fields": [commandStr, error ?? ""],
                 "id": "commands.execute.invalidJSON",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         } else {
             notify({
                 "fields": [commandStr],
                 "id": "commands.execute.unmatched",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         }
         return
@@ -3132,7 +3148,7 @@ const execute = (com, opts = {}) => {
                 "fields": [command],
                 "id": "commands.execute.argCount",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
         } else if (commands[command]) {
             if (!rangeCompatibleCommands.includes(command) && range) {
@@ -3140,7 +3156,7 @@ const execute = (com, opts = {}) => {
                     "fields": [command],
                     "id": "commands.execute.noRange",
                     src,
-                    "type": "warn"
+                    "type": "warning"
                 })
                 return
             }
@@ -3151,7 +3167,7 @@ const execute = (com, opts = {}) => {
                         "fields": [command.slice(0, -1)],
                         "id": "commands.execute.noConfirm",
                         src,
-                        "type": "warn"
+                        "type": "warning"
                     })
                     return
                 }
@@ -3169,14 +3185,14 @@ const execute = (com, opts = {}) => {
             "fields": [command],
             "id": "commands.execute.ambiguous",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     } else {
         notify({
             "fields": [command],
             "id": "commands.execute.notFound",
             src,
-            "type": "warn"
+            "type": "warning"
         })
     }
 }

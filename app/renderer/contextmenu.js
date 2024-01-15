@@ -364,7 +364,7 @@ const commonAction = (src, type, action, options) => {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {
             notify({
-                "id": "commands.externalcommand.missing", src, "type": "warn"
+                "id": "commands.externalcommand.missing", src, "type": "warning"
             })
             return
         }
@@ -395,13 +395,13 @@ const commonAction = (src, type, action, options) => {
                             "fields": [output],
                             "id": "actions.command.successWithOutput",
                             src,
-                            "type": "suc"
+                            "type": "success"
                         })
                     } else {
                         notify({
                             "id": "actions.command.success",
                             src,
-                            "type": "suc"
+                            "type": "success"
                         })
                     }
                 }

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -513,7 +513,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                     "fields": [srcResponse.error],
                     "id": "actions.translations.errors.libretranslate",
                     "src": "user",
-                    "type": "err"
+                    "type": "error"
                 })
             }
             const response = await fetchJSON(`${url}/translate`, {
@@ -531,7 +531,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                     "fields": [response.error],
                     "id": "actions.translations.errors.libretranslate",
                     "src": "user",
-                    "type": "err"
+                    "type": "error"
                 })
             }
             if (response.translatedText) {
@@ -554,7 +554,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             ipcRenderer.sendToHost("notify", {
                 "id": "actions.translations.errors.general",
                 "src": "user",
-                "type": "err"
+                "type": "error"
             })
             console.warn(e)
         }
@@ -578,7 +578,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                 "fields": [response.message],
                 "id": "actions.translations.errors.deepl",
                 "src": "user",
-                "type": "err"
+                "type": "error"
             })
         }
         if (response.translations) {
@@ -601,7 +601,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         ipcRenderer.sendToHost("notify", {
             "id": "actions.translations.errors.general",
             "src": "user",
-            "type": "err"
+            "type": "error"
         })
         console.warn(e)
     }

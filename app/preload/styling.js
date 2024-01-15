@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2023 Jelmer van Arnhem
+* Copyright (C) 2022-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ const enableDarkReader = async() => {
     } catch {
         ipcRenderer.sendToHost("notify",
             "Darkreader module not present, can't show dark pages",
-            {"src": "user", "type": "err"})
+            {"src": "user", "type": "error"})
         return
     }
     darkreader.setFetchMethod(url => new Promise(res => {

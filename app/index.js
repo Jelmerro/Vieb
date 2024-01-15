@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -704,7 +704,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 "fields": [permission, details.requestingUrl ?? ""],
                 "id": "permissions.domainCachedAllowed",
                 "src": "user",
-                "type": "perm"
+                "type": "permission"
             })
             callback(true)
             return true
@@ -776,14 +776,14 @@ const permissionHandler = (_, pm, callback, details) => {
                     "fields": [permission, details.requestingUrl ?? "", action],
                     "id": "permissions.automatic.ask",
                     "src": "user",
-                    "type": "perm"
+                    "type": "permission"
                 })
             } else {
                 mainWindow.webContents.send("notify", {
                     "fields": [action, permission, details.requestingUrl ?? ""],
                     "id": "permissions.automatic.manual",
                     "src": "user",
-                    "type": "perm"
+                    "type": "permission"
                 })
             }
             const allow = action === "allow"
@@ -814,7 +814,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 ],
                 "id": "permissions.automatic.global",
                 "src": "user",
-                "type": "perm"
+                "type": "permission"
             })
         } else {
             mainWindow.webContents.send("notify", {
@@ -826,7 +826,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 ],
                 "id": "permissions.automatic.global",
                 "src": "user",
-                "type": "perm"
+                "type": "permission"
             })
         }
         const allow = setting === "allow"

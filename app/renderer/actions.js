@@ -991,13 +991,13 @@ const editWithVim = args => {
                             "fields": [output],
                             "id": "actions.command.successWithOutput",
                             "src": args.src,
-                            "type": "suc"
+                            "type": "success"
                         })
                     } else {
                         notify({
                             "id": "actions.command.success",
                             "src": args.src,
-                            "type": "suc"
+                            "type": "success"
                         })
                     }
                 }
@@ -1279,7 +1279,9 @@ const getPageRSSLinks = async args => {
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
-        notify({"id": "actions.rss.notFound", "src": args.src, "type": "warn"})
+        notify({
+            "id": "actions.rss.notFound", "src": args.src, "type": "warning"
+        })
         return null
     }
     return feedUrls.slice(0, 10).map((feed = "") => {
@@ -1304,7 +1306,7 @@ const pageRSSLinksList = async args => {
         "fields": [feedsString],
         "id": "actions.rss.header",
         "src": args.src,
-        "type": "warn"
+        "type": "warning"
     })
 }
 
@@ -1326,7 +1328,7 @@ const pageRSSLinkToClipboard = async args => {
         "fields": [feedUrl],
         "id": "actions.rss.clipboard",
         "src": args.src,
-        "type": "suc"
+        "type": "success"
     })
 }
 

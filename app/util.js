@@ -964,7 +964,7 @@ const intervalValueToDate = value => {
  *     path: string,
  *     func?: () => void
  *   }|false,
- *   type?: string,
+ *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
  *   src: import("./renderer/common").RunSource
  * }} opts
  */
@@ -983,22 +983,7 @@ const notify = opts => {
     if (getSetting("notificationduration") === 0) {
         return
     }
-    let properType = "info"
-    if (opts.type?.startsWith("perm")) {
-        properType = "permission"
-    }
-    if (opts.type?.startsWith("suc")) {
-        properType = "success"
-    }
-    if (opts.type?.startsWith("warn")) {
-        properType = "warning"
-    }
-    if (opts.type?.startsWith("err") || opts.type === undefined) {
-        properType = "error"
-    }
-    if (opts.type?.startsWith("dial")) {
-        properType = "dialog"
-    }
+    let properType = opts.type ?? "info"
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     let clickInfo = null

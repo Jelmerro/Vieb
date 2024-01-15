@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2023 Jelmer van Arnhem
+* Copyright (C) 2020-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -136,13 +136,13 @@ try {
             ipcRenderer.sendToHost("notify",
                 `Automatic rule for 'mediadevices' activated at '${
                     window.location.href}' which was ${setting}ed`,
-                {"src": "user", "type": "perm"})
+                {"src": "user", "type": "permission"})
         } else {
             ipcRenderer.sendToHost("notify",
                 `Globally ${setting}ed 'mediadevices' at `
                     + `'${window.location.href}' based on `
                     + "'permissionmediadevices'",
-                {"src": "user", "type": "perm"})
+                {"src": "user", "type": "permission"})
         }
         return mediaDeviceList(setting)
     }
@@ -178,13 +178,13 @@ try {
                 ipcRenderer.sendToHost("notify",
                     `Automatic rule for 'displaycapture' activated at '`
                     + `${window.location.href}' which was blocked`,
-                    {"src": "user", "type": "perm"})
+                    {"src": "user", "type": "permission"})
             } else {
                 ipcRenderer.sendToHost("notify",
                     `Globally blocked 'displaycapture' at `
                     + `'${window.location.href}' based on 'permission`
                     + "displaycapture'",
-                    {"src": "user", "type": "perm"})
+                    {"src": "user", "type": "permission"})
             }
             throw new DOMException("Permission denied", "NotAllowedError")
         }
@@ -253,12 +253,12 @@ try {
                                 `Ask rule for 'displaycapture' activated at '`
                                 + `${window.location.href}' which was `
                                 + `blocked by user`,
-                                {"src": "user", "type": "perm"})
+                                {"src": "user", "type": "permission"})
                         } else {
                             ipcRenderer.sendToHost("notify",
                                 `Manually blocked 'displaycapture' at `
                                 + `'${window.location.href}'`,
-                                {"src": "user", "type": "perm"})
+                                {"src": "user", "type": "permission"})
                         }
                         throw new DOMException(
                             "Permission denied", "NotAllowedError")
@@ -358,7 +358,7 @@ window.prompt = (title, defaultText = "") => {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
             `Page ${url} wanted to show a prompt dialog: ${title}`,
-            {"src": "user", "type": "dial"})
+            {"src": "user", "type": "dialog"})
     }
     if (promptBehavior.includes("show")) {
         return ipcRenderer.sendSync("show-prompt-dialog", title, defaultText)
@@ -375,7 +375,7 @@ window.confirm = text => {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
             `Page ${url} wanted to show a confirm dialog: ${text}`,
-            {"src": "user", "type": "dial"})
+            {"src": "user", "type": "dialog"})
     }
     if (confirmBehavior.includes("show")) {
         const button = ipcRenderer.sendSync("sync-message-dialog", {
@@ -400,7 +400,7 @@ window.alert = text => {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
             `Page ${url} wanted to show an alert dialog: ${text}`,
-            {"src": "user", "type": "dial"})
+            {"src": "user", "type": "dialog"})
     }
     if (alertBehavior.includes("show")) {
         ipcRenderer.sendSync("sync-message-dialog", {

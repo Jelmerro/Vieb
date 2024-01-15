@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1914,7 +1914,7 @@ const sanitiseMapString = (src, mapString, allowSpecials = false) => {
             "fields": [mapString, leftover],
             "id": "mappings.errors.unmatched",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return ""
     }
@@ -1968,7 +1968,7 @@ const sanitiseMapString = (src, mapString, allowSpecials = false) => {
                 "fields": [key],
                 "id": "mappings.errors.unsupported",
                 src,
-                "type": "warn"
+                "type": "warning"
             })
             return ""
         }
@@ -2324,7 +2324,7 @@ const mapOrList = (
     src, mode, args, noremap = false, includeDefault = false
 ) => {
     if (includeDefault && args.length > 1) {
-        notify({"id": "mappings.errors.overwritten", src, "type": "warn"})
+        notify({"id": "mappings.errors.overwritten", src, "type": "warning"})
         return
     }
     if (args.length === 0) {
@@ -2391,7 +2391,7 @@ const unmap = (src, mode, args, anyAsWildcard) => {
             "fields": [mode ?? ""],
             "id": "mappings.errors.unmapArgCount",
             src,
-            "type": "warn"
+            "type": "warning"
         })
         return
     }
@@ -2453,7 +2453,7 @@ const clearmap = (src, mode, removeDefaults = false) => {
  */
 const startRecording = (name, src) => {
     if (recordingName) {
-        notify({"id": "actions.alreadyRecording", src, "type": "warn"})
+        notify({"id": "actions.alreadyRecording", src, "type": "warning"})
         return
     }
     recordingName = name
