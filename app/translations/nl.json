@@ -347,15 +347,26 @@
             "label": "",
             "title": ""
         },
-        "automatic": {
+        "domainCachedAllowed": "",
+        "notify": {
             "ask": "",
             "auto": "",
             "global": "",
             "manual": ""
-        },
-        "domainCachedAllowed": ""
+        }
     },
     "popups": {
+        "alert": {
+            "block": "",
+            "ok": "",
+            "title": ""
+        },
+        "confirm": {
+            "block": "",
+            "cancel": "",
+            "ok": "",
+            "title": ""
+        },
         "login": {
             "info": "$1 meldt het volgende:\n$2",
             "password": "Wachtwoord",
@@ -367,6 +378,7 @@
             "shortcuts": "Spatie/d/j: scherm/pagina/regel omlaag, b/u/k: omhoog, q: verlaten"
         },
         "prompt": {
+            "block": "",
             "title": "Prompt"
         }
     },

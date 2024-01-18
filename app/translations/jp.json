@@ -347,15 +347,26 @@
             "label": "",
             "title": ""
         },
-        "automatic": {
+        "domainCachedAllowed": "",
+        "notify": {
             "ask": "",
             "auto": "",
             "global": "",
             "manual": ""
-        },
-        "domainCachedAllowed": ""
+        }
     },
     "popups": {
+        "alert": {
+            "block": "",
+            "ok": "",
+            "title": ""
+        },
+        "confirm": {
+            "block": "",
+            "cancel": "",
+            "ok": "",
+            "title": ""
+        },
         "login": {
             "info": "$1は「$2」って",
             "password": "パスワード",
@@ -367,6 +378,7 @@
             "shortcuts": "スペースはスクリーンダウンだ。dはページダウンだ。jはラインダウンだ。bはスクリーンアップだ。uはページアップだ。kはラインアップだ。qは終了だ。"
         },
         "prompt": {
+            "block": "",
             "title": "プロンプト"
         }
     },

@@ -983,7 +983,7 @@ const notify = opts => {
     if (getSetting("notificationduration") === 0) {
         return
     }
-    let properType = opts.type ?? "info"
+    const properType = opts.type ?? "info"
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     let clickInfo = null

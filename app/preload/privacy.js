@@ -20,6 +20,7 @@
 
 const {ipcRenderer} = require("electron")
 const {matchesQuery, getSetting} = require("../util")
+const {translate} = require("../translate")
 
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
@@ -133,16 +134,29 @@ try {
         }
         setting = settingRule ?? setting
         if (settingRule) {
-            ipcRenderer.sendToHost("notify",
-                `Automatic rule for 'mediadevices' activated at '${
-                    window.location.href}' which was ${setting}ed`,
-                {"src": "user", "type": "permission"})
+            ipcRenderer.sendToHost("notify", {
+                "fields": [
+                    setting.replace(/allow.*/, "allow"),
+                    "mediadevices",
+                    window.location.href,
+                    setting
+                ],
+                "id": "permissions.notify.auto",
+                "src": "user",
+                "type": "permission"
+            })
         } else {
-            ipcRenderer.sendToHost("notify",
-                `Globally ${setting}ed 'mediadevices' at `
-                    + `'${window.location.href}' based on `
-                    + "'permissionmediadevices'",
-                {"src": "user", "type": "permission"})
+            ipcRenderer.sendToHost("notify", {
+                "fields": [
+                    setting.replace(/allow.*/, "allow"),
+                    "mediadevices",
+                    window.location.href,
+                    "permissionmediadevices"
+                ],
+                "id": "permissions.notify.global",
+                "src": "user",
+                "type": "permission"
+            })
         }
         return mediaDeviceList(setting)
     }
@@ -150,10 +164,12 @@ try {
     window.navigator.mediaDevices.getDisplayMedia = () => new Promise((
         resolve, reject
     ) => {
+        /** @type {"ask"|"block"} */
         let setting = "block"
         setting = getSetting("permissiondisplaycapture") || setting
-        let settingRule = ""
-        /** @type {("ask"|"block"|"allow")[]} */
+        /** @type {"ask"|"block"|null} */
+        let settingRule = null
+        /** @type {("ask"|"block")[]} */
         const permissionOverrideTypes = ["ask", "block"]
         for (const type of permissionOverrideTypes) {
             for (const r of getSetting(
@@ -175,16 +191,29 @@ try {
         // because allowed requests are passed to the regular permission system.
         if (setting !== "ask") {
             if (settingRule) {
-                ipcRenderer.sendToHost("notify",
-                    `Automatic rule for 'displaycapture' activated at '`
-                    + `${window.location.href}' which was blocked`,
-                    {"src": "user", "type": "permission"})
+                ipcRenderer.sendToHost("notify", {
+                    "fields": [
+                        setting,
+                        "displaycapture",
+                        window.location.href,
+                        setting
+                    ],
+                    "id": "permissions.notify.auto",
+                    "src": "user",
+                    "type": "permission"
+                })
             } else {
-                ipcRenderer.sendToHost("notify",
-                    `Globally blocked 'displaycapture' at `
-                    + `'${window.location.href}' based on 'permission`
-                    + "displaycapture'",
-                    {"src": "user", "type": "permission"})
+                ipcRenderer.sendToHost("notify", {
+                    "fields": [
+                        setting,
+                        "displaycapture",
+                        window.location.href,
+                        "permissiondisplaycapture"
+                    ],
+                    "id": "permissions.notify.global",
+                    "src": "user",
+                    "type": "permission"
+                })
             }
             throw new DOMException("Permission denied", "NotAllowedError")
         }
@@ -249,16 +278,27 @@ try {
                         ipcRenderer.sendToHost(
                             "custom-style-inject", "displaycapture")
                         if (settingRule) {
-                            ipcRenderer.sendToHost("notify",
-                                `Ask rule for 'displaycapture' activated at '`
-                                + `${window.location.href}' which was `
-                                + `blocked by user`,
-                                {"src": "user", "type": "permission"})
+                            ipcRenderer.sendToHost("notify", {
+                                "fields": [
+                                    "displaycapture",
+                                    window.location.href,
+                                    "block"
+                                ],
+                                "id": "permissions.notify.ask",
+                                "src": "user",
+                                "type": "permission"
+                            })
                         } else {
-                            ipcRenderer.sendToHost("notify",
-                                `Manually blocked 'displaycapture' at `
-                                + `'${window.location.href}'`,
-                                {"src": "user", "type": "permission"})
+                            ipcRenderer.sendToHost("notify", {
+                                "fields": [
+                                    "block",
+                                    "displaycapture",
+                                    window.location.href
+                                ],
+                                "id": "permissions.notify.manual",
+                                "src": "user",
+                                "type": "permission"
+                            })
                         }
                         throw new DOMException(
                             "Permission denied", "NotAllowedError")
@@ -355,10 +395,12 @@ if (window.BatteryManager) {
 window.prompt = (title, defaultText = "") => {
     const promptBehavior = getSetting("dialogprompt") ?? "notifyblock"
     if (promptBehavior.includes("notify")) {
-        const url = window.location.href
-        ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a prompt dialog: ${title}`,
-            {"src": "user", "type": "dialog"})
+        ipcRenderer.sendToHost("notify", {
+            "fields": [window.location.href, title],
+            "id": "popups.prompt.block",
+            "src": "user",
+            "type": "dialog"
+        })
     }
     if (promptBehavior.includes("show")) {
         return ipcRenderer.sendSync("show-prompt-dialog", title, defaultText)
@@ -372,18 +414,23 @@ window.prompt = (title, defaultText = "") => {
 window.confirm = text => {
     const confirmBehavior = getSetting("dialogconfirm") ?? "notifyblock"
     if (confirmBehavior.includes("notify")) {
-        const url = window.location.href
-        ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a confirm dialog: ${text}`,
-            {"src": "user", "type": "dialog"})
+        ipcRenderer.sendToHost("notify", {
+            "fields": [window.location.href, text],
+            "id": "popups.confirm.block",
+            "src": "user",
+            "type": "dialog"
+        })
     }
     if (confirmBehavior.includes("show")) {
         const button = ipcRenderer.sendSync("sync-message-dialog", {
-            "buttons": ["OK", "Cancel"],
+            "buttons": [
+                translate("popups.confirm.ok"),
+                translate("popups.confirm.cancel")
+            ],
             "cancelId": 1,
             "defaultId": 0,
             "message": text,
-            "title": "Confirm",
+            "title": translate("popups.confirm.title"),
             "type": "question"
         })
         return button === 0
@@ -397,18 +444,20 @@ window.confirm = text => {
 window.alert = text => {
     const alertBehavior = getSetting("dialogalert") ?? "notifyblock"
     if (alertBehavior.includes("notify")) {
-        const url = window.location.href
-        ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show an alert dialog: ${text}`,
-            {"src": "user", "type": "dialog"})
+        ipcRenderer.sendToHost("notify", {
+            "fields": [window.location.href, text],
+            "id": "popups.alert.block",
+            "src": "user",
+            "type": "dialog"
+        })
     }
     if (alertBehavior.includes("show")) {
         ipcRenderer.sendSync("sync-message-dialog", {
-            "buttons": ["OK"],
+            "buttons": [translate("popups.alert.ok")],
             "cancelId": 1,
             "defaultId": 0,
             "message": text,
-            "title": "Alert",
+            "title": translate("popups.alert.title"),
             "type": "question"
         })
     }

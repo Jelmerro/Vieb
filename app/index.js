@@ -774,14 +774,14 @@ const permissionHandler = (_, pm, callback, details) => {
             if (settingRule) {
                 mainWindow.webContents.send("notify", {
                     "fields": [permission, details.requestingUrl ?? "", action],
-                    "id": "permissions.automatic.ask",
+                    "id": "permissions.notify.ask",
                     "src": "user",
                     "type": "permission"
                 })
             } else {
                 mainWindow.webContents.send("notify", {
                     "fields": [action, permission, details.requestingUrl ?? ""],
-                    "id": "permissions.automatic.manual",
+                    "id": "permissions.notify.manual",
                     "src": "user",
                     "type": "permission"
                 })
@@ -812,7 +812,7 @@ const permissionHandler = (_, pm, callback, details) => {
                     details.requestingUrl ?? "",
                     setting
                 ],
-                "id": "permissions.automatic.global",
+                "id": "permissions.notify.global",
                 "src": "user",
                 "type": "permission"
             })
@@ -824,7 +824,7 @@ const permissionHandler = (_, pm, callback, details) => {
                     details.requestingUrl ?? "",
                     permissionName
                 ],
-                "id": "permissions.automatic.global",
+                "id": "permissions.notify.global",
                 "src": "user",
                 "type": "permission"
             })

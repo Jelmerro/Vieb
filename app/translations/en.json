@@ -347,15 +347,26 @@
             "label": "Remember for this session",
             "title": "Allow this page to access '$1'?"
         },
-        "automatic": {
+        "domainCachedAllowed": "Automatic domain caching rule for 'certificateerror' activated at '$1' which was allowed, because this same certificate was allowed before on this domain.",
+        "notify": {
             "ask": "Automatic 'permissionsasked' rule for '$1' activated at '$2' which was $3ed manually",
             "auto": "Automatic 'permissions$1ed' rule for '$2' activated at '$3' which was $4ed",
             "global": "Globally $1ed '$2' at '$3' based on '$4'",
             "manual": "Manually $1ed '$2' at '$3'"
-        },
-        "domainCachedAllowed": "Automatic domain caching rule for 'certificateerror' activated at '$1' which was allowed, because this same certificate was allowed before on this domain."
+        }
     },
     "popups": {
+        "alert": {
+            "block": "Page '$1' wanted to show an alert dialog:\n$2",
+            "ok": "OK",
+            "title": "Alert"
+        },
+        "confirm": {
+            "block": "Page '$1' wanted to show a confirm dialog:\n$2",
+            "cancel": "Cancel",
+            "ok": "OK",
+            "title": "Confirm"
+        },
         "login": {
             "info": "$1 said the following:\n$2",
             "password": "Password",
@@ -367,6 +378,7 @@
             "shortcuts": "SPACE/d/j: screen/page/line down, b/u/k: up, q: quit"
         },
         "prompt": {
+            "block": "Page '$1' wanted to show a prompt dialog:\n$2",
             "title": "Prompt"
         }
     },
