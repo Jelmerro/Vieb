@@ -1,0 +1,200 @@
+/*
+* Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2019-2023 Jelmer van Arnhem
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/*
+ * COLORS
+*/
+:root {
+    /* general */
+    --bg: #11111b;
+    --fg: #cdd6f4;
+    --tab-foreground: #a6adc8;
+    --tab-accent: #74c7ec;
+    --tab-background: #181825;
+    --tab-suspended: #181825;
+    --visible-tab: #1e1e2e;
+    --tab-split: #89b4fa;
+    --tab-audio: #94e2d5;
+    --tab-muted: #a6adc8;
+    --tab-muted-playing: #f5c2e7;
+    --tab-crashed: #f38ba8;
+    --tab-unresponsive: var(--tab-crashed);
+    --tab-scrollbar: #585b70;
+    --container-background: none;
+    --mode-normal-fg: #cdd6f4;
+    --mode-normal-bg: #11111b;
+    --mode-command-fg: #11111b;
+    --mode-command-bg: #74c7ec;
+    --mode-insert-fg: #11111b;
+    --mode-insert-bg: #eba0ac;
+    --mode-follow-fg: #11111b;
+    --mode-follow-bg: #f9e2af;
+    --mode-explore-fg: #11111b;
+    --mode-explore-bg: #94e2d5;
+    --mode-search-fg: #11111b;
+    --mode-search-bg: #cba6f7;
+    --mode-pointer-fg: #11111b;
+    --mode-pointer-bg: #f5e0dc;
+    --mode-visual-fg: #11111b;
+    --mode-visual-bg: #a6e3a1;
+    --url-default: #11111b;
+    --url-search: #11111b;
+    --url-searchwords: #f5e0dc;
+    --url-url: #11111b;
+    --url-suggest: #1e1e2e;
+    --url-file: #11111b;
+    --url-invalid: #f38ba8;
+
+    --follow-text: #11111b;
+
+    --follow-url-bg: #fab387;
+    --follow-url-border: rgba(250, 179, 135, 0.4);
+    --follow-url-hover: rgba(250, 179, 135, 0.4);
+
+    --follow-click-bg: #89dceb;
+    --follow-click-border:rgba(137, 220, 235, 0.4);
+    --follow-click-hover: rgba(137, 220, 235, 0.4);
+
+    --follow-insert-bg: #eba0ac;
+    --follow-insert-border: rgba(235, 160, 172, 0.4);
+    --follow-insert-hover: rgba(235, 160, 172, 0.4);
+
+    --follow-onclick-bg: #89dceb;
+    --follow-onclick-border:rgba(137, 220, 235, 0.4);
+    --follow-onclick-hover: rgba(137, 220, 235, 0.4);
+
+    --follow-media-bg: #a6e3a1;
+    --follow-media-border: rgba(166, 227, 161, 0.4);
+    --follow-media-hover: rgba(166, 227, 161, 0.4);
+
+    --follow-image-bg: #f9e2af;
+    --follow-image-border: rgba(249, 226, 175, 0.4);
+    --follow-image-hover: rgba(249, 226, 175, 0.4);
+
+    --follow-other-bg: #cdd6f4;
+    --follow-other-border: rgba(205, 214, 244, 0.4);
+    --follow-other-hover: rgba(205, 214, 244, 0.4);
+
+    --suggestions-border: #181825;
+    --suggestions-bg: #181825;
+    --suggestions-selected: #313244;
+    --suggestions-searchwords: #f9e2af;
+    --suggestions-url: #a6adc8;
+    --suggestions-file: #a6adc8;
+    --notification-border: #11111b;
+    --notification-date: #a6adc8;
+    --notification-permission: #a6adc8;
+    --notification-dialog: var(--notification-permission);
+    --notification-error: #f38ba8;
+    --notification-warning: #f9e2af;
+    --notification-info: #89dceb;
+    --notification-success: #a6e3a1;
+    --url-hover-fg: #bac2de;
+    --url-hover-bg: #313244;
+    --screenshot-highlight: #f5c2e7;
+    --screenshot-highlight-background: #f5c2e7;
+    /* special pages */
+    --link-color: #cba6f7;
+    --link-underline: none;
+    --scrollbar-bg: #313244;
+    --scrollbar-thumb: #45475a;
+    --button-disabled: #45475a;
+    --code-fg: #f5e0dc;
+    --code-bg: #181825;
+    --code-command: #f2cdcd;
+    --placeholder-text: #a6adc8;
+    --special-page-element-bg: #313244;
+    --special-page-element-border: #313244;
+    --input-unfocused: #313244;
+    --input-focused: #585b70;
+    --download-progress-fg: #585b70;
+    --download-progress-bg: #313244;
+    --helppage-h1: #cdd6f4;
+    --helppage-h2: #cdd6f4;
+    --helppage-h3: #cdd6f4;
+    --helppage-countable: #f9e2af;
+    --helppage-range-compat: #f9e2af;
+    --helppage-nativetheme-fg-light: #5c5f77;
+    --helppage-nativetheme-bg-light: #eff1f5;
+    --helppage-nativetheme-fg-dark: #bac2de;
+    --helppage-nativetheme-bg-dark: #1e1e2e;
+    --history-current-page-highlight: var(--helppage-h1);
+    /* sourceviewer */
+    --syntax-fg: var(--fg);
+    --syntax-bg: var(--bg);
+    --syntax-keyword: #f38ba8;
+    --syntax-entity: #a6e3a1;
+    --syntax-constant: #94e2d5;
+    --syntax-string: #89dceb;
+    --syntax-variable: #eba0ac;
+    --syntax-comment: #a6adc8;
+    --syntax-entity-tag: #cba6f7;
+    --syntax-markup-heading: #a6e3a1;
+    --syntax-markup-list: #f5c2e7;
+    --syntax-markup-emphasis: #94e2d5;
+    --syntax-markup-addition-fg: #cba6f7;
+    --syntax-markup-addition-bg: #181825;
+    --syntax-markup-deletion-fg: #f2cdcd;
+    --syntax-markup-deletion-bg: #f38ba8;
+/*
+ * APP
+*/
+/* navbar & tabs */
+#tabs, #navbar {width: 100vw;display: flex;background: var(--bg);counter-reset: tab-counter 0;}
+#logo {-webkit-app-region: drag;height: 1.8em;width: 1.8em;margin: .1em;min-width: 1.8em;min-height: 1.8em; display: none;}
+#mode-container {display: flex;width: 4em;text-align: center;margin: 0;justify-content: center; align-items: center;font-size:0.7em; font-weight: normal;}
+#mode {text-transform: capitalize;font-size: 1.3em;font-weight: bold;display: flex;align-items: center; line-height: 1;display: none;}
+/* modes */
+[current-mode=command] #mode-container::before,
+[current-mode=insert] #mode-container::before,
+[current-mode=normal] #mode-container::before,
+[current-mode=follow] #mode-container::before,
+[current-mode=explore] #mode-container::before,
+[current-mode=search] #mode-container::before,
+[current-mode=pointer] #mode-container::before,
+[current-mode=visual] #mode-container::before {
+  font-size: 1.5em;
+}
+/*
+* MODE ICONS (Requires a nerd font)
+*/
+[current-mode=command] #mode-container::before {content: "";}
+[current-mode=insert] #mode-container::before {content: "";}
+[current-mode=normal] #mode-container::before {content: "󰇧";}
+[current-mode=follow] #mode-container::before {content: "󰌧";}
+[current-mode=explore] #mode-container::before {content: "󰘎";}
+[current-mode=search] #mode-container::before {content: "";}
+[current-mode=pointer] #mode-container::before {content: "󰆿";}
+[current-mode=visual] #mode-container::before {content: "";}
+/* tabs */
+#tabs > span {padding: 0.25em;font-size: 0.9em;color: var(--tab-foreground);background: var(--tab-background);display: flex;flex: 1;max-width:20em;overflow: hidden;white-space: nowrap;height: 2.5em; border-top: solid .1em transparent;}
+#tabs > ::before {counter-increment: tab-counter 1;content: counter(tab-counter); font-size: 0.85em;}
+#tabs > span > img {margin: auto 0 auto .25em;padding: 0; padding-right: 0.5em;height: 1em;width: 1em;min-height: 1em;min-width: 1em;pointer-events: none;}
+#tabs .visible-tab {background: var(--visible-tab); color: var(--fg); border-top: .1em solid var(--tab-accent);}
+#tabs .pinned {min-width: 3em !important;max-width: 3em;width: 3em; padding: 0.25em;}
+#tabs .pinned > span { display: none; }
+#tabs .pinned > img {padding: 0;margin: auto;height: 1.2em;width: 1.2em;min-height: 1.2em;min-width: 1.2em;}
+/* Nav url/search/command */
+#url {display: inline-block;flex: 1;border: solid .1em var(--url-default);margin: .1em;background: transparent;color: var(--fg);outline: none;font: inherit;min-width: 0;padding: 0.5em 0.4em; line-height: 1;width: 0;cursor: default;}
+/* follow */
+#app #follow .follow-url, #app #follow .follow-inputs-click, #app #follow .follow-inputs-insert, #app #follow .follow-onclick, #app #follow .follow-media, #app #follow .follow-image, #app #follow .follow-other {position: absolute;color: var(--follow-text);padding: 0 .1em; border-radius: 0.2em; font-size: 0.8em;}
+/* mouse related */
+#mode-suggestions {background: transparent;max-height: 0;position: absolute;left: 0.5em;top: 2em;padding-top: .1em;z-index: 37;overflow: hidden;display: block;width: 7em;text-transform: capitalize;display: flex;flex-direction: column;}
+#url-hover {display: none;position: absolute;background: var(--url-hover-bg);color:var(--url-hover-fg);bottom: 0;left: 0;margin: 0;pointer-events: none;padding: .1em;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;width: fit-content;max-width: 80vw;text-align: center;z-index: 4;}
+/* hide logo */
+#logo {display: none}
+
