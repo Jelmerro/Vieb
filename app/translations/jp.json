@@ -1,228 +1,228 @@
 {
     "actions": {
-        "alreadyRecording": "",
+        "alreadyRecording": "すでに録画中です。録画アクションを無視します。",
         "command": {
-            "failed": "",
-            "success": "",
-            "successWithOutput": ""
+            "failed": "コマンドエラー:\n$1",
+            "success": "コマンドが成功しました！",
+            "successWithOutput": "コマンド成功:\n$1"
         },
         "rss": {
-            "clipboard": "",
-            "header": "",
-            "notFound": ""
+            "clipboard": "RSSフィード'$1'がクリップボードにコピーされました",
+            "header": "--- ページ上のRSSフィード ---\n$1",
+            "notFound": "このページにはRSSフィードが見つかりませんでした"
         },
         "toc": {
-            "title": "",
-            "top": ""
+            "title": "目次",
+            "top": "トップ"
         },
         "translations": {
             "errors": {
-                "deepl": "",
-                "general": "",
-                "libretranslate": ""
+                "deepl": "DeepLエラー：$1",
+                "general": "サーバーへの接続に失敗しました。コンソールを確認してください。",
+                "libretranslate": "LibreTranslateエラー：$1"
             }
         }
     },
     "adblocker": {
-        "aborted": "",
-        "failed": "",
-        "missing": "",
-        "updated": "",
-        "updating": ""
+        "aborted": "$1の更新に失敗しました：要求が中止されました",
+        "failed": "$1の更新に失敗しました:\n$2",
+        "missing": "広告ブロッカーモジュールが存在しません。広告はブロックされません。",
+        "updated": "最新の$1に更新して再読み込みしました",
+        "updating": "$1を最新バージョンに更新中"
     },
     "commands": {
         "arguments": {
-            "folderMissing": ""
+            "folderMissing": "フォルダー'$1'が存在しません！"
         },
-        "buffers": "",
+        "buffers": "$1",
         "clear": {
-            "argCount": "",
-            "intervalInvalid": "",
-            "intervalMissing": "",
-            "typeInvalid": "",
-            "typeMissing": ""
+            "argCount": "clearコマンドにはタイプと間隔の二つの引数が必要です",
+            "intervalInvalid": "clearコマンド間隔は'all'、有効なURL、または'1day'のような有効な間隔、または'last3hours'のように反転する必要があります",
+            "intervalMissing": "clearコマンドには間隔引数が必要です",
+            "typeInvalid": "clearコマンドタイプは次のいずれかである必要があります：history",
+            "typeMissing": "clearコマンドにはクリアするタイプ引数が必要です"
         },
         "close": {
-            "noMatch": "",
-            "range": ""
+            "noMatch": "一致するページが見つかりません。タブは閉じられません",
+            "range": "範囲はcloseコマンドで検索と組み合わせることはできません"
         },
         "colorscheme": {
-            "argCount": "",
-            "current": "",
-            "missing": ""
+            "argCount": "colorschemeコマンドには一つのオプション引数が必要です",
+            "current": "colorschemeは$1です",
+            "missing": "colorscheme'$1'が見つかりません"
         },
         "command": {
-            "builtin": "",
-            "combined": "",
-            "duplicate": "",
-            "list": "",
-            "listSingle": "",
-            "missing": "",
-            "none": "",
-            "slashes": "",
-            "special": ""
+            "builtin": "コマンドはビルトインコマンドにすることはできません：$1",
+            "combined": "編集コマンドの値の読み取りと!を組み合わせることはできません",
+            "duplicate": "カスタムコマンドの重複定義(上書きするには!を追加)：$1",
+            "list": "--- ユーザー定義コマンド ---\n$1",
+            "listSingle": "$1 => $2",
+            "missing": "編集コマンドではありません：$1",
+            "none": "ユーザー定義コマンドはありません",
+            "slashes": "コマンド名にはスラッシュを含めることはできません",
+            "special": "コマンド名は数字または特殊文字で始めることはできません"
         },
         "delcommand": {
-            "argCount": "",
-            "missing": ""
+            "argCount": "delcommandコマンドには正確に一つの引数が必要です",
+            "missing": "ユーザー定義コマンドが見つかりません：$1"
         },
         "deletepointerpos": {
-            "overridePath": "",
-            "toofew": "",
-            "toomany": ""
+            "overridePath": "コマンドdelpointerpos!は単一のパスのみを受け付けます",
+            "toofew": "コマンドdelpointerposは少なくともキー名が必要です",
+            "toomany": "コマンドdelpointerposはキーとオプションのパスのみを受け付けます"
         },
         "deletescrollpos": {
-            "overridePath": "",
-            "toofew": "",
-            "toomany": ""
+            "overridePath": "コマンドdelscrollpos!は単一のパスのみを受け付けます",
+            "toofew": "コマンドdelscrollposは少なくともキー名が必要です",
+            "toomany": "コマンドdelscrollposはキーとオプションのパスのみを受け付けます"
         },
         "delmarks": {
-            "argCount": "",
-            "keyname": ""
+            "argCount": "コマンドdelmarks!は引数を取りません",
+            "keyname": "コマンドdelmarksは単一のキー名のみを受け付けます"
         },
         "devtools": {
-            "argCount": "",
-            "invalid": ""
+            "argCount": "devtoolsコマンドは単一のオプション引数を取ります",
+            "invalid": "無効なdevtools位置'$1'が指定されました。次のいずれかである必要があります：$2"
         },
         "execute": {
-            "ambiguous": "",
-            "argCount": "",
-            "invalidJSON": "",
-            "noConfirm": "",
-            "noRange": "",
-            "notFound": "",
-            "unmatched": ""
+            "ambiguous": "コマンドが曖昧です。もっと具体的にしてください：$1",
+            "argCount": "コマンドは引数を取りません：$1",
+            "invalidJSON": "コマンドを実行できませんでした。提供されたJSONが無効です:\n$1\n$2",
+            "noConfirm": "確認用の!は使用できません：$1",
+            "noRange": "コマンドは範囲を受け付けません：$1",
+            "notFound": "エディターコマンドではありません：$1",
+            "unmatched": "コマンドを実行できませんでした。引用符またはバックスラッシュが一致しませんでした:\n$1"
         },
         "externalcommand": {
-            "missing": ""
+            "missing": "外部リンクを開くコマンドが設定されていません。'externalcommand'設定を更新してください"
         },
         "help": {
-            "argCount": ""
+            "argCount": "helpコマンドは単一のオプション引数を取ります"
         },
         "hide": {
-            "range": "",
-            "visible": ""
+            "range": "hideコマンドで検索と範囲を組み合わせることはできません",
+            "visible": "表示されているページのみ非表示にできます"
         },
         "makedefault": {
-            "failed": "",
-            "installed": "",
-            "other": ""
+            "failed": "Viebをデフォルトのブラウザとして設定するスクリプトが失敗しました:\n$1",
+            "installed": "インストールされているViebのバージョンにのみ対応しています。",
+            "other": "Viebをデフォルトのブラウザに設定する通知を受け取らなかった場合は、OS設定に移動してデフォルトのアプリケーションを確認してください"
         },
         "marks": {
-            "argCount": "",
-            "list": "",
-            "noKey": "",
-            "none": "",
-            "url": ""
+            "argCount": "marksコマンドは最大二つの引数を受け入れます",
+            "list": "$1",
+            "noKey": "キー'$1'にマークが見つかりません",
+            "none": "マークが見つかりません",
+            "url": "マークのURLは有効なURLである必要があります。$1ではありません"
         },
         "mkviebrc": {
-            "argCount": "",
-            "invalid": ""
+            "argCount": "mkviebrcコマンドは単一のオプション引数'full'を取ります",
+            "invalid": "mkviebrcの唯一のオプション引数は'full'です。$1ではありません"
         },
         "mute": {
-            "argCount": "",
-            "noMatch": "",
-            "range": ""
+            "argCount": "muteコマンドは単一のブール値引数が必要です",
+            "noMatch": "一致するページが見つかりません。タブがミュートまたはミュート解除されていません",
+            "range": "muteコマンドで検索と範囲を組み合わせることはできません"
         },
         "pin": {
-            "argCount": "",
-            "noMatch": "",
-            "range": ""
+            "argCount": "pinコマンドは単一のブール値引数が必要です",
+            "noMatch": "一致するページが見つかりません。タブがピン留めまたはピン留め解除されていません",
+            "range": "pinコマンドで検索と範囲を組み合わせることはできません"
         },
         "pointerpos": {
-            "argCount": "",
-            "list": "",
-            "location": "",
-            "noKey": "",
-            "none": ""
+            "argCount": "pointerposコマンドは最大三つの引数を受け入れます",
+            "list": "$1",
+            "location": "pointerposコマンドは、キーの後にXおよびY位置が必要です",
+            "noKey": "キー'$1'のポインター位置が見つかりません",
+            "none": "ポインター位置が見つかりません"
         },
         "ranges": {
-            "combined": "",
-            "commas": "",
-            "flags": "",
-            "indexOrSearch": "",
-            "invalid": ""
+            "combined": "範囲'$1'でグローバル検索と二つのインデックスを組み合わせることはできません。二つのインデックス/検索を提供するか、グローバル検索を使用してください",
+            "commas": "範囲'$1'にはコンマが多すぎます。最大一つのみが許可されます",
+            "flags": "範囲'$1'に無効なフラグが含まれています",
+            "indexOrSearch": "範囲'$1'は無効です。インデックスまたは検索を持っている必要があります",
+            "invalid": "範囲セクション'$1'は有効な範囲ではありません"
         },
         "restoremark": {
-            "argCount": "",
-            "keyname": "",
-            "position": ""
+            "argCount": "restoremarkコマンドは最大二つの引数を受け入れます",
+            "keyname": "restoremarkコマンドは最初の引数として少なくともキー名が必要です",
+            "position": "無効なマークの復元位置'$1'、次のいずれかである必要があります：$2"
         },
         "restorepointerpos": {
-            "argCount": "",
-            "keyname": ""
+            "argCount": "restorepointerposコマンドは最大二つの引数を受け入れます",
+            "keyname": "restorepointerposコマンドは少なくとも一つのキー引数が必要です"
         },
         "restorescrollpos": {
-            "argCount": "",
-            "keyname": ""
+            "argCount": "restorescrollposコマンドは最大二つの引数を受け入れます",
+            "keyname": "restorescrollposコマンドは少なくとも一つのキー引数が必要です"
         },
         "screencopy": {
-            "argCount": "",
-            "dimensions": ""
+            "argCount": "screencopyコマンドはオプションの寸法のみを受け入れます",
+            "dimensions": "screencopy寸法は'幅、高さ、X、Y'として一致する必要があります"
         },
         "screenshot": {
-            "argCount": "",
-            "dimensions": "",
-            "failed": "",
-            "success": ""
+            "argCount": "screenshotコマンドは二つのオプション引数のみを受け入れます:\n画像を書き込む場所と寸法",
+            "dimensions": "スクリーンショット寸法は'幅、高さ、X、Y'として一致する必要があります",
+            "failed": "画像を書き込めませんでした：$1",
+            "success": "スクリーンショット保存：$1"
         },
         "scriptnames": {
-            "argType": "",
-            "editor": "",
-            "noArgs": "",
-            "notFound": "",
-            "singleArg": ""
+            "argType": "scriptnames!の引数はスクリプトの番号でなければなりません",
+            "editor": "ファイルを編集するvimコマンドに失敗しました。'vimcommand'設定を更新してください",
+            "noArgs": "コマンドは引数を取りません：scriptnames",
+            "notFound": "インデックス'$1'のスクリプトが見つかりません。':scriptnames!'を参照してください",
+            "singleArg": "scriptnames!は一つのオプションのインデックス引数を取ります"
         },
         "scrollpos": {
-            "argCount": "",
-            "list": "",
-            "noKey": "",
-            "none": "",
-            "pixels": ""
+            "argCount": "scrollposコマンドは最大三つの引数を受け入れます",
+            "list": "$1",
+            "noKey": "キー'$1'のスクロール位置が見つかりません",
+            "none": "スクロール位置が見つかりません",
+            "pixels": "scrollposコマンドは、キーの後にピクセル引数が必要です。$1ではありません"
         },
         "settings": {
-            "invalidJSON": "",
-            "invalidStructure": "",
-            "listSingle": "",
-            "missing": "",
-            "noChanges": "",
-            "noFlipping": "",
-            "noModify": "",
-            "optionsList": "",
-            "reserved": ""
+            "invalidJSON": "'$1'値の無効なJSON:\n$2",
+            "invalidStructure": "'$1'値で無効な構造/タイプが見つかりました:\n$2\n文字列、文字列のリスト、または一または二つの文字列のリストのみが可能です",
+            "listSingle": "設定'$1'は次の値を持ちます：$2",
+            "missing": "設定'$1'は存在しません",
+            "noChanges": "デフォルトと比較して設定が変更されていません",
+            "noFlipping": "設定'$1'は反転できません",
+            "noModify": "'$1'を数値、テキスト、リスト、またはオブジェクトとして変更できません",
+            "optionsList": "--- 設定 ---\n$1",
+            "reserved": "この構文は将来のために予約されているが、まだ何の目的もない。"
         },
         "source": {
-            "absolute": "",
-            "argCount": "",
-            "missing": "",
-            "readError": "",
-            "recursive": "",
-            "startup": ""
+            "absolute": "ファイル名は実行時に絶対である必要があります",
+            "argCount": "ソースは正確に一つのファイル名を表す引数を取ります",
+            "missing": "指定したファイルが見つかりませんでした：$1",
+            "readError": "構成ファイルの読み取りエラーが発生しました：$1",
+            "recursive": "ファイルの再帰的なソースはサポートされていません",
+            "startup": "起動時に既にロードされているファイルを再度ソースにすることはできません"
         },
         "split": {
-            "range": "",
-            "visible": ""
+            "range": "splitコマンドで検索と範囲を組み合わせることはできません",
+            "visible": "ページは既に表示されているため、新しいスプリットに配置できません"
         },
         "suspend": {
-            "range": "",
-            "visible": ""
+            "range": "suspendコマンドで検索と範囲を組み合わせることはできません",
+            "visible": "現在表示されていないタブのみが一時停止できます"
         },
         "translatepage": {
-            "apiKey": "",
-            "argCount": "",
-            "language": ""
+            "apiKey": "APIキーが設定されていません。ヘルプに従ってください':h translatekey'",
+            "argCount": "translatepageコマンドは単一のオプション言語引数のみを受け入れます",
+            "language": "無効な言語'$1'が指定されました。ヘルプに従ってください':h translatelang'"
         },
         "write": {
-            "argCount": "",
-            "combined": "",
-            "failed": "",
-            "success": "",
-            "type": ""
+            "argCount": "writeコマンドは二つのオプション引数のみを受け入れます\nページを書き込む場所とファイルの種類",
+            "combined": "writeコマンドの範囲は、カスタムの場所と組み合わせることはできません",
+            "failed": "ページを保存できませんでした：$1",
+            "success": "ページが保存されました：$1",
+            "type": "書き込みタイプは'html'または'mhtml'のいずれかである必要があります。$1ではありません"
         }
     },
     "contextmenu": {
         "groups": {
-            "audio": "オーディオ",
+            "audio": "音声",
             "frame": "フレーム",
             "general": "一般",
             "image": "画像",
@@ -233,52 +233,52 @@
         }
     },
     "downloads": {
-        "failed": "",
-        "finished": "",
-        "started": ""
+        "failed": "ダウンロードに失敗しました:\n$1",
+        "finished": "ダウンロードが完了しました:\n$1",
+        "started": "ダウンロードが開始されました:\n$1"
     },
     "mappings": {
-        "defaultMapping": "",
-        "defaultMappingForKey": "",
+        "defaultMapping": "カスタムマッピングが見つかりません",
+        "defaultMappingForKey": "キーのカスタムマッピングが見つかりません：$1",
         "errors": {
-            "overwritten": "",
-            "unmapArgCount": "",
-            "unmatched": "",
-            "unsupported": ""
+            "overwritten": "常にマッピングは上書きされます、!は必要ありません",
+            "unmapArgCount": "$1unmapコマンドは正確に一つのマッピングを必要とします",
+            "unmatched": "マッピング'$1'で一致しない'<>'：$2",
+            "unsupported": "マッピング内のサポートされていないキーがスキップされました：$1"
         },
-        "list": "",
-        "noMappings": "",
-        "noMappingsForKey": ""
+        "list": "$1",
+        "noMappings": "マッピングが見つかりません",
+        "noMappingsForKey": "キーのマッピングが見つかりません：$1"
     },
     "pages": {
         "cookies": {
-            "empty": "まだクッキーがない",
-            "filterEmpty": "現在のフィルタの結果がない",
-            "filterPlaceholder": "フィルタードメイン",
-            "loading": "ローディング",
+            "empty": "まだクッキーが保存されていません",
+            "filterEmpty": "現在のフィルターに対する結果はありません",
+            "filterPlaceholder": "ドメインをフィルター",
+            "loading": "読み込み中...",
             "title": "クッキー"
         },
         "downloads": {
             "clickToOpen": "クリックして開く",
-            "loading": "ローディング",
-            "nothing": "まだ何もダウンロードしていない",
+            "loading": "読み込み中...",
+            "nothing": "まだ何もダウンロードされていません",
             "states": {
-                "cancelled": "キャンセルした",
-                "completed": "完成した",
-                "downloading": "ダウンロードしている",
-                "paused": "休止中",
-                "removed": "削除した",
-                "waiting_to_start": "開始待ち"
+                "cancelled": "キャンセルされました",
+                "completed": "完了しました",
+                "downloading": "ダウンロード中",
+                "paused": "一時停止中",
+                "removed": "削除されました",
+                "waiting_to_start": "開始を待っています"
             },
             "title": "ダウンロード"
         },
         "failedload": {
-            "otherError": "",
-            "sslError": ""
+            "otherError": "<h2>到達不能なページ</h2>ページを正常に読み込むことができませんでした。次のエラーが発生しました：<br><h3>$1</h3>最初に試すことができる手段は、ページをリロードすることです。通常モードで<kbd>r</kbd>にデフォルトでマップされています。エラーが解消しない場合は、URLを正しく入力したかどうかを確認してください。また、ウェブサイトが'$2'プロトコルをサポートしていない可能性があります。最後に、インターネット接続とDNS設定を確認してください。",
+            "sslError": "<h2>到達不能なページ</h2>ページを正常に読み込むことができませんでした。次のエラーが発生しました：<br><h3>$1</h3><kbd>:set redirecttohttp</kbd>を使用して自動的なHTTPリダイレクトを有効にできます。<br>または、このHTTPリンクを使用して一度だけ移動できます:<a href=\"$2\">$2</a><br>最後に、無効な証明書に対する動作を制御するために<kbd>permissioncertificateerror</kbd>を変更することができます。"
         },
         "filebrowser": {
             "empty": "空のディレクトリ",
-            "permissionDenied": "不許可"
+            "permissionDenied": "アクセスが拒否されました"
         },
         "help": {
             "examples": {
@@ -296,40 +296,40 @@
             "title": "ヘルプ"
         },
         "history": {
-            "filterEmpty": "まだ訪問したページがない",
-            "filterNoResults": "現在のフィルタの結果がない",
-            "filterPlaceholder": "歴史のフィルター",
-            "loading": "ローディング",
-            "perpage": "ページあたりの歴史項目数",
-            "readingProgress": "$1/$2の歴史を読んでいる。現在、$3から歴史を遡っている。",
-            "title": "歴史"
+            "filterEmpty": "まだページが訪問されていません",
+            "filterNoResults": "現在のフィルターに対する結果はありません",
+            "filterPlaceholder": "閲覧履歴をフィルター",
+            "loading": "読み込み中...",
+            "perpage": "ページごとのエントリー",
+            "readingProgress": "閲覧履歴$1/$2、現在は$3からの閲覧履歴に戻っています",
+            "title": "閲覧履歴"
         },
         "newtab": {
             "favorites": "お気に入り",
             "title": "新しいタブ",
-            "topsites": "最多訪問"
+            "topsites": "最多訪問サイト"
         },
         "notifications": {
             "clickToOpen": "クリックして開く",
-            "empty": "まだ通知がない",
-            "loading": "ローディング",
+            "empty": "これまでの通知はありません",
+            "loading": "読み込み中...",
             "title": "通知"
         },
         "version": {
-            "alreadyNewer": "最新リリース$1は古い",
+            "alreadyNewer": "最新リリース$1は古いです",
             "changelog": "変更履歴",
-            "checkUpdate": "更新チェック",
+            "checkUpdate": "更新をチェック",
             "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られた。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができる。エレクトロン$1で動作し、クロミウムのバージョンは$2だ。",
             "discussions": "ディスカッション",
             "donate": "寄付",
-            "failed": "更新の取得に失敗した",
-            "faq": "よくある質問",
+            "failed": "更新の取得に失敗しました",
+            "faq": "よくあるご質問",
             "homepage": "ホームページ",
-            "latest": "Viebは最新だ",
-            "loading": "ローディング",
+            "latest": "Viebは最新の状態です",
+            "loading": "読み込み中...",
             "matrix": "マトリックス",
-            "newerFound": "新しいバージョン$1が利用可能だ",
-            "notChecked": "未確認",
+            "newerFound": "新しいバージョン$1が利用可能です",
+            "notChecked": "まだチェックされていません",
             "releases": "リリース",
             "repository": "リポジトリ",
             "sponsor": "スポンサー",
@@ -339,165 +339,165 @@
     },
     "permissions": {
         "ask": {
-            "allowButton": "",
-            "body": "",
-            "bodyCertificate": "",
-            "bodyExternal": "",
-            "denyButton": "",
-            "label": "",
-            "title": ""
+            "allowButton": "許可",
+            "body": "このページはパーミッション'$1'へのアクセスをリクエストしています。以下で許可または拒否できます。また、今後このパーミッションをサイトがリクエストした場合のデフォルトを現在のセッションに設定することができます。ヘルプとオプションについては、':h $2'、':h permissionsallowed'、':h permissionsasked'、':h permissionsblocked'を参照してください。\n\nページ:\n$3",
+            "bodyCertificate": "このページには以下の証明書エラーがリストされています。証明書の詳細を確認した後、訪問を続行するかどうかを選択できます。許可された証明書は、ドメインごとに再起動するまで信頼され続けます。許可後にパーミッション設定を変更しても、この動作は変わりません。したがって、同じ証明書を複数回拒否できますが、使用を続けるには一度だけ許可する必要があります。ヘルプやその他のオプションについては、':h permissioncertificateerror'を参照してください。\n\nページ:\n$1ドメイン:\n$2\n\n発行者$3\n自己署名：$4\nサブジェクト：$5\n開始：$6\n終了：$7\nフィンガープリント：$8\n\n信頼できる証明書のみ許可してください!",
+            "bodyExternal": "このページは外部アプリケーションを開くようにリクエストしています。以下で許可または拒否できます。また、今後このページが外部プログラムでURLを開くように要求した場合のデフォルトを現在のセッションに設定することができます。ヘルプとその他のオプションについては、':h permissionopenexternal'、':h permissionsallowed'、':h permissionsasked'、':h permissionsblocked'を参照してください。\n\nページ:\n$2\n\n外部:\n$3",
+            "denyButton": "拒否",
+            "label": "このセッションのために記憶する",
+            "title": "このページが'$1'にアクセスするのを許可しますか？"
         },
-        "domainCachedAllowed": "",
+        "domainCachedAllowed": "ドメインのキャッシュ許可ルールが'$1'で'certificateerror'としてアクティブ化されました。これは、同じ証明書がこのドメインで以前に許可されていたためです。",
         "notify": {
-            "ask": "",
-            "auto": "",
-            "global": "",
-            "manual": ""
+            "ask": "'permissionsasked'の自動ルールが'$2'で$3されました",
+            "auto": "'permissions$1ed'の自動ルールが'$2'で$4されました",
+            "global": "グローバルに'$2'を$1しました'$4'に基づいて'$3'で",
+            "manual": "手動で'$2'を$1しました'$3'"
         }
     },
     "popups": {
         "alert": {
-            "block": "",
-            "ok": "",
-            "title": ""
+            "block": "ページ'$1'はアラートダイアログを表示しようとしました:\n$2",
+            "ok": "OK",
+            "title": "アラート"
         },
         "confirm": {
-            "block": "",
-            "cancel": "",
-            "ok": "",
-            "title": ""
+            "block": "ページ'$1'は確認ダイアログを表示しようとしました:\n$2",
+            "cancel": "キャンセル",
+            "ok": "OK",
+            "title": "確認"
         },
         "login": {
-            "info": "$1は「$2」って",
+            "info": "$1が以下の内容を言いました:\n$2",
             "password": "パスワード",
             "title": "ログイン",
             "username": "ユーザー名"
         },
         "notification": {
-            "loading": "ローディング",
-            "shortcuts": "スペースはスクリーンダウンだ。dはページダウンだ。jはラインダウンだ。bはスクリーンアップだ。uはページアップだ。kはラインアップだ。qは終了だ。"
+            "loading": "読み込み中...",
+            "shortcuts": "SPACE/d/j:画面/ページ/行下へ,b/u/k:上へ,q:終了"
         },
         "prompt": {
-            "block": "",
+            "block": "ページ'$1'はプロンプトダイアログを表示しようとしました:\n$2",
             "title": "プロンプト"
         }
     },
     "settings": {
         "errors": {
-            "clearhistoryinterval": "",
+            "clearhistoryinterval": "clearhistoryintervalは'none'、'session'、または'1day'、'3months'などの有効な間隔に設定する必要があります。現在の設定：$1",
             "container": {
-                "colorName": "",
-                "colorRegex": "",
-                "colorSeparator": "",
-                "invalidspecial": "",
-                "namesNewtab": "",
-                "namesRegex": "",
-                "namesSeparator": "",
-                "namesSpecialchars": "",
-                "specialchars": ""
+                "colorName": "無効な色です。有効な色名または十六進数の色を使用してください。現在の設定:$1",
+                "colorRegex": "containercolors内の無効な正規表現です。現在の設定:$1",
+                "colorSeparator": "無効な$1エントリです。エントリは名前の正規表現と色名/十六進数の色を区切る'~'を含む必要があります。現在の設定:$2",
+                "invalidspecial": "'$1'の特別なコンテナ名は、次のいずれかである必要があります:$2",
+                "namesNewtab": "containernamesnewtabパラメータが無効です。現在の設定:$1",
+                "namesRegex": "containernames内の無効な正規表現です。現在の設定:$1",
+                "namesSeparator": "無効な$1エントリです。エントリは正規表現、コンテナ名、newtabパラメータを区切る'~'を含む必要があります。現在の設定:$2",
+                "namesSpecialchars": "コンテナ名にはアンダースコア以外の特殊文字は使用できません。無効な$1です。現在の設定:$2",
+                "specialchars": "コンテナ名にはアンダースコア以外の特殊文字は使用できません。無効な$1です。現在の設定:$2"
             },
             "darkreader": {
-                "blocklistRegex": "",
-                "color": "",
-                "missing": ""
+                "blocklistRegex": "$1内の無効な正規表現です。現在の設定:$2",
+                "color": "無効な色です。有効な色名または十六進数の色を使用してください。現在の設定:$1",
+                "missing": "Darkreaderモジュールが見つかりません。ダークモードを表示できません！"
             },
-            "downloadpathIsFolder": "",
-            "downloadpathMissing": "",
-            "favoritepages": "",
-            "fileload": "",
+            "downloadpathIsFolder": "ダウンロードパスがディレクトリではありません。現在の設定:$1",
+            "downloadpathMissing": "ダウンロードパスが存在しません。現在の設定:$1",
+            "favoritepages": "favoritepagesに渡されたURLが無効です。現在の設定:$1",
+            "fileload": "ファイルの読み取りエラーが発生しました。ファイルの場所:'$1'",
             "followchars": {
-                "duplicate": "",
-                "invalidSet": "",
-                "notEnough": ""
+                "duplicate": "followcharsのすべての文字は一意でなければなりません。重複は許可されません。",
+                "invalidSet": "無効な値$1が渡された。alpha、alphanum、dvorakhome、numbers、qwertyhome、または'custom:'で始まるカスタムリストのいずれかでなければなりません。",
+                "notEnough": "followcharsの値は少なくとも二文字でなければなりません。"
             },
-            "followelement": "",
-            "invalidScope": "",
-            "markpersistencetype": "",
-            "missing": "",
-            "modifiers": "",
-            "mouseFeature": "",
-            "newtaburl": "",
-            "numberRange": "",
-            "oneof": "設定$1の値は$2のいずれかである必要がある。",
+            "followelement": "無効な要素タイプ$1が渡されました。のいずれかの組み合わせでなければなりません：$2",
+            "invalidScope": "'$2'内の値'$1'が無効です。有効な値は次のいずれかです:file、page、またはspecial",
+            "markpersistencetype": "quickmarkpersistenceに渡された無効なクイックマークタイプです。現在の設定:$1",
+            "missing": "設定'$1'が存在しません。",
+            "modifiers": "modifiers内のキー名'$1'が有効なキーとして認識されません。",
+            "mouseFeature": "機能'$1'は無効なマウス機能です。",
+            "newtaburl": "newtaburlの値は有効なURLまたは空である必要があります。現在の設定:$1",
+            "numberRange": "設定'$1'の値は$2から$3の間である必要があります。",
+            "oneof": "設定'$1'の値は次のいずれかである必要があります:$2",
             "passthrough": {
-                "keyname": "",
-                "keys": "",
-                "regex": ""
+                "keyname": "passthroughkeys内のキー名'$1'が有効なキーとして認識されません。",
+                "keys": "passthroughkeysエントリ内のキーが無効です。現在の設定:$1",
+                "regex": "passthroughkeys内の無効な正規表現です。現在の設定:$1"
             },
             "permission": {
-                "captureallowed": "",
-                "hidasked": "",
-                "mediadevicesasked": "",
-                "name": "",
-                "regex": "",
-                "separator": "",
-                "serialasked": "",
-                "usbasked": ""
+                "captureallowed": "表示キャプチャ許可は許可できません。要求またはブロックのみが可能です。",
+                "hidasked": "HIDパーミッションは要求できません。許可またはブロックのみが可能です。",
+                "mediadevicesasked": "Mediadevicesパーミッションは要求できません。許可またはブロックのみが可能です。",
+                "name": "無効なパーミッション名です。現在の設定:$1",
+                "regex": "permission内の無効な正規表現です。現在の設定:$1",
+                "separator": "無効な$1エントリです。エントリはドメインの正規表現とパーミッション名を少なくとも一つの'~'で区切る必要があります。現在の設定:$2",
+                "serialasked": "シリアルデバイスパーミッションは要求できません。許可またはブロックのみが可能です。",
+                "usbasked": "USBデバイスパーミッションは要求できません。許可またはブロックのみが可能です。"
             },
             "redirect": {
-                "regex": "",
-                "separator": ""
+                "regex": "redirect内の無効な正規表現です。現在の設定:$1",
+                "separator": "無効なredirectエントリです。エントリは正規表現と置換を区切る'~'を含む必要があります。現在の設定:$1"
             },
             "resources": {
-                "regex": "",
-                "type": ""
+                "regex": "$1内の無効な正規表現です。現在の設定:$2",
+                "type": "$1内の無効なリソースタイプです。現在の設定:$2"
             },
             "searchengine": {
-                "replace": "",
-                "url": ""
+                "replace": "searchengineの値が無効です。各URLには検索文字列が%sパラメータで置換される必要があります。現在の設定:$1",
+                "url": "searchengineの値が無効です。URLは有効なURLである必要があります。現在の設定:$1"
             },
             "searchwords": {
-                "duplicate": "",
-                "separator": "",
-                "url": ""
+                "duplicate": "無効なsearchwordsエントリ$1が渡された。検索語$2は既に定義されています。サーチワードは一度だけ定義しなければならない。",
+                "separator": "無効なsearchwordsエントリ$1が渡された。~の前の検索ワードにはアンダースコア以外の特殊文字が含まれていてはいけません。",
+                "url": "無効なsearchwordsエントリ$1が渡された。searchwordsのURLは存在し、検索文字列が%sパラメータで置換される必要があります。"
             },
-            "spelllang": "",
+            "spelllang": "spelllangに渡された言語が無効です。現在の設定:$1",
             "sponsorblock": {
-                "color": "",
-                "duplicate": "",
-                "name": ""
+                "color": "sponsorblockcategories内の色が無効です。有効な色名または十六進数の色を使用してください。現在の設定:$1",
+                "duplicate": "sponsorblockcategories内のカテゴリが無効です。カテゴリ'$1'はすでに定義されています。カテゴリは一度だけ定義する必要があります。現在の設定:$1",
+                "name": "sponsorblockcategories内のカテゴリが無効です。現在の設定:$1"
             },
             "startuppages": {
-                "invalidopts": "",
-                "name": "",
-                "toomany": "",
-                "url": ""
+                "invalidopts": "startuppagesに渡されたオプション'$1'が無効です。'muted'と'pinned'のみが受け入れられます。現在の設定:$1",
+                "name": "スタートアップページのコンテナ名にはアンダースコア以外の特殊文字は使用できません。無効なコンテナです。現在の設定:$1",
+                "toomany": "startuppagesエントリに与えられたオプションが多すぎます。現在の設定:$1",
+                "url": "startuppagesに渡されたURLが無効です。現在の設定:$1"
             },
-            "storenewvisits": "",
+            "storenewvisits": "無効なタイプの履歴 $1 が渡された。のいずれかでなければならない：$2",
             "suggestorder": {
-                "duplicateCount": "",
-                "duplicateSort": "",
-                "empty": "",
-                "invalidSort": "",
-                "tilde": "",
-                "type": ""
+                "duplicateCount": "suggestorderエントリのカウント構成は、エントリごとに一度だけ設定できます。",
+                "duplicateSort": "suggestorderエントリのソート構成は、エントリごとに一度だけ設定できます。",
+                "empty": "suggestorderのタイプの構成は空にできません。",
+                "invalidSort": "オーダー構成が無効です。$1に対するサポートされるオーダーは次のとおりです:$2",
+                "tilde": "suggestorderエントリが無効です。エントリはタイプとカウント、およびオーダーを区切る'~'を含む必要があります(両方ともオプション)。現在の設定:$1",
+                "type": "無効なsuggestorderタイプ'$1'が渡されました。suggestorderタイプはhistory、file、searchwordのいずれかでなければなりません。"
             },
-            "tocpages": "",
-            "translateurl": "",
-            "type": "",
-            "unchanged": "",
+            "tocpages": "tocpages内の無効な正規表現です。現在の設定:$1",
+            "translateurl": "translateurlの値は有効なURLである必要があります。現在の設定:$1",
+            "type": "設定'$1'の値のタイプが間違っています。期待される型:'$2'、実際の型:'$3'",
+            "unchanged": "設定されたオプション、変更されたマッピング、追加されたカスタムコマンドはありません。設定ファイルは書き込まれませんでした。",
             "windowsize": {
-                "format": "",
-                "minimum": ""
+                "format": "$1の値は'800x600'のような二つの数字を'x'で結合した形式でなければなりません。",
+                "minimum": "windowsizeのサイズは少なくとも500でなければなりません。現在の設定:$1"
             }
         },
         "files": {
-            "failed": "",
-            "missingloc": "",
-            "success": ""
+            "failed": "'$1'に書き込めませんでした。",
+            "missingloc": "設定ファイルの場所がわかりません。書き込みできません。",
+            "success": "'$1'を'$2'に保存しました。"
         }
     },
     "util": {
         "and": "と",
         "catchphrase": "ヴィム風エレクトロンブラウザ",
-        "comma": "と",
-        "commaSpaced": "と",
-        "doubleQuoteEnd": "\"",
-        "doubleQuoteStart": "\"",
+        "comma": "、",
+        "commaSpaced": "、",
+        "doubleQuoteEnd": "」",
+        "doubleQuoteStart": "「",
         "none": "",
-        "or": "と",
-        "singleQuoteEnd": "'",
-        "singleQuoteStart": "'",
-        "untranslated": ""
+        "or": "または",
+        "singleQuoteEnd": "』",
+        "singleQuoteStart": "『",
+        "untranslated": "$1"
     }
 }

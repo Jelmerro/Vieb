@@ -97,7 +97,7 @@
             "missing": "No command set to open links externally, please update the 'externalcommand' setting"
         },
         "help": {
-            "argCount": "The help command takes a single optional argumnet"
+            "argCount": "The help command takes a single optional argument"
         },
         "hide": {
             "range": "Range cannot be combined with searching in hide command",
@@ -197,7 +197,7 @@
             "missing": "Specified file could not be found: $1",
             "readError": "Read error for config file located: $1",
             "recursive": "Recursive sourcing of files is not supported",
-            "startup": "It's not possible to source again file again that's already loaded on startup"
+            "startup": "It's not possible to source a file again that's already loaded on startup"
         },
         "split": {
             "range": "Range cannot be combined with searching in split command",
@@ -406,7 +406,7 @@
             "favoritepages": "Invalid URL passed to favoritepages: $1",
             "fileload": "Read error for config file located at '$1'",
             "followchars": {
-                "duplicate": "All followchars characters must be unique, no duplicates",
+                "duplicate": "All followchars characters must be unique, no duplicates allowed",
                 "invalidSet": "Invalid value: $1, must be any of: alpha, alphanum, dvorakhome, numbers, qwertyhome, or a custom list starting with 'custom:'",
                 "notEnough": "The followchars value must be at least two characters"
             },
@@ -436,7 +436,7 @@
             },
             "redirect": {
                 "regex": "Invalid regular expression in redirect: $1",
-                "separator": "Invalid redirect entry: $1\nEntires must have exactly one ~ to separate the regular expression from the replacement"
+                "separator": "Invalid redirect entry: $1\nEntries must have exactly one ~ to separate the regular expression from the replacement"
             },
             "resources": {
                 "regex": "Invalid regular expression in $1: $2",
@@ -467,9 +467,9 @@
             "suggestorder": {
                 "duplicateCount": "Count configuration for a suggestorder entry can only be set once per entry",
                 "duplicateSort": "Order configuration for a suggestorder entry can only be set once per entry",
-                "empty": "Configuration for suggestorder af the type can not be empty",
+                "empty": "Configuration for suggestorder of the type can not be empty",
                 "invalidSort": "Order configuration is invalid, supported orders for $1 are: $2",
-                "tilde": "Invalid suggestorder entry: $1\nEntires must have at most two ~ to separate the type from the count and the order (both are optional)",
+                "tilde": "Invalid suggestorder entry: $1\nEntries must have at most two ~ to separate the type from the count and the order (both are optional)",
                 "type": "Invalid suggestorder type: $1\nSuggestion type must be one of: history, file or searchword"
             },
             "tocpages": "Invalid regular expression in tocpages: $1",
@@ -482,7 +482,7 @@
             }
         },
         "files": {
-            "failed": "Could not write to '$1'",
+            "failed": "Could not write to: $1",
             "missingloc": "No config location is known, could not write",
             "success": "$1 saved to '$2'"
         }

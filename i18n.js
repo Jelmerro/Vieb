@@ -133,7 +133,7 @@ if (args[0] === "lint") {
             if (!val) {
                 if (getVal("en", key)) {
                     console.warn(`Empty value for ${key} in lang file ${lang}`)
-                } else {
+                } else if (key !== "util.none") {
                     console.warn(`Extra key ${key} in lang file ${lang}`)
                 }
                 returnCode = 1
