@@ -39,7 +39,7 @@ ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     }
     notification.textContent = translate("popups.notification.loading")
     notification.scrollBy(0, -1000000000)
-    notification.innerHTML = message
+    notification.textContent = message
     const footer = document.querySelector("footer")
     if (footer) {
         footer.style.color = `var(--notification-${lvl}`

@@ -54,7 +54,7 @@ window.addEventListener("DOMContentLoaded", () => {
             date.className = "date"
             element.append(date)
             const contents = document.createElement("div")
-            contents.innerHTML = notification.message
+            contents.textContent = notification.message
             contents.className = notification.type
             element.append(contents)
             list.prepend(element)

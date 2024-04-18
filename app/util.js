@@ -984,8 +984,6 @@ const notify = opts => {
         return
     }
     const properType = opts.type ?? "info"
-    const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
-        .replace(/\n/g, "<br>")
     let clickInfo = null
     if (opts?.action) {
         clickInfo = {...opts.action}
@@ -998,7 +996,7 @@ const notify = opts => {
     notificationHistory.push({
         "click": clickInfo,
         "date": new Date(),
-        "message": escapedMessage,
+        message,
         "type": properType
     })
     if (properType === "permission") {
@@ -1018,7 +1016,7 @@ const notify = opts => {
     }
     const native = getSetting("nativenotification")
     const shortLimitNotify = getSetting("notificationlimitsmall")
-    const showLong = escapedMessage.split("<br>").length > shortLimitNotify
+    const showLong = message.split("\n").length > shortLimitNotify
         && properType !== "dialog"
     const shortAndSmallNative = !showLong && native === "smallonly"
     const longAndLargeNative = showLong && native === "largeonly"
@@ -1034,7 +1032,7 @@ const notify = opts => {
     }
     if (showLong) {
         const {ipcRenderer} = require("electron")
-        ipcRenderer.send("show-notification", escapedMessage, properType)
+        ipcRenderer.send("show-notification", message, properType)
         return
     }
     const notificationsElement = document.getElementById("notifications")
@@ -1044,7 +1042,7 @@ const notify = opts => {
     notificationsElement.className = getSetting("notificationposition")
     const notification = document.createElement("span")
     notification.className = properType
-    notification.innerHTML = escapedMessage
+    notification.textContent = message
     if (opts.action && opts.action.func) {
         // @ts-expect-error Func type could be undefined according to TS...
         notification.addEventListener("click", () => opts.action?.func?.())
