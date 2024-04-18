@@ -139,7 +139,8 @@ if (args[0] === "lint") {
                 returnCode = 1
             }
             if (numberOfFields("en", key) !== numberOfFields(lang, key)) {
-                console.warn(`Incorrect number of template fields in ${key}`)
+                console.warn(`Incorrect number of template fields for ${
+                    key} in lang file ${lang}`)
                 returnCode = 1
             }
         }

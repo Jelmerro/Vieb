@@ -398,7 +398,8 @@
             },
             "darkreader": {
                 "blocklistRegex": "",
-                "color": ""
+                "color": "",
+                "missing": ""
             },
             "downloadpathIsFolder": "",
             "downloadpathMissing": "",

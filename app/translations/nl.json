@@ -1,223 +1,223 @@
 {
     "actions": {
-        "alreadyRecording": "",
+        "alreadyRecording": "Al bezig met opnemen, stop eerst de huidige opname",
         "command": {
-            "failed": "",
-            "success": "",
-            "successWithOutput": ""
+            "failed": "Commando uitvoeren mislukt:\n$1",
+            "success": "Commando succesvol uitgevoerd",
+            "successWithOutput": "Commando succesvol uitgevoerd:\n$1"
         },
         "rss": {
-            "clipboard": "",
-            "header": "",
-            "notFound": ""
+            "clipboard": "RSS-feed '$1' gekopieerd naar klembord",
+            "header": "--- RSS links op de pagina ---\n$1",
+            "notFound": "Geen RSS-feeds gevonden"
         },
         "toc": {
-            "title": "",
-            "top": ""
+            "title": "Inhoud",
+            "top": "Boven"
         },
         "translations": {
             "errors": {
-                "deepl": "",
-                "general": "",
-                "libretranslate": ""
+                "deepl": "Foutmelding van DeepL: $1",
+                "general": "Fout bij verbinden met vertaaldienst, zie console",
+                "libretranslate": "Foutmelding van LibreTranslate: $1"
             }
         }
     },
     "adblocker": {
-        "aborted": "",
-        "failed": "",
-        "missing": "",
-        "updated": "",
-        "updating": ""
+        "aborted": "Fout in bijwerken van $1: Verzoek afgebroken",
+        "failed": "Fout in bijwerken van $1:\n$2",
+        "missing": "Adblocker module niet gevonden, advertenties worden niet geblokkeerd!",
+        "updated": "Lijst $1 met succes bijgewerkt en herladen",
+        "updating": "Lijst $1 aan het bijwerken"
     },
     "commands": {
         "arguments": {
-            "folderMissing": ""
+            "folderMissing": "Map '$1' bestaat niet!"
         },
-        "buffers": "",
+        "buffers": "$1",
         "clear": {
-            "argCount": "",
-            "intervalInvalid": "",
-            "intervalMissing": "",
-            "typeInvalid": "",
-            "typeMissing": ""
+            "argCount": "Het clear commando accepteert precies twee argumenten: een type en een interval",
+            "intervalInvalid": "Het clear commando interval moet 'all', een URL of een interval zoals '1day' of omgekeerd zoals 'last3hours' zijn",
+            "intervalMissing": "Het clear commando vereist een interval",
+            "typeInvalid": "Het clear commando type moet een van deze opties zijn: history",
+            "typeMissing": "Het clear commando vereist een type"
         },
         "close": {
-            "noMatch": "",
-            "range": ""
+            "noMatch": "Geen tabbladen gevonden die overeenkomen, niks gesloten",
+            "range": "Een bereik kan niet gecombineerd worden met argumenten in een close commando"
         },
         "colorscheme": {
-            "argCount": "",
-            "current": "",
-            "missing": ""
+            "argCount": "Het colorscheme commando accepteert precies één argument",
+            "current": "Kleurenschema: $1",
+            "missing": "Kan kleurenschema '$1' niet vinden"
         },
         "command": {
-            "builtin": "",
-            "combined": "",
-            "duplicate": "",
-            "list": "",
-            "listSingle": "",
-            "missing": "",
-            "none": "",
-            "slashes": "",
-            "special": ""
+            "builtin": "Commando kan niet een ingebouwd commando zijn: $1",
+            "combined": "Kan ! niet combineren met het uitlezen van een custom commando",
+            "duplicate": "Commando '$1' bestaat al (gebruik ! om het te overschrijven): $1",
+            "list": "--- Custom commando's ---\n$1",
+            "listSingle": "$1 => $2",
+            "missing": "Niet een editor commando: $1",
+            "none": "Geen custom commando's gevonden",
+            "slashes": "Commando mag geen slashes bevatten",
+            "special": "Commando mag niet beginnen met een nummer en mag geen speciale tekens bevatten"
         },
         "delcommand": {
-            "argCount": "",
-            "missing": ""
+            "argCount": "Het delcommand commando accepteert precies één argument",
+            "missing": "Kan custom commando '$1' niet vinden"
         },
         "deletepointerpos": {
-            "overridePath": "",
-            "toofew": "",
-            "toomany": ""
+            "overridePath": "Commando delpointerpos! accepteert alleen een enkel pad",
+            "toofew": "Commando delpointerpos vereist minstens de toetscombinatie als argument",
+            "toomany": "Commando delpointerpos accepteert alleen de toetscombinatie en een optioneel pad als argument"
         },
         "deletescrollpos": {
-            "overridePath": "",
-            "toofew": "",
-            "toomany": ""
+            "overridePath": "Commando delscrollpos! accepteert alleen een enkel pad",
+            "toofew": "Commando delscrollpos vereist minstens de toetscombinatie als argument",
+            "toomany": "Commando delscrollpos accepteert alleen de toetscombinatie en een optioneel pad als argument"
         },
         "delmarks": {
-            "argCount": "",
-            "keyname": ""
+            "argCount": "Commando accepteert geen argumenten: delmarks",
+            "keyname": "Commando delmarks accepteert alleen de toetscombinatie als argument"
         },
         "devtools": {
-            "argCount": "",
-            "invalid": ""
+            "argCount": "Het devtools commando accepteert één optioneel argument",
+            "invalid": "Ongeldige devtools positie '$1' meegegeven, moet een van deze opties zijn: $2"
         },
         "execute": {
-            "ambiguous": "",
-            "argCount": "",
-            "invalidJSON": "",
-            "noConfirm": "",
-            "noRange": "",
-            "notFound": "",
-            "unmatched": ""
+            "ambiguous": "Commando is ambigu, wees specifieker: $1",
+            "argCount": "Commando accepteert geen argumenten: $1",
+            "invalidJSON": "Commando kon niet uitgevoerd worden, ongeldige JSON:\n$1\n$2",
+            "noConfirm": "Geen ! toegestaan voor: $1",
+            "noRange": "Commando kan niet met een bereik gebruikt worden: $1",
+            "notFound": "Niet een editor commando: $1",
+            "unmatched": "Commando kon niet uitgevoerd worden, incomplete haakjes of backslash: $1"
         },
         "externalcommand": {
-            "missing": ""
+            "missing": "Geen commando ingesteld om links extern mee te openen, werk de instelling 'externalcommand' bij"
         },
         "help": {
-            "argCount": ""
+            "argCount": "Het help commando accepteert één optioneel argument"
         },
         "hide": {
-            "range": "",
-            "visible": ""
+            "range": "Een bereik kan niet gecombineerd worden met argumenten in een hide commando",
+            "visible": "Alleen zichtbare tabbladen kunnen verborgen worden"
         },
         "makedefault": {
-            "failed": "",
-            "installed": "",
-            "other": ""
+            "failed": "Script om Vieb als standaardbrowser in te stellen is mislukt:\n$1",
+            "installed": "Commando werkt alleen voor geïnstalleerde versies van Vieb",
+            "other": "Indien er geen notificatie verschijnt, ga dan naar de instellingen van je besturingssysteem om Vieb als standaardbrowser in te stellen"
         },
         "marks": {
-            "argCount": "",
-            "list": "",
-            "noKey": "",
-            "none": "",
-            "url": ""
+            "argCount": "Commando marks accepteert maximaal twee argumenten",
+            "list": "$1",
+            "noKey": "Geen markering gevonden voor toetscombinatie: $1",
+            "none": "Geen markeringen gevonden",
+            "url": "Markering URL moet een geldige URL zijn, niet: $1"
         },
         "mkviebrc": {
-            "argCount": "",
-            "invalid": ""
+            "argCount": "Het mkviebrc commando accepteert één optioneel argument",
+            "invalid": "Het enige geldige argument voor mkviebrc is 'full', niet $1"
         },
         "mute": {
-            "argCount": "",
-            "noMatch": "",
-            "range": ""
+            "argCount": "Commando mute accepteert één optioneel boolean argument",
+            "noMatch": "Kan geen tabbladen vinden die overeenkomen, niks gedempt of hersteld",
+            "range": "Een bereik kan niet gecombineerd worden met argumenten in een mute commando"
         },
         "pin": {
-            "argCount": "",
-            "noMatch": "",
-            "range": ""
+            "argCount": "Commando pin! accepteert precies één argument",
+            "noMatch": "Kan geen tabbladen vinden die overeenkomen, niks vastgezet of hersteld",
+            "range": "Een bereik kan niet gecombineerd worden met argumenten in een pin commando"
         },
         "pointerpos": {
-            "argCount": "",
-            "list": "",
-            "location": "",
-            "noKey": "",
-            "none": ""
+            "argCount": "Commando pointerpos accepteert maximaal drie argumenten",
+            "list": "$1",
+            "location": "Commando pointerpos vereist de x en y locatie na de toetscombinatie",
+            "noKey": "Kan geen muis posities vinden voor toetscombinatie: $1",
+            "none": "Kan geen muis posities vinden"
         },
         "ranges": {
-            "combined": "",
-            "commas": "",
-            "flags": "",
-            "indexOrSearch": "",
-            "invalid": ""
+            "combined": "Een globale zoekopdracht kan niet gecombineerd worden met twee indexcijfers in bereik '$1', gebruik de twee indexcijfers los OF doe een globale zoekopdracht",
+            "commas": "Te veel komma's in bereik '$1', maximaal één komma toegestaan",
+            "flags": "Bereik '$1' bevat ongeldige vlaggen",
+            "indexOrSearch": "Bereik '$1' is ongeldig, er moeten indexcijfers of een zoekopdracht in zitten",
+            "invalid": "Bereik gedeelte '$1' is geen geldig bereik"
         },
         "restoremark": {
-            "argCount": "",
-            "keyname": "",
-            "position": ""
+            "argCount": "Commando restoremark accepteert maximaal twee argumenten",
+            "keyname": "Commando restoremark vereist minstens de toetscombinatie als argument",
+            "position": "Ongeldige herstel positie '$1', kan alleen maar een van de volgende waardes hebben: $2"
         },
         "restorepointerpos": {
-            "argCount": "",
-            "keyname": ""
+            "argCount": "Commando restorepointerpos accepteert maximaal twee argumenten",
+            "keyname": "Commando restorepointerpos vereist minstens de toetscombinatie als argument"
         },
         "restorescrollpos": {
-            "argCount": "",
-            "keyname": ""
+            "argCount": "Commando restorescrollpos accepteert maximaal twee argumenten",
+            "keyname": "Commando restorescrollpos veriest minstens de toetscombinatie als argument"
         },
         "screencopy": {
-            "argCount": "",
-            "dimensions": ""
+            "argCount": "Het screencopy commando accepteert alleen optioneel de dimensies",
+            "dimensions": "Screencopy dimensies moeten het formaat 'breedte,hoogte,x,y' volgen met ronde getallen"
         },
         "screenshot": {
-            "argCount": "",
-            "dimensions": "",
-            "failed": "",
-            "success": ""
+            "argCount": "Het screenshot commando accepteert maximaal twee optionele argumenten:\nde locatie waar de afbeelding naar geschreven moet worden en de dimensies",
+            "dimensions": "Screenshot dimensies moeten het formaat 'breedte,hoogte,x,y' volgen met ronde getallen",
+            "failed": "Fout bij schrijven van afbeelding: $1",
+            "success": "Afbeelding opgeslagen: $1"
         },
         "scriptnames": {
-            "argType": "",
-            "editor": "",
-            "noArgs": "",
-            "notFound": "",
-            "singleArg": ""
+            "argType": "Scriptnames! argument moet verwijzen naar een script index",
+            "editor": "Commando om bestanden te bewerken mislukt, werk de 'vimcommand' setting bij",
+            "noArgs": "Commando accepteert geen argumenten: scriptnames",
+            "notFound": "Geen script gevonden met index '$1', zie ':scriptnames!'",
+            "singleArg": "Scriptnames! accepteert maximaal één optioneel index argument"
         },
         "scrollpos": {
-            "argCount": "",
-            "list": "",
-            "noKey": "",
-            "none": "",
-            "pixels": ""
+            "argCount": "Commando scrollpos accepteert maximaal drie argumenten",
+            "list": "$1",
+            "noKey": "Kan geen scroll posities vinden voor toetscombinatie: $1",
+            "none": "Kan geen scroll posities vinden",
+            "pixels": "Commando scrollpos vereist de pixels als argument na de toetscombinatie, niet: $1"
         },
         "settings": {
-            "invalidJSON": "",
-            "invalidStructure": "",
-            "listSingle": "",
-            "missing": "",
-            "noChanges": "",
-            "noFlipping": "",
-            "noModify": "",
-            "optionsList": "",
-            "reserved": ""
+            "invalidJSON": "Ongeldige JSON in '$1' waarde:\n$2",
+            "invalidStructure": "Ongeldige structuur/type gevonden in '$1' waarde:\n$2\nDe waarde mag alleen een object met string waardes, een lijst van strings of een lijst van lijsten met 1 of 2 strings zijn",
+            "listSingle": "De instelling '$1' heeft de waarde: $2",
+            "missing": "De instelling '$1' bestaat niet",
+            "noChanges": "Er zijn geen instellingen aangepast van de standaardwaarden",
+            "noFlipping": "De instelling '$1' kan niet worden omgedraaid",
+            "noModify": "De instelling '$1' kan niet worden bewerkt als nummer, text, lijst of object",
+            "optionsList": "--- Opties ---\n$1",
+            "reserved": "Deze syntax is gereserveerd voor toekomstige functionaliteit, maar heeft nu geen werking"
         },
         "source": {
-            "absolute": "",
-            "argCount": "",
-            "missing": "",
-            "readError": "",
-            "recursive": "",
-            "startup": ""
+            "absolute": "Bestanden moeten met absolute paden als bron gebruikt worden",
+            "argCount": "Source vereist precies één argument met de bestandsnaam",
+            "missing": "Opgegeven bestand kan niet worden gevonden: $1",
+            "readError": "Lees fout voor configuratiebestand in locatie: $1",
+            "recursive": "Bronbestanden recursief inladen wordt niet ondersteund",
+            "startup": "Het is niet mogelijk om bestanden opnieuw als bron te laden die al bij opstarten worden geladen"
         },
         "split": {
-            "range": "",
-            "visible": ""
+            "range": "Een bereik kan niet worden gecombineerd met argumenten in een split ommando",
+            "visible": "Pagina is al zichtbaar, en kan daardoor niet in een nieuwe split gezet worden"
         },
         "suspend": {
-            "range": "",
-            "visible": ""
+            "range": "Een bereik kan niet worden gecombineerd met argumenten in een suspend commando",
+            "visible": "Alleen verborgen tabbladen kunnen gesluimerd worden"
         },
         "translatepage": {
-            "apiKey": "",
-            "argCount": "",
-            "language": ""
+            "apiKey": "API sleutel niet ingesteld, zie ':h translatekey' voor hulp",
+            "argCount": "Commando translatepage accepteert alleen een optioneel taal argument",
+            "language": "Ongeldige taal '$1' opgegeven, zie ':h  translatelang' voor hulp"
         },
         "write": {
-            "argCount": "",
-            "combined": "",
-            "failed": "",
-            "success": "",
-            "type": ""
+            "argCount": "Het write commando accepteert maximaal twee optionele argumenten:\nde locatie waar de pagina naar geshreven moet worden en het type bestand",
+            "combined": "Het locatie argument kan niet worden gecombineerd met een bereik",
+            "failed": "Fout bij schrijven van pagina: $1",
+            "success": "Pagina opgeslagen: $1",
+            "type": "Write type argument moet 'html' of 'mhtml' zijn, niet: $1"
         }
     },
     "contextmenu": {
@@ -233,9 +233,9 @@
         }
     },
     "downloads": {
-        "failed": "",
-        "finished": "",
-        "started": ""
+        "failed": "Download mislukt:\n$1",
+        "finished": "Download klaar:\n$1",
+        "started": "Download begonnen:\n$1"
     },
     "mappings": {
         "defaultMapping": "",
@@ -273,7 +273,7 @@
             "title": "Downloads"
         },
         "failedload": {
-            "otherError": "<h2>Onbereikbare pagina</h2>De pagina kon niet met succes geladen worden. De onderstaande foutmelding kwam voor:<br><h3>$1</h3>De eerst stap die je kunt proberen is het herladen van de pagina, standaard kan dit met <kbd>r</kbd> in normale modus. Als het probleem zich voor blijft doen, controleer dan of de url correct is. Anders is het ook mogelijk dat de website het '$2' protocol niet ondersteund. Tot slot kun je de internetverbinding controleren en de DNS instellingen nakijken.",
+            "otherError": "<h2>Onbereikbare pagina</h2>De pagina kon niet met succes geladen worden. De onderstaande foutmelding kwam voor:<br><h3>$1</h3>De eerst stap die je kunt proberen is het herladen van de pagina, standaard kan dit met <kbd>r</kbd> in normale modus. Als het probleem zich voor blijft doen, controleer dan of de URL correct is. Anders is het ook mogelijk dat de website het '$2' protocol niet ondersteund. Tot slot kun je de internetverbinding controleren en de DNS instellingen nakijken.",
             "sslError": "<h2>Onbereikbare pagina</h2>De pagina kon niet met succes geladen worden. De onderstaande foutmelding kwam voor:<br><h3>$1</h3>Je kunt automatische HTTP verwijzingen aanzetten met <kbd>:set redirecttohttp</kbd>.<br>Als alternatief kun je er ook voor kiezen om eenmalig naar de HTTP link te gaan: <a href=\"$2\">$2</a><br>Tot slot kun je instellen wat er met onjuiste certificaten moet gebeuren via <kbd>permissioncertificateerror</kbd>."
         },
         "filebrowser": {
@@ -398,7 +398,8 @@
             },
             "darkreader": {
                 "blocklistRegex": "",
-                "color": ""
+                "color": "",
+                "missing": ""
             },
             "downloadpathIsFolder": "",
             "downloadpathMissing": "",

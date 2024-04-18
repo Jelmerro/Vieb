@@ -27,9 +27,10 @@ window.addEventListener("DOMContentLoaded", () => {
         h1.textContent = translate("pages.notifications.title")
     }
     const list = document.getElementById("list")
-    if (list) {
-        list.textContent = translate("pages.notifications.loading")
+    if (!list) {
+        return
     }
+    list.textContent = translate("pages.notifications.loading")
 
     /**
      * Show the list of notifications.
@@ -37,11 +38,7 @@ window.addEventListener("DOMContentLoaded", () => {
      * @param {import("../util").notificationHistory} notifications
      */
     const showNofitications = (_, notifications) => {
-        const listEl = document.getElementById("list")
-        if (!listEl) {
-            return
-        }
-        listEl.textContent = ""
+        list.textContent = ""
         notifications.forEach(notification => {
             const element = document.createElement("div")
             element.className = "notification"
@@ -60,10 +57,10 @@ window.addEventListener("DOMContentLoaded", () => {
             contents.innerHTML = notification.message
             contents.className = notification.type
             element.append(contents)
-            listEl.prepend(element)
+            list.prepend(element)
         })
-        if (listEl.textContent === "") {
-            listEl.textContent = translate("pages.notifications.empty")
+        if (list.textContent === "") {
+            list.textContent = translate("pages.notifications.empty")
         }
     }
 

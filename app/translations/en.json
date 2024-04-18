@@ -8,7 +8,7 @@
         },
         "rss": {
             "clipboard": "RSS feed '$1' copied to clipboard",
-            "header": "--- RSS Links on the page ---\n$1",
+            "header": "--- RSS feeds on the page ---\n$1",
             "notFound": "No RSS feeds found on this page"
         },
         "toc": {
@@ -36,8 +36,8 @@
         },
         "buffers": "$1",
         "clear": {
-            "argCount": "The clear command takes exactly two arguments:\na type and an interval",
-            "intervalInvalid": "The clear command interval must be 'all', a valid url or a valid interval, such as '1day', or inverted like 'last3hours'",
+            "argCount": "The clear command takes exactly two arguments: a type and an interval",
+            "intervalInvalid": "The clear command interval must be 'all', a valid URL or a valid interval, such as '1day', or inverted like 'last3hours'",
             "intervalMissing": "The clear command interval is required",
             "typeInvalid": "The clear command type must be one of: history",
             "typeMissing": "The clear command requires a type argument to clear"
@@ -63,7 +63,7 @@
             "special": "Command name cannot start with a number nor special character"
         },
         "delcommand": {
-            "argCount": "Exactly one command name is required for delcommand",
+            "argCount": "The delcommand command takes a exactly one argument",
             "missing": "No such user defined command: $1"
         },
         "deletepointerpos": {
@@ -106,18 +106,18 @@
         "makedefault": {
             "failed": "Script to set Vieb as the default browser failed:\n$1",
             "installed": "Command only works for installed versions of Vieb",
-            "other": "If you didn't get a notification to set Vieb as your default browser, this command probably does not work for your OS"
+            "other": "If you didn't get a notification to set Vieb as your default browser, please go to the OS settings for default applications to check"
         },
         "marks": {
             "argCount": "Command marks only accepts a maximum of two args",
             "list": "$1",
-            "noKey": "No marks found for keys '$1'",
+            "noKey": "No marks found for keys: $1",
             "none": "No marks found",
-            "url": "Mark url must be a valid url, not '$1'"
+            "url": "Mark URL must be a valid URL, not: $1"
         },
         "mkviebrc": {
             "argCount": "The mkviebrc command takes a single optional argument 'full'",
-            "invalid": "The only optional argument supported is 'full', not: $1"
+            "invalid": "The only optional argument for mkviebrc is 'full', not: $1"
         },
         "mute": {
             "argCount": "Command mute! requires a single boolean argument",
@@ -133,7 +133,7 @@
             "argCount": "Command pointerpos only accepts a maximum of three args",
             "list": "$1",
             "location": "Command pointerpos requires the x and y location after the key",
-            "noKey": "No pointer positions found for keys '$1'",
+            "noKey": "No pointer positions found for keys: $1",
             "none": "No pointer positions found"
         },
         "ranges": {
@@ -163,8 +163,8 @@
         "screenshot": {
             "argCount": "The screenshot command takes only two optional arguments:\nthe location where to write the image and the dimensions",
             "dimensions": "Screenshot dimensions must match 'width,height,x,y' with round numbers",
-            "failed": "Could not write the image to '$1'",
-            "success": "Screenshot saved at '$1'"
+            "failed": "Could not write the image: $1",
+            "success": "Screenshot save: $1"
         },
         "scriptnames": {
             "argType": "Scriptnames! argument must be the number of a script",
@@ -176,7 +176,7 @@
         "scrollpos": {
             "argCount": "Command scrollpos only accepts a maximum of three args",
             "list": "$1",
-            "noKey": "No scroll positions found for keys '$1'",
+            "noKey": "No scroll positions found for keys: $1",
             "none": "No scroll positions found",
             "pixels": "Command scrollpos requires the pixels argument after the key, not: $1"
         },
@@ -188,16 +188,16 @@
             "noChanges": "No settings have been changed compared to the default",
             "noFlipping": "The setting '$1' can not be flipped",
             "noModify": "Can't modify '$1' as if it were a number, text, list or object",
-            "optionsList": "---- Options ---\n$1",
+            "optionsList": "--- Options ---\n$1",
             "reserved": "This syntax is reserved for future use, but has no purpose yet."
         },
         "source": {
             "absolute": "Filename must be absolute when sourcing files at runtime",
             "argCount": "Source requires exactly one argument representing the filename",
-            "missing": "Specified file could not be found at '$1'",
-            "readError": "Read error for config file located at '$1'",
+            "missing": "Specified file could not be found: $1",
+            "readError": "Read error for config file located: $1",
             "recursive": "Recursive sourcing of files is not supported",
-            "startup": "It's not possible to source a file that's loaded on startup"
+            "startup": "It's not possible to source again file again that's already loaded on startup"
         },
         "split": {
             "range": "Range cannot be combined with searching in split command",
@@ -208,15 +208,15 @@
             "visible": "Only tabs not currently visible can be suspended"
         },
         "translatepage": {
-            "apiKey": "API key not set, see ': translatekey' for help",
+            "apiKey": "API key not set, see ':h translatekey' for help",
             "argCount": "Command translatepage only accepts a single optional language argument",
             "language": "Invalid language '$1' supplied, see ':h translatelang' for help"
         },
         "write": {
             "argCount": "The write command takes two optional arguments\nthe location where to write the page and a type of file",
             "combined": "Write command ranges cannot be combined with a custom location",
-            "failed": "Could not save the page:\n$1",
-            "success": "Page saved at '$1'",
+            "failed": "Could not save the page: $1",
+            "success": "Page saved: $1",
             "type": "Write type must be one of 'html' or 'mhtml', not: $1"
         }
     },
@@ -273,7 +273,7 @@
             "title": "Downloads"
         },
         "failedload": {
-            "otherError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>The first step you could try is reloading the page, by default mapped to <kbd>r</kbd> in normal mode. If the error persists, make sure you typed the url correctly. Alternatively, the website might not support the '$2' protocol. Finally, please check your internet connection and DNS settings.",
+            "otherError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>The first step you could try is reloading the page, by default mapped to <kbd>r</kbd> in normal mode. If the error persists, make sure you typed the URL correctly. Alternatively, the website might not support the '$2' protocol. Finally, please check your internet connection and DNS settings.",
             "sslError": "<h2>Unreachable page</h2>The page could not be loaded successfully. The following error occurred:<br><h3>$1</h3>You can enable automatic HTTP redirects with <kbd>:set redirecttohttp</kbd>.<br>Alternatively, you can choose to go there just once via this HTTP link: <a href=\"$2\">$2</a><br>Finally, you can control what to do with invalid certificates by changing <kbd>permissioncertificateerror</kbd>."
         },
         "filebrowser": {
@@ -342,7 +342,7 @@
             "allowButton": "Allow",
             "body": "The page has requested access to the permission '$1'. You can allow or deny it below, and choose if you want to make this the default for the current session when sites ask for this permission in the future. For help and options, see ':h $2', ':h permissionsallowed', ':h permissionsasked' and ':h permissionsblocked'.\n\npage:\n$3",
             "bodyCertificate": "The page has a certificate error listed below. You can choose if you still want to continue visiting. Please do this after reviewing the certificate details. Because of the nature of certificates, any allowed certs will keep being trusted per domain until you restart Vieb. Changing the permission setting afterwards won't change this behavior. So while you can deny the same certificate multiple times, you only need to allow it once to be able to keep using it. For help and more options, see ':h permissioncertificateerror'.\n\npage:\n$1domain:\n$2\n\nISSUER $3\nSELF-SIGNED: $4\nSUBJECT: $5\nSTARTS: $6\nEXPIRES: $7\nFINGERPRINT: $8\n\nOnly allow certificates you have verified and can trust!",
-            "bodyExternal": "The page has requested to open an external application. You can allow or deny it below, and choose if you want to make this the default for the current session when sites ask to open urls in external programs in the future. For help and more options, see ':h permissionopenexternal', ':h permissionsallowed', ':h permissionsasked' and ':h permissionsblocked'.\n\npage:\n$2\n\nexternal:\n$3",
+            "bodyExternal": "The page has requested to open an external application. You can allow or deny it below, and choose if you want to make this the default for the current session when sites ask to open URLs in external programs in the future. For help and more options, see ':h permissionopenexternal', ':h permissionsallowed', ':h permissionsasked' and ':h permissionsblocked'.\n\npage:\n$2\n\nexternal:\n$3",
             "denyButton": "Deny",
             "label": "Remember for this session",
             "title": "Allow this page to access '$1'?"
@@ -398,7 +398,8 @@
             },
             "darkreader": {
                 "blocklistRegex": "Invalid regular expression in $1: $2",
-                "color": "Invalid color, must be a valid color name or hex, not: $1"
+                "color": "Invalid color, must be a valid color name or hex, not: $1",
+                "missing": "Darkreader module not present, can't show dark pages!"
             },
             "downloadpathIsFolder": "The downloadpath is not a directory: $1",
             "downloadpathMissing": "The downloadpath does not exist: $1",
@@ -415,7 +416,7 @@
             "missing": "The setting '$1' does not exist",
             "modifiers": "Key name '$1' in modifiers is not recognized as a valid key",
             "mouseFeature": "Feature '$1' is not a valid mouse feature",
-            "newtaburl": "The newtaburl value must be a valid url or empty, not: $1",
+            "newtaburl": "The newtaburl value must be a valid URL or empty, not: $1",
             "numberRange": "The value of setting '$1' must be between $2 and $3",
             "oneof": "The value of setting '$1' can only be one of: $2",
             "passthrough": {
@@ -472,7 +473,7 @@
                 "type": "Invalid suggestorder type: $1\nSuggestion type must be one of: history, file or searchword"
             },
             "tocpages": "Invalid regular expression in tocpages: $1",
-            "translateurl": "The translateurl value must be a valid url, not: $1",
+            "translateurl": "The translateurl value must be a valid URL, not: $1",
             "type": "The value of setting '$1' is of an incorrect type, expected '$2' but got '$3' instead",
             "unchanged": "There are no options set, no mappings changed and no custom commands that have been added, no viebrc written",
             "windowsize": {
