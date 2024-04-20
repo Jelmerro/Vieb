@@ -2051,7 +2051,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         try {
             ({Readability} = require("@mozilla/readability"))
             ;({JSDOM} = require("jsdom"))
-        } catch (e) {
+        } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>

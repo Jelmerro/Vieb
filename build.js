@@ -30,6 +30,7 @@ const defaultConfig = {"config": {
         "app/img/*.*",
         "!app/img/cheatsheet.svg",
         "app/popups/*.js",
+        "app/translations/*.json",
         {"from": "build/main/", "to": "app/"},
         {"from": "app/index.html", "to": "app/index.html"},
         {"from": "build/renderer/", "to": "app/renderer/"},
@@ -54,11 +55,14 @@ const releases = {
                 "productName": "Vieb-debug"
             },
             "files": {
-                "filter": ["app/**/*.js", "!app/**/*.test.js"]
-                    .concat(defaultConfig.config.files.filter(
-                        f => typeof f !== "object"
-                        && !f.includes("node_modules")
-                        && !f.includes("popups")))
+                "filter": [
+                    "app/**/*.js",
+                    "!app/**/*.test.js",
+                    "app/translations/*.json"
+                ].concat(defaultConfig.config.files.filter(
+                    f => typeof f !== "object"
+                    && !f.includes("node_modules")
+                    && !f.includes("popups")))
             },
             "linux": {
                 "executableName": "vieb-debug"

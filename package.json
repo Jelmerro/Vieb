@@ -6,9 +6,9 @@
   "main": "app/index.js",
   "scripts": {
     "dev": "electron app --datafolder=./ViebData/ --config-order=datafolder-only",
-    "fix": "eslint --fix app .eslintrc.js build.js",
+    "fix": "eslint --fix app eslint.config.js build.js",
     "lint": "npm run eslint && npm run tsc",
-    "eslint": "eslint app .eslintrc.js build.js",
+    "eslint": "eslint app eslint.config.js build.js",
     "postinstall": "patch-package",
     "tsc": "tsc",
     "start": "electron app",

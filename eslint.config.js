@@ -1,24 +1,27 @@
 "use strict"
 
+const globals = require("globals")
+const jsdoc = require("eslint-plugin-jsdoc")
+const paddingLines = require("eslint-plugin-padding-lines")
+const sortKeys = require("eslint-plugin-sort-keys")
+
 module.exports = {
-    "env": {
-        "browser": true,
-        "es6": true,
-        "node": true
-    },
-    "ignorePatterns": [
+    "ignores": [
         "*.min.js",
         "*.lib.js"
     ],
-    "parserOptions": {
-        "ecmaVersion": 2023
+    "languageOptions": {
+        "globals": {
+            ...globals.browser,
+            ...globals.node
+        },
+        "sourceType": "commonjs"
     },
-    "plugins": [
-        "jsdoc",
-        "padding-lines",
-        "sort-keys"
-    ],
-    "root": true,
+    "plugins": {
+        jsdoc,
+        "padding-lines": paddingLines,
+        "sort-keys": sortKeys
+    },
     "rules": {
         "accessor-pairs": [
             "error",
@@ -308,6 +311,7 @@ module.exports = {
         "no-new-wrappers": "error",
         "no-nonoctal-decimal-escape": "error",
         "no-obj-calls": "error",
+        "no-object-constructor": "error",
         "no-octal": "error",
         "no-octal-escape": "error",
         "no-param-reassign": "error",
@@ -380,6 +384,7 @@ module.exports = {
         "no-unused-private-class-members": "error",
         "no-unused-vars": "warn",
         "no-use-before-define": "warn",
+        "no-useless-assignment": "off",
         "no-useless-backreference": "error",
         "no-useless-call": "error",
         "no-useless-catch": "error",
