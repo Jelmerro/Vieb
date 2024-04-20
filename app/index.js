@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ const {
     webContents,
     nativeTheme
 } = require("electron")
+const {randomUUID} = require("crypto")
 const {
     specialChars,
     writeJSON,
@@ -53,6 +54,7 @@ const {
     rm,
     watchFile
 } = require("./util")
+const {translate} = require("./translate")
 
 const version = process.env.npm_package_version || app.getVersion()
 if (!app.getName().toLowerCase().startsWith("vieb")) {
@@ -698,11 +700,12 @@ const permissionHandler = (_, pm, callback, details) => {
     if (permission === "certificateerror") {
         if (allowedFingerprints[domain]
             ?.includes(details.cert?.fingerprint ?? "")) {
-            mainWindow.webContents.send("notify",
-                `Automatic domain caching rule for '${permission}' activated `
-                + `at '${details.requestingUrl}' which was allowed, because `
-                + `this same certificate was allowed before on this domain`,
-                {"src": "user", "type": "perm"})
+            mainWindow.webContents.send("notify", {
+                "fields": [permission, details.requestingUrl ?? ""],
+                "id": "permissions.domainCachedAllowed",
+                "src": "user",
+                "type": "permission"
+            })
             callback(true)
             return true
         }
@@ -715,21 +718,20 @@ const permissionHandler = (_, pm, callback, details) => {
         if (url.length > 1000) {
             url = `${url.split("").slice(0, 1000).join("")}...`
         }
-        let message = "The page has requested access to the permission "
-            + `'${permission}'. You can allow or deny this below, and choose if`
-            + " you want to make this the default for the current session when "
-            + "sites ask for this permission. For help and more options, see "
-            + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
-            + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
+        let message = translate("permissions.ask.body", {
+            "fields": [permission, permissionName, url]
+        })
         /** @type {string|undefined} */
         /** @type {import("electron").MessageBoxOptions} */
         const dialogOptions = {
             "buttons": ["Allow", "Deny"],
             "cancelId": 1,
-            "checkboxLabel": "Remember for this session",
+            "checkboxLabel": translate("permissions.ask.label"),
             "defaultId": 0,
             message,
-            "title": `Allow this page to access '${permission}'?`,
+            "title": translate("permissions.ask.title", {
+                "fields": [permission]
+            }),
             "type": "question"
         }
         if (permission === "openexternal") {
@@ -740,32 +742,23 @@ const permissionHandler = (_, pm, callback, details) => {
             if (exturl.length > 1000) {
                 exturl = `${exturl.split("").slice(0, 1000).join("")}...`
             }
-            message = "The page has requested to open an external application."
-                + " You can allow or deny this below, and choose if you want to"
-                + " make this the default for the current session when sites "
-                + "ask to open urls in external programs. For help and more "
-                + "options, see ':h permissionopenexternal', ':h permissionsall"
-                + "owed', ':h permissionsasked' and ':h permissionsblocked'."
-                + `\n\npage:\n${url}\n\nexternal:\n${exturl}`
+            message = translate("permissions.ask.bodyExternal", {
+                "fields": [url, exturl]
+            })
         }
         if (permission === "certificateerror") {
-            message = "The page has a certificate error listed below. You can "
-                + "choose if you still want to continue visiting. Please do "
-                + "this after reviewing the certificate details. Because of the"
-                + " nature of certificates, any allowed certs will keep being "
-                + "trusted per domain until you restart Vieb. Changing the "
-                + "permission setting afterwards won't change this behavior. "
-                + "So while you can deny the same certificate multiple times, "
-                + "you only need to allow it once to be able to keep using it."
-                + ` For help and more options, see ':h ${permissionName}'.`
-                + `\n\npage: ${url}\ndomain: ${domain}\n\n`
-                + `ISSUER: ${details.cert?.issuerName}\n`
-                + `SELF-SIGNED: ${!details.cert?.issuerCert}\n`
-                + `SUBJECT: ${details.cert?.subjectName}\n`
-                + `STARTS: ${formatDate(details.cert?.validStart)}\n`
-                + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
-                + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
-                + "Only allow certificates you have verified and can trust!"
+            message = translate("permissions.ask.bodyCertificate", {
+                "fields": [
+                    url,
+                    domain,
+                    details.cert?.issuerName ?? "",
+                    String(!details.cert?.issuerCert),
+                    details.cert?.subjectName ?? "",
+                    formatDate(details.cert?.validStart),
+                    formatDate(details.cert?.validExpiry),
+                    details.cert?.fingerprint ?? ""
+                ]
+            })
             delete dialogOptions.checkboxLabel
         }
         dialogOptions.message = message
@@ -779,15 +772,19 @@ const permissionHandler = (_, pm, callback, details) => {
                 action = "block"
             }
             if (settingRule) {
-                mainWindow.webContents.send("notify",
-                    `Ask rule for '${permission}' activated at '`
-                    + `${details.requestingUrl}' which was ${action}ed by user`,
-                    {"src": "user", "type": "perm"})
+                mainWindow.webContents.send("notify", {
+                    "fields": [permission, details.requestingUrl ?? "", action],
+                    "id": "permissions.notify.ask",
+                    "src": "user",
+                    "type": "permission"
+                })
             } else {
-                mainWindow.webContents.send("notify",
-                    `Manually ${action}ed '${permission}' at `
-                    + `'${details.requestingUrl}'`,
-                    {"src": "user", "type": "perm"})
+                mainWindow.webContents.send("notify", {
+                    "fields": [action, permission, details.requestingUrl ?? ""],
+                    "id": "permissions.notify.manual",
+                    "src": "user",
+                    "type": "permission"
+                })
             }
             const allow = action === "allow"
             const canSave = !allow || permission !== "displaycapture"
@@ -808,15 +805,29 @@ const permissionHandler = (_, pm, callback, details) => {
         })
     } else {
         if (settingRule) {
-            mainWindow.webContents.send("notify",
-                `Automatic rule for '${permission}' activated at `
-                + `'${details.requestingUrl}' which was ${setting}ed`,
-                {"src": "user", "type": "perm"})
+            mainWindow.webContents.send("notify", {
+                "fields": [
+                    setting,
+                    permission,
+                    details.requestingUrl ?? "",
+                    setting
+                ],
+                "id": "permissions.notify.global",
+                "src": "user",
+                "type": "permission"
+            })
         } else {
-            mainWindow.webContents.send("notify",
-                `Globally ${setting}ed '${permission}' at `
-                + `'${details.requestingUrl}' based on '${permissionName}'`,
-                {"src": "user", "type": "perm"})
+            mainWindow.webContents.send("notify", {
+                "fields": [
+                    setting,
+                    permission,
+                    details.requestingUrl ?? "",
+                    permissionName
+                ],
+                "id": "permissions.notify.global",
+                "src": "user",
+                "type": "permission"
+            })
         }
         const allow = setting === "allow"
         if (permission === "certificateerror" && allow) {
@@ -1016,7 +1027,8 @@ app.on("ready", () => {
         "show": false,
         "webPreferences": {
             "partition": "login",
-            "preload": joinPath(__dirname, "popups/login.js")
+            "preload": joinPath(__dirname, "popups/login.js"),
+            "sandbox": false
         }
     }
     if (customIcon) {
@@ -1046,7 +1058,8 @@ app.on("ready", () => {
         "show": false,
         "webPreferences": {
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "popups/notification.js")
+            "preload": joinPath(__dirname, "popups/notification.js"),
+            "sandbox": false
         }
     }
     if (customIcon) {
@@ -1077,7 +1090,8 @@ app.on("ready", () => {
         "show": false,
         "webPreferences": {
             "partition": "prompt",
-            "preload": joinPath(__dirname, "popups/prompt.js")
+            "preload": joinPath(__dirname, "popups/prompt.js"),
+            "sandbox": false
         }
     }
     if (customIcon) {
@@ -1134,8 +1148,7 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.resizable = false
     loginWindow.show()
     loginWindow.focus()
-    loginWindow.webContents.send("login-information",
-        fontsize, customCSS, `${auth.host}: ${auth.realm}`)
+    loginWindow.webContents.send("login-information", fontsize, customCSS, auth)
 })
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
@@ -1209,9 +1222,11 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   file: string,
  *   name: string,
  *   item: Electron.DownloadItem
- *   state: string,
+ *   state: "waiting_to_start"|"cancelled"
+ *     |"downloading"|"paused"|"removed"|"completed",
  *   total: number,
  *   url: string
+ *   uuid: string,
  * }} downloadItem
  */
 /** @type {downloadItem[]} */
@@ -1263,7 +1278,7 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
  * }} settings
  */
 const setDownloadSettings = (_, settings) => {
-    if (Object.keys(downloadSettings).length === 0) {
+    if (!downloadSettings.downloadmethod) {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
@@ -1287,6 +1302,9 @@ const setDownloadSettings = (_, settings) => {
 
 /** Write the download info to disk if downloads should be stored after quit. */
 const writeDownloadsToFile = () => {
+    if (!downloadSettings.downloadmethod) {
+        return
+    }
     downloads.forEach(d => {
         // Update downloads that are stuck on waiting to start,
         // but have already been destroyed by electron.
@@ -1306,11 +1324,12 @@ const writeDownloadsToFile = () => {
 }
 
 ipcMain.on("set-download-settings", setDownloadSettings)
-ipcMain.on("download-list-request", (e, action, downloadId) => {
+ipcMain.on("download-list-request", (e, action, downloadUuid) => {
+    const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
-        downloads.forEach(download => {
+        downloads.forEach(d => {
             try {
-                download.item.cancel()
+                d.item.cancel()
             } catch {
                 // Download was already removed or is already done
             }
@@ -1319,27 +1338,29 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
     }
     if (action === "pause") {
         try {
-            downloads[downloadId].item.pause()
+            download?.item.pause()
         } catch {
             // Download just finished or some other silly reason
         }
     }
     if (action === "resume") {
         try {
-            downloads[downloadId].item.resume()
+            download?.item.resume()
         } catch {
             // Download can't be resumed
         }
     }
     if (action === "remove") {
         try {
-            downloads[downloadId].state = "removed"
-            downloads[downloadId].item.cancel()
+            if (download) {
+                download.state = "removed"
+                download.item.cancel()
+            }
         } catch {
             // Download was already removed from the list or something
         }
         try {
-            downloads.splice(downloadId, 1)
+            downloads = downloads.filter(d => d !== download)
         } catch {
             // Download was already removed from the list or something
         }
@@ -1443,9 +1464,11 @@ const reloadAdblocker = () => {
         // Adblocker module not present, skipping initialization
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
-        mainWindow?.webContents.send("notify",
-            "Adblocker module not present, ads will not be blocked!",
-            {"src": "user", "type": "err"})
+        mainWindow?.webContents.send("notify", {
+            "id": "adblocker.missing",
+            "src": "user",
+            "type": "error"
+        })
         return
     }
     blocker = ElectronBlocker.parse(filters)
@@ -1489,9 +1512,11 @@ const enableAdblocker = type => {
             if (!url) {
                 continue
             }
-            mainWindow?.webContents.send("notify",
-                `Updating ${list} to the latest version`,
-                {"src": "user"})
+            mainWindow?.webContents.send("notify", {
+                "fields": [list],
+                "id": "adblocker.updating",
+                "src": "user"
+            })
             session.fromPartition("persist:main")
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
@@ -1499,20 +1524,29 @@ const enableAdblocker = type => {
                 res.on("end", () => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     reloadAdblocker()
-                    mainWindow?.webContents.send("notify",
-                        `Updated and reloaded the latest ${list} successfully`,
-                        {"src": "user", "type": "suc"})
+                    mainWindow?.webContents.send("notify", {
+                        "fields": [list],
+                        "id": "adblocker.updated",
+                        "src": "user",
+                        "type": "success"
+                    })
                 })
                 res.on("data", chunk => {
                     body += chunk
                 })
             })
-            request.on("abort", () => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}: Request aborted`,
-                {"src": "user", "type": "err"}))
-            request.on("error", e => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`,
-                {"src": "user", "type": "err"}))
+            request.on("abort", () => mainWindow?.webContents.send("notify", {
+                "fields": [list],
+                "id": "adblocker.aborted",
+                "src": "user",
+                "type": "error"
+            }))
+            request.on("error", e => mainWindow?.webContents.send("notify", {
+                "fields": [list, e.message],
+                "id": "adblocker.failed",
+                "src": "user",
+                "type": "error"
+            }))
             request.end()
         }
     } else {
@@ -1689,6 +1723,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 return
             }
         }
+        /** @type {downloadItem} */
         const info = {
             "current": 0,
             "date": new Date(),
@@ -1697,15 +1732,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "name": filename,
             "state": "waiting_to_start",
             "total": item.getTotalBytes(),
-            "url": item.getURL()
+            "url": item.getURL(),
+            "uuid": randomUUID()
         }
         downloads.push(info)
         const downloadSrc = downloadSettings.src
         if (downloadSrc === "execute") {
             downloadSettings.src = "user"
         }
-        mainWindow.webContents.send("notify",
-            `Download started:\n${info.name}`, {"src": downloadSrc})
+        mainWindow.webContents.send("notify", {
+            "fields": [info.name],
+            "id": "downloads.started",
+            "src": downloadSrc
+        })
         item.on("updated", (__, state) => {
             try {
                 info.current = item.getReceivedBytes()
@@ -1732,18 +1771,22 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 info.state = "cancelled"
             }
             if (info.state === "completed") {
-                mainWindow?.webContents.send("notify",
-                    `Download finished:\n${info.name}`, {
-                        "action": {
-                            "path": info.file, "type": "download-success"
-                        },
-                        "src": downloadSrc,
-                        "type": "success"
-                    })
+                mainWindow?.webContents.send("notify", {
+                    "action": {
+                        "path": info.file, "type": "download-success"
+                    },
+                    "fields": [info.name],
+                    "id": "downloads.finished",
+                    "src": downloadSrc,
+                    "type": "success"
+                })
             } else {
-                mainWindow?.webContents.send("notify",
-                    `Download failed:\n${info.name}`,
-                    {"src": downloadSrc, "type": "warn"})
+                mainWindow?.webContents.send("notify", {
+                    "fields": [info.name],
+                    "id": "downloads.failed",
+                    "src": downloadSrc,
+                    "type": "warning"
+                })
             }
         })
     })
@@ -1837,7 +1880,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return net.fetch(url.href.replace(/^markdownfiles:/, "file:"))
     })
     newSess.protocol.handle("markdownviewer", req => {
-        const {randomUUID} = require("crypto")
         markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {

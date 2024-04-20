@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {
     activeElement,
     writeFile,
@@ -508,9 +509,12 @@ const translatepage = async(api, url, lang, apiKey) => {
                 "q": strings
             }))
             if (srcResponse.error) {
-                return ipcRenderer.sendToHost("notify",
-                    `Error from LibreTranslate: ${srcResponse.error}`,
-                    {"src": "user", "type": "err"})
+                return ipcRenderer.sendToHost("notify", {
+                    "fields": [srcResponse.error],
+                    "id": "actions.translations.errors.libretranslate",
+                    "src": "user",
+                    "type": "error"
+                })
             }
             const response = await fetchJSON(`${url}/translate`, {
                 "headers": {"Content-Type": "application/json"},
@@ -523,9 +527,12 @@ const translatepage = async(api, url, lang, apiKey) => {
                 "target": lang
             }))
             if (response.error) {
-                return ipcRenderer.sendToHost("notify",
-                    `Error from LibreTranslate: ${response.error}`,
-                    {"src": "user", "type": "err"})
+                return ipcRenderer.sendToHost("notify", {
+                    "fields": [response.error],
+                    "id": "actions.translations.errors.libretranslate",
+                    "src": "user",
+                    "type": "error"
+                })
             }
             if (response.translatedText) {
                 baseNodes.forEach((node, index) => {
@@ -544,9 +551,11 @@ const translatepage = async(api, url, lang, apiKey) => {
                 })
             }
         } catch (e) {
-            ipcRenderer.sendToHost("notify",
-                "Failed to connect to LibreTranslate, see console",
-                {"src": "user", "type": "err"})
+            ipcRenderer.sendToHost("notify", {
+                "id": "actions.translations.errors.general",
+                "src": "user",
+                "type": "error"
+            })
             console.warn(e)
         }
         return
@@ -565,9 +574,12 @@ const translatepage = async(api, url, lang, apiKey) => {
             "text": strings
         }))
         if (response.message) {
-            return ipcRenderer.sendToHost("notify",
-                `Error from Deepl: ${response.message}`,
-                {"src": "user", "type": "err"})
+            return ipcRenderer.sendToHost("notify", {
+                "fields": [response.message],
+                "id": "actions.translations.errors.deepl",
+                "src": "user",
+                "type": "error"
+            })
         }
         if (response.translations) {
             baseNodes.forEach((node, index) => {
@@ -586,9 +598,11 @@ const translatepage = async(api, url, lang, apiKey) => {
             })
         }
     } catch (e) {
-        ipcRenderer.sendToHost("notify",
-            "Failed to connect to Deepl for translation, see console",
-            {"src": "user", "type": "err"})
+        ipcRenderer.sendToHost("notify", {
+            "id": "actions.translations.errors.general",
+            "src": "user",
+            "type": "error"
+        })
         console.warn(e)
     }
 }
@@ -609,7 +623,7 @@ const showTOC = (customStyling, fontsize) => {
     const toc = document.createElement("div")
     toc.id = "toc"
     const title = document.createElement("h1")
-    title.textContent = "TOC"
+    title.textContent = translate("actions.toc.title")
     const baseUl = document.createElement("ul")
     baseUl.setAttribute("depth", "1")
     const lists = [baseUl]
@@ -617,7 +631,7 @@ const showTOC = (customStyling, fontsize) => {
     const topUrl = new URL(window.location.href)
     topUrl.hash = ""
     topLink.href = topUrl.href
-    topLink.textContent = "TOP"
+    topLink.textContent = translate("actions.toc.top")
     toc.append(title, topLink, baseUl)
 
     /** Returns the current taversing depth of the toc. */

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,13 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {
-    joinPath, formatDate, urlToString, getWebviewSetting
-} = require("../util")
+const {translate} = require("../translate")
+const {joinPath, formatDate, urlToString, getSetting} = require("../util")
 
 let currentlyRemoving = false
 let virtualList = document.createElement("div")
 let viewIndex = 0
-let viewItemCount = getWebviewSetting("historyperpage") ?? 100
+let viewItemCount = getSetting("historyperpage") ?? 100
 
 /**
  * Update the current history view by fetching from the cached list by index.
@@ -73,9 +72,9 @@ const updateCurrentView = (user = true) => {
             })
         if (elements.length === 0) {
             if (filter) {
-                list.textContent = "No results for current filter"
+                list.textContent = translate("pages.history.filterNoResults")
             } else {
-                list.textContent = "No pages have been visited yet"
+                list.textContent = translate("pages.history.filterEmpty")
             }
             removeAllEl.style.display = "none"
         } else {
@@ -174,9 +173,10 @@ const receiveHistory = history => {
                 updateCurrentView(false)
                 return
             }
-            scanningProgress.textContent
-                = `Reading history ${lineNumber}/${goal}, currently going `
-                + `back to history from ${formatDate(hist.date)}`
+            scanningProgress.textContent = translate(
+                "pages.history.readingProgress", {"fields": [
+                    `${lineNumber}`, `${goal}`, formatDate(hist.date)
+                ]})
             let max = viewItemCount
             if (max < 100) {
                 max = 100
@@ -231,7 +231,25 @@ const clearHistory = () => {
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
 
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
+    // Translations
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.history.title")
+    }
+    const scanningEl = document.getElementById("scanning-progress")
+    if (scanningEl) {
+        scanningEl.textContent = translate("pages.history.loading")
+    }
+    const filterEl = document.getElementById("filter")
+    if (filterEl instanceof HTMLInputElement) {
+        filterEl.placeholder = translate("pages.history.filterPlaceholder")
+    }
+    const perPageEl = document.getElementById("perpage")
+    if (perPageEl instanceof HTMLInputElement) {
+        perPageEl.placeholder = translate("pages.history.perpage")
+    }
+    // Init
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
@@ -247,7 +265,7 @@ window.addEventListener("load", () => {
         if (perpage instanceof HTMLInputElement) {
             const count = Number(perpage.value)
             if (!count || isNaN(count) || count < 1) {
-                viewItemCount = getWebviewSetting("historyperpage") ?? 100
+                viewItemCount = getSetting("historyperpage") ?? 100
             } else {
                 viewItemCount = count
             }

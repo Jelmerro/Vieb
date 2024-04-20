@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {joinPath} = require("../util")
 
 /** Filter the cookie list based on the search query in the input box. */
@@ -52,9 +53,9 @@ const filterList = () => {
         removeAll.style.display = "none"
         noResults.style.display = ""
         if (filter) {
-            noResults.textContent = "No results for current filter"
+            noResults.textContent = translate("pages.cookies.filterEmpty")
         } else {
-            noResults.textContent = "There are no cookies stored"
+            noResults.textContent = translate("pages.cookies.empty")
         }
     }
 }
@@ -136,7 +137,19 @@ const removeAllCookies = () => {
     refreshList()
 }
 
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.cookies.title")
+    }
+    const list = document.getElementById("list")
+    if (list) {
+        list.textContent = translate("pages.cookies.loading")
+    }
+    const filter = document.getElementById("filter")
+    if (filter instanceof HTMLInputElement) {
+        filter.placeholder = translate("pages.cookies.filterPlaceholder")
+    }
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.src = joinPath(__dirname, "../img/trash.png")

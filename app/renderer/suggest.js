@@ -32,12 +32,12 @@ const {
     appData,
     isUrl,
     searchword,
+    getSetting,
     stringToUrl
 } = require("../util")
 const {
     listTabs,
     currentMode,
-    getSetting,
     getMouseConf,
     updateScreenshotHighlight,
     getUrl,

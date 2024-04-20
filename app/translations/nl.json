@@ -1,0 +1,503 @@
+{
+    "actions": {
+        "alreadyRecording": "Neemt al op, negeer opname actie",
+        "command": {
+            "failed": "Commando fout:\n$1",
+            "success": "Commando geslaagd!",
+            "successWithOutput": "Commando geslaagd:\n$1"
+        },
+        "rss": {
+            "clipboard": "RSS-feed '$1' gekopieerd naar klembord",
+            "header": "--- RSS-feeds op de pagina ---\n$1",
+            "notFound": "Geen RSS-feeds gevonden op deze pagina"
+        },
+        "toc": {
+            "title": "Inhoud",
+            "top": "Boven"
+        },
+        "translations": {
+            "errors": {
+                "deepl": "Foutmelding van Deepl: $1",
+                "general": "Verbinding met server mislukt, zie console",
+                "libretranslate": "Foutmelding van LibreTranslate: $1"
+            }
+        }
+    },
+    "adblocker": {
+        "aborted": "Fout in bijwerken van $1: Verzoek afgebroken",
+        "failed": "Fout in bijwerken van $1:\n$2",
+        "missing": "Adblocker module niet aanwezig, advertenties worden niet geblokkeerd!",
+        "updated": "Lijst $1 met succes bijgewerkt en herladen",
+        "updating": "Lijst $1 aan het bijwerken"
+    },
+    "commands": {
+        "arguments": {
+            "folderMissing": "Map '$1' bestaat niet!"
+        },
+        "buffers": "$1",
+        "clear": {
+            "argCount": "Het clear commando accepteert precies twee argumenten: een type en een interval",
+            "intervalInvalid": "Het clear commando interval moet 'all', een URL of een interval zoals '1day' of omgekeerd zoals 'last3hours' zijn",
+            "intervalMissing": "Het clear commando vereist een interval",
+            "typeInvalid": "Het clear commando type moet een van deze opties zijn: history",
+            "typeMissing": "Het clear commando vereist een type"
+        },
+        "close": {
+            "noMatch": "Kan overeenkomende pagina niet vinden, geen tabbladen gesloten",
+            "range": "Bereik kan niet worden gecombineerd met zoeken in een close command"
+        },
+        "colorscheme": {
+            "argCount": "Het colorscheme commando accepteert één optioneel argument",
+            "current": "Kleurenschema: $1",
+            "missing": "Kan kleurenschema '$1' niet vinden"
+        },
+        "command": {
+            "builtin": "Commando kan niet een ingebouwd commando zijn: $1",
+            "combined": "Kan ! niet combineren met het uitlezen van een custom commando",
+            "duplicate": "Commando '$1' bestaat al (gebruik ! om het te overschrijven): $1",
+            "list": "--- Custom commando's ---\n$1",
+            "listSingle": "$1 => $2",
+            "missing": "Geen editor commando: $1",
+            "none": "Geen custom commando's gevonden",
+            "slashes": "Commando naam kan geen schuine strepen bevatten",
+            "special": "Commando mag niet beginnen met een nummer en mag geen speciale tekens bevatten"
+        },
+        "delcommand": {
+            "argCount": "Het delcommand commando accepteert precies één argument",
+            "missing": "Kan custom commando '$1' niet vinden"
+        },
+        "deletepointerpos": {
+            "overridePath": "Commando delpointerpos! accepteert slechts één pad",
+            "toofew": "Commando delpointerpos vereist minimaal de toetscombinatie als argument",
+            "toomany": "Commando delpointerpos accepteert alleen de toetscombinatie en een optioneel pad als argument"
+        },
+        "deletescrollpos": {
+            "overridePath": "Commando delscrollpos! accepteert slechts één pad",
+            "toofew": "Commando delscrollpos vereist minimaal de toetscombinatie als argument",
+            "toomany": "Commando delscrollpos accepteert alleen de toetscombinatie en een optioneel pad als argument"
+        },
+        "delmarks": {
+            "argCount": "Commando delmarks! heeft geen argumenten nodig",
+            "keyname": "Commando delmarks accepteert alleen een enkele hoofdnaam"
+        },
+        "devtools": {
+            "argCount": "Het devtools commando accepteert één optioneel argument",
+            "invalid": "Ongeldige devtools positie '$1' opgegeven, moet een van deze opties zijn: $2"
+        },
+        "execute": {
+            "ambiguous": "Commando is dubbelzinnig, wees specifieker: $1",
+            "argCount": "Commando heeft geen argumenten nodig: $1",
+            "invalidJSON": "Commando kon niet worden uitgevoerd, ongeldige JSON:\n$1\n$2",
+            "noConfirm": "Geen ! toegestaan voor: $1",
+            "noRange": "Commando accepteert geen bereik: $1",
+            "notFound": "Geen editor commando: $1",
+            "unmatched": "Commando kon niet worden uitgevoerd, incomplete haakjes of backslash: $1"
+        },
+        "externalcommand": {
+            "missing": "Geen commando ingesteld om koppelingen extern te openen, werk de instelling 'externalcommand' bij"
+        },
+        "help": {
+            "argCount": "Het help commando accepteert één optioneel argument"
+        },
+        "hide": {
+            "range": "Bereik kan niet worden gecombineerd met zoeken in hide commando",
+            "visible": "Alleen zichtbare pagina's kunnen worden verborgen"
+        },
+        "makedefault": {
+            "failed": "Script om Vieb in te stellen als standaardbrowser mislukt:\n$1",
+            "installed": "Commando werkt alleen voor geïnstalleerde versies van Vieb",
+            "other": "Als je geen melding hebt gekregen om Vieb in te stellen als standaardbrowser, ga dan naar de OS-instellingen voor standaardtoepassingen om dit te controleren."
+        },
+        "marks": {
+            "argCount": "Commando marks accepteert maximaal twee argumenten",
+            "list": "$1",
+            "noKey": "Geen markeringen gevonden voor toetscombinatie: $1",
+            "none": "Geen markeringen gevonden",
+            "url": "Markering URL moet een geldige URL zijn, niet: $1"
+        },
+        "mkviebrc": {
+            "argCount": "Het mkviebrc commando accepteert één optioneel argument 'full'",
+            "invalid": "Het enige optionele argument voor mkviebrc is 'full', niet: $1"
+        },
+        "mute": {
+            "argCount": "Commando mute! vereist één boolean argument",
+            "noMatch": "Kan geen overeenkomende pagina vinden, geen tabbladen (un)muted",
+            "range": "Bereik kan niet worden gecombineerd met zoeken in mute commando"
+        },
+        "pin": {
+            "argCount": "Commando pin! vereist één boolean argument",
+            "noMatch": "Kan geen overeenkomende pagina vinden, geen tabbladen (un)pinned",
+            "range": "Bereik kan niet worden gecombineerd met zoeken in pin commando"
+        },
+        "pointerpos": {
+            "argCount": "Commando pointerpos accepteert maximaal drie argumenten",
+            "list": "$1",
+            "location": "Commando pointerpos vereist de x- en y-locatie na de toetscombinatie",
+            "noKey": "Geen muis posities gevonden voor toetscombinatie: $1",
+            "none": "Geen muis posities gevonden"
+        },
+        "ranges": {
+            "combined": "Kan een globale zoekopdracht niet combineren met twee indexen in bereik '$1', geef twee indexen/zoekopdrachten OF gebruik een globale zoekopdracht",
+            "commas": "Te veel komma's in bereik '$1', maximaal 1 is toegestaan",
+            "flags": "Bereik '$1' bevat ongeldige vlaggen",
+            "indexOrSearch": "Bereik '$1' ongeldig, moet indexen of een zoekopdracht hebben",
+            "invalid": "Bereik sectie '$1' is geen geldig bereik"
+        },
+        "restoremark": {
+            "argCount": "Commando restoremark accepteert maximaal twee argumenten",
+            "keyname": "Commando restoremark vereist minimaal de toetscombinatie als eerste argument",
+            "position": "Ongeldige herstel positie '$1', moet een van deze opties zijn: $2"
+        },
+        "restorepointerpos": {
+            "argCount": "Commando restorepointerpos accepteert maximaal twee argumenten",
+            "keyname": "Commando restorepointerpos vereist ten minste de toetscombinatie als argument"
+        },
+        "restorescrollpos": {
+            "argCount": "Commando restorescrollpos accepteert maximaal twee argumenten",
+            "keyname": "Commando restorescrollpos vereist ten minste de toetscombinatie als argument"
+        },
+        "screencopy": {
+            "argCount": "Het screencopy commando accepteert alleen optionele dimensies",
+            "dimensions": "De afmetingen van het screencopy commando moeten overeenkomen met het formaat 'width,height,x,y' met ronde getallen"
+        },
+        "screenshot": {
+            "argCount": "Het screenshot commando heeft slechts twee optionele argumenten: de locatie waar de afbeelding moet worden weggeschreven en de dimensies",
+            "dimensions": "De afmetingen van de schermafbeelding moeten overeenkomen met het fromaat 'width,height,x,y' met ronde getallen.",
+            "failed": "Kon de afbeelding niet schrijven: $1",
+            "success": "Afbeelding opgeslagen: $1"
+        },
+        "scriptnames": {
+            "argType": "Scriptnames! argument moet het nummer van een script zijn",
+            "editor": "Commando om bestanden te bewerken met vim mislukt, gelieve de 'vimcommand' instelling aan te passen",
+            "noArgs": "Commando accepteert geen argumenten: scriptnames",
+            "notFound": "Geen script gevonden met index '$1', zie ':scriptnames!'",
+            "singleArg": "Scriptnames! accepteert één optioneel index argument"
+        },
+        "scrollpos": {
+            "argCount": "Commando scrollpos accepteert maximaal drie argumenten",
+            "list": "$1",
+            "noKey": "Geen scrollposities gevonden voor toetsen: $1",
+            "none": "Geen scrollposities gevonden",
+            "pixels": "Commando scrollpos vereist het argument pixels na de toetscombinatie, niet: $1"
+        },
+        "settings": {
+            "invalidJSON": "Ongeldige JSON in '$1' waarde:\n$2",
+            "invalidStructure": "Ongeldige structuur/type gevonden in '$1' waarde:\n$2\nDe waarde mag alleen een object met string waardes, een lijst van strings of een lijst van lijsten met 1 of 2 strings zijn",
+            "listSingle": "De instelling '$1' heeft de waarde: $2",
+            "missing": "De instelling '$1' bestaat niet",
+            "noChanges": "Er zijn geen instellingen gewijzigd ten opzichte van de standaardwaarden",
+            "noFlipping": "De instelling '$1' kan niet worden omgedraaid",
+            "noModify": "Kan '$1' niet wijzigen alsof het een getal, tekst, lijst of object is",
+            "optionsList": "--- Opties ---\n$1",
+            "reserved": "Deze syntax is gereserveerd voor toekomstig gebruik, maar heeft nog geen doel."
+        },
+        "source": {
+            "absolute": "Bestandsnaam moet absoluut zijn bij het sourcen van bestanden tijdens runtime",
+            "argCount": "Source vereist precies één argument dat de bestandsnaam representeert.",
+            "missing": "Opgegeven bestand kon niet worden gevonden: $1",
+            "readError": "Leesfout voor config bestand: $1",
+            "recursive": "Recursive sourcing van bestanden wordt niet ondersteund",
+            "startup": "Het is niet mogelijk om een bestand dat al is geladen bij het opstarten opnieuw als bron te gebruiken"
+        },
+        "split": {
+            "range": "Bereik kan niet worden gecombineerd met zoeken in commando split",
+            "visible": "Pagina is al zichtbaar, kan niet in nieuwe split worden gezet"
+        },
+        "suspend": {
+            "range": "Bereik kan niet worden gecombineerd met zoeken in commando suspend",
+            "visible": "Alleen tabbladen die momenteel niet zichtbaar zijn kunnen worden stopgezet"
+        },
+        "translatepage": {
+            "apiKey": "API-sleutel niet ingesteld, zie ':h translatekey' voor hulp",
+            "argCount": "Commando translatepage accepteert slechts één optioneel taalargument",
+            "language": "Ongeldige taal '$1' opgegeven, zie ':h translatelang' voor hulp"
+        },
+        "write": {
+            "argCount": "Het write commando accepteert twee optionele argumenten:\nde locatie waar de pagina moet worden weggeschreven en een bestandstype.",
+            "combined": "Het write locatie argument kan niet worden gecombineerd met een bereik",
+            "failed": "Kon de pagina niet opslaan: $1",
+            "success": "Pagina opgeslagen: $1",
+            "type": "Write type argument moet 'html' of 'mhtml' zijn, niet: $1"
+        }
+    },
+    "contextmenu": {
+        "groups": {
+            "audio": "Audio",
+            "frame": "Frame",
+            "general": "Algemeen",
+            "image": "Afbeelding",
+            "link": "Link",
+            "suggestions": "Suggesties",
+            "text": "Tekst",
+            "video": "Video"
+        }
+    },
+    "downloads": {
+        "failed": "Download mislukt:\n$1",
+        "finished": "Download voltooid:\n$1",
+        "started": "Download gestart:\n$1"
+    },
+    "mappings": {
+        "defaultMapping": "Geen aangepaste mappings gevonden",
+        "defaultMappingForKey": "Geen aangepaste mappings gevonden voor toetscombinatie: $1",
+        "errors": {
+            "overwritten": "Mappings worden altijd overschreven, niet nodig om ! te gebruiken",
+            "unmapArgCount": "Het $1unmap commando vereist precies één mapping",
+            "unmatched": "Niet overeenkomende < > in mapping '$1': $2",
+            "unsupported": "Niet-ondersteunde toets in mapping die is overgeslagen: $1"
+        },
+        "list": "$1",
+        "noMappings": "Geen mappings gevonden",
+        "noMappingsForKey": "Geen mappings gevonden voor toetscombinatie: $1"
+    },
+    "pages": {
+        "cookies": {
+            "empty": "Er zijn nog geen cookies opgeslagen",
+            "filterEmpty": "Geen cookies gevonden voor huidige filter",
+            "filterPlaceholder": "Filter domein",
+            "loading": "Aan het laden...",
+            "title": "Cookies"
+        },
+        "downloads": {
+            "clickToOpen": "Klik om te openen",
+            "loading": "Aan het laden...",
+            "nothing": "Er is nog niets gedownload",
+            "states": {
+                "cancelled": "Geannuleerd",
+                "completed": "Voltooid",
+                "downloading": "Aan het downloaden",
+                "paused": "Gepauzeerd",
+                "removed": "Verwijderd",
+                "waiting_to_start": "Wachten om te beginnen"
+            },
+            "title": "Downloads"
+        },
+        "failedload": {
+            "otherError": "<h2>Onbereikbare pagina</h2>De pagina kon niet succesvol worden geladen. De volgende fout is opgetreden:<br><h3>$1</h3>De eerste stap die u kunt proberen is het opnieuw laden van de pagina, standaard gekoppeld aan <kbd>r</kbd> in de normale modus. Als de fout blijft bestaan, controleer dan of u de URL correct hebt getypt. Het kan ook zijn dat de website het '$2'-protocol niet ondersteunt. Controleer tot slot uw internetverbinding en DNS-instellingen.",
+            "sslError": "<h2>Onbereikbare pagina</h2>De pagina kon niet succesvol worden geladen. De volgende fout is opgetreden:<br><h3>$1</h3>U kunt automatische HTTP-omleidingen inschakelen met <kbd>:set redirecttohttp</kbd>.<br>Alternatief kunt u ervoor kiezen om slechts één keer daarheen te gaan via deze HTTP-link: <a href=\"$2\">$2</a><br>Tot slot kunt u bepalen wat er moet gebeuren met ongeldige certificaten door <kbd>permissioncertificateerror</kbd> te wijzigen."
+        },
+        "filebrowser": {
+            "empty": "Lege map",
+            "permissionDenied": "Toestemming geweigerd"
+        },
+        "help": {
+            "examples": {
+                "chromium": "Chromium",
+                "firefox": "Firefox",
+                "pentadactyl": "Pentadactyl",
+                "qutebrowser": "qutebrowser",
+                "sakakey": "Saka Key",
+                "surfingkeys": "Surfingkeys",
+                "tridactyl": "Tridactyl",
+                "vimium": "Vimium",
+                "vimvixen": "Vim Vixen",
+                "vivaldi": "Vivaldi"
+            },
+            "title": "Hulp"
+        },
+        "history": {
+            "filterEmpty": "Er zijn nog geen pagina's bezocht",
+            "filterNoResults": "Geen geschiedenis gevonden voor huidige filter",
+            "filterPlaceholder": "Filter geschiedenis",
+            "loading": "Aan het laden...",
+            "perpage": "Aantal per pagina",
+            "readingProgress": "Geschiedenis lezen $1/$2, gaat momenteel terug naar geschiedenis vanaf $3",
+            "title": "Geschiedenis"
+        },
+        "newtab": {
+            "favorites": "Favorieten",
+            "title": "Nieuw tabblad",
+            "topsites": "Meest bezochte sites"
+        },
+        "notifications": {
+            "clickToOpen": "Klik om te openen",
+            "empty": "Er zijn tot nu toe geen notificaties geweest",
+            "loading": "Aan het laden...",
+            "title": "Notificaties"
+        },
+        "version": {
+            "alreadyNewer": "Laatste release $1 is ouder",
+            "changelog": "changelog",
+            "checkUpdate": "Controleer op updates",
+            "description": "Vieb is gemaakt door <a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a> en <a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">contribuanten</a>. Het maakt interactie met het web mogelijk met Vim geïnspireerde toetsenbindingen. Vieb draait op Electron $1 en de Chromium-versie is $2.",
+            "discussions": "discussies",
+            "donate": "doneren",
+            "failed": "Ophalen van updates mislukt",
+            "faq": "veelgestelde vragen",
+            "homepage": "thuispagina",
+            "latest": "Uw Vieb is up-to-date",
+            "loading": "Aan het laden...",
+            "matrix": "matrix",
+            "newerFound": "Nieuwe versie $1 is beschikbaar",
+            "notChecked": "Nog niet gecontroleerd",
+            "releases": "releases",
+            "repository": "repository",
+            "sponsor": "sponsor",
+            "telegram": "telegram",
+            "title": "Versie"
+        }
+    },
+    "permissions": {
+        "ask": {
+            "allowButton": "Toestaan",
+            "body": "De pagina heeft toegang gevraagd tot de toestemming '$1'. Je kunt dit hieronder toestaan of weigeren, en kiezen of u dit de standaard wilt maken voor de huidige sessie wanneer sites in de toekomst om deze toestemming vragen. Voor hulp en opties, zie ':h $2', ':h permissionsallowed', ':h permissionsasked' en ':h permissionsblocked'.\n$3",
+            "bodyCertificate": "De pagina heeft een onderstaande certificaatfout. U kunt kiezen of u de pagina toch wilt bezoeken. Doe dit nadat u de details van het certificaat heeft bekeken. Vanwege de aard van certificaten zullen alle toegestane certificaten per domein vertrouwd blijven totdat u Vieb opnieuw opstart. Het achteraf wijzigen van de toestemmingsinstelling zal dit gedrag niet veranderen. Dus hoewel u hetzelfde certificaat meerdere keren kunt weigeren, hoeft u het maar één keer toe te staan om het te kunnen blijven gebruiken. Voor hulp en meer opties, zie ':h permissioncertificateerror'.\n\npage:\n$1domain:\n$2ISSUER $3\nSELF-SIGNED: $4\nSUBJECT: $5\nSTARTS: $6\nEXPIRES: $7\nFINGERPRINT: $8\n\nAlleen certificaten toestaan die u geverifieerd hebt en kunt vertrouwen!",
+            "bodyExternal": "De pagina heeft gevraagd om een externe toepassing te openen. Je kunt dit hieronder toestaan of weigeren, en kiezen of u dit de standaard wilt maken voor de huidige sessie wanneer sites in de toekomst vragen om URL's in externe programma's te openen. Voor hulp en meer opties, zie ':h permissionopenexternal', ':h permissionsallowed', ':h permissionsasked' en ':h permissionsblocked'.\npage:\n$2\nnexternal:\n$3",
+            "denyButton": "Weigeren",
+            "label": "Onthouden voor deze sessie",
+            "title": "Deze pagina toegang verlenen tot '$1'?"
+        },
+        "domainCachedAllowed": "Automatische domein caching regel voor 'certificateerror' geactiveerd bij '$1' welke was toegestaan, omdat ditzelfde certificaat eerder was toegestaan op dit domein.",
+        "notify": {
+            "ask": "Automatische 'permissionsasked' regel voor '$1' geactiveerd bij '$2' die handmatig $3ed was",
+            "auto": "Automatische 'permissions$1ed' regel voor '$2' geactiveerd op '$3' die $4ed was",
+            "global": "Globaal $1ed '$2' op '$3' gebaseerd op '$4'",
+            "manual": "Handmatig $1ed '$2' bij '$3'"
+        }
+    },
+    "popups": {
+        "alert": {
+            "block": "Pagina '$1' wilde een waarschuwingsdialoog laten zien:\n$2",
+            "ok": "OK",
+            "title": "Alert"
+        },
+        "confirm": {
+            "block": "Pagina '$1' wilde een bevestigingsdialoog laten zien:\n$2",
+            "cancel": "Cancel",
+            "ok": "OK",
+            "title": "Confirm"
+        },
+        "login": {
+            "info": "$1 meldt het volgende:\n$2",
+            "password": "Wachtwoord",
+            "title": "Inloggen",
+            "username": "Gebruikersnaam"
+        },
+        "notification": {
+            "loading": "Aan het laden...",
+            "shortcuts": "Spatie/d/j: scherm/pagina/regel omlaag, b/u/k: omhoog, q: sluiten"
+        },
+        "prompt": {
+            "block": "Pagina '$1' wilde een promptdialoog laten zien:\n$2",
+            "title": "Prompt"
+        }
+    },
+    "settings": {
+        "errors": {
+            "clearhistoryinterval": "clearhistoryinterval kan alleen worden ingesteld op 'none', 'session' of een geldig interval zoals '1day' of '3months', niet: $1",
+            "container": {
+                "colorName": "Ongeldige kleur, moet een geldige kleurnaam of hex zijn, niet: $1",
+                "colorRegex": "Ongeldige reguliere expressie in containercolors: $1",
+                "colorSeparator": "Ongeldige invoer voor $1: $2\nInvoer moet precies één ~ hebben als scheiding tussen de naam reguliere expressie en de kleurnaam/hex",
+                "invalidspecial": "Speciale containernaam voor '$1' kan er maar één zijn van: $2",
+                "namesNewtab": "Ongeldig containernamesnewtab argument: $1",
+                "namesRegex": "Ongeldige reguliere expressie in containernames: $1",
+                "namesSeparator": "Ongeldige invoer $1: $2\nInvoer moet een of twee ~ hebben om de reguliere expressie, containernaam en newtab-parameter te scheiden",
+                "namesSpecialchars": "Naast underscores zijn geen speciale tekens toegestaan in de naam van een container, ongeldige $1: $2",
+                "specialchars": "Naast underscores zijn geen speciale tekens toegestaan in de naam van een container, ongeldige $1: $2"
+            },
+            "darkreader": {
+                "blocklistRegex": "Ongeldige reguliere expressie in $1: $2",
+                "color": "Ongeldige kleur, moet een geldige kleurnaam of hex zijn, niet: $1",
+                "missing": "Darkreader module niet aanwezig, kan geen donkere pagina's tonen!"
+            },
+            "downloadpathIsFolder": "Het downloadpath is geen map: $1",
+            "downloadpathMissing": "Het downloadpath bestaat niet: $1",
+            "favoritepages": "Ongeldige URL doorgegeven aan favoritepages: $1",
+            "fileload": "Leesfout voor config bestand op '$1'",
+            "followchars": {
+                "duplicate": "Alle followchars karakters moeten uniek zijn, geen duplicaten toegestaan",
+                "invalidSet": "Ongeldige waarde: $1, moet een van de volgende zijn: alpha, alphanum, dvorakhome, numbers, qwertyhome, of een aangepaste lijst beginnend met 'custom:'",
+                "notEnough": "De waarden van followchars moet uit minstens twee tekens bestaan"
+            },
+            "followelement": "Ongeldig elementtype doorgegeven: $1, moet een combinatie zijn van: $2",
+            "invalidScope": "Ongeldige waarde '$1' in '$2', moet een van zijn: bestand, pagina of speciaal",
+            "markpersistencetype": "Ongeldig quickmark type doorgegeven aan quickmarkpersistence: $1",
+            "missing": "De instelling '$1' bestaat niet",
+            "modifiers": "De toets '$1' in modifiers wordt niet herkend als geldige toets",
+            "mouseFeature": "Feature '$1' is geen geldige muis feature",
+            "newtaburl": "De waarde van newtaburl moet een geldige URL zijn of leeg, niet: $1",
+            "numberRange": "De waarde van instelling '$1' moet liggen tussen $2 en $3",
+            "oneof": "De waarde van instelling '$1' kan slechts één van de volgende: $2",
+            "passthrough": {
+                "keyname": "De toets '$1' in passthroughkeys wordt niet herkend als geldige toets",
+                "keys": "Ongeldige toetsen in passthroughkeys invoer: $1",
+                "regex": "Ongeldige reguliere expressie in passthroughkeys: $1"
+            },
+            "permission": {
+                "captureallowed": "Het delen van het scherm kan niet automatisch worden toegestaan, alleen worden gevraagd of geblokkeerd",
+                "hidasked": "HID-toestemming kan niet worden gevraagd, alleen worden toegestaan of geblokkeerd",
+                "mediadevicesasked": "Mediadevices toestemming kan niet gevraagd worden, alleen worden toegestaan of geblokkeerd",
+                "name": "Ongeldige naam voor een toestemming instelling: $1",
+                "regex": "Ongeldige reguliere expressie in toestemming instelling: $1",
+                "separator": "Ongeldige invoer voor $1: $2\nInvoer moet ten minste een ~ hebben om de domein reguliere expressie en toestemmingsnamen te scheiden",
+                "serialasked": "Seriële apparaat toestemming kan niet gevraagd worden, alleen worden toegestaan of geblokkeerd",
+                "usbasked": "USB-apparaat toestemming kan niet worden gevraagd, alleen worden toegestaan of geblokkeerd"
+            },
+            "redirect": {
+                "regex": "Ongeldige reguliere expressie in redirect: $1",
+                "separator": "Ongeldige redirect invoer: $1\nInvoer moet precies één ~ hebben om de reguliere expressie te scheiden van de vervanging"
+            },
+            "resources": {
+                "regex": "Ongeldige reguliere expressie in $1: $2",
+                "type": "Ongeldig resource type in $1: $2"
+            },
+            "searchengine": {
+                "replace": "Ongeldige zoekmachine waarde: $1\nElke URL moet een %s parameter bevatten, die zal worden vervangen door de zoekopdracht.",
+                "url": "Ongeldige zoekmachine waarde: $1n\nURL moet een geldige URL zijn"
+            },
+            "searchwords": {
+                "duplicate": "Ongeldige zoekwoorden invoer: $1\nHet zoekwoord $2 was al gedefinieerd. Een zoekwoord mag maar één keer gedefinieerd worden.",
+                "separator": "Ongeldige zoekwoorden invoer: $1\nZoekwoorden voor de ~ mogen geen speciale tekens bevatten behalve underscores",
+                "url": "Ongeldige zoekwoorden invoer: $1\nURLs van zoekwoorden moeten bestaan en moeten een %s parameter bevatten, die zal worden vervangen door de zoekopdracht"
+            },
+            "spelllang": "Ongeldige taal doorgegeven aan spelllang: $1",
+            "sponsorblock": {
+                "color": "Ongeldige kleur in sponsorblockcategories, moet een geldige kleurnaam of hex zijn, niet $1",
+                "duplicate": "Ongeldige categorie in sponsorblockcategories, de categorie '$1' was al gedefinieerd. Een categorie mag maar één keer gedefinieerd worden.",
+                "name": "Ongeldige categorie in sponsorblockcategories: $1"
+            },
+            "startuppages": {
+                "invalidopts": "Ongeldige optie '$1' meegegeven aan startuppages, alleen 'muted' en 'pinned' worden geaccepteerd.",
+                "name": "Naast underscores zijn geen speciale tekens toegestaan in de naam van een container, ongeldige startuppages container: $1",
+                "toomany": "Te veel opties meegegeven aan startuppages invoer: $1",
+                "url": "Ongeldige URL doorgegeven aan startuppages: $1"
+            },
+            "storenewvisits": "Ongeldig type geschiedenis doorgegeven: $1, moet een zijn van: $2",
+            "suggestorder": {
+                "duplicateCount": "Count configuratie voor suggestorder kan maar één keer per vermelding worden ingesteld",
+                "duplicateSort": "Order configuratie voor suggestorder kan maar één keer per vermelding worden ingesteld",
+                "empty": "Configuratie voor suggestorder van het type kan niet leeg zijn",
+                "invalidSort": "Order configuratie is ongeldig, ondersteunde opties voor $1 zijn: $2",
+                "tilde": "Ongeldige suggestorder invoer: $1\nInvoer moet maximaal twee ~ hebben om het type te scheiden van de telling en de volgorde (beide zijn optioneel)",
+                "type": "Ongeldige suggestorder invoer: $1\nInvoer type moet een van de volgende zijn: history, file or searchword"
+            },
+            "tocpages": "Ongeldige reguliere expressie in tocpages: $1",
+            "translateurl": "De waarde van translateurl moet een geldige URL zijn, niet: $1",
+            "type": "De waarde van instelling '$1' is van een onjuist type, verwachtte '$2' maar kreeg '$3' in plaats daarvan",
+            "unchanged": "Er zijn geen opties ingesteld, geen mappings gewijzigd en geen aangepaste commando's toegevoegd, geen viebrc geschreven",
+            "windowsize": {
+                "format": "De waarde $1 moet bestaan uit twee getallen verbonden met een x, zoals 800x600",
+                "minimum": "De waardes van windowsize moeten minstens 500 zijn, niet $1"
+            }
+        },
+        "files": {
+            "failed": "Kon niet schrijven naar: $1",
+            "missingloc": "Geen config locatie bekend, kon niet schrijven",
+            "success": "$1 saved to '$2'"
+        }
+    },
+    "util": {
+        "and": " en ",
+        "catchphrase": "Vim-geïnspireerde Electron Browser",
+        "comma": ",",
+        "commaSpaced": ", ",
+        "doubleQuoteEnd": "\"",
+        "doubleQuoteStart": "\"",
+        "none": "",
+        "or": " of ",
+        "singleQuoteEnd": "'",
+        "singleQuoteStart": "'",
+        "untranslated": "$1"
+    }
+}

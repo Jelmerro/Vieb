@@ -29,9 +29,10 @@ const {
     appConfig,
     listDir,
     pathToSpecialPageName,
-    stringToUrl
+    stringToUrl,
+    getSetting
 } = require("../util")
-const {getSetting, tabForPage, listPages, currentPage} = require("./common")
+const {tabForPage, listPages, currentPage} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")

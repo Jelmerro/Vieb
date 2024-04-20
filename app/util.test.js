@@ -482,14 +482,6 @@ test("Filesystem helpers should work as expected", () => {
         UTIL.isAbsolutePath("/home/test/"), isAbsolute("/home/test/"))
 })
 
-test("Title function should capitalize first char and lowercase others", () => {
-    assert.strictEqual(UTIL.title("teSt"), "Test")
-    assert.strictEqual(UTIL.title("a"), "A")
-    assert.strictEqual(UTIL.title(""), "")
-    assert.strictEqual(UTIL.title(undefined), "")
-    assert.strictEqual(UTIL.title("multiple WORDS"), "Multiple words")
-})
-
 test("formatSize helper to show file sizes in human readable form", () => {
     assert.strictEqual(UTIL.formatSize(45), "45 B")
     assert.strictEqual(UTIL.formatSize(45345237), "43.24 MB")

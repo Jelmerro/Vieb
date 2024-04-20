@@ -21,13 +21,13 @@ const {ipcRenderer} = require("electron")
 const {
     currentPage,
     currentMode,
-    getSetting,
     getMouseConf,
     tabForPage,
     listReadyPages,
     sendToPageOrSubFrame
 } = require("./common")
 const {
+    getSetting,
     matchesQuery,
     appData,
     joinPath,

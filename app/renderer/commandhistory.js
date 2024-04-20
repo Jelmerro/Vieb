@@ -17,8 +17,8 @@
 */
 "use strict"
 
-const {currentMode, getSetting, getUrl} = require("./common")
-const {joinPath, appData, appendFile, readFile} = require("../util")
+const {currentMode, getUrl} = require("./common")
+const {joinPath, getSetting, appData, appendFile, readFile} = require("../util")
 
 const commandsFile = joinPath(appData(), "commandhist")
 /** @type {string[]} */

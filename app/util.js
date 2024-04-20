@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,10 @@
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/
+/** @typedef {"cookies"|"downloads"|"help"
+ * |"history"|"newtab"|"notifications"|"version"} SpecialPage
+ */
+/** @type {SpecialPage[]} */
 const specialPages = [
     "cookies",
     "downloads",
@@ -78,13 +82,110 @@ const dataUris = [
 ]
 
 /**
- * Get a setting value by setting name.
- * @template {keyof typeof import("./renderer/settings").defaultSettings} T
- * @param {T} val
- * @returns {typeof import("./renderer/settings").defaultSettings[T]}
+ * Join multiple path parts into a single resolved path.
+ * @param {string[]} paths
  */
-const getSetting = val => JSON.parse(
-    sessionStorage.getItem("settings") ?? "")?.[val]
+const joinPath = (...paths) => {
+    const {resolve, join} = require("path")
+    return resolve(join(...paths))
+}
+
+/**
+ * Expand a path that is prefixed with ~ to the user's home folder.
+ * @param {string} loc
+ */
+const expandPath = loc => {
+    if (loc.startsWith("~")) {
+        if (!homeDirPath) {
+            homeDirPath = process.env.HOME || process.env.USERPROFILE
+                || require("os").homedir()
+        }
+        return loc.replace("~", homeDirPath)
+    }
+    return loc
+}
+
+/**
+ * Returns the app configuration settings.
+ */
+const appConfig = () => {
+    if (!configSettings) {
+        const {ipcRenderer} = require("electron")
+        configSettings = ipcRenderer.sendSync("app-config")
+        if (!configSettings) {
+            return null
+        }
+        let files = [configSettings.override]
+        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
+        const userFirstConfig = expandPath("~/.vieb/viebrc")
+        const userGlobalConfig = expandPath("~/.viebrc")
+        if (!configSettings.override) {
+            if (configSettings.order === "user-only") {
+                files = [userGlobalConfig, userFirstConfig]
+            }
+            if (configSettings.order === "datafolder-only") {
+                files = [datafolderConfig]
+            }
+            if (configSettings.order === "user-first") {
+                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
+            }
+            if (configSettings.order === "datafolder-first") {
+                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
+            }
+        }
+        configSettings.files = files
+        configSettings.config = configSettings.override || datafolderConfig
+    }
+    return configSettings
+}
+
+/**
+ * Returns the appdata path (works from both main, renderer and preloads).
+ */
+const appData = () => {
+    if (!appDataPath) {
+        try {
+            const {app} = require("electron")
+            return app.getPath("appData")
+        } catch {
+            // Not in main thread
+        }
+        appDataPath = appConfig()?.appdata ?? ""
+    }
+    return appDataPath
+}
+
+/**
+ * Read the file contents of a file and parse it as JSON.
+ * @param {string} loc
+ * @returns {any|null}
+ */
+const readJSON = loc => {
+    try {
+        const {readFileSync} = require("fs")
+        return JSON.parse(readFileSync(loc).toString())
+    } catch {
+        return null
+    }
+}
+
+/**
+ * @typedef {(typeof import("./renderer/settings").defaultSettings & {
+ *   "fg": string
+ *   "bg": string
+ *   "linkcolor": string
+ * })} validSetting
+ */
+/**
+ * Get a setting from the settings file.
+ * @template {keyof validSetting} T
+ * @param {T} set
+ * @returns {validSetting[T]}
+ */
+const getSetting = set => {
+    const settings = readJSON(joinPath(appData(), "settings")) ?? {}
+    return settings[set] ?? null
+}
 
 /**
  * Check if any string has a valid protocol or dataUri.
@@ -163,32 +264,6 @@ const searchword = location => {
 
 /** Return the notification history. */
 const listNotificationHistory = () => notificationHistory
-
-/**
- * Expand a path that is prefixed with ~ to the user's home folder.
- * @param {string} loc
- */
-const expandPath = loc => {
-    if (loc.startsWith("~")) {
-        if (!homeDirPath) {
-            homeDirPath = process.env.HOME || process.env.USERPROFILE
-                || require("os").homedir()
-        }
-        return loc.replace("~", homeDirPath)
-    }
-    return loc
-}
-
-/**
- * Capitalize a string to only have one capital letter at the start.
- * @param {string} s
- */
-const title = s => {
-    if (!s || !s[0]) {
-        return ""
-    }
-    return `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
-}
 
 /** Return per operating system the result of navigator.platform. */
 const userAgentPlatform = () => {
@@ -879,80 +954,27 @@ const intervalValueToDate = value => {
     return date
 }
 
-// PATH UTIL
-
-const path = require("path")
-
-/**
- * Join multiple path parts into a single resolved path.
- * @param {string[]} paths
- */
-const joinPath = (...paths) => path.resolve(path.join(...paths))
-
-/**
- * Returns the app configuration settings.
- */
-const appConfig = () => {
-    if (!configSettings) {
-        const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config")
-        if (!configSettings) {
-            return null
-        }
-        let files = [configSettings.override]
-        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
-        const userFirstConfig = expandPath("~/.vieb/viebrc")
-        const userGlobalConfig = expandPath("~/.viebrc")
-        if (!configSettings.override) {
-            if (configSettings.order === "user-only") {
-                files = [userGlobalConfig, userFirstConfig]
-            }
-            if (configSettings.order === "datafolder-only") {
-                files = [datafolderConfig]
-            }
-            if (configSettings.order === "user-first") {
-                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
-            }
-            if (configSettings.order === "datafolder-first") {
-                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
-            }
-        }
-        configSettings.files = files
-        configSettings.config = configSettings.override || datafolderConfig
-    }
-    return configSettings
-}
-
-/**
- * Returns the appdata path (works from both main, renderer and preloads).
- */
-const appData = () => {
-    if (!appDataPath) {
-        try {
-            const {app} = require("electron")
-            return app.getPath("appData")
-        } catch {
-            // Not in main thread
-        }
-        appDataPath = appConfig()?.appdata ?? ""
-    }
-    return appDataPath
-}
-
 /**
  * Show the user a notification bubble and store it in the history.
- * @param {string} message
  * @param {{
+ *   id: import("../types/i18n").TranslationKeys,
+ *   fields?: string[],
  *   action?: {
  *     type: "download-success",
  *     path: string,
  *     func?: () => void
  *   }|false,
- *   type?: string,
+ *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
  *   src: import("./renderer/common").RunSource
  * }} opts
  */
-const notify = (message, opts) => {
+const notify = opts => {
+    const {translate} = require("./translate")
+    if (typeof opts === "string") {
+        console.warn(opts)
+        return
+    }
+    const message = translate(opts.id, {"fields": opts.fields ?? []})
     if (opts.src === "execute") {
         const {appendFileSync} = require("fs")
         appendFileSync(
@@ -961,24 +983,7 @@ const notify = (message, opts) => {
     if (getSetting("notificationduration") === 0) {
         return
     }
-    let properType = "info"
-    if (opts.type?.startsWith("perm")) {
-        properType = "permission"
-    }
-    if (opts.type?.startsWith("suc")) {
-        properType = "success"
-    }
-    if (opts.type?.startsWith("warn")) {
-        properType = "warning"
-    }
-    if (opts.type?.startsWith("err")) {
-        properType = "error"
-    }
-    if (opts.type?.startsWith("dial")) {
-        properType = "dialog"
-    }
-    const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
-        .replace(/\n/g, "<br>")
+    const properType = opts.type ?? "info"
     let clickInfo = null
     if (opts?.action) {
         clickInfo = {...opts.action}
@@ -991,7 +996,7 @@ const notify = (message, opts) => {
     notificationHistory.push({
         "click": clickInfo,
         "date": new Date(),
-        "message": escapedMessage,
+        message,
         "type": properType
     })
     if (properType === "permission") {
@@ -1011,7 +1016,7 @@ const notify = (message, opts) => {
     }
     const native = getSetting("nativenotification")
     const shortLimitNotify = getSetting("notificationlimitsmall")
-    const showLong = escapedMessage.split("<br>").length > shortLimitNotify
+    const showLong = message.split("\n").length > shortLimitNotify
         && properType !== "dialog"
     const shortAndSmallNative = !showLong && native === "smallonly"
     const longAndLargeNative = showLong && native === "largeonly"
@@ -1027,7 +1032,7 @@ const notify = (message, opts) => {
     }
     if (showLong) {
         const {ipcRenderer} = require("electron")
-        ipcRenderer.send("show-notification", escapedMessage, properType)
+        ipcRenderer.send("show-notification", message, properType)
         return
     }
     const notificationsElement = document.getElementById("notifications")
@@ -1037,7 +1042,7 @@ const notify = (message, opts) => {
     notificationsElement.className = getSetting("notificationposition")
     const notification = document.createElement("span")
     notification.className = properType
-    notification.innerHTML = escapedMessage
+    notification.textContent = message
     if (opts.action && opts.action.func) {
         // @ts-expect-error Func type could be undefined according to TS...
         notification.addEventListener("click", () => opts.action?.func?.())
@@ -1055,55 +1060,27 @@ const downloadPath = () => expandPath(getSetting("downloadpath")
  * Return the last part of the path, usually the filename.
  * @param {string} loc
  */
-const basePath = loc => path.basename(loc)
+const basePath = loc => {
+    const {basename} = require("path")
+    return basename(loc)
+}
 
 /**
  * Return the directory name of the path.
  * @param {string} loc
  */
-const dirname = loc => path.dirname(loc)
+const dirname = loc => {
+    const path = require("path")
+    return path.dirname(loc)
+}
 
 /**
  * Check if a path is absolute or not.
  * @param {string} loc
  */
-const isAbsolutePath = loc => path.isAbsolute(loc)
-
-// FILESYSTEM UTIL
-
-const fs = require("fs")
-
-/**
- * Read the file contents of a file and parse it as JSON.
- * @param {string} loc
- * @returns {any|null}
- */
-const readJSON = loc => {
-    try {
-        return JSON.parse(fs.readFileSync(loc).toString())
-    } catch {
-        return null
-    }
-}
-
-/**
- * @typedef {(typeof import("./renderer/settings").defaultSettings & {
- *   "fg": string
- *   "bg": string
- *   "linkcolor": string
- * })} webviewSetting
- */
-
-/**
- * Get a setting from the webviewsettings file inside preloads.
- * @template {keyof webviewSetting} T
- * @param {T} name
- * @returns {null|webviewSetting[T]}
- */
-const getWebviewSetting = name => {
-    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-    const settings = readJSON(webviewSettingsFile) ?? {}
-    return settings[name] ?? null
+const isAbsolutePath = loc => {
+    const {isAbsolute} = require("path")
+    return isAbsolute(loc)
 }
 
 /**
@@ -1112,7 +1089,8 @@ const getWebviewSetting = name => {
  */
 const pathExists = loc => {
     try {
-        return fs.existsSync(loc)
+        const {existsSync} = require("fs")
+        return existsSync(loc)
     } catch {
         return false
     }
@@ -1124,7 +1102,8 @@ const pathExists = loc => {
  */
 const isDir = loc => {
     try {
-        return fs.statSync(loc).isDirectory()
+        const {statSync} = require("fs")
+        return statSync(loc).isDirectory()
     } catch {
         return false
     }
@@ -1136,7 +1115,8 @@ const isDir = loc => {
  */
 const isFile = loc => {
     try {
-        return fs.statSync(loc).isFile()
+        const {statSync} = require("fs")
+        return statSync(loc).isFile()
     } catch {
         return false
     }
@@ -1149,104 +1129,77 @@ const isFile = loc => {
  */
 const readFile = loc => {
     try {
-        return fs.readFileSync(loc).toString()
+        const {readFileSync} = require("fs")
+        return readFileSync(loc).toString()
     } catch {
         return null
     }
 }
 
 /**
- * Write data to a file, optionally with success and error notifications.
+ * Write data to a file, returns success state.
  * @param {string} loc
  * @param {string|Buffer} data
- * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
  */
-const writeFile = (loc, data, opts = {"src": "other"}) => {
+const writeFile = (loc, data) => {
     try {
-        fs.writeFileSync(loc, data)
-        if (opts.success) {
-            notify(opts.success, {"src": opts.src})
-        }
+        const {writeFileSync} = require("fs")
+        writeFileSync(loc, data)
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
 
 /**
- * Append data to a file, optionally with success and error notifications.
+ * Append data to a file, returns success state.
  * @param {string} loc
- * @param {string} data
- * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
+ * @param {string|Buffer} data
  */
-const appendFile = (loc, data, opts = {"src": "other"}) => {
+const appendFile = (loc, data) => {
     try {
-        fs.appendFileSync(loc, data)
-        if (opts.success) {
-            notify(opts.success, {"src": opts.src})
-        }
+        const {appendFileSync} = require("fs")
+        appendFileSync(loc, data)
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
 
 /**
- * Write JSON data to a file, optionally with indentation and notifications.
+ * Write JSON data to a file, optionally with indentation and replacer.
  * @param {string} loc
  * @param {any} data
  * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
+ *   replacer?: null|((this: any, key: string, value: string) => string),
  *   indent?: number|undefined
- * }|{indent: number}} opts
+ * }} opts
  */
-const writeJSON = (loc, data, opts = {"src": "other"}) => {
+const writeJSON = (loc, data, opts = {"replacer": null}) => {
     try {
-        fs.writeFileSync(loc, JSON.stringify(data, null, opts.indent))
-        if ("success" in opts) {
-            notify(opts.success, {"src": opts.src})
-        }
+        const {writeFileSync} = require("fs")
+        writeFileSync(loc, JSON.stringify(
+            data, opts.replacer ?? undefined, opts.indent))
         return true
     } catch {
-        if ("err" in opts) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
 
 /**
- * Delete a file at a location, optinally with error message.
+ * Delete a file at a location, returns success state.
  * @param {string} loc
- * @param {{
- *   err?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
  */
-const deleteFile = (loc, opts = {"src": "other"}) => {
+const deleteFile = loc => {
     try {
-        fs.unlinkSync(loc)
+        const {unlinkSync} = require("fs")
+        unlinkSync(loc)
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "warn"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
@@ -1254,23 +1207,14 @@ const deleteFile = (loc, opts = {"src": "other"}) => {
 /**
  * Make a directory at a location, optionally with feedback notifications.
  * @param {string} loc
- * @param {{
- *   err?: string,
- *   success?: string,
- *   src: import("./renderer/common").RunSource
- * }} opts
  */
-const makeDir = (loc, opts = {"src": "other"}) => {
+const makeDir = loc => {
     try {
-        fs.mkdirSync(loc, {"recursive": true})
-        if (opts.success) {
-            notify(opts.success, {"src": opts.src})
-        }
+        const {mkdirSync} = require("fs")
+        mkdirSync(loc, {"recursive": true})
         return true
     } catch {
-        if (opts.err) {
-            notify(opts.err, {"src": opts.src, "type": "err"})
-        }
+        // Usually permission errors, return value will be false
     }
     return false
 }
@@ -1283,7 +1227,8 @@ const makeDir = (loc, opts = {"src": "other"}) => {
  */
 const listDir = (loc, absolute = false, dirsOnly = false) => {
     try {
-        let files = fs.readdirSync(loc)
+        const {readdirSync} = require("fs")
+        let files = readdirSync(loc)
         if (dirsOnly) {
             files = files.filter(f => isDir(joinPath(loc, f)))
         }
@@ -1301,7 +1246,10 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
  * @param {string} file
  * @param {(info: import("fs").Stats, oldInfo: import("fs").Stats) => void} call
  */
-const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
+const watchFile = (file, call) => {
+    const {"watchFile": watchFileFS} = require("fs")
+    return watchFileFS(file, {"interval": 500}, call)
+}
 
 /**
  * Get the modified date for a file location.
@@ -1309,7 +1257,8 @@ const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
  */
 const modifiedAt = loc => {
     try {
-        return fs.statSync(loc).mtime
+        const {statSync} = require("fs")
+        return statSync(loc).mtime
     } catch {
         return new Date("1970-01-01")
     }
@@ -1329,6 +1278,13 @@ const rm = f => {
 }
 
 /**
+ * Checks if a given page is a special page.
+ * @param {any} page
+ * @returns {page is SpecialPage}
+ */
+const isSpecialPage = page => specialPages.includes(page)
+
+/**
  * Get the url of a special page given a name and an optional section.
  * @param {string} userPage
  * @param {string|null} section
@@ -1336,7 +1292,7 @@ const rm = f => {
  */
 const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     let page = userPage
-    if (!specialPages.includes(userPage) && !skipExistCheck) {
+    if (!isSpecialPage(userPage) && !skipExistCheck) {
         page = "help"
     }
     let url = joinPath(__dirname, `./pages/${page}.html`)
@@ -1357,14 +1313,18 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
 /**
  * Convert any url/path to the name and section of a special page if relevant.
  * @param {string} urlPath
+ * @returns {{name: SpecialPage, section: string}|null}
  */
 const pathToSpecialPageName = urlPath => {
+    const {normalize} = require("path/posix")
     const appName = appConfig()?.name.toLowerCase() ?? ""
     if (urlPath?.startsWith?.(`${appName}://`)) {
         const parts = urlPath.replace(`${appName}://`, "").split("#")
-        let [name] = parts
-        if (!specialPages.includes(name)) {
-            name = "help"
+        const [partName] = parts
+        /** @type {SpecialPage} */
+        let name = "help"
+        if (isSpecialPage(partName)) {
+            name = partName
         }
         return {
             name, "section": decodeURIComponent(parts.slice(1).join("#") || "")
@@ -1373,8 +1333,7 @@ const pathToSpecialPageName = urlPath => {
     if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
             const specialPage = specialPagePath(page).replace(/^file:\/+/g, "")
-            const normalizedUrl = path.posix.normalize(
-                urlPath.replace(/^file:\/+/g, ""))
+            const normalizedUrl = normalize(urlPath.replace(/^file:\/+/g, ""))
             if (normalizedUrl.startsWith(specialPage)) {
                 return {
                     "name": page,
@@ -1384,7 +1343,7 @@ const pathToSpecialPageName = urlPath => {
             }
             try {
                 const decodedPath = decodeURI(urlPath)
-                const decodedNormalizedUrl = path.posix.normalize(
+                const decodedNormalizedUrl = normalize(
                     decodedPath.replace(/^file:\/+/g, ""))
                 if (decodedNormalizedUrl.startsWith(specialPage)) {
                     return {
@@ -1405,9 +1364,9 @@ const pathToSpecialPageName = urlPath => {
         "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
         + "/resources/app[.]asar/app/pages/")
     if (urlPath.match(appImagePathPattern)) {
-        return {
-            "name": urlPath.replace(appImagePathPattern, "").replace(/\..+/, ""),
-            "section": ""
+        const name = urlPath.replace(appImagePathPattern, "").replace(/\..+/, "")
+        if (isSpecialPage(name)) {
+            return {name, "section": ""}
         }
     }
     return null
@@ -1515,7 +1474,7 @@ const clearCache = () => {
         }
     }
     rm(joinPath(appData(), "vimformedits"))
-    rm(joinPath(appData(), "webviewsettings"))
+    rm(joinPath(appData(), "settings"))
 }
 
 /** Claer all cookies, including those inside partition dirs. */
@@ -1555,83 +1514,78 @@ const clearLocalStorage = () => {
     }
 }
 
-// Disabled import sort order as the order is optimized to reduce module loads
-/* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
-    specialChars,
-    specialCharsAllowSpaces,
-    hasProtocol,
-    isUrl,
-    searchword,
-    listNotificationHistory,
-    expandPath,
-    title,
-    userAgentTemplated,
-    userAgentPlatform,
-    defaultUseragent,
-    firefoxVersion,
-    firefoxUseragent,
-    domainName,
-    sameDomain,
-    formatDate,
-    findFrameInfo,
-    framePosition,
-    propPixels,
-    isElement,
-    isHTMLElement,
-    isHTMLIFrameElement,
-    isInputOrTextElement,
-    isHTMLAnchorElement,
-    isHTMLLinkElement,
-    isHTMLImageElement,
-    isSVGElement,
-    isHTMLVideoElement,
-    isHTMLAudioElement,
-    matchesQuery,
-    findElementAtPosition,
-    querySelectorAll,
-    findClickPosition,
     activeElement,
-    formatSize,
-    compareVersions,
-    fetchUrl,
-    fetchJSON,
-    pageContainerPos,
-    pageOffset,
-    execCommand,
-    isValidIntervalValue,
-    intervalValueToDate,
-    // PATH UTIL
-    joinPath,
     appConfig,
     appData,
-    notify,
-    downloadPath,
+    appendFile,
     basePath,
+    clearCache,
+    clearCookies,
+    clearLocalStorage,
+    clearTempContainers,
+    compareVersions,
+    defaultUseragent,
+    deleteFile,
     dirname,
+    domainName,
+    downloadPath,
+    execCommand,
+    expandPath,
+    fetchJSON,
+    fetchUrl,
+    findClickPosition,
+    findElementAtPosition,
+    findFrameInfo,
+    firefoxUseragent,
+    firefoxVersion,
+    formatDate,
+    formatSize,
+    framePosition,
+    getSetting,
+    hasProtocol,
+    intervalValueToDate,
     isAbsolutePath,
-    // FILESYSTEM UTIL
-    getWebviewSetting,
-    pathExists,
     isDir,
+    isElement,
     isFile,
+    isHTMLAnchorElement,
+    isHTMLAudioElement,
+    isHTMLElement,
+    isHTMLIFrameElement,
+    isHTMLImageElement,
+    isHTMLLinkElement,
+    isHTMLVideoElement,
+    isInputOrTextElement,
+    isSVGElement,
+    isUrl,
+    isValidIntervalValue,
+    joinPath,
+    listDir,
+    listNotificationHistory,
+    makeDir,
+    matchesQuery,
+    modifiedAt,
+    notify,
+    pageContainerPos,
+    pageOffset,
+    pathExists,
+    pathToSpecialPageName,
+    propPixels,
+    querySelectorAll,
     readFile,
     readJSON,
-    writeFile,
-    appendFile,
-    writeJSON,
-    deleteFile,
-    makeDir,
-    listDir,
-    watchFile,
-    modifiedAt,
     rm,
-    pathToSpecialPageName,
+    sameDomain,
+    searchword,
+    specialChars,
+    specialCharsAllowSpaces,
     specialPagePath,
     stringToUrl,
     urlToString,
-    clearTempContainers,
-    clearCache,
-    clearCookies,
-    clearLocalStorage
+    userAgentPlatform,
+    userAgentTemplated,
+    watchFile,
+    writeFile,
+    writeJSON
 }

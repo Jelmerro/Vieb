@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {urlToString} = require("../util")
 
 /**
@@ -48,7 +49,7 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
     if (topsites?.length && topsitesEl) {
         topsitesEl.style.display = "inline-block"
         const heading = document.createElement("h2")
-        heading.textContent = "Top sites"
+        heading.textContent = translate("pages.newtab.topsites")
         topsitesEl.textContent = ""
         topsitesEl.append(heading)
         for (const site of topsites) {
@@ -59,7 +60,7 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
     if (favorites?.length && favoritesEl) {
         favoritesEl.style.display = "inline-block"
         const heading = document.createElement("h2")
-        heading.textContent = "Favorites"
+        heading.textContent = translate("pages.newtab.favorites")
         favoritesEl.textContent = ""
         favoritesEl.append(heading)
         for (const site of favorites) {

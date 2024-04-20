@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2023 Jelmer van Arnhem
+* Copyright (C) 2022-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,17 +30,17 @@ const {
     listDir,
     fetchUrl,
     pathToSpecialPageName,
-    getWebviewSetting
+    getSetting
 } = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 
 /** Apply the current theme styling from the parent process. */
 const applyThemeStyling = () => {
     const style = `html {
-        color: ${getWebviewSetting("fg") || "#eee"};
-        background: ${getWebviewSetting("bg") || "#333"};
-        font-size: ${getWebviewSetting("guifontsize") || 14}px;
-    } a {color: ${getWebviewSetting("linkcolor") || "#0cf"};}`
+        color: ${getSetting("fg") || "#eee"};
+        background: ${getSetting("bg") || "#333"};
+        font-size: ${getSetting("guifontsize") || 14}px;
+    } a {color: ${getSetting("linkcolor") || "#0cf"};}`
     ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
 
@@ -62,9 +62,11 @@ const enableDarkReader = async() => {
     try {
         darkreader = require("darkreader")
     } catch {
-        ipcRenderer.sendToHost("notify",
-            "Darkreader module not present, can't show dark pages",
-            {"src": "user", "type": "err"})
+        ipcRenderer.sendToHost("notify", {
+            "id": "settings.errors.darkreader.missing",
+            "src": "user",
+            "type": "error"
+        })
         return
     }
     darkreader.setFetchMethod(url => new Promise(res => {
@@ -77,35 +79,35 @@ const enableDarkReader = async() => {
         const themeDict = {"dark": 1, "light": 0}
         /** @type {Partial<import("darkreader").Theme>} */
         const darkreaderOpts = {}
-        const darkreaderbrightness = getWebviewSetting("darkreaderbrightness")
+        const darkreaderbrightness = getSetting("darkreaderbrightness")
         if (darkreaderbrightness) {
             darkreaderOpts.brightness = darkreaderbrightness
         }
-        const darkreadercontrast = getWebviewSetting("darkreadercontrast")
+        const darkreadercontrast = getSetting("darkreadercontrast")
         if (darkreadercontrast) {
             darkreaderOpts.contrast = darkreadercontrast
         }
-        const darkreaderbg = getWebviewSetting("darkreaderbg")
+        const darkreaderbg = getSetting("darkreaderbg")
         if (darkreaderbg) {
             darkreaderOpts.darkSchemeBackgroundColor = darkreaderbg
             darkreaderOpts.lightSchemeBackgroundColor = darkreaderbg
         }
-        const darkreaderfg = getWebviewSetting("darkreaderfg")
+        const darkreaderfg = getSetting("darkreaderfg")
         if (darkreaderfg) {
             darkreaderOpts.darkSchemeTextColor = darkreaderfg
             darkreaderOpts.lightSchemeTextColor = darkreaderfg
         }
-        const darkreadergrayscale = getWebviewSetting("darkreadergrayscale")
+        const darkreadergrayscale = getSetting("darkreadergrayscale")
         if (darkreadergrayscale) {
             darkreaderOpts.grayscale = darkreadergrayscale
         }
-        const darkreadermode = getWebviewSetting("darkreadermode") ?? "dark"
+        const darkreadermode = getSetting("darkreadermode") ?? "dark"
         darkreaderOpts.mode = themeDict[darkreadermode]
-        const darkreadersepia = getWebviewSetting("darkreadersepia")
+        const darkreadersepia = getSetting("darkreadersepia")
         if (darkreadersepia) {
             darkreaderOpts.sepia = darkreadersepia
         }
-        const darkreadertextstroke = getWebviewSetting("darkreadertextstroke")
+        const darkreadertextstroke = getSetting("darkreadertextstroke")
         if (darkreadertextstroke) {
             darkreaderOpts.textStroke = darkreadertextstroke
         }
@@ -125,7 +127,7 @@ const hideScrollbar = () => {
 
 /** Hide the scrollbar if not configured to always show. */
 const updateScrollbar = () => {
-    if (getWebviewSetting("guiscrollbar") !== "always") {
+    if (getSetting("guiscrollbar") !== "always") {
         hideScrollbar()
     }
 }
@@ -184,16 +186,16 @@ const loadThemes = (loadedFully = false) => {
         domain = "file"
         scope = "file"
     }
-    if (getWebviewSetting("darkreader")
-        && getWebviewSetting("darkreaderscope")?.includes(scope)) {
-        const blocked = (getWebviewSetting("darkreaderblocklist") ?? [])
+    if (getSetting("darkreader")
+        && getSetting("darkreaderscope")?.includes(scope)) {
+        const blocked = (getSetting("darkreaderblocklist") ?? [])
             .find(m => window.location.href.match(m))
         if (!blocked) {
             enableDarkReader()
         }
     }
-    if (getWebviewSetting("userstyle")
-        && getWebviewSetting("userstylescope")?.includes(scope)) {
+    if (getSetting("userstyle")
+        && getSetting("userstylescope")?.includes(scope)) {
         const userStyleFiles = [
             ...(listDir(joinPath(appData(), "userstyle/global"), true)
                 || []).filter(f => f.endsWith(".css")),

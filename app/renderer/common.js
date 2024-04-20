@@ -17,6 +17,8 @@
 */
 "use strict"
 
+const {getSetting} = require("../util")
+
 /** @typedef {"execute"|"user"|"source"|"other"} RunSource */
 
 let topOfPageWithMouse = false
@@ -179,14 +181,6 @@ const getStored = set => {
 }
 
 /**
- * Get a setting value by setting name.
- * @template {keyof typeof import("./settings").defaultSettings} T
- * @param {T} name
- * @returns {typeof import("./settings").defaultSettings[T]}
- */
-const getSetting = name => getStored("settings")[name]
-
-/**
  * Check if a specific mouse feature is enabled.
  * @param {string} val
  */
@@ -341,7 +335,6 @@ module.exports = {
     currentPage,
     currentTab,
     getMouseConf,
-    getSetting,
     getStored,
     getUrl,
     guiRelatedUpdate,

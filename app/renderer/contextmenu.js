@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2023 Jelmer van Arnhem
+* Copyright (C) 2021-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,19 +24,19 @@ const {
     urlToString,
     specialChars,
     notify,
-    title,
     isUrl,
     propPixels,
     execCommand,
     isElement,
+    getSetting,
     pageContainerPos
 } = require("../util")
+const {translate} = require("../translate")
 const {
     listTabs,
     currentPage,
     currentTab,
     currentMode,
-    getSetting,
     getMouseConf,
     tabForPage,
     getUrl,
@@ -144,12 +144,13 @@ const fixAlignmentNearBorders = () => {
 
 /**
  * Create a new menu group with name.
- * @param {string} name
+ * @param {"audio"|"frame"|"general"|"image"
+ *   |"link"|"suggestions"|"text"|"video"} name
  */
 const createMenuGroup = name => {
     const item = document.createElement("div")
     item.className = "menu-group"
-    item.textContent = name
+    item.textContent = translate(`contextmenu.groups.${name}`)
     contextMenu?.append(item)
 }
 
@@ -362,9 +363,9 @@ const commonAction = (src, type, action, options) => {
     } else if (action === "external") {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {
-            notify("No command set to open links externally, "
-                + "please update the 'externalcommand' setting",
-            {src, "type": "warn"})
+            notify({
+                "id": "commands.externalcommand.missing", src, "type": "warning"
+            })
             return
         }
         if (relevantData) {
@@ -381,10 +382,28 @@ const commonAction = (src, type, action, options) => {
             execCommand(`${ext} "${extData}"`, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, {src, "type": "err"})
+                    notify({
+                        "fields": [`${err}`],
+                        "id": "actions.command.failed",
+                        src,
+                        "type": "error"
+                    })
                 } else if (reportExit === "all") {
-                    notify(stdout.toString() || "Command exitted successfully!",
-                        {src, "type": "suc"})
+                    const output = stdout.toString()
+                    if (output) {
+                        notify({
+                            "fields": [output],
+                            "id": "actions.command.successWithOutput",
+                            src,
+                            "type": "success"
+                        })
+                    } else {
+                        notify({
+                            "id": "actions.command.success",
+                            src,
+                            "type": "success"
+                        })
+                    }
                 }
             })
         }
@@ -575,7 +594,7 @@ const viebMenu = (src, options, force = false) => {
             "action": () => closeTab(src, listTabs().indexOf(tab), true),
             "title": "Close"
         })
-        createMenuGroup("General")
+        createMenuGroup("general")
         createMenuItem({
             /** Menu item: Add tab. */
             "action": () => addTab({src}),
@@ -791,7 +810,7 @@ const webviewMenu = (src, options, force = false) => {
         const {webFrame} = require("electron")
         const suggestions = webFrame.getWordSuggestions(word)
         if (suggestions.length) {
-            createMenuGroup("Suggestions")
+            createMenuGroup("suggestions")
         }
         for (const suggestion of suggestions) {
             createMenuItem({
@@ -805,7 +824,7 @@ const webviewMenu = (src, options, force = false) => {
             })
         }
     }
-    createMenuGroup("Text")
+    createMenuGroup("text")
     createMenuItem({
         /** Menu item: Select all text. */
         "action": () => sendToPageOrSubFrame("action", "selectionAll",
@@ -873,7 +892,7 @@ const webviewMenu = (src, options, force = false) => {
         })
     }
     if (options.img || options.backgroundImg || options.svgData) {
-        createMenuGroup("Image")
+        createMenuGroup("image")
         createMenuItem({
             /** Menu item: Navigate to an image. */
             "action": () => commonAction(src, "img", "open", options),
@@ -919,7 +938,7 @@ const webviewMenu = (src, options, force = false) => {
     const types = ["frame", "video", "audio", "link"]
     for (const type of types) {
         if (options[type] || options[`${type}Data`]?.controllable) {
-            createMenuGroup(title(type))
+            createMenuGroup(type)
         }
         if (options[type]) {
             createMenuItem({

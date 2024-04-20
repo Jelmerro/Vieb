@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 "use strict"
 
 const {appConfig, compareVersions} = require("../util")
+const {translate, translateAsHTML} = require("../translate")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 const {name, icon, version} = appConfig() ?? {}
@@ -29,7 +30,7 @@ const checkForUpdates = () => {
     if (!versionCheck || !button || !version) {
         return
     }
-    versionCheck.textContent = "Loading..."
+    versionCheck.textContent = translate("pages.version.loading")
     button.disabled = true
     const req = new XMLHttpRequest()
     /** Compare the current version to the latest Github version and report. */
@@ -40,22 +41,25 @@ const checkForUpdates = () => {
                     const release = JSON.parse(req.responseText)
                     const diff = compareVersions(version, release.tag_name)
                     if (diff === "older") {
-                        versionCheck.textContent
-                            = `New version ${release.tag_name} is available`
+                        versionCheck.textContent = translate(
+                            "pages.version.newerFound",
+                            {"fields": [release.tag_name]})
                     } else if (diff === "newer") {
-                        versionCheck.textContent
-                            = `Latest release ${release.tag_name} is older`
+                        versionCheck.textContent = translate(
+                            "pages.version.alreadyNewer",
+                            {"fields": [release.tag_name]})
                     } else if (diff === "even") {
-                        versionCheck.textContent
-                            = "Your Vieb is up to date"
+                        versionCheck.textContent = translate(
+                            "pages.version.latest")
                     } else {
-                        versionCheck.textContent = "Failed to fetch updates"
+                        versionCheck.textContent = translate(
+                            "pages.version.failed")
                     }
                 } catch {
-                    versionCheck.textContent = "Failed to fetch updates"
+                    versionCheck.textContent = translate("pages.version.failed")
                 }
             } else {
-                versionCheck.textContent = "Failed to fetch updates"
+                versionCheck.textContent = translate("pages.version.failed")
             }
             button.disabled = false
         }
@@ -64,7 +68,62 @@ const checkForUpdates = () => {
     req.send(null)
 }
 
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
+    // Translations
+    const subtitleEl = document.getElementById("subtitle")
+    if (subtitleEl) {
+        subtitleEl.textContent = translate("util.catchphrase")
+    }
+    const buttonEl = document.querySelector("button")
+    if (buttonEl) {
+        buttonEl.textContent = translate("pages.version.checkUpdate")
+    }
+    const checkResultEl = document.getElementById("version-check")
+    if (checkResultEl) {
+        checkResultEl.textContent = translate("pages.version.notChecked")
+    }
+    /** @type {{
+     *   src: string, id: import("../../types/i18n").TranslationKeys
+     * }[]} */
+    const versionLinks = [
+        {"id": "pages.version.homepage", "src": "vieb.dev"},
+        {"id": "pages.version.repository", "src": "github.com/Jelmerro/Vieb"},
+        {
+            "id": "pages.version.releases",
+            "src": "github.com/Jelmerro/Vieb/releases"
+        },
+        {"id": "pages.version.sponsor", "src": "github.com/sponsors/Jelmerro"},
+        {"id": "pages.version.donate", "src": "ko-fi.com/Jelmerro"},
+        {
+            "id": "pages.version.faq",
+            "src": "github.com/Jelmerro/Vieb/blob/master/FAQ.md"
+        },
+        {
+            "id": "pages.version.changelog",
+            "src": "github.com/Jelmerro/Vieb/blob/master/CHANGELOG.md"
+        },
+        {"id": "pages.version.matrix", "src": "matrix.to/#/#vieb:matrix.org"},
+        {"id": "pages.version.telegram", "src": "t.me/vieb_general"},
+        {
+            "id": "pages.version.discussions",
+            "src": "github.com/Jelmerro/Vieb/discussions"
+        }
+    ]
+    const versionLinksEl = document.getElementById("version-links")
+    if (versionLinksEl) {
+        for (const link of versionLinks) {
+            const linkEl = document.createElement("a")
+            linkEl.href = `https://${link.src}`
+            linkEl.textContent = translate(link.id)
+            versionLinksEl.append(linkEl)
+        }
+    }
+    const descriptionEl = document.getElementById("description")
+    if (descriptionEl) {
+        descriptionEl.append(...translateAsHTML("pages.version.description",
+            {"fields": [process.versions.electron, process.versions.chrome]}))
+    }
+    // Regular init
     const nameEl = document.getElementById("name")
     if (nameEl) {
         nameEl.textContent = name ?? "Vieb"
@@ -77,16 +136,7 @@ window.addEventListener("load", () => {
     if (versionEl) {
         versionEl.textContent = version ?? ""
     }
-    const buttonEl = document.querySelector("button")
     if (buttonEl) {
         buttonEl.addEventListener("click", checkForUpdates)
-    }
-    const chromiumVer = document.getElementById("chromium-version")
-    if (chromiumVer) {
-        chromiumVer.textContent = process.versions.chrome
-    }
-    const electronVer = document.getElementById("electron-version")
-    if (electronVer) {
-        electronVer.textContent = process.versions.electron
     }
 })
