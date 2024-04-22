@@ -448,6 +448,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #versionpage .header > img {width: 30vmin;height: 30vmin;margin: auto;}
 #versionpage .info {width: 42em;min-width: 450px;max-width: 80vw;}
 #versionpage #update-check {margin: .7em;}
+#versionpage #version-links {display: flex;flex-wrap: wrap;justify-content: center;}
 #versionpage #version-links a {margin: .5em;}
 
 
