@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Greasemonkey scripts to work with single match argument instead of multiple include statements
 - Download pausing and removal to be via uuid instead of index to be more reliable
 - Special pages to no longer use a reversed rendering order, making selecting and styling easier
+- Version and newtab page to no longer use a fixed minimum width
 
 ### Fixed
 
