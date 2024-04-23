@@ -1738,15 +1738,15 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         updateNavbarScrolling()
         return
     }
-    if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
+    if (keyForOs(["<C-x>", "<S-Del>"], ["<M-x>"], id)) {
         cutInput()
         return
     }
-    if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
+    if (keyForOs(["<C-c>", "<C-Insert>"], ["<M-c>"], id)) {
         copyInput()
         return
     }
-    if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
+    if (keyForOs(["<C-v>", "<S-Insert>"], ["<M-v>"], id)) {
         pasteInput()
         return
     }
