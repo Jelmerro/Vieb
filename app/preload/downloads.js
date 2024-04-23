@@ -19,7 +19,9 @@
 
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {joinPath, formatDate, formatSize, urlToString} = require("../util")
+const {
+    joinPath, formatDate, formatSize, urlToString, getAppRootDir
+} = require("../util")
 
 let lastUpdate = new Date()
 
@@ -44,7 +46,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
-    removeAll.src = joinPath(__dirname, "../img/trash.png")
+    removeAll.src = joinPath(getAppRootDir(), "img/trash.png")
     removeAll.addEventListener("click", () => update("removeall"))
     document.body.insertBefore(removeAll, document.body.firstChild)
     lastUpdate = new Date()
@@ -62,12 +64,12 @@ const addDownload = download => {
     // Toggle pause and remove buttons
     const remove = document.createElement("img")
     remove.className = "remove"
-    remove.src = joinPath(__dirname, "../img/trash.png")
+    remove.src = joinPath(getAppRootDir(), "img/trash.png")
     remove.addEventListener("click", () => update("remove", download.uuid))
     element.append(remove)
     let togglePause = document.createElement("img")
     togglePause.className = "toggle-pause"
-    togglePause.src = joinPath(__dirname, "../img/pause.png")
+    togglePause.src = joinPath(getAppRootDir(), "img/pause.png")
     togglePause.addEventListener("click", () => update("pause", download.uuid))
     element.append(togglePause)
     // Title
@@ -98,7 +100,7 @@ const addDownload = download => {
     }
     if (download.state === "paused") {
         title.style.color = "var(--notification-warning)"
-        togglePause.src = joinPath(__dirname, "../img/resume.png")
+        togglePause.src = joinPath(getAppRootDir(), "img/resume.png")
         togglePause.parentNode?.replaceChild(
             togglePause.cloneNode(true), togglePause)
         togglePause = document.createElement("img")
@@ -207,7 +209,7 @@ const updateDownload = (download, element) => {
     remove?.parentNode?.replaceChild(remove.cloneNode(true), remove)
     remove = element.querySelector(".remove")
     remove?.addEventListener("click", () => update("remove", download.uuid))
-    togglePause.setAttribute("src", joinPath(__dirname, "../img/pause.png"))
+    togglePause.setAttribute("src", joinPath(getAppRootDir(), "img/pause.png"))
     togglePause.parentNode?.replaceChild(
         togglePause.cloneNode(true), togglePause)
     togglePause = element.querySelector(".toggle-pause")
@@ -230,7 +232,7 @@ const updateDownload = (download, element) => {
     if (download.state === "paused") {
         title.style.color = "var(--notification-warning)"
         togglePause.setAttribute("src",
-            joinPath(__dirname, "../img/resume.png"))
+            joinPath(getAppRootDir(), "img/resume.png"))
         togglePause.parentNode?.replaceChild(
             togglePause.cloneNode(true), togglePause)
         togglePause = element.querySelector(".toggle-pause")

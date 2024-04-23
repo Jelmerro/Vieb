@@ -5,7 +5,8 @@ const {
     joinPath,
     readJSON,
     isFile,
-    getSetting
+    getSetting,
+    getAppRootDir
 } = require("./util")
 
 /** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */
@@ -34,7 +35,7 @@ const safeAttributes = ["class", "href"]
 
 /** Returns a list of languages according to the language files present. */
 const validLanguages = () => {
-    const files = listDir(joinPath(__dirname, "translations")) ?? []
+    const files = listDir(joinPath(getAppRootDir(), "translations")) ?? []
     return files.filter(f => f.endsWith(".json"))
         .map(f => f.replace(/\.json$/, ""))
 }
@@ -48,7 +49,7 @@ const loadLang = lang => {
     if (translations[lang]) {
         return
     }
-    const filePath = joinPath(__dirname, "translations", `${lang}.json`)
+    const filePath = joinPath(getAppRootDir(), "translations", `${lang}.json`)
     if (validLanguages().includes(lang) && isFile(filePath)) {
         translations[lang] = readJSON(filePath)
     } else {
@@ -64,7 +65,7 @@ const loadLang = lang => {
  */
 const translate = (id, opts = {"customLang": null, "fields": []}) => {
     if (!translations.en) {
-        const filePath = joinPath(__dirname, "translations/en.json")
+        const filePath = joinPath(getAppRootDir(), "translations/en.json")
         translations.en = readJSON(filePath)
     }
     const currentLang = opts.customLang ?? getSetting("lang")

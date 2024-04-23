@@ -19,7 +19,9 @@
 
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {joinPath, formatDate, urlToString, getSetting} = require("../util")
+const {
+    joinPath, formatDate, urlToString, getSetting, getAppRootDir
+} = require("../util")
 
 let currentlyRemoving = false
 let virtualList = document.createElement("div")
@@ -121,7 +123,7 @@ const addHistToList = hist => {
     }
     const img = document.createElement("img")
     img.classList.add("trash")
-    img.src = joinPath(__dirname, "../img/trash.png")
+    img.src = joinPath(getAppRootDir(), "img/trash.png")
     histElement.append(img)
     const date = document.createElement("span")
     date.textContent = formatDate(hist.date)
@@ -253,7 +255,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
-    removeAll.src = joinPath(__dirname, "../img/trash.png")
+    removeAll.src = joinPath(getAppRootDir(), "img/trash.png")
     removeAll.addEventListener("click", () => clearHistory())
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter")?.addEventListener("input", () => {

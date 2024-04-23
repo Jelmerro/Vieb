@@ -30,7 +30,8 @@ const {
     listDir,
     fetchUrl,
     pathToSpecialPageName,
-    getSetting
+    getSetting,
+    getAppRootDir
 } = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 
@@ -235,7 +236,7 @@ ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
     const defaultStyle = document.querySelector("style#default-styling")
     if (defaultStyle) {
         defaultStyle.textContent = readFile(joinPath(
-            __dirname, "../colors/default.css"))
+            getAppRootDir(), "colors/default.css"))
     }
     if (!document.getElementById("custom-styling")) {
         const styleElement = document.createElement("style")

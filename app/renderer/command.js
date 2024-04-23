@@ -51,7 +51,8 @@ const {
     execCommand,
     intervalValueToDate,
     getSetting,
-    isValidIntervalValue
+    isValidIntervalValue,
+    getAppRootDir
 } = require("../util")
 const {
     listTabs,
@@ -1033,7 +1034,7 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
         css = readFile(joinPath(appData(), `colors/${name}.css`))
     }
     if (!css) {
-        css = readFile(joinPath(__dirname, `../colors/${name}.css`))
+        css = readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
     }
     if (!css) {
         notify({
@@ -1830,7 +1831,7 @@ const makedefault = src => {
             })
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
-            __dirname, "../defaultapp/windows.bat"))
+            getAppRootDir(), "defaultapp/windows.bat"))
         const tempFile = joinPath(appData(), "defaultapp.bat")
         if (scriptContents) {
             writeFile(tempFile, scriptContents)

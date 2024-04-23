@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {joinPath, readFile, appConfig} = require("../util")
+const {joinPath, readFile, appConfig, getAppRootDir} = require("../util")
 const {icon} = appConfig() ?? {}
 const modes = "nicsefpvm".split("")
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
@@ -309,7 +309,7 @@ window.addEventListener("DOMContentLoaded", () => {
         button.addEventListener("click", () => {
             const link = document.createElement("a")
             const text = readFile(joinPath(
-                __dirname, `../examples/${example}`)) ?? ""
+                getAppRootDir(), `examples/${example}`)) ?? ""
             link.href = window.URL.createObjectURL(
                 new Blob([text], {"type": "text/plain"}))
             link.download = `${example}.viebrc`

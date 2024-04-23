@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {joinPath} = require("../util")
+const {joinPath, getAppRootDir} = require("../util")
 
 /** Filter the cookie list based on the search query in the input box. */
 const filterList = () => {
@@ -104,7 +104,7 @@ const refreshList = async() => {
         value.textContent = cookie.value
         cookieElement.append(value)
         const remove = document.createElement("img")
-        remove.src = joinPath(__dirname, "../img/trash.png")
+        remove.src = joinPath(getAppRootDir(), "img/trash.png")
         remove.className = "remove"
         remove.addEventListener("click", async() => {
             await ipcRenderer.invoke("remove-cookie",
@@ -152,7 +152,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
-    removeAll.src = joinPath(__dirname, "../img/trash.png")
+    removeAll.src = joinPath(getAppRootDir(), "img/trash.png")
     removeAll.addEventListener("click", removeAllCookies)
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter")?.addEventListener("input", filterList)

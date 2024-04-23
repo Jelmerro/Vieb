@@ -34,7 +34,8 @@ const {
     isHTMLAudioElement,
     isElement,
     readFile,
-    joinPath
+    joinPath,
+    getAppRootDir
 } = require("../util")
 
 /**
@@ -681,7 +682,7 @@ const showTOC = (customStyling, fontsize) => {
     const tocShadow = tocContainer.attachShadow({"mode": "open"})
     const defaultStylesheet = document.createElement("style")
     defaultStylesheet.textContent = (readFile(joinPath(
-        __dirname, "../colors/default.css")) ?? "").replace(":root", ":host")
+        getAppRootDir(), "colors/default.css")) ?? "").replace(":root", ":host")
     const customStylesheet = document.createElement("style")
     customStylesheet.textContent = customStyling.replace(":root", ":host")
     customStylesheet.textContent += `\n#toc {font-size: ${fontsize}px;}`

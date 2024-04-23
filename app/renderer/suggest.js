@@ -33,7 +33,8 @@ const {
     isUrl,
     searchword,
     getSetting,
-    stringToUrl
+    stringToUrl,
+    getAppRootDir
 } = require("../util")
 const {
     listTabs,
@@ -703,7 +704,7 @@ const suggestCommand = searchStr => {
         }
         /** @type {{[theme: string]: string}} */
         const themes = {}
-        listDir(joinPath(__dirname, "../colors/"))?.forEach(p => {
+        listDir(joinPath(getAppRootDir(), "colors"))?.forEach(p => {
             themes[p.replace(/\.css$/g, "")] = "built-in"
         })
         const customDirs = [

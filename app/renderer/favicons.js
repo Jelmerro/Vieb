@@ -30,7 +30,8 @@ const {
     listDir,
     pathToSpecialPageName,
     stringToUrl,
-    getSetting
+    getSetting,
+    getAppRootDir
 } = require("../util")
 const {tabForPage, listPages, currentPage} = require("./common")
 
@@ -43,7 +44,7 @@ let isParsed = false
 /** @type {number|null} */
 let faviconWriteTimeout = 0
 const viebIcon = `file:///${joinPath(
-    __dirname, "../img/vieb.svg").replace(/^\/*/g, "")}`
+    getAppRootDir(), "img/vieb.svg").replace(/^\/*/g, "")}`
 
 /**
  * Get the path for a given url.

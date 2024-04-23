@@ -106,6 +106,30 @@ const expandPath = loc => {
 }
 
 /**
+ * Check if a path exists.
+ * @param {string} loc
+ */
+const pathExists = loc => {
+    try {
+        const {existsSync} = require("fs")
+        return existsSync(loc)
+    } catch {
+        return false
+    }
+}
+
+/**
+ * Get the root app directory from any location.
+ */
+const getAppRootDir = () => {
+    let currentDir = __dirname
+    while (!pathExists(joinPath(currentDir, "package.json"))) {
+        currentDir = joinPath(currentDir, "..")
+    }
+    return joinPath(currentDir, "app")
+}
+
+/**
  * Returns the app configuration settings.
  */
 const appConfig = () => {
@@ -1084,19 +1108,6 @@ const isAbsolutePath = loc => {
 }
 
 /**
- * Check if a path exists.
- * @param {string} loc
- */
-const pathExists = loc => {
-    try {
-        const {existsSync} = require("fs")
-        return existsSync(loc)
-    } catch {
-        return false
-    }
-}
-
-/**
  * Check if a path is a directory.
  * @param {string} loc
  */
@@ -1542,6 +1553,7 @@ module.exports = {
     formatDate,
     formatSize,
     framePosition,
+    getAppRootDir,
     getSetting,
     hasProtocol,
     intervalValueToDate,
