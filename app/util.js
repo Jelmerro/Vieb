@@ -123,8 +123,13 @@ const pathExists = loc => {
  */
 const getAppRootDir = () => {
     let currentDir = __dirname
-    while (!pathExists(joinPath(currentDir, "package.json"))) {
+    let tries = 0
+    while (!pathExists(joinPath(currentDir, "package.json")) && tries < 100) {
         currentDir = joinPath(currentDir, "..")
+        tries += 1
+    }
+    if (tries === 100) {
+        return __dirname
     }
     return joinPath(currentDir, "app")
 }
