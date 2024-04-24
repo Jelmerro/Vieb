@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, title, readFile, appConfig} = require("../util")
+const {translate} = require("../translate")
+const {joinPath, readFile, appConfig, getAppRootDir} = require("../util")
 const {icon} = appConfig() ?? {}
 const modes = "nicsefpvm".split("")
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
@@ -286,6 +287,10 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
 ipcRenderer.on("settings", updateSettingsList)
 window.addEventListener("hashchange", processHash)
 window.addEventListener("DOMContentLoaded", () => {
+    /** @type {(
+     *   "chromium"|"firefox"|"vivaldi"|"qutebrowser"|"vimium"|"tridactyl"|
+     *   "pentadactyl"|"surfingkeys"|"sakakey"|"vimvixen"
+     * )[]} */
     const examples = [
         "chromium",
         "firefox",
@@ -295,16 +300,16 @@ window.addEventListener("DOMContentLoaded", () => {
         "tridactyl",
         "pentadactyl",
         "surfingkeys",
-        "saka key",
-        "vim vixen"
+        "sakakey",
+        "vimvixen"
     ]
     for (const example of examples) {
         const button = document.createElement("button")
-        button.textContent = title(example)
+        button.textContent = translate(`pages.help.examples.${example}`)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
             const text = readFile(joinPath(
-                __dirname, `../examples/${example.replace(/\s/g, "")}`)) ?? ""
+                getAppRootDir(), `examples/${example}`)) ?? ""
             link.href = window.URL.createObjectURL(
                 new Blob([text], {"type": "text/plain"}))
             link.download = `${example}.viebrc`

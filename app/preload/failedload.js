@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translateAsHTML} = require("../translate")
 
 ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
     document.body.textContent = ""
@@ -26,24 +27,12 @@ ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
     const mainInfo = document.createElement("main")
     if (isSSLError) {
         const http = err.validatedURL.replace(/^https?:\/\//g, "http://")
-        mainInfo.innerHTML += `<h2>Unreachable page</h2>
-            The page could not be loaded successfully.
-            The following error occurred:<br><h3>${err.errorDescription}</h3>
-            You can enable automatic HTTP redirects with
-            <kbd>:set redirecttohttp</kbd>.<br>
-            Alternatively, you can choose to go there just once via this HTTP
-            link: <a href=${http}>${http}</a><br>
-            Finally, you can control what to do with invalid certificates
-            by changing <kbd>permissioncertificateerror</kbd>.`
+        mainInfo.append(...translateAsHTML("pages.failedload.sslError",
+            {"fields": [err.errorDescription, http]}))
     } else {
-        mainInfo.innerHTML += `<h2>Unreachable page</h2>
-            The page could not be loaded successfully.
-            The following error occurred:<br><h3>${err.errorDescription}</h3>
-            The first step you could try is reloading the page, by default
-            mapped to <kbd>r</kbd> in normal mode. If the error persists, make
-            sure you typed the url correctly. Alternatively, the website might
-            not support the '${err.validatedURL.replace(/:.*$/g, "")}' protocol.
-            Finally, please check your internet connection and DNS settings.`
+        const protocol = err.validatedURL.replace(/:.*$/g, "")
+        mainInfo.append(...translateAsHTML("pages.failedload.otherError",
+            {"fields": [err.errorDescription, protocol]}))
     }
     document.body.append(mainInfo)
 })

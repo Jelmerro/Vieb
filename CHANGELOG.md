@@ -13,20 +13,28 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "lang" with partial translation support
+
 ### Changed
 
 - Greasemonkey scripts to work with single match argument instead of multiple include statements
+- Download pausing and removal to be via uuid instead of index to be more reliable
+- Special pages to no longer use a reversed rendering order, making selecting and styling easier
+- Version and newtab page to no longer use a fixed minimum width
 
 ### Fixed
 
 - Greasemonkey scripts that broke when the header was directly next to the script
 - Greasemonkey scripts not working if multiple match the same domain by using an IIFE
 - Setting "mouse" not working at all in 11.0.0 due to incorrect setting type
+- Downloads not kept on restart since V10
 
 ### Versions
 
-- Electron 28.0.0 (unchanged)
-- Chromium 120.0.6099.56 (unchanged)
+- Electron 30.0.1 (was 28.0.0)
+- Chromium 124.0.6367.60 (was 120.0.6099.56)
 
 ## [11.0.0](https://github.com/Jelmerro/Vieb/compare/10.6.0...11.0.0) - 2023-12-07
 

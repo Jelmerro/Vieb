@@ -63,11 +63,11 @@ def main():
     except OSError:
         pass
     print("\n  = Installing modules\n")
-    subprocess.run(["npm", "install", "--legacy-peer-deps"], check=True)
+    subprocess.run(["npm", "install"], check=True)
     print("\n  = Fixing audit issues\n")
-    subprocess.run(["npm", "audit", "fix", "--legacy-peer-deps"], check=False)
+    subprocess.run(["npm", "audit", "fix"], check=False)
     print("\n  = Deduplicating dependencies\n")
-    subprocess.run(["npm", "dedup", "--legacy-peer-deps"], check=True)
+    subprocess.run(["npm", "dedup"], check=True)
     print("\n  = Fixing package-lock issues\n")
     with open("package-lock.json", encoding="utf-8") as f:
         package_lock = json.load(f)

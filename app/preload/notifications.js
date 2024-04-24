@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2023 Jelmer van Arnhem
+* Copyright (C) 2020-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,26 +18,33 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.notifications.title")
+    }
+    const list = document.getElementById("list")
+    if (!list) {
+        return
+    }
+    list.textContent = translate("pages.notifications.loading")
+
     /**
      * Show the list of notifications.
      * @param {Electron.IpcRendererEvent} _
      * @param {import("../util").notificationHistory} notifications
      */
     const showNofitications = (_, notifications) => {
-        const listEl = document.getElementById("list")
-        if (!listEl) {
-            return
-        }
-        listEl.textContent = ""
+        list.textContent = ""
         notifications.forEach(notification => {
             const element = document.createElement("div")
             element.className = "notification"
             if (notification.click?.type === "download-success") {
                 element.classList.add("filelocation")
-                element.title = "Click to open"
+                element.title = translate("pages.notifications.clickToOpen")
                 element.addEventListener("click", () => {
                     ipcRenderer.send("open-download", notification.click?.path)
                 })
@@ -47,13 +54,13 @@ window.addEventListener("DOMContentLoaded", () => {
             date.className = "date"
             element.append(date)
             const contents = document.createElement("div")
-            contents.innerHTML = notification.message
+            contents.textContent = notification.message
             contents.className = notification.type
             element.append(contents)
-            listEl.append(element)
+            list.prepend(element)
         })
-        if (listEl.textContent === "") {
-            listEl.textContent = "There have been no notifications so far"
+        if (list.textContent === "") {
+            list.textContent = translate("pages.notifications.empty")
         }
     }
 

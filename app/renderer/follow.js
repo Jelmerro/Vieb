@@ -18,11 +18,11 @@
 "use strict"
 
 const {ipcRenderer, clipboard} = require("electron")
+const {getSetting} = require("../util")
 const {
     currentPage,
     currentTab,
     currentMode,
-    getSetting,
     setStored,
     getStored,
     getMouseConf,

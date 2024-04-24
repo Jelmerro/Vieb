@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 
 window.addEventListener("load", () => {
     const username = document.getElementById("username")
@@ -29,10 +30,17 @@ window.addEventListener("load", () => {
         return
     }
     const inputs = [username, password]
-    ipcRenderer.on("login-information", (_, fontsize, customCSS, title) => {
+    ipcRenderer.on("login-information", (_, fontsize, customCSS, auth) => {
+        const h3 = document.querySelector("h3")
+        if (h3) {
+            h3.textContent = translate("popups.login.title")
+        }
+        username.placeholder = translate("popups.login.username")
+        password.placeholder = translate("popups.login.password")
         const info = document.getElementById("info")
         if (info) {
-            info.textContent = title
+            info.textContent = translate("popups.login.info",
+                {"fields": [auth.host, auth.realm]})
         }
         username.focus()
         username.click()

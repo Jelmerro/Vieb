@@ -20,14 +20,13 @@
 const {
     listTabs,
     currentPage,
-    getSetting,
     tabForPage,
     listFakePages,
     listRealPages,
     listPages,
     listReadyPages
 } = require("./common")
-const {propPixels} = require("../util")
+const {getSetting, propPixels} = require("../util")
 
 /**
  * Get a page layout element by id.

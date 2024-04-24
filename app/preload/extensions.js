@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {fetchJSON, getWebviewSetting} = require("../util")
+const {fetchJSON, getSetting} = require("../util")
 
 /** If enabled via settings, cut out sponsored Youtube video segments. */
 const loadSponsorblock = () => {
@@ -47,7 +47,7 @@ const loadSponsorblock = () => {
         previousBlockEls = []
         const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
         previousDuration = vid.duration
-        const categories = getWebviewSetting("sponsorblockcategories") ?? {
+        const categories = getSetting("sponsorblockcategories") ?? {
             "interaction": "red",
             "intro": "cyan",
             "music_offtopic": "",
@@ -82,7 +82,7 @@ const loadSponsorblock = () => {
     }
 
     if (window.location.href.includes("watch?v=")
-        && getWebviewSetting("sponsorblock")) {
+        && getSetting("sponsorblock")) {
         fetchSponsorBlockData()
         vid.addEventListener("durationchange", () => {
             fetchSponsorBlockData()

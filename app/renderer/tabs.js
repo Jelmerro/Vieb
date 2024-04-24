@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {translate} = require("../translate")
 const {
     joinPath,
     appData,
@@ -35,10 +36,10 @@ const {
     hasProtocol,
     sameDomain,
     notify,
-    title,
     listNotificationHistory,
     propPixels,
     userAgentTemplated,
+    getSetting,
     deleteFile
 } = require("../util")
 const {
@@ -47,7 +48,6 @@ const {
     currentTab,
     currentPage,
     currentMode,
-    getSetting,
     guiRelatedUpdate,
     setTopOfPageWithMouse,
     getMouseConf,
@@ -305,9 +305,14 @@ const saveTabs = () => {
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
-    writeJSON(tabFile, data, {
-        "err": "Failed to write current tabs to disk", "src": "other"
-    })
+    const success = writeJSON(tabFile, data)
+    if (!success) {
+        notify({
+            "fields": [tabFile],
+            "id": "settings.files.failed",
+            "src": "other"
+        })
+    }
 }
 
 /**
@@ -781,18 +786,19 @@ const addWebviewListeners = webview => {
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")
         if (specialPageName && name) {
-            name.textContent = title(specialPageName)
+            name.textContent = translate(`pages.${specialPageName}.title`)
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existing = titleForPage(webview.src)
-        if (isLocal && !specialPageName && name) {
-            name.textContent = readableUrl
-        } else if (name && hasProtocol(name.textContent ?? "")
-            && existing && !isCustomView) {
-            name.textContent = existing
-        } else if (name?.textContent) {
-            updateTitle(webview.src, name.textContent)
+        if (name) {
+            if (isLocal && !existing) {
+                name.textContent = readableUrl
+            } else if (hasProtocol(name.textContent ?? "") && !isCustomView) {
+                name.textContent = existing
+            } else if (name.textContent) {
+                updateTitle(webview.src, name.textContent)
+            }
         }
         if (erwicMode) {
             const preload = webview.getAttribute("user-script-file")
@@ -867,7 +873,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
-            notify(e.args[0], e.args[1])
+            notify(e.args[0])
         }
         if (e.channel === "url") {
             /* eslint-disable-next-line no-use-before-define */

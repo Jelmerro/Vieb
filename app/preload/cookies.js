@@ -18,7 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath} = require("../util")
+const {translate} = require("../translate")
+const {joinPath, getAppRootDir} = require("../util")
 
 /** Filter the cookie list based on the search query in the input box. */
 const filterList = () => {
@@ -52,9 +53,9 @@ const filterList = () => {
         removeAll.style.display = "none"
         noResults.style.display = ""
         if (filter) {
-            noResults.textContent = "No results for current filter"
+            noResults.textContent = translate("pages.cookies.filterEmpty")
         } else {
-            noResults.textContent = "There are no cookies stored"
+            noResults.textContent = translate("pages.cookies.empty")
         }
     }
 }
@@ -103,7 +104,7 @@ const refreshList = async() => {
         value.textContent = cookie.value
         cookieElement.append(value)
         const remove = document.createElement("img")
-        remove.src = joinPath(__dirname, "../img/trash.png")
+        remove.src = joinPath(getAppRootDir(), "img/trash.png")
         remove.className = "remove"
         remove.addEventListener("click", async() => {
             await ipcRenderer.invoke("remove-cookie",
@@ -136,10 +137,22 @@ const removeAllCookies = () => {
     refreshList()
 }
 
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.cookies.title")
+    }
+    const list = document.getElementById("list")
+    if (list) {
+        list.textContent = translate("pages.cookies.loading")
+    }
+    const filter = document.getElementById("filter")
+    if (filter instanceof HTMLInputElement) {
+        filter.placeholder = translate("pages.cookies.filterPlaceholder")
+    }
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
-    removeAll.src = joinPath(__dirname, "../img/trash.png")
+    removeAll.src = joinPath(getAppRootDir(), "img/trash.png")
     removeAll.addEventListener("click", removeAllCookies)
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter")?.addEventListener("input", filterList)

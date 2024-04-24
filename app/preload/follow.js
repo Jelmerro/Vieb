@@ -27,7 +27,7 @@ const {
     findClickPosition,
     framePosition,
     activeElement,
-    getWebviewSetting,
+    getSetting,
     isHTMLElement,
     isHTMLIFrameElement,
     isHTMLAnchorElement,
@@ -290,7 +290,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     await new Promise(r => {
         setTimeout(r, 3)
     })
-    const inputfocusalignment = getWebviewSetting("inputfocusalignment")
+    const inputfocusalignment = getSetting("inputfocusalignment")
         ?? "rememberend"
     focusEl.click()
     focusEl.focus()
@@ -795,7 +795,7 @@ window.addEventListener("scroll", () => {
 })
 ipcRenderer.on("search-element-location", (_, pos) => {
     let {x} = pos
-    const alignment = getWebviewSetting("searchpointeralignment")
+    const alignment = getSetting("searchpointeralignment")
     if (alignment === "center") {
         x += pos.width / 2
     } else if (alignment === "right") {
@@ -918,7 +918,7 @@ ipcRenderer.on("follow-mode-stop", () => {
 setInterval(mainInfoLoop, 1000)
 window.addEventListener("DOMContentLoaded", () => {
     mainInfoLoop()
-    const pdfbehavior = getWebviewSetting("pdfbehavior") ?? "block"
+    const pdfbehavior = getSetting("pdfbehavior") ?? "block"
     if (pdfbehavior !== "view") {
         querySelectorAll("embed").forEach(embed => {
             if (embed.getAttribute("type") === "application/pdf") {

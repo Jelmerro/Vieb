@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ const {
     tabForPage,
     listReadyPages
 } = require("./common")
+const {argsAsHumanList, validLanguages} = require("../translate")
 
 const mouseFeatures = [
     "pageininsert",
@@ -186,6 +187,7 @@ const defaultSettings = {
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
+    "lang": "en",
     /** @type {"none"|"spinner"|"line"|"all"} */
     "loadingindicator": "spinner",
     "mapsuggest": 9000000000000000,
@@ -478,6 +480,7 @@ const validOptions = {
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
+    "lang": validLanguages(),
     "loadingindicator": ["none", "spinner", "line", "all"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "markposition": [
@@ -582,6 +585,7 @@ const validOptions = {
         "id",
         "it",
         "ja",
+        "jp",
         "ko",
         "lt",
         "lv",
@@ -654,13 +658,12 @@ const checkOption = (src, setting, value) => {
     if (optionList) {
         const valid = optionList.includes(value)
         if (!valid) {
-            const lastOption = optionList.pop()
-            let text = `'${optionList.join("', '")}' or '${lastOption}'`
-            if (optionList.length === 0) {
-                text = `'${lastOption}'`
-            }
-            notify(`The value of setting '${setting}' can only be one of:`
-                + ` ${text}`, {src, "type": "warn"})
+            notify({
+                "fields": [setting, argsAsHumanList(optionList)],
+                "id": "settings.errors.oneof",
+                src,
+                "type": "warning"
+            })
         }
         return valid
     }
@@ -676,8 +679,12 @@ const checkOption = (src, setting, value) => {
 const checkNumber = (src, setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
-        notify(`The value of setting '${setting}' must be between `
-            + `${numberRange[0]} and ${numberRange[1]}`, {src, "type": "warn"})
+        notify({
+            "fields": [setting, String(numberRange[0]), String(numberRange[1])],
+            "id": "settings.errors.numberRange",
+            src,
+            "type": "warning"
+        })
         return false
     }
     return true
@@ -692,36 +699,44 @@ const checkSuggestOrder = (src, value) => {
     for (const suggest of value) {
         const parts = (suggest.match(/~/g) || []).length
         if (parts > 2) {
-            notify(
-                `Invalid suggestorder entry: ${suggest}\n`
-                + "Entries must have at most two ~ to separate the type "
-                + "from the count and the order (both optional)",
-                {src, "type": "warn"})
+            notify({
+                "fields": [suggest],
+                "id": "settings.errors.suggestorder.tilde",
+                src,
+                "type": "warning"
+            })
             return false
         }
         const args = suggest.split("~")
         const type = args.shift() ?? ""
         if (!["history", "file", "searchword"].includes(type)) {
-            notify(`Invalid suggestorder type: ${type}\n`
-                    + "Suggestion type must be one of: history, file or "
-                    + "searchword", {src, "type": "warn"})
+            notify({
+                "fields": [type],
+                "id": "settings.errors.suggestorder.type",
+                src,
+                "type": "warning"
+            })
             return false
         }
         let hasHadCount = false
         let hasHadOrder = false
         for (const arg of args) {
             if (!arg) {
-                notify("Configuration for suggestorder after the type can "
-                        + "not be empty", {src, "type": "warn"})
+                notify({
+                    "id": "settings.errors.suggestorder.empty",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const potentialCount = Number(arg)
             if (potentialCount > 0 && potentialCount <= 9000000000000000) {
                 if (hasHadCount) {
-                    notify(
-                        "Count configuration for a suggestorder entry "
-                        + "can only be set once per entry",
-                        {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.suggestorder.duplicateCount",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 hasHadCount = true
@@ -739,19 +754,22 @@ const checkSuggestOrder = (src, value) => {
             }
             if (validOrders.includes(arg)) {
                 if (hasHadOrder) {
-                    notify(
-                        "Order configuration for a suggestorder entry "
-                        + "can only be set once per entry",
-                        {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.suggestorder.duplicateSort",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 hasHadOrder = true
                 continue
             }
-            notify(
-                `Order configuration is invalid, supported orders for ${
-                    type} suggestions are: ${validOrders.join(", ")}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [type, argsAsHumanList(validOrders)],
+                "id": "settings.errors.suggestorder.invalidSort",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -773,9 +791,12 @@ const checkOther = (src, setting, value) => {
         const valid = ["session", "none"].includes(value)
             || isValidIntervalValue(value)
         if (!valid) {
-            notify("clearhistoryinterval can only be set to none, session or "
-                + `a valid interval, such as 1day or 3months, not: ${value}`,
-            {src, "type": "warn"})
+            notify({
+                "fields": [value],
+                "id": "settings.errors.clearhistoryinterval",
+                src,
+                "type": "warning"
+            })
         }
         return valid
     }
@@ -794,19 +815,22 @@ const checkOther = (src, setting, value) => {
             if (specialNames.includes(value)) {
                 return true
             }
-            const lastName = specialNames.pop()
-            const text = `'${specialNames.join("', '")}' or '${lastName}'`
-            notify(
-                `Special container name for '${setting}' can only be one of:`
-                + ` ${text}`, {src, "type": "warn"})
+            notify({
+                "fields": [setting, argsAsHumanList(specialNames)],
+                "id": "settings.errors.container.invalidspecial",
+                src,
+                "type": "warning"
+            })
             return false
         }
         const simpleValue = value.replace("%n", "valid").replace(/_/g, "")
         if (simpleValue.match(specialChars)) {
-            notify(
-                "No special characters besides underscores are allowed in the "
-                + `name of a container, invalid ${setting}: ${value}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [setting, value],
+                "id": "settings.errors.container.specialchars",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -816,27 +840,36 @@ const checkOther = (src, setting, value) => {
         }
         for (const colorMatch of value) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
-                notify(`Invalid ${setting} entry: ${colorMatch}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "name regular expression and color name/hex",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [setting, colorMatch],
+                    "id": "settings.errors.container.colorSeparator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const [match, color] = colorMatch.split("~")
             try {
                 RegExp(match)
             } catch {
-                notify(
-                    `Invalid regular expression in containercolors: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [match],
+                    "id": "settings.errors.container.colorRegex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const {style} = document.createElement("div")
             style.color = "white"
             style.color = color
             if (style.color === "white" && color !== "white" || !color) {
-                notify("Invalid color, must be a valid color name or hex"
-                    + `, not: ${color}`, {src, "type": "warn"})
+                notify({
+                    "fields": [color],
+                    "id": "settings.errors.container.colorName",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -847,32 +880,43 @@ const checkOther = (src, setting, value) => {
         }
         for (const containerMatch of value) {
             if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
-                notify(`Invalid ${setting} entry: ${containerMatch}\n`
-                    + "Entries must have one or two ~ to separate the "
-                    + "regular expression, container name and newtab param",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [setting, containerMatch],
+                    "id": "settings.errors.container.namesSeparator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const [match, container, newtabParam] = containerMatch.split("~")
             if (newtabParam && newtabParam !== "newtab") {
-                notify(`Invalid containernames newtab param: ${containerMatch}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [containerMatch],
+                    "id": "settings.errors.container.namesNewtab",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             try {
                 RegExp(match)
             } catch {
-                notify(
-                    `Invalid regular expression in containernames: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [match],
+                    "id": "settings.errors.container.namesRegex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const simpleValue = container.replace("%n", "valid").replace(/_/g, "")
             if (simpleValue.match(specialChars)) {
-                notify(
-                    "No special characters besides underscores are allowed in "
-                    + `the name of a container, invalid ${setting}: ${value}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting, simpleValue],
+                    "id": "settings.errors.container.namesSpecialchars",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -885,8 +929,12 @@ const checkOther = (src, setting, value) => {
         style.color = "white"
         style.color = value
         if (style.color === "white" && value !== "white" || !value) {
-            notify("Invalid color, must be a valid color name or hex"
-                    + `, not: ${value}`, {src, "type": "warn"})
+            notify({
+                "fields": [value],
+                "id": "settings.errors.darkreader.color",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -898,8 +946,12 @@ const checkOther = (src, setting, value) => {
             try {
                 RegExp(match)
             } catch {
-                notify(`Invalid regular expression in ${setting}: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting, match],
+                    "id": "settings.errors.darkreader.blocklistRegex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -911,9 +963,12 @@ const checkOther = (src, setting, value) => {
         }
         for (const match of value) {
             if (!["file", "page", "special"].includes(match)) {
-                notify(`Invalid value '${match}' in ${setting}, `
-                    + "must be one of: file, page or special",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [match, setting],
+                    "id": "settings.errors.invalidScope",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -924,13 +979,21 @@ const checkOther = (src, setting, value) => {
         }
         const expandedPath = expandPath(value)
         if (value && !pathExists(expandedPath)) {
-            notify(`The downloadpath does not exist: ${expandPath}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [expandedPath],
+                "id": "settings.errors.downloadpathMissing",
+                src,
+                "type": "warning"
+            })
             return false
         }
         if (value && !isDir(expandedPath)) {
-            notify(`The downloadpath is not a directory: ${expandPath}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [expandedPath],
+                "id": "settings.errors.downloadpathIsFolder",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -940,8 +1003,12 @@ const checkOther = (src, setting, value) => {
         }
         for (const page of value) {
             if (!isUrl(page)) {
-                notify(`Invalid URL passed to favoritepages: ${page}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [page],
+                    "id": "settings.errors.favoritepages",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -959,22 +1026,30 @@ const checkOther = (src, setting, value) => {
             "qwertyhome"
         ]
         if (!ok.includes(value) && !value.startsWith("custom:")) {
-            notify(`Invalid value: ${value}, `
-               + "must be any of: alpha, alphanum, dvorakhome, numbers, "
-               + `qwertyhome, or a custom list starting with 'custom:'`,
-            {src, "type": "warn"})
+            notify({
+                "fields": [value],
+                "id": "settings.errors.followchars.invalidSet",
+                src,
+                "type": "warning"
+            })
             return false
         }
         if (value.startsWith("custom:")) {
             const chars = value.replace("custom:", "").split("")
             if (chars.length < 2) {
-                notify("The followchars value must be at least two characters",
-                    {src, "type": "warn"})
+                notify({
+                    "id": "settings.errors.followchars.notEnough",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (new Set(chars).size < chars.length) {
-                notify("All followchars characters must be unique, "
-                    + "no duplicates", {src, "type": "warn"})
+                notify({
+                    "id": "settings.errors.followchars.duplicate",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -994,10 +1069,12 @@ const checkOther = (src, setting, value) => {
         ]
         for (const element of value) {
             if (!ok.includes(element)) {
-                notify(`Invalid element type passed: ${element}, `
-                   + `must be any combination of: url, onclick,
-                      inputs-insert, inputs-click or other`,
-                {src, "type": "warn"})
+                notify({
+                    "fields": [element, argsAsHumanList(ok)],
+                    "id": "settings.errors.followelement",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1011,8 +1088,12 @@ const checkOther = (src, setting, value) => {
             if (name.length > 1) {
                 if (!keyNames.some(l => l.vim.map(k => `<${k}>`).includes(name))
                     || name === "<Any>") {
-                    notify(`Key name '${name}' in modifiers is not `
-                        + "recognized as a valid key", {src, "type": "warn"})
+                    notify({
+                        "fields": [name],
+                        "id": "settings.errors.modifiers",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
             }
@@ -1025,8 +1106,12 @@ const checkOther = (src, setting, value) => {
         const invalid = value.find(
             m => !mouseFeatures.includes(m) && m !== "all")
         if (invalid) {
-            notify(`Feature '${invalid}' is not a valid mouse feature`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [invalid],
+                "id": "settings.errors.mouseFeature",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -1035,8 +1120,12 @@ const checkOther = (src, setting, value) => {
             return false
         }
         if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify("The newtaburl value must be a valid url or empty"
-                + `, not: ${value}`, {src, "type": "warn"})
+            notify({
+                "fields": [value],
+                "id": "settings.errors.newtaburl",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -1048,17 +1137,24 @@ const checkOther = (src, setting, value) => {
             try {
                 RegExp(val)
             } catch {
-                notify(
-                    `Invalid regular expression in passthroughkeys: ${val}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [val],
+                    "id": "settings.errors.passthrough.regex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
         for (const val of Object.values(value)) {
             const {valid, maps} = splitMapString(val)
             if (!valid) {
-                notify(`Invalid keys in passthroughkeys entry: ${val}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [val],
+                    "id": "settings.errors.passthrough.keys",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             for (let name of maps) {
@@ -1068,13 +1164,21 @@ const checkOther = (src, setting, value) => {
                 if (name.startsWith("<") && name.endsWith(">")) {
                     name = name.slice(1, -1)
                 } else {
-                    notify(`Key name '${name}' in passthroughkeys is not `
-                        + "recognized as a valid key", {src, "type": "warn"})
+                    notify({
+                        "fields": [name],
+                        "id": "settings.errors.passthrough.keyname",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 if (!keyNames.some(key => key.vim.includes(name))) {
-                    notify(`Key name '${name}' in passthroughkeys is not `
-                        + "recognized as a valid key", {src, "type": "warn"})
+                    notify({
+                        "fields": [name],
+                        "id": "settings.errors.passthrough.keyname",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
             }
@@ -1090,19 +1194,24 @@ const checkOther = (src, setting, value) => {
         }
         for (const override of value) {
             if ((override.match(/~/g) || []).length === 0) {
-                notify(`Invalid ${setting} entry: ${override}\n`
-                    + "Entries must have at least one ~ to separate the "
-                    + "domain regular expression and permission names",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [setting, override],
+                    "id": "settings.errors.permission.separator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const [match, ...names] = override.split("~")
             try {
                 RegExp(match)
             } catch {
-                notify(
-                    `Invalid regular expression in permission: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [match],
+                    "id": "settings.errors.permission.regex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             for (let name of names) {
@@ -1119,39 +1228,52 @@ const checkOther = (src, setting, value) => {
                 }
                 const reservedName = permissionSettings.includes(name)
                 if (reservedName || !(name in defaultSettings)) {
-                    notify(
-                        `Invalid name for a permission: ${name}`,
-                        {src, "type": "warn"})
+                    notify({
+                        "fields": [name],
+                        "id": "settings.errors.permission.name",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("hid")) {
-                    notify(
-                        "HID permission can't be asked, "
-                        + "only allowed or blocked", {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.permission.hidasked",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("usb")) {
-                    notify(
-                        "USB device permission can't be asked, "
-                        + "only allowed or blocked", {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.permission.usbasked",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("serial")) {
-                    notify(
-                        "Serial device permission can't be asked, "
-                        + "only allowed or blocked", {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.permission.serialasked",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("ediadevices")) {
-                    notify(
-                        "Mediadevices permission can't be asked, "
-                        + "only allowed or blocked", {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.permission.mediadevicesasked",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
-                    notify(
-                        "Display capture permission can't be allowed, "
-                        + "only asked or blocked", {src, "type": "warn"})
+                    notify({
+                        "id": "settings.errors.permission.captureallowed",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
             }
@@ -1163,8 +1285,12 @@ const checkOther = (src, setting, value) => {
         }
         for (const mType of value) {
             if (!["scroll", "marks", "pointer"].includes(mType)) {
-                notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [mType],
+                    "id": "settings.errors.markpersistencetype",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1175,18 +1301,24 @@ const checkOther = (src, setting, value) => {
         }
         for (const redirect of value) {
             if ((redirect.match(/~/g) || []).length !== 1) {
-                notify(`Invalid redirect entry: ${redirect}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "regular expression from the replacement",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [redirect],
+                    "id": "settings.errors.redirect.separator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const [match] = redirect.split("~")
             try {
                 RegExp(match)
             } catch {
-                notify(`Invalid regular expression in redirect: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [match],
+                    "id": "settings.errors.redirect.regex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1200,15 +1332,23 @@ const checkOther = (src, setting, value) => {
             try {
                 RegExp(match)
             } catch {
-                notify(`Invalid regular expression in ${setting}: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting, match],
+                    "id": "settings.errors.resources.regex",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             for (const name of names) {
                 const supported = defaultSettings.resourcetypes
                 if (!supported.includes(name)) {
-                    notify(`Invalid resource type in ${setting}: ${name}`,
-                        {src, "type": "warn"})
+                    notify({
+                        "fields": [setting, name],
+                        "id": "settings.errors.resources.type",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
             }
@@ -1220,8 +1360,12 @@ const checkOther = (src, setting, value) => {
         }
         for (const rsrc of value) {
             if (!defaultSettings.resourcetypes.includes(rsrc)) {
-                notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [setting, rsrc],
+                    "id": "settings.errors.resources.type",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1233,16 +1377,21 @@ const checkOther = (src, setting, value) => {
         for (let baseUrl of value) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
-                notify(`Invalid searchengine value: ${baseUrl}\n`
-                    + "Each URL must contain a %s parameter, which will "
-                    + "be replaced by the search string",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [baseUrl],
+                    "id": "settings.errors.searchengine.replace",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (!isUrl(baseUrl)) {
-                notify(
-                    `Invalid searchengine value:${baseUrl}\n`
-                    + "URL must be a valid url", {src, "type": "warn"})
+                notify({
+                    "fields": [baseUrl],
+                    "id": "settings.errors.searchengine.url",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1257,23 +1406,30 @@ const checkOther = (src, setting, value) => {
             const [keyword, url] = searchword
             const simpleKeyword = keyword.replace(/_/g, "")
             if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
-                notify(`Invalid searchwords entry: ${searchword}\n`
-                    + "Searchwords before the ~ must not contain any special "
-                    + "characters besides underscores", {src, "type": "warn"})
+                notify({
+                    "fields": [searchword.join("~")],
+                    "id": "settings.errors.searchwords.separator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (url.length === 0 || !url.includes("%s")) {
-                notify(`Invalid searchwords entry: ${searchword}\n`
-                    + "URLs for searchwords must exist and must "
-                    + "contain a %s parameter, which will be "
-                    + "replaced by the search string", {src, "type": "warn"})
+                notify({
+                    "fields": [searchword.join("~")],
+                    "id": "settings.errors.searchwords.separator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (knownSearchwords.includes(keyword)) {
-                notify(`Invalid searchwords entry: ${searchword}\n`
-                    + `The searchword ${keyword} was already defined. `
-                    + "A searchword must be defined only once",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [searchword.join("~"), keyword],
+                    "id": "settings.errors.searchwords.separator",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             knownSearchwords.push(keyword)
@@ -1285,8 +1441,12 @@ const checkOther = (src, setting, value) => {
         }
         for (const lang of value) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
-                notify(`Invalid language passed to spelllang: ${lang}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [lang],
+                    "id": "settings.errors.spelllang",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1302,23 +1462,33 @@ const checkOther = (src, setting, value) => {
         for (const catColorPair of Object.entries(value)) {
             const [category, color] = catColorPair
             if (!allCategories.includes(category)) {
-                notify(`Invalid category in ${setting}: ${category}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [category],
+                    "id": "settings.errors.sponsorblock.name",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             const {style} = document.createElement("div")
             style.color = "white"
             style.color = color
             if (color && style.color === "white" && color !== "white") {
-                notify("Invalid color, must be a valid color name or hex"
-                    + `, not: ${color}`, {src, "type": "warn"})
+                notify({
+                    "fields": [color],
+                    "id": "settings.errors.sponsorblock.color",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (knownCategories.includes(category)) {
-                notify(`Invalid sponsorblockcategories entry: ${catColorPair}\n`
-                    + `The category ${category} was already defined. `
-                    + "A category must be defined only once",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [category],
+                    "id": "settings.errors.sponsorblock.duplicate",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             knownCategories.push(category)
@@ -1333,8 +1503,12 @@ const checkOther = (src, setting, value) => {
             const url = parts.shift() ?? ""
             const cname = parts.shift()
             if (!isUrl(url)) {
-                notify(`Invalid URL passed to startuppages: ${url}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [url],
+                    "id": "settings.errors.startuppages.url",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (cname) {
@@ -1346,27 +1520,40 @@ const checkOther = (src, setting, value) => {
                 ]
                 const simple = cname.replace("%n", "valid").replace(/_/g, "")
                 if (!specials.includes(cname) && simple.match(specialChars)) {
-                    notify("No special characters besides underscores are "
-                        + "allowed in the name of a container, invalid "
-                        + `${setting}: ${cname}`, {src, "type": "warn"})
+                    notify({
+                        "fields": [cname],
+                        "id": "settings.errors.startuppages.name",
+                        src,
+                        "type": "warning"
+                    })
                     return false
                 }
             }
             if (parts.length > 2) {
-                notify("Too many options given to startuppages entry",
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [page],
+                    "id": "settings.errors.startuppages.toomany",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (parts[0] && parts[0] !== "muted" && parts[0] !== "pinned") {
-                notify(`Invalid option '${parts[0]}' given to startuppages, `
-                    + "only 'muted' and 'pinned' are accepted",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [parts[0]],
+                    "id": "settings.errors.startuppages.invalidopts",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
             if (parts[1] && parts[1] !== "muted" && parts[1] !== "pinned") {
-                notify(`Invalid option '${parts[1]}' given to startuppages, `
-                    + "only 'muted' and 'pinned' are accepted",
-                {src, "type": "warn"})
+                notify({
+                    "fields": [parts[1]],
+                    "id": "settings.errors.startuppages.invalidopts",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1385,9 +1572,12 @@ const checkOther = (src, setting, value) => {
         ]
         for (const visitType of value) {
             if (!valid.includes(visitType)) {
-                notify(`Invalid type of history passed: ${visitType}, `
-                    + `must be one of: ${valid.join(", ")}`,
-                {src, "type": "warn"})
+                notify({
+                    "fields": [visitType, argsAsHumanList(valid)],
+                    "id": "settings.errors.storenewvisits",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1417,8 +1607,12 @@ const checkOther = (src, setting, value) => {
             try {
                 RegExp(match)
             } catch {
-                notify(`Invalid regular expression in ${setting}: ${match}`,
-                    {src, "type": "warn"})
+                notify({
+                    "fields": [match],
+                    "id": "settings.errors.tocpages",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1428,8 +1622,12 @@ const checkOther = (src, setting, value) => {
             return false
         }
         if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify(`The translateurl value must be a valid url, not: ${value}`,
-                {src, "type": "warn"})
+            notify({
+                "fields": [value],
+                "id": "settings.errors.translateurl",
+                src,
+                "type": "warning"
+            })
             return false
         }
     }
@@ -1441,15 +1639,23 @@ const checkOther = (src, setting, value) => {
             return true
         }
         if (!value.match(/^\d+x\d+$/g)) {
-            notify(`The ${setting} value must be two numbers joined with an x, `
-                + "such as 800x600", {src, "type": "warn"})
+            notify({
+                "fields": [setting],
+                "id": "settings.errors.windowsize.format",
+                src,
+                "type": "warning"
+            })
             return false
         }
         const nums = value.split("x").map(Number)
         if (setting === "windowsize") {
             if (nums.some(v => v < 500)) {
-                notify(`The ${setting} value sizes must be at least 500, not: ${
-                    nums.find(v => v < 500)}`, {src, "type": "warn"})
+                notify({
+                    "fields": [String(nums.find(v => v < 500))],
+                    "id": "settings.errors.windowsize.minimum",
+                    src,
+                    "type": "warning"
+                })
                 return false
             }
         }
@@ -1539,9 +1745,12 @@ const isValidSetting = (src, setting, value) => {
         }
     }
     if (expectedType !== typeof parsedValue) {
-        notify(`The value of setting '${setting}' is of an incorrect `
-            + `type, expected '${expectedType}' but got `
-            + `'${typeof parsedValue}' instead.`, {src, "type": "warn"})
+        notify({
+            "fields": [setting, expectedType, typeof parsedValue],
+            "id": "settings.errors.type",
+            src,
+            "type": "warning"
+        })
         return false
     }
     if (isEnumSetting(setting)) {
@@ -1651,42 +1860,10 @@ const updateDownloadSettings = (fromExecute = false) => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
-/** @type {(keyof typeof defaultSettings)[]} */
-const webviewSettings = [
-    "darkreader",
-    "darkreaderbg",
-    "darkreaderblocklist",
-    "darkreaderbrightness",
-    "darkreadercontrast",
-    "darkreaderfg",
-    "darkreadergrayscale",
-    "darkreadermode",
-    "darkreaderscope",
-    "darkreadersepia",
-    "darkreadertextstroke",
-    "dialogalert",
-    "dialogconfirm",
-    "dialogprompt",
-    "guifontsize",
-    "guiscrollbar",
-    "historyperpage",
-    "inputfocusalignment",
-    "pdfbehavior",
-    "permissiondisplaycapture",
-    "permissionmediadevices",
-    "permissionsallowed",
-    "permissionsasked",
-    "permissionsblocked",
-    "searchpointeralignment",
-    "sponsorblock",
-    "sponsorblockcategories",
-    "userstyle",
-    "userstylescope"
-]
-
-/** Update the settings in the webviewsettings file that are used there. */
-const updateWebviewSettings = () => {
-    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+/** Update the settings in the file so they are updated in main/preload. */
+const updateSettings = () => {
+    sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    const settingsFile = joinPath(appData(), "settings")
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
     const data = {
@@ -1695,10 +1872,10 @@ const updateWebviewSettings = () => {
         "linkcolor": getComputedStyle(document.body)
             .getPropertyValue("--link-color")
     }
-    webviewSettings.forEach(setting => {
+    Object.keys(allSettings).forEach(setting => {
         data[setting] = allSettings[setting]
     })
-    writeJSON(webviewSettingsFile, data)
+    writeJSON(settingsFile, data)
 }
 
 /** Update the permissions in the main thread on change. */
@@ -1824,7 +2001,7 @@ const getCustomStyling = () => customStyling
 /** Update the custom styling in the webview using colorscheme and fontsize. */
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
-    updateWebviewSettings()
+    updateSettings()
     const {addColorschemeStylingToWebview} = require("./tabs")
     listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
     const {applyLayout} = require("./pagelayout")
@@ -1972,9 +2149,6 @@ const set = (src, setting, value) => {
                 }
             } else if (Array.isArray(value)) {
                 allSettings[setting] = value
-            } else {
-                notify("Please report a bug, this should never happen",
-                    {src, "type": "error"})
             }
         } else if (isObjectSetting(setting)) {
             if (typeof value === "string") {
@@ -2012,9 +2186,6 @@ const set = (src, setting, value) => {
                 // @ts-expect-error for some reason setting could be never,
                 // the type seems correct, so ignoring seems safe for now.
                 allSettings[setting] = value
-            } else {
-                notify("Please report a bug, this should never happen",
-                    {src, "type": "error"})
             }
         } else if (isStringSetting(setting)) {
             // @ts-expect-error properly checked: is a string, but not an enum
@@ -2030,7 +2201,7 @@ const set = (src, setting, value) => {
             }
             allSettings.mouse = newval
         }
-        sessionStorage.setItem("settings", JSON.stringify(allSettings))
+        updateSettings()
         // Update settings elsewhere
         if (setting === "adblocker") {
             if (value === "off") {
@@ -2064,6 +2235,9 @@ const set = (src, setting, value) => {
         }
         if (setting.startsWith("gui")) {
             updateGuiVisibility()
+        }
+        if (setting === "lang") {
+            // TODO live update perhaps
         }
         if (setting === "mintabwidth") {
             listTabs().forEach(tab => {
@@ -2106,9 +2280,6 @@ const set = (src, setting, value) => {
             }
             currentTab()?.scrollIntoView({"inline": "center"})
             applyLayout()
-        }
-        if (webviewSettings.includes(setting)) {
-            updateWebviewSettings()
         }
         if (setting.startsWith("darkreader")) {
             listReadyPages().forEach(p => {
@@ -2188,8 +2359,12 @@ const loadFromDisk = (firstRun, src = "source") => {
         if (isFile(conf)) {
             const parsed = readFile(conf)
             if (!parsed) {
-                notify(`Read error for config file located at '${conf}'`,
-                    {src, "type": "err"})
+                notify({
+                    "fields": [conf],
+                    "id": "settings.errors.fileload",
+                    src,
+                    "type": "error"
+                })
                 continue
             }
             for (const line of parsed.split("\n").filter(l => l.trim())) {
@@ -2203,7 +2378,7 @@ const loadFromDisk = (firstRun, src = "source") => {
     updateContainerSettings()
     updateDownloadSettings()
     updatePermissionSettings()
-    updateWebviewSettings()
+    updateSettings()
     updateMouseSettings()
     updateNativeTheme()
     updateRequestHeaders()
@@ -2223,7 +2398,12 @@ const reset = (src, setting) => {
     } else if (isExistingSetting(setting)) {
         set(src, setting, defaultSettings[setting])
     } else {
-        notify(`The setting '${setting}' doesn't exist`, {src, "type": "warn"})
+        notify({
+            "fields": [setting],
+            "id": "settings.errors.missing",
+            src,
+            "type": "warning"
+        })
     }
 }
 
@@ -2309,8 +2489,7 @@ const saveToDisk = (src, full) => {
     const {customCommandsAsCommandList} = require("./command")
     const commands = customCommandsAsCommandList(full).trim()
     if (!options && !mappings && !commands) {
-        notify("There are no options set, no mappings changed and no "
-            + "custom commands that have been added, no viebrc written", {src})
+        notify({"id": "settings.errors.unchanged", src})
         return
     }
     if (options) {
@@ -2325,14 +2504,24 @@ const saveToDisk = (src, full) => {
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
     const destFile = appConfig()?.config
     if (destFile) {
-        writeFile(destFile, settingsAsCommands, {
-            "err": `Could not write to '${destFile}'`,
-            src,
-            "success": `Viebrc saved to '${destFile}'`
-        })
+        const success = writeFile(destFile, settingsAsCommands)
+        if (success) {
+            notify({
+                "fields": ["Viebrc", destFile],
+                "id": "settings.files.success",
+                src,
+                "type": "success"
+            })
+        } else {
+            notify({
+                "fields": [destFile],
+                "id": "settings.files.failed",
+                src,
+                "type": "error"
+            })
+        }
     } else {
-        notify("No config location is known, could not write",
-            {src, "type": "error"})
+        notify({"id": "settings.files.missingloc", src, "type": "error"})
     }
 }
 
@@ -2349,7 +2538,7 @@ const init = () => {
     })
     ipcRenderer.on("set-permission", (
         _, name, value) => set("user", name, value))
-    ipcRenderer.on("notify", (_, message, opts) => {
+    ipcRenderer.on("notify", (_, opts) => {
         if (getMouseConf("notification")) {
             if (opts.action?.type === "download-success") {
                 /** If a download function is provided, add the right action. */
@@ -2357,7 +2546,7 @@ const init = () => {
                     "open-download", opts.action.path)
             }
         }
-        notify(message, opts)
+        notify(opts)
     })
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
     ipcRenderer.send("create-session", `persist:main`,
