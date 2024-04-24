@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,8 @@ const defaultConfig = {"config": {
         "!app/img/cheatsheet.svg",
         "app/popups/*.js",
         "app/translations/*.json",
-        {"from": "build/main/", "to": "app/"},
+        {"from": "build/", "to": "app/"},
         {"from": "app/index.html", "to": "app/index.html"},
-        {"from": "build/renderer/", "to": "app/renderer/"},
-        {"from": "build/preload/", "to": "app/preload/"},
         "!node_modules",
         "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
     ]
@@ -55,14 +53,11 @@ const releases = {
                 "productName": "Vieb-debug"
             },
             "files": {
-                "filter": [
-                    "app/**/*.js",
-                    "!app/**/*.test.js",
-                    "app/translations/*.json"
-                ].concat(defaultConfig.config.files.filter(
-                    f => typeof f !== "object"
-                    && !f.includes("node_modules")
-                    && !f.includes("popups")))
+                "filter": ["app/**/*.js", "!app/**/*.test.js"].concat(
+                    defaultConfig.config.files.filter(
+                        f => typeof f !== "object"
+                        && !f.includes("node_modules")
+                        && !f.includes("popups")))
             },
             "linux": {
                 "executableName": "vieb-debug"
