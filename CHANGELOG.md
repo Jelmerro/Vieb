@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "lang" with partial translation support
+- Default keybindings for navbar modes to select suggestions with C-j and C-k
 
 ### Changed
 

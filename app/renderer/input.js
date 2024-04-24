@@ -44,6 +44,8 @@ const defaultBindings = {
     "c": {
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-i>": {"mapping": "<editWithVim>"},
+        "<C-j>": {"mapping": "<nextSuggestion>"},
+        "<C-k>": {"mapping": "<prevSuggestion>"},
         "<C-n>": {"mapping": "<commandHistoryNext>"},
         "<C-p>": {"mapping": "<commandHistoryPrevious>"},
         "<CR>": {"mapping": "<useEnteredData>"},
@@ -63,6 +65,8 @@ const defaultBindings = {
         "<C-Down>": {"mapping": "<nextSuggestionSection>"},
         "<C-Up>": {"mapping": "<prevSuggestionSection>"},
         "<C-i>": {"mapping": "<editWithVim>"},
+        "<C-j>": {"mapping": "<nextSuggestion>"},
+        "<C-k>": {"mapping": "<prevSuggestion>"},
         "<C-kDown>": {"mapping": "<nextSuggestionSection>"},
         "<C-kUp>": {"mapping": "<prevSuggestionSection>"},
         "<C-n>": {"mapping": "<exploreHistoryNext>"},
@@ -492,6 +496,8 @@ const defaultBindings = {
     "s": {
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-i>": {"mapping": "<editWithVim>"},
+        "<C-j>": {"mapping": "<nextSuggestion>"},
+        "<C-k>": {"mapping": "<prevSuggestion>"},
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F3>": {"mapping": "<toNormalMode>"},
