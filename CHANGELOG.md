@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Special pages to no longer use a reversed rendering order, making selecting and styling easier
 - Version and newtab page to no longer use a fixed minimum width
 - Additional cut/copy/paste keys to also work in the navbar (S-del, C-Insert & S-Insert)
+- Styling category to be correct for filebrowser (previously page, now file)
 
 ### Fixed
 

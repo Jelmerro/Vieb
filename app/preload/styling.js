@@ -186,6 +186,9 @@ const loadThemes = (loadedFully = false) => {
     } else if (window.location.href.startsWith("file://")) {
         domain = "file"
         scope = "file"
+    } else if (document.body.id === "filebrowser") {
+        domain = "file"
+        scope = "file"
     }
     if (getSetting("darkreader")
         && getSetting("darkreaderscope")?.includes(scope)) {
@@ -224,7 +227,10 @@ ipcRenderer.on("show-scrollbar", () => ipcRenderer.sendToHost(
 ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
 loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())
-window.addEventListener("load", () => loadThemes(true))
+window.addEventListener("load", () => {
+    loadThemes(true)
+    setTimeout(loadThemes, 1000)
+})
 ipcRenderer.on("reload-basic-theme-styling", () => loadThemes(true))
 ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
     const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)
