@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2023 Jelmer van Arnhem
+* Copyright (C) 2020-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 
 window.addEventListener("load", () => {
     const username = document.getElementById("username")
@@ -30,23 +29,22 @@ window.addEventListener("load", () => {
         return
     }
     const inputs = [username, password]
-    ipcRenderer.on("login-information", (_, fontsize, customCSS, auth) => {
+    ipcRenderer.on("login-information", (_, information) => {
         const h3 = document.querySelector("h3")
         if (h3) {
-            h3.textContent = translate("popups.login.title")
+            h3.textContent = information.translations.title
         }
-        username.placeholder = translate("popups.login.username")
-        password.placeholder = translate("popups.login.password")
+        username.placeholder = information.translations.username
+        password.placeholder = information.translations.password
         const info = document.getElementById("info")
         if (info) {
-            info.textContent = translate("popups.login.info",
-                {"fields": [auth.host, auth.realm]})
+            info.textContent = information.translations.info
         }
         username.focus()
         username.click()
         username.value = ""
         password.value = ""
-        document.body.style.fontSize = `${fontsize}px`
+        document.body.style.fontSize = `${information.fontsize}px`
         if (!document.getElementById("custom-styling")) {
             const styleElement = document.createElement("style")
             styleElement.id = "custom-styling"
@@ -54,7 +52,7 @@ window.addEventListener("load", () => {
         }
         const customStyle = document.getElementById("custom-styling")
         if (customStyle) {
-            customStyle.textContent = customCSS
+            customStyle.textContent = information.customCSS
         }
         document.body.style.opacity = "1"
     })

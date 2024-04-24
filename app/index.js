@@ -1148,7 +1148,18 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.resizable = false
     loginWindow.show()
     loginWindow.focus()
-    loginWindow.webContents.send("login-information", fontsize, customCSS, auth)
+    const information = {
+        customCSS,
+        fontsize,
+        "translations": {
+            "info": translate("popups.login.info",
+                {"fields": [auth.host, auth.realm]}),
+            "password": translate("popups.login.password"),
+            "title": translate("popups.login.title"),
+            "username": translate("popups.login.username")
+        }
+    }
+    loginWindow.webContents.send("login-information", information)
 })
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
@@ -1164,8 +1175,17 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.setPosition(
         Math.round(bounds.x + bounds.width / 2 - width / 2),
         Math.round(bounds.y + bounds.height / 2 - height / 2))
-    notificationWindow.webContents.send("notification-details",
-        escapedMessage, fontsize, customCSS, properType)
+    const information = {
+        customCSS,
+        fontsize,
+        properType,
+        "translations": {
+            escapedMessage,
+            "loading": translate("popups.notification.loading"),
+            "shortcuts": translate("popups.notification.shortcuts")
+        }
+    }
+    notificationWindow.webContents.send("notification-details", information)
     notificationWindow.show()
     notificationWindow.focus()
 })
@@ -1187,8 +1207,16 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
     promptWindow.resizable = false
     promptWindow.show()
     promptWindow.focus()
-    promptWindow.webContents.send(
-        "prompt-info", fontsize, customCSS, title, defaultText)
+    const information = {
+        customCSS,
+        fontsize,
+        "translations": {
+            defaultText,
+            "prompt": translate("popups.prompt.title"),
+            title
+        }
+    }
+    promptWindow.webContents.send("prompt-info", information)
     ipcMain.on("prompt-response", (_, response) => {
         promptWindow?.hide()
         mainWindow?.focus()

@@ -5,10 +5,9 @@ const TerserPlugin = require("terser-webpack-plugin")
 
 module.exports = [{
     "entry": {
-        "index": "./app/index.js",
+        "main": "./app/index.js",
         "preload": "./app/preload/index.js",
-        "renderer": "./app/renderer/index.js",
-        "translate": "./app/translate.js"
+        "renderer": "./app/renderer/index.js"
     },
     "externals": {
         "bufferutil": "commonjs bufferutil",
@@ -41,10 +40,10 @@ module.exports = [{
          * @param {{chunk: {name: string}}} data
          */
         "filename": data => {
-            if (["renderer", "preload"].includes(data.chunk.name)) {
-                return `${data.chunk.name}/index.js`
+            if (data.chunk.name === "main") {
+                return "index.js"
             }
-            return `${data.chunk.name}.js`
+            return `${data.chunk.name}/index.js`
         },
         "path": join(__dirname, "build")
     },

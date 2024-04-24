@@ -18,7 +18,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 
 let fontsize = 14
 
@@ -32,20 +31,20 @@ const fixScrollHeight = () => {
         notification.scrollTop / fontsize) * fontsize
 }
 
-ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
+ipcRenderer.on("notification-details", (_, information) => {
     const notification = document.getElementById("notification")
     if (!notification) {
         return
     }
-    notification.textContent = translate("popups.notification.loading")
+    notification.textContent = information.translations.loading
     notification.scrollBy(0, -1000000000)
-    notification.textContent = message
+    notification.textContent = information.translations.escapedMessage
     const footer = document.querySelector("footer")
     if (footer) {
-        footer.style.color = `var(--notification-${lvl}`
-        footer.textContent = translate("popups.notification.shortcuts")
+        footer.style.color = `var(--notification-${information.properType}`
+        footer.textContent = information.translations.shortcuts
     }
-    fontsize = fs
+    ({fontsize} = information)
     document.body.style.fontSize = `${fontsize}px`
     if (!document.getElementById("custom-styling")) {
         const styleElement = document.createElement("style")
@@ -54,7 +53,7 @@ ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     }
     const customStyle = document.getElementById("custom-styling")
     if (customStyle) {
-        customStyle.textContent = customCSS
+        customStyle.textContent = information.customCSS
     }
     document.body.style.opacity = "1"
 })

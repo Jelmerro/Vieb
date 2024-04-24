@@ -2930,6 +2930,7 @@ const parseAndValidateArgs = commandStr => {
         range += command[0]
         command = command.slice(1)
     }
+    /** @type {string[]} */
     const args = []
     let currentArg = ""
     let escapedDouble = false

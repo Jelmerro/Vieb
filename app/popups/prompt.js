@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2023 Jelmer van Arnhem
+* Copyright (C) 2022-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,27 +18,26 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 
 window.addEventListener("load", () => {
     const input = document.querySelector("input")
     if (!input) {
         return
     }
-    ipcRenderer.on("prompt-info", (_, fontsize, customCSS, title, text) => {
+    ipcRenderer.on("prompt-info", (_, information) => {
         const h3 = document.querySelector("h3")
         if (h3) {
-            h3.textContent = translate("popups.prompt.title")
+            h3.textContent = information.translations.prompt
         }
         const info = document.getElementById("info")
         if (info) {
-            info.textContent = title
+            info.textContent = information.translations.title
         }
         input.focus()
         input.click()
-        input.value = text
+        input.value = information.translations.defaultText
         input.select()
-        document.body.style.fontSize = `${fontsize}px`
+        document.body.style.fontSize = `${information.fontsize}px`
         if (!document.getElementById("custom-styling")) {
             const styleElement = document.createElement("style")
             styleElement.id = "custom-styling"
@@ -46,7 +45,7 @@ window.addEventListener("load", () => {
         }
         const customStyle = document.getElementById("custom-styling")
         if (customStyle) {
-            customStyle.textContent = customCSS
+            customStyle.textContent = information.customCSS
         }
         document.body.style.opacity = "1"
     })
