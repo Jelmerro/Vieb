@@ -310,12 +310,23 @@ const defaultBindings = {
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
         "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
-            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
-            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
-            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
-            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>><:pmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>>"
+            + "<:nmap q<C-[> <nop>><:pmap q<C-[> <nop>><:vmap q<C-[> <nop>>"
+            + "<:nmap q<Esc> <nop>><:pmap q<Esc> <nop>><:vmap q<Esc> <nop>>"},
         "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
-            + "<:vunmap q<Any>><startRecording>"},
+            + "<:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>>"
+            + "<:vunmap q<Esc>><startRecording>"},
+        "q<C-[>": {"mapping": "<nop>"},
+        "q<Esc>": {"mapping": "<nop>"},
         "r": {"mapping": "<refreshTab>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "t": {"mapping": "<:tabnew>"},
@@ -457,12 +468,23 @@ const defaultBindings = {
         "oo": {"mapping": "<p.openLink>"},
         "ov": {"mapping": "<p.openVideo>"},
         "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
-            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
-            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
-            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
-            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>><:pmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>>"
+            + "<:nmap q<C-[> <nop>><:pmap q<C-[> <nop>><:vmap q<C-[> <nop>>"
+            + "<:nmap q<Esc> <nop>><:pmap q<Esc> <nop>><:vmap q<Esc> <nop>>"},
         "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
-            + "<:vunmap q<Any>><startRecording>"},
+            + "<:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>>"
+            + "<:vunmap q<Esc>><startRecording>"},
+        "q<C-[>": {"mapping": "<nop>"},
+        "q<Esc>": {"mapping": "<nop>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "ta": {"mapping": "<p.newtabAudio>"},
@@ -570,12 +592,23 @@ const defaultBindings = {
         "l": {"mapping": "<p.moveRight>"},
         "o": {"mapping": "<p.swapPosition>"},
         "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
-            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
-            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
-            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
-            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>><:pmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>><:vunmap q<Esc>>"
+            + "<startRecording>>"
+            + "<:nmap q<C-[> <nop>><:pmap q<C-[> <nop>><:vmap q<C-[> <nop>>"
+            + "<:nmap q<Esc> <nop>><:pmap q<Esc> <nop>><:vmap q<Esc> <nop>>"},
         "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
-            + "<:vunmap q<Any>><startRecording>"},
+            + "<:vunmap q<Any>><:nunmap q<C-[>><:punmap q<C-[>>"
+            + "<:vunmap q<C-[>><:nunmap q<Esc>><:punmap q<Esc>>"
+            + "<:vunmap q<Esc>><startRecording>"},
+        "q<C-[>": {"mapping": "<nop>"},
+        "q<Esc>": {"mapping": "<nop>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "tS": {"mapping": "<p.splitText>"},
