@@ -46,18 +46,6 @@ const listKeys = (obj, folder = "") => {
     return keys
 }
 
-const cleanObj = obj => {
-    for (const l of Object.keys(obj)) {
-        if (typeof obj[l] === "object") {
-            if (Object.keys(obj[l]).length) {
-                cleanObj(obj[l])
-            } else {
-                delete obj[l]
-            }
-        }
-    }
-}
-
 const getVal = (lang, key) => {
     const obj = translations[lang]
     const path = key.split(".")
