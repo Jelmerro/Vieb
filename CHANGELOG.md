@@ -34,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Greasemonkey scripts not working if multiple match the same domain by using an IIFE
 - Setting "mouse" not working at all in 11.0.0 due to incorrect setting type
 - Downloads not kept on restart since V10
+- Startup urls not opening in existing instance if the protocol was missing
 
 ### Versions
 

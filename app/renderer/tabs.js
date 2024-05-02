@@ -1429,8 +1429,13 @@ const init = () => {
                         "startup": true,
                         "url": stringToUrl(page)
                     })
-                } else {
-                    addTab({"src": "source", ...page, "startup": true})
+                } else if (typeof page === "object" && page.url) {
+                    addTab({
+                        "src": "source",
+                        ...page,
+                        "startup": true,
+                        "url": stringToUrl(page.url)
+                    })
                 }
             }
         })
