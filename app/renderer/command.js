@@ -147,7 +147,7 @@ const modifyListOrObject = (src, setting, value, method) => {
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
     const {mouseFeatures} = require("./settings")
-    /** @type {{[key: string]: string}|string[]|string[][]|unknown} */
+    /** @type {{[key: string]: string}|string[]|string[][]} */
     let parsed = {}
     try {
         parsed = JSON.parse(value)
