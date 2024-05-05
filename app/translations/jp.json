@@ -301,7 +301,7 @@
             "filterPlaceholder": "閲覧履歴をフィルター",
             "loading": "読み込み中...",
             "perpage": "ページごとのエントリー",
-            "readingProgress": "閲覧履歴$1/$2、現在は$3からの閲覧履歴に戻っています。",
+            "readingProgress": "閲覧履歴「$1/$2」、現在は「$3」からの閲覧履歴に戻っています。",
             "title": "閲覧履歴"
         },
         "newtab": {
@@ -316,10 +316,10 @@
             "title": "通知"
         },
         "version": {
-            "alreadyNewer": "最新リリース$1は古いです",
+            "alreadyNewer": "最新リリース「$1」は古いです",
             "changelog": "変更履歴",
             "checkUpdate": "更新をチェック",
-            "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られた。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができる。エレクトロン$1で動作し、クロミウムのバージョンは$2だ。",
+            "description": "Viebは<a href=\"https://github.com/Jelmerro\">Jelmer van Arnhem</a>と<a href=\"https://github.com/Jelmerro/Vieb/graphs/contributors\">投稿者</a>によって作られました。ヴィムにインスパイアされたキーボード・ショートカットを使ってウェブと対話することができます。エレクトロンのバージョンは「$1」でクロミウムのバージョンは「$2」です。",
             "discussions": "ディスカッション",
             "donate": "寄付",
             "failed": "更新の取得に失敗しました",
@@ -328,7 +328,7 @@
             "latest": "Viebは最新の状態です",
             "loading": "読み込み中...",
             "matrix": "マトリックス",
-            "newerFound": "新しいバージョン$1が利用可能です",
+            "newerFound": "新しいバージョン「$1」が利用可能です",
             "notChecked": "まだチェックされていません",
             "releases": "リリース",
             "repository": "リポジトリ",
