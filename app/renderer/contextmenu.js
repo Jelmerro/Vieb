@@ -435,7 +435,11 @@ const viebMenu = (src, options, force = false) => {
     contextMenu.style.left = `${options.x}px`
     const {clipboard} = require("electron")
     const {
-        useEnteredData, backInHistory, forwardInHistory, refreshTab
+        useEnteredData,
+        backInHistory,
+        forwardInHistory,
+        refreshTab,
+        openNewTabWithCurrentUrl
     } = require("./actions")
     const menuSetting = getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar" || force
@@ -584,10 +588,43 @@ const viebMenu = (src, options, force = false) => {
             }
         }
         createMenuItem({
+            /** Add a tab next to the selected tab. */
+            "action": () => {
+                const tabnewposition = getSetting("tabnewposition")
+                let index = listTabs().indexOf(tab)
+                if (tabnewposition === "right") {
+                    index += 1
+                }
+                addTab({"customIndex": index, pinned, src})
+            },
+            "title": "Add tab here"
+        })
+        createMenuItem({
             /** Menu item: Copy url. */
             "action": () => clipboard.writeText(urlToString(
                 page.getAttribute("src") ?? "").replace(/ /g, "%20")),
             "title": "Copy url"
+        })
+        createMenuItem({
+            /** Menu item: Open an empty new tab to edit the current url. */
+            "action": () => openNewTabWithCurrentUrl({"customPage": page, src}),
+            "title": "Clone & edit"
+        })
+        createMenuItem({
+            /** Menu item: Open a new tab with the current url and navigate. */
+            "action": () => {
+                const tabnewposition = getSetting("tabnewposition")
+                let index = listTabs().indexOf(tab)
+                if (tabnewposition === "right") {
+                    index += 1
+                }
+                addTab({
+                    "customIndex": index,
+                    src,
+                    "url": page.getAttribute("src") ?? ""
+                })
+            },
+            "title": "Clone & go"
         })
         createMenuItem({
             /** Menu item: Close tab. */
@@ -598,7 +635,7 @@ const viebMenu = (src, options, force = false) => {
         createMenuItem({
             /** Menu item: Add tab. */
             "action": () => addTab({src}),
-            "title": "Newtab"
+            "title": "Add tab"
         })
         createMenuItem({
             /** Menu item: Split horizontal. */

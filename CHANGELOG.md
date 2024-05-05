@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "lang" with partial translation support
 - Default mappings for navbar modes to select suggestions with C-j and C-k
 - Default mappings for cancelling recordings using `q<Esc>` and `q<C-[>`
+- Clone tab buttons to mouse menu of a tab, to either edit or navigate directly
 
 ### Changed
 

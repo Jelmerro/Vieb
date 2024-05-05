@@ -825,14 +825,35 @@ const refreshTabWithoutCache = args => {
     }
 }
 
+
 /**
  * Open a new tab, switch to explore mode and have the current url ready.
- * @param {ActionParam} args
+ * @param {{
+ *   key?: string,
+ *   src: import("./common").RunSource,
+ *   hadModifier?: boolean,
+ *   customPage?: Electron.WebviewTag | HTMLDivElement
+ * }} args
  */
 const openNewTabWithCurrentUrl = args => {
-    const url = currentPage()?.src || ""
+    const url = args.customPage?.getAttribute("src") || currentPage()?.src || ""
     const {addTab} = require("./tabs")
-    addTab({"src": args.src})
+    if (args.customPage) {
+        const tab = tabForPage(args.customPage)
+        if (!tab) {
+            return
+        }
+        const tabnewposition = getSetting("tabnewposition")
+        let index = listTabs().indexOf(tab)
+        if (tabnewposition === "right") {
+            index += 1
+        }
+        const pinned = tab.classList.contains("pinned") ?? false
+        addTab({"customIndex": index, pinned, "src": args.src})
+    } else {
+        const pinned = currentTab()?.classList.contains("pinned") ?? false
+        addTab({pinned, "src": args.src})
+    }
     const {setMode} = require("./modes")
     setMode("explore")
     const urlEl = getUrl()
