@@ -393,7 +393,6 @@
                 "namesNewtab": "Invalid containernamesnewtab param: $1",
                 "namesRegex": "Invalid regular expression in containernames: $1",
                 "namesSeparator": "Invalid $1 entry: $2\nEntries must have one or two ~ to separate the regular expression, container name and newtab param",
-                "namesSpecialchars": "No special characters besides underscores are allowed in the name of a container, invalid $1: $2",
                 "specialchars": "No special characters besides underscores are allowed in the name of a container, invalid $1: $2"
             },
             "darkreader": {

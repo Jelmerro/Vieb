@@ -913,7 +913,7 @@ const checkOther = (src, setting, value) => {
             if (simpleValue.match(specialChars)) {
                 notify({
                     "fields": [setting, simpleValue],
-                    "id": "settings.errors.container.namesSpecialchars",
+                    "id": "settings.errors.container.specialchars",
                     src,
                     "type": "warning"
                 })

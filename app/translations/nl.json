@@ -393,7 +393,6 @@
                 "namesNewtab": "Ongeldig containernamesnewtab argument: $1",
                 "namesRegex": "Ongeldige reguliere expressie in containernames: $1",
                 "namesSeparator": "Ongeldige invoer $1: $2\nInvoer moet een of twee ~ hebben om de reguliere expressie, containernaam en newtab-parameter te scheiden",
-                "namesSpecialchars": "Naast underscores zijn geen speciale tekens toegestaan in de naam van een container, ongeldige $1: $2",
                 "specialchars": "Naast underscores zijn geen speciale tekens toegestaan in de naam van een container, ongeldige $1: $2"
             },
             "darkreader": {

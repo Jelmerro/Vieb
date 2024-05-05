@@ -254,7 +254,6 @@ export type TranslationKeys =
     | "settings.errors.container.namesNewtab"
     | "settings.errors.container.namesRegex"
     | "settings.errors.container.namesSeparator"
-    | "settings.errors.container.namesSpecialchars"
     | "settings.errors.container.specialchars"
     | "settings.errors.darkreader.blocklistRegex"
     | "settings.errors.darkreader.color"

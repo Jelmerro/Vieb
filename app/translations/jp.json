@@ -132,7 +132,7 @@
         "pointerpos": {
             "argCount": "コマンド「pointerpos」は最大三つの引数を受け入れます。",
             "list": "$1",
-            "location": "コマンド「pointerpos」は、キーの後にXおよびY位置が必要です。",
+            "location": "コマンド「pointerpos」は、キーの後に「x」および「y」位置が必要です。",
             "noKey": "キー「$1」のポインター位置が見つかりません。",
             "none": "ポインター位置が見つかりません。"
         },
@@ -384,107 +384,106 @@
     },
     "settings": {
         "errors": {
-            "clearhistoryinterval": "clearhistoryintervalに渡される無効な間隔$1は、'none'、'session'、または'1day'や'3months'などの有効な間隔にのみ設定できます",
+            "clearhistoryinterval": "「clearhistoryinterval」に渡される無効な間隔「$1」は、「none」、「session」、または「1day」や「3months」などの有効な間隔にのみ設定できます。",
             "container": {
-                "colorName": "無効な色$1が渡された。有効な色名または16進色でなければなりません。",
-                "colorRegex": "containercolorsに無効な正規表現$1が含まれています。",
-                "colorSeparator": "無効な$1エントリ：$2。エントリは、名前の正規表現と色の名前/16進数を区切るために、正確に1つの‾を持つ必要があります。",
-                "invalidspecial": "'$1'の特別なコンテナ名は、次のいずれかである必要があります：$2",
-                "namesNewtab": "無効なcontainernamesnewtabパラメータ$1が渡されました。",
-                "namesRegex": "containernamesの正規表現が無効$1が渡されました。",
-                "namesSeparator": "無効な$1エントリ：$2。正規表現、コンテナ名、newtabパラメータを区切るために、エントリには1つまたは2つの~が必要です。",
-                "namesSpecialchars": "コンテナ名にはアンダースコア以外の特殊文字は使用できません。無効な$1の値：$2。",
-                "specialchars": "コンテナ名にはアンダースコア以外の特殊文字は使用できません。無効な$1の値：$2。"
+                "colorName": "無効な色「$1」が渡されました。有効な色名または16進色でなければなりません。",
+                "colorRegex": "「containercolors」に無効な正規表現「$1」が含まれています。",
+                "colorSeparator": "「$1」のエントリに指定された値「$2」が無効です。エントリは、名前の正規表現と色の名前/16進数を区切るために、正確に一つの‾を持つ必要があります。",
+                "invalidspecial": "「$1」の特別なコンテナ名は、次のいずれかである必要があります：$2",
+                "namesNewtab": "無効な「containernamesnewtab」のパラメータ「$1」が渡されました。",
+                "namesRegex": "「containernames」の正規表現が無効「$1」が渡されました。",
+                "namesSeparator": "「$1」のエントリに指定された値「$2」が無効です。正規表現、コンテナ名、「newtab」パラメータを区切るために、エントリには一つまたは二つの~が必要です。",
+                "specialchars": "「$1」の値「$2」は無効です。コンテナ名にはアンダースコア以外の特殊文字は使用できません。"
             },
             "darkreader": {
-                "blocklistRegex": "無効な正規表現です。無効な$1値$2です",
-                "color": "無効な色$1が渡された。有効な色名または16進色でなければなりません。",
-                "missing": "Darkreaderモジュールが見つかりません。ダークモードを表示できません！"
+                "blocklistRegex": "「$1」の正規表現「$2」が無効です。",
+                "color": "無効な色「$1」が渡されました。有効な色名または16進色でなければなりません。",
+                "missing": "「darkreader」のモジュールが見つかりません。ダークモードを表示できません！"
             },
-            "downloadpathIsFolder": "downloadpathの値$1はディレクトリではありません。",
-            "downloadpathMissing": "downloadpathの値$1が存在しません",
-            "favoritepages": "favoritepagesに渡された$1が無効なurlです。",
-            "fileload": "$1にある設定ファイルの読み取りエラー。",
+            "downloadpathIsFolder": "「downloadpath」の値「$1」はディレクトリではありません。",
+            "downloadpathMissing": "「downloadpath」の値「$1」が存在しません。",
+            "favoritepages": "「favoritepages」に渡された値「$1」が無効なurlです。",
+            "fileload": "「$1」にある設定ファイルの読み取りエラーです。",
             "followchars": {
-                "duplicate": "followcharsのすべての文字は一意でなければなりません。重複は許可されません。",
-                "invalidSet": "無効な値$1が渡された。alpha、alphanum、dvorakhome、numbers、qwertyhome、または'custom:'で始まるカスタムリストのいずれかでなければなりません。",
-                "notEnough": "followcharsの値は少なくとも二文字でなければなりません。"
+                "duplicate": "「followchars」のすべての文字は一意でなければなりません。重複は許可されません。",
+                "invalidSet": "無効な値「$1」が渡されました。「alpha」、「alphanum」、「dvorakhome」、「numbers」、「qwertyhome」、または「custom:」で始まるカスタムリストのいずれかでなければなりません。",
+                "notEnough": "「followchars」の値は少なくとも二文字でなければなりません。"
             },
-            "followelement": "無効な要素タイプ$1が渡されました。のいずれかの組み合わせでなければなりません：$2",
-            "invalidScope": "'$2'内の値'$1'が無効です。有効な値は次のいずれかです：file、page、またはspecial",
-            "markpersistencetype": "quickmarkpersistenceに渡された$1が無効なquickmarkタイプです。",
-            "missing": "設定$1が存在しません。",
-            "modifiers": "modifiers内のキー名'$1'が有効なキーとして認識されません。",
-            "mouseFeature": "機能$1は無効なマウス機能です。",
-            "newtaburl": "newtaburlの値は有効なURLであるか、$1ではなく空でなければなりません。",
-            "numberRange": "設定$1の値は$2から$3の間である必要があります。",
-            "oneof": "設定$1の値は次のいずれかである必要があります：$2",
+            "followelement": "無効な要素タイプ「$1」が渡されました。のいずれかの組み合わせでなければなりません：$2",
+            "invalidScope": "「$2」の値「$1」が無効です。有効な値は次のいずれかです：file、page、またはspecial",
+            "markpersistencetype": "「quickmarkpersistence」に渡された「$1」が無効な「quickmark」のタイプです。",
+            "missing": "設定「$1」が存在しません。",
+            "modifiers": "「modifiers」のキー名「$1」が有効なキーとして認識されません。",
+            "mouseFeature": "機能「$1」は無効なマウス機能です。",
+            "newtaburl": "「newtaburl」の値は有効なURLであるか、「$1」ではなく空でなければなりません。",
+            "numberRange": "設定「$1」の値は$2から$3の間である必要があります。",
+            "oneof": "設定「$1」の値は次のいずれかである必要があります：$2",
             "passthrough": {
-                "keyname": "passthroughkeys内のキー名$1が有効なキーとして認識されません。",
-                "keys": "passthroughkeysエントリの$1が無効なキーであります。",
-                "regex": "passthroughkeysの正規表現$1が無効です。"
+                "keyname": "「passthroughkeys」のキー名「$1」が有効なキーとして認識されません。",
+                "keys": "「passthroughkeys」エントリの「$1」が無効なキーであります。",
+                "regex": "「passthroughkeys」の正規表現「$1」が無効です。"
             },
             "permission": {
                 "captureallowed": "表示キャプチャ許可は許可できません。要求またはブロックのみが可能です。",
-                "hidasked": "HIDパーミッションは要求できません。許可またはブロックのみが可能です。",
-                "mediadevicesasked": "Mediadevicesパーミッションは要求できません。許可またはブロックのみが可能です。",
-                "name": "無効なパーミッション名$1が指定されました。",
-                "regex": "パーミッションの$1正規表現が無効です。",
-                "separator": "無効な$1エントリが指定されました。ドメイン正規表現とパーミッション名を区切るために、エントリには少なくとも一つの~が必要です。",
-                "serialasked": "シリアルデバイスパーミッションは要求できません。許可またはブロックのみが可能です。",
-                "usbasked": "USBデバイスパーミッションは要求できません。許可またはブロックのみが可能です。"
+                "hidasked": "「HID」のパーミッションは要求できません。許可またはブロックのみが可能です。",
+                "mediadevicesasked": "「mediadevices」のパーミッションは要求できません。許可またはブロックのみが可能です。",
+                "name": "無効なパーミッション名「$1」が指定されました。",
+                "regex": "パーミッションの「$1」正規表現が無効です。",
+                "separator": "無効な「$1」エントリ「$2」が指定されました。ドメイン正規表現とパーミッション名を区切るために、エントリには少なくとも一つの~が必要です。",
+                "serialasked": "シリアルデバイスのパーミッションは要求できません。許可またはブロックのみが可能です。",
+                "usbasked": "「USB」デバイスのパーミッションは要求できません。許可またはブロックのみが可能です。"
             },
             "redirect": {
-                "regex": "redirectの正規表現$1が無効です。",
-                "separator": "無効なredirectエントリ$1が指定されました。エントリは、正規表現と置換を区切るために、正確に一つの~が必要です。"
+                "regex": "「redirect」の正規表現「$1」が無効です。",
+                "separator": "無効な「redirect」エントリ「$1」が指定されました。エントリは、正規表現と置換を区切るために、正確に一つの~が必要です。"
             },
             "resources": {
-                "regex": "$1の正規表現$2が無効です。",
-                "type": "resourcetypesエントリ$1に指定された値$2が無効です。"
+                "regex": "「$1」の正規表現「$2」が無効です。",
+                "type": "「resourcetypes」エントリ「$1」に指定された値「$2」が無効です。"
             },
             "searchengine": {
-                "replace": "無効なsearchengine値$1が指定されました。各URLには%sパラメータを含める必要があり、このパラメータは検索文字列に置換されます。",
-                "url": "無効なsearchengine値$1が指定されました。URLは有効なURLでなければなりません。"
+                "replace": "無効な「searchengine」値「$1」が指定されました。各URLには「%s」パラメータを含める必要があり、このパラメータは検索文字列に置換されます。",
+                "url": "無効な「searchengine」値「$1」が指定されました。URLは有効なURLでなければなりません。"
             },
             "searchwords": {
-                "duplicate": "無効なsearchwordsエントリ$1が渡されました。検索語$2は既に定義されています。サーチワードは一度だけ定義しなければなりません。。",
-                "separator": "無効なsearchwordsエントリ$1が渡されました。~の前の検索ワードにはアンダースコア以外の特殊文字が含まれていてはいけません。",
-                "url": "無効なsearchwordsエントリ$1が渡された。searchwordsのURLは存在し、検索文字列が%sパラメータで置換される必要があります。"
+                "duplicate": "無効な「searchwords」エントリ「$1」が渡されました。検索語「$2」は既に定義されています。サーチワードは一度だけ定義しなければなりません。",
+                "separator": "無効な「searchwords」エントリ「$1」が渡されました。~の前の検索ワードにはアンダースコア以外の特殊文字が含まれていてはいけません。",
+                "url": "無効な「searchwords」エントリ「$1」が渡された。「searchwords」のURLは存在し、検索文字列が「%s」パラメータで置換される必要があります。"
             },
-            "spelllang": "無効な言語$1がspelllangに渡されました。",
+            "spelllang": "無効な言語「$1」が「spelllang」に渡されました。",
             "sponsorblock": {
-                "color": "sponsorblockcategoriesのカラー$1が無効です。有効なカラー名または16進数でなければなりません。",
-                "duplicate": "sponsorblockcategoriesのカテゴリが無効です。カテゴリ$1はすでに定義されています。カテゴリは一度だけ定義する必要があります。",
-                "name": "sponsorblockcategoriesのカテゴリ$1が無効です。"
+                "color": "「sponsorblockcategories」の色「$1」が無効です。有効な色名または16進数でなければなりません。",
+                "duplicate": "「sponsorblockcategories」のカテゴリが無効です。カテゴリ「$1」はすでに定義されています。カテゴリは一度だけ定義する必要があります。",
+                "name": "「sponsorblockcategories」のカテゴリ「$1」が無効です。"
             },
             "startuppages": {
-                "invalidopts": "startuppagesに指定されたオプション$1が無効です。",
-                "name": "コンテナ名$1が無効です。startuppagesのコンテナ名にはアンダースコア以外の特殊文字は使用できません。",
-                "toomany": "無効なstartuppagesエントリ$1が指定されました。オプションが多すぎます。",
-                "url": "無効なstartuppages値$1が指定されました。URLは有効なURLでなければなりません。"
+                "invalidopts": "「startuppages」に指定されたオプション「$1」が無効です。「muted」と「pinned」しか使えません。",
+                "name": "コンテナ名「$1」が無効です。「startuppages」のコンテナ名にはアンダースコア以外の特殊文字は使用できません。",
+                "toomany": "無効な「startuppages」エントリ「$1」が指定されました。オプションが多すぎます。",
+                "url": "無効な「startuppages」値「$1」が指定されました。URLは有効なURLでなければなりません。"
             },
-            "storenewvisits": "無効なタイプの履歴$1が渡されました。のいずれかでなければなりません：$2",
+            "storenewvisits": "無効なタイプの履歴「$1」が渡されました。のいずれかでなければなりません：$2",
             "suggestorder": {
-                "duplicateCount": "suggestorderエントリのカウント構成は、エントリごとに一度だけ設定できます。",
-                "duplicateSort": "suggestorderエントリのソート構成は、エントリごとに一度だけ設定できます。",
-                "empty": "suggestorderのタイプの構成は空にできません。",
-                "invalidSort": "オーダー構成が無効です。$1に対するサポートされるオーダーは次のとおりです：$2",
-                "tilde": "suggestorderエントリ$1は無効です。エントリーは、カウントとオーダーからタイプを分離するために、最大で二つの~を持たなければなりません(両方ともオプションです)。",
-                "type": "無効なsuggestorderタイプ'$1'が渡されました。suggestorderタイプはhistory、file、searchwordのいずれかでなければなりません。"
+                "duplicateCount": "「suggestorder」のエントリのカウント構成は、エントリごとに一度だけ設定できます。",
+                "duplicateSort": "「suggestorder」のエントリのソート構成は、エントリごとに一度だけ設定できます。",
+                "empty": "「suggestorder」のタイプの構成は空にできません。",
+                "invalidSort": "オーダー構成が無効です。「$1」に対するサポートされるオーダーは次のとおりです：$2",
+                "tilde": "「suggestorder」のエントリ「$1」は無効です。エントリーは、カウントとオーダーからタイプを分離するために、最大で二つの~を持たなければなりません(両方ともオプションです)。",
+                "type": "無効な「suggestorder」のタイプ「$1」が渡されました。「suggestorder」のタイプは「history」、「file」、「searchword」のいずれかでなければなりません。"
             },
-            "tocpages": "tocpagesの$1正規表現が無効です。",
-            "translateurl": "translateurlの値$1は有効なURLでなければなりません。",
-            "type": "設定値$1の型が正しくありません。$2を期待していたのですが、代わりに$3が得られました。",
+            "tocpages": "「tocpages」の「$1」正規表現が無効です。",
+            "translateurl": "「translateurl」の値「$1」は有効なURLでなければなりません。",
+            "type": "設定値「$1」の型が正しくありません。「$2」を期待していたのですが、代わりに「$3」が得られました。",
             "unchanged": "設定されたオプション、変更されたマッピング、追加されたカスタムコマンドはありません。設定ファイルは書き込まれませんでした。",
             "windowsize": {
-                "format": "$1の値は800x600のような二つの数字をxで結合した形式でなければなりません。",
-                "minimum": "windowsizeの値のサイズは$1ではなく、少なくとも500でなければなりません。"
+                "format": "「$1」の値は「800x600」のような二つの数字を「x」で結合した形式でなければなりません。",
+                "minimum": "「windowsize」の値のサイズは「$1」ではなく、少なくとも500でなければなりません。"
             }
         },
         "files": {
-            "failed": "'$1'に書き込めませんでした。",
+            "failed": "「$1」に書き込めませんでした。",
             "missingloc": "設定ファイルの場所がわかりません。書き込みできません。",
-            "success": "'$1'を'$2'に保存しました。"
+            "success": "「$1」を「$2」に保存しました。"
         }
     },
     "util": {
