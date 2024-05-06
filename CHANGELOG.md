@@ -39,6 +39,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - String settings not accepting double quote escaping properly in 11.0.0
 - Markdown local images not loading properly on Windows due to Windows file paths being weird
 - File explorer not working on Windows since 10.4.0 due to Windows file paths being weirrd
+- Root url actions breaking the file explorer on Windows by navigating above the root
 
 ### Versions
 

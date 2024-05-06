@@ -729,6 +729,10 @@ const addWebviewListeners = webview => {
                 let local = urlToString(webview.src).replace(/file:\/+/, "/")
                 if (process.platform === "win32") {
                     local = urlToString(webview.src).replace(/file:\/+/, "")
+                    if (local === "" || local === "C:") {
+                        webview.src = "file:///C:/"
+                        return
+                    }
                 }
                 if (isDir(local)) {
                     let directoryAllowed = true

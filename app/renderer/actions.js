@@ -449,8 +449,17 @@ const toRootUrl = args => {
     urlObj.pathname = ""
     urlObj.search = ""
     urlObj.hash = ""
+    const {navigateTo} = require("./tabs")
+    if (process.platform === "win32") {
+        const isRoot = [
+            "file://", "file:///", "file:///C:", "file:///C:/"
+        ].find(u => u === urlObj.href || u === originalUrl)
+        if (isRoot) {
+            navigateTo(args.src, "file:///C:/")
+            return
+        }
+    }
     if (originalUrl !== urlObj.href) {
-        const {navigateTo} = require("./tabs")
         navigateTo(args.src, urlObj.href)
     }
 }
@@ -470,8 +479,17 @@ const toParentUrl = args => {
         .filter(p => p).slice(0, -1).join("/")
     urlObj.search = ""
     urlObj.hash = ""
+    const {navigateTo} = require("./tabs")
+    if (process.platform === "win32") {
+        const isRoot = [
+            "file://", "file:///", "file:///C:", "file:///C:/"
+        ].find(u => u === urlObj.href || u === originalUrl)
+        if (isRoot) {
+            navigateTo(args.src, "file:///C:/")
+            return
+        }
+    }
     if (originalUrl !== urlObj.href) {
-        const {navigateTo} = require("./tabs")
         navigateTo(args.src, urlObj.href)
     }
 }
