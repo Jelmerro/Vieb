@@ -1537,9 +1537,7 @@ const executeMapString = async(mapStr, recursive, opts) => {
                 await sendKeysToWebview(options, key, opts.src)
             } else {
                 const options = {
-                    ...fromIdentifier(key, false),
-                    "bubbles": recursive,
-                    "testprop": "JIPPIE!"
+                    ...fromIdentifier(key, false), "bubbles": recursive
                 }
                 window.dispatchEvent(new KeyboardEvent("keydown", options))
             }
