@@ -398,10 +398,16 @@
         },
         "domainCachedAllowed": "Automatic domain caching rule for 'certificateerror' activated at '$1' which was allowed, because this same certificate was allowed before on this domain.",
         "notify": {
-            "ask": "Automatic 'permissionsasked' rule for '$1' activated at '$2' which was $3ed manually",
-            "auto": "Automatic 'permissions$1ed' rule for '$2' activated at '$3' which was $4ed",
-            "global": "Globally $1ed '$2' at '$3' based on '$4'",
-            "manual": "Manually $1ed '$2' at '$3'"
+            "ask": "Automatic 'permissionsasked' rule for '$1' activated at '$2' which was $3 manually",
+            "auto": "Automatic 'permissions$1ed' rule for '$2' activated at '$3' which was $4",
+            "global": "Globally $1 '$2' at '$3' based on '$4'",
+            "manual": "Manually $1 '$2' at '$3'"
+        },
+        "notifyLevels": {
+            "allow": "allowed",
+            "allowfull": "allowed including labels of",
+            "allowkind": "allowed just device type of",
+            "block": "blocked"
         }
     },
     "popups": {

@@ -146,7 +146,7 @@ try {
                     setting.replace(/allow.*/, "allow"),
                     "mediadevices",
                     window.location.href,
-                    setting
+                    translate(`permissions.notifyLevels.${setting}`)
                 ],
                 "id": "permissions.notify.auto",
                 "src": "user",
@@ -155,7 +155,7 @@ try {
         } else {
             notify({
                 "fields": [
-                    setting.replace(/allow.*/, "allow"),
+                    translate(`permissions.notifyLevels.${setting}`),
                     "mediadevices",
                     window.location.href,
                     "permissionmediadevices"
@@ -203,7 +203,7 @@ try {
                         setting,
                         "displaycapture",
                         window.location.href,
-                        setting
+                        translate(`permissions.notifyLevels.${setting}`)
                     ],
                     "id": "permissions.notify.auto",
                     "src": "user",
@@ -212,7 +212,7 @@ try {
             } else {
                 notify({
                     "fields": [
-                        setting,
+                        translate(`permissions.notifyLevels.${setting}`),
                         "displaycapture",
                         window.location.href,
                         "permissiondisplaycapture"
@@ -289,7 +289,7 @@ try {
                                 "fields": [
                                     "displaycapture",
                                     window.location.href,
-                                    "block"
+                                    translate("permissions.notifyLevels.block")
                                 ],
                                 "id": "permissions.notify.ask",
                                 "src": "user",
@@ -298,7 +298,7 @@ try {
                         } else {
                             notify({
                                 "fields": [
-                                    "block",
+                                    translate("permissions.notifyLevels.block"),
                                     "displaycapture",
                                     window.location.href
                                 ],

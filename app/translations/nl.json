@@ -398,10 +398,16 @@
         },
         "domainCachedAllowed": "Automatische domein caching regel voor 'certificateerror' geactiveerd bij '$1' welke was toegestaan, omdat ditzelfde certificaat eerder was toegestaan op dit domein.",
         "notify": {
-            "ask": "Automatische 'permissionsasked' regel voor '$1' geactiveerd bij '$2' die handmatig $3ed was",
-            "auto": "Automatische 'permissions$1ed' regel voor '$2' geactiveerd op '$3' die $4ed was",
-            "global": "Globaal $1ed '$2' op '$3' gebaseerd op '$4'",
-            "manual": "Handmatig $1ed '$2' bij '$3'"
+            "ask": "Automatische 'permissionsasked' regel voor '$1' geactiveerd bij '$2' die handmatig $3 was",
+            "auto": "Automatische 'permissions$1ed' regel voor '$2' geactiveerd op '$3' die $4 was",
+            "global": "Globaal '$2' $1 voor '$3' gebaseerd op '$4'",
+            "manual": "Handmatig '$2' $1 voor '$3'"
+        },
+        "notifyLevels": {
+            "allow": "toegestaan",
+            "allowfull": "met labels toegestaan",
+            "allowkind": "versimpeld (alleen type) toegestaan",
+            "block": "geweigerd"
         }
     },
     "popups": {

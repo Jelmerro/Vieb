@@ -779,14 +779,22 @@ const permissionHandler = (_, pm, callback, details) => {
             }
             if (settingRule) {
                 notify({
-                    "fields": [permission, details.requestingUrl ?? "", action],
+                    "fields": [
+                        permission,
+                        details.requestingUrl ?? "",
+                        translate(`permissions.notifyLevels.${action}`)
+                    ],
                     "id": "permissions.notify.ask",
                     "src": "user",
                     "type": "permission"
                 })
             } else {
                 notify({
-                    "fields": [action, permission, details.requestingUrl ?? ""],
+                    "fields": [
+                        translate(`permissions.notifyLevels.${action}`),
+                        permission,
+                        details.requestingUrl ?? ""
+                    ],
                     "id": "permissions.notify.manual",
                     "src": "user",
                     "type": "permission"
@@ -813,7 +821,7 @@ const permissionHandler = (_, pm, callback, details) => {
         if (settingRule) {
             notify({
                 "fields": [
-                    setting,
+                    translate(`permissions.notifyLevels.${setting}`),
                     permission,
                     details.requestingUrl ?? "",
                     setting
@@ -825,7 +833,7 @@ const permissionHandler = (_, pm, callback, details) => {
         } else {
             notify({
                 "fields": [
-                    setting,
+                    translate(`permissions.notifyLevels.${setting}`),
                     permission,
                     details.requestingUrl ?? "",
                     permissionName
