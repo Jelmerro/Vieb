@@ -1913,13 +1913,18 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
     let markdownFilesUniqueId = ""
     newSess.protocol.handle("markdownfiles", req => {
-        const url = new URL(req.url)
+        let rawUrl = req.url.replace(/^markdownfiles:\/\//, "")
+        if (process.platform === "win32" && rawUrl.search("%3A") === 1) {
+            rawUrl = rawUrl.replace("%3A", ":")
+        }
+        rawUrl = `file://${rawUrl}`
+        const url = new URL(rawUrl)
         const id = url.searchParams.get("md-uuid")
         url.search = ""
         if (!markdownFilesUniqueId || !id || markdownFilesUniqueId !== id) {
             return Response.error()
         }
-        return net.fetch(url.href.replace(/^markdownfiles:/, "file:"))
+        return net.fetch(url.href)
     })
     newSess.protocol.handle("markdownviewer", req => {
         markdownFilesUniqueId = randomUUID()
@@ -2015,8 +2020,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         try {
             const {baseUrl} = require("marked-base-url")
             if (url.startsWith("file:")) {
-                const base = url.replace(/^file:/, "markdownfiles:")
-                markedObj.use(baseUrl(base))
+                let base = url.replace(/^file:\/\//, "")
+                if (base[1] === ":" && process.platform === "win32") {
+                    base = base.replace(":", "%3A")
+                }
+                markedObj.use(baseUrl(`markdownfiles://${base}`))
             } else {
                 markedObj.use(baseUrl(url))
             }
