@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "mouse" not working at all in 11.0.0 due to incorrect setting type
 - Downloads not kept on restart since V10
 - Startup urls not opening in existing instance if the protocol was missing
+- String settings not accepting double quote escaping properly in 11.0.0
 
 ### Versions
 

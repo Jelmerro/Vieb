@@ -264,10 +264,11 @@ const modifyListOrObject = (src, setting, value, method) => {
  * Modifiy a list or a number.
  * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
- * @param {string} value
+ * @param {string} rawValue
  * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifySetting = (src, setting, value, method = "replace") => {
+const modifySetting = (src, setting, rawValue, method = "replace") => {
+    let value = rawValue
     const {
         set, isNumberSetting, isStringSetting, isArraySetting, isObjectSetting
     } = require("./settings")
@@ -280,6 +281,14 @@ const modifySetting = (src, setting, value, method = "replace") => {
         || value.startsWith("[") && value.endsWith("]"))) {
         modifyListOrObject(src, setting, value, method)
         return
+    }
+    try {
+        value = JSON.parse(rawValue)
+        if (typeof value !== "string") {
+            value = rawValue
+        }
+    } catch {
+        // Not JSON, this is fine
     }
     if (method === "replace") {
         if (isList) {
