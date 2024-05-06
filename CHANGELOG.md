@@ -37,7 +37,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Downloads not kept on restart since V10
 - Startup urls not opening in existing instance if the protocol was missing
 - String settings not accepting double quote escaping properly in 11.0.0
-- Markdown local images not loading properly on Windows due to Windows file paths not working
+- Markdown local images not loading properly on Windows due to Windows file paths being weird
+- File explorer not working on Windows since 10.4.0 due to Windows file paths being weirrd
 
 ### Versions
 

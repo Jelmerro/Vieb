@@ -49,7 +49,7 @@ const createElement = (type, loc, customTitle = null) => {
  * Check if the provided location is the root location of the system.
  * @param {string} loc
  */
-const isRoot = loc => loc === joinPath(loc, "../")
+const isRoot = loc => joinPath(loc) === joinPath(loc, "../")
 
 /**
  * Insert the current directory info into the page to explore local files.
@@ -66,7 +66,7 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
     const title = document.createElement("h2")
     let breadcrumb = folder
     let counter = 0
-    while (!isRoot(breadcrumb) || counter > 1000) {
+    while (!isRoot(breadcrumb) && counter < 1000) {
         const dir = basePath(breadcrumb)
         title.prepend(createElement("breadcrumb", breadcrumb, dir))
         breadcrumb = dirname(breadcrumb)
