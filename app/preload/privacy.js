@@ -52,6 +52,13 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection__btn:hover, .desktop-capturer-selection__btn:focus {
     background: %FG%;color: %BG%;
 }`
+
+/**
+ * Send a notification to the renderer thread.
+ * @param {import("../util").NotificationInfo} opts
+ */
+const notify = opts => ipcRenderer.sendToHost("notify", opts)
+
 try {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
@@ -134,7 +141,7 @@ try {
         }
         setting = settingRule ?? setting
         if (settingRule) {
-            ipcRenderer.sendToHost("notify", {
+            notify({
                 "fields": [
                     setting.replace(/allow.*/, "allow"),
                     "mediadevices",
@@ -146,7 +153,7 @@ try {
                 "type": "permission"
             })
         } else {
-            ipcRenderer.sendToHost("notify", {
+            notify({
                 "fields": [
                     setting.replace(/allow.*/, "allow"),
                     "mediadevices",
@@ -191,7 +198,7 @@ try {
         // because allowed requests are passed to the regular permission system.
         if (setting !== "ask") {
             if (settingRule) {
-                ipcRenderer.sendToHost("notify", {
+                notify({
                     "fields": [
                         setting,
                         "displaycapture",
@@ -203,7 +210,7 @@ try {
                     "type": "permission"
                 })
             } else {
-                ipcRenderer.sendToHost("notify", {
+                notify({
                     "fields": [
                         setting,
                         "displaycapture",
@@ -278,7 +285,7 @@ try {
                         ipcRenderer.sendToHost(
                             "custom-style-inject", "displaycapture")
                         if (settingRule) {
-                            ipcRenderer.sendToHost("notify", {
+                            notify({
                                 "fields": [
                                     "displaycapture",
                                     window.location.href,
@@ -289,7 +296,7 @@ try {
                                 "type": "permission"
                             })
                         } else {
-                            ipcRenderer.sendToHost("notify", {
+                            notify({
                                 "fields": [
                                     "block",
                                     "displaycapture",
@@ -395,8 +402,8 @@ if (window.BatteryManager) {
 window.prompt = (title, defaultText = "") => {
     const promptBehavior = getSetting("dialogprompt") ?? "notifyblock"
     if (promptBehavior.includes("notify")) {
-        ipcRenderer.sendToHost("notify", {
-            "fields": [window.location.href, title],
+        notify({
+            "fields": [window.location.href, title ?? ""],
             "id": "popups.prompt.block",
             "src": "user",
             "type": "dialog"
@@ -414,8 +421,8 @@ window.prompt = (title, defaultText = "") => {
 window.confirm = text => {
     const confirmBehavior = getSetting("dialogconfirm") ?? "notifyblock"
     if (confirmBehavior.includes("notify")) {
-        ipcRenderer.sendToHost("notify", {
-            "fields": [window.location.href, text],
+        notify({
+            "fields": [window.location.href, text ?? ""],
             "id": "popups.confirm.block",
             "src": "user",
             "type": "dialog"
@@ -444,8 +451,8 @@ window.confirm = text => {
 window.alert = text => {
     const alertBehavior = getSetting("dialogalert") ?? "notifyblock"
     if (alertBehavior.includes("notify")) {
-        ipcRenderer.sendToHost("notify", {
-            "fields": [window.location.href, text],
+        notify({
+            "fields": [window.location.href, text ?? ""],
             "id": "popups.alert.block",
             "src": "user",
             "type": "dialog"

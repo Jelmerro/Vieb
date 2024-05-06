@@ -39,6 +39,12 @@ const {
 } = require("../util")
 
 /**
+ * Send a notification to the renderer thread.
+ * @param {import("../util").NotificationInfo} opts
+ */
+const notify = opts => ipcRenderer.sendToHost("notify", opts)
+
+/**
  * Navigate to the next page if available.
  * @param {string} selector
  * @param {boolean} newtab
@@ -510,7 +516,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                 "q": strings
             }))
             if (srcResponse.error) {
-                return ipcRenderer.sendToHost("notify", {
+                return notify({
                     "fields": [srcResponse.error],
                     "id": "actions.translations.errors.libretranslate",
                     "src": "user",
@@ -528,7 +534,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                 "target": lang
             }))
             if (response.error) {
-                return ipcRenderer.sendToHost("notify", {
+                return notify({
                     "fields": [response.error],
                     "id": "actions.translations.errors.libretranslate",
                     "src": "user",
@@ -552,7 +558,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                 })
             }
         } catch (e) {
-            ipcRenderer.sendToHost("notify", {
+            notify({
                 "id": "actions.translations.errors.general",
                 "src": "user",
                 "type": "error"
@@ -575,7 +581,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             "text": strings
         }))
         if (response.message) {
-            return ipcRenderer.sendToHost("notify", {
+            return notify({
                 "fields": [response.message],
                 "id": "actions.translations.errors.deepl",
                 "src": "user",
@@ -599,7 +605,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             })
         }
     } catch (e) {
-        ipcRenderer.sendToHost("notify", {
+        notify({
             "id": "actions.translations.errors.general",
             "src": "user",
             "type": "error"

@@ -35,6 +35,12 @@ const {
 } = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 
+/**
+ * Send a notification to the renderer thread.
+ * @param {import("../util").NotificationInfo} opts
+ */
+const notify = opts => ipcRenderer.sendToHost("notify", opts)
+
 /** Apply the current theme styling from the parent process. */
 const applyThemeStyling = () => {
     const style = `html {
@@ -63,7 +69,7 @@ const enableDarkReader = async() => {
     try {
         darkreader = require("darkreader")
     } catch {
-        ipcRenderer.sendToHost("notify", {
+        notify({
             "id": "settings.errors.darkreader.missing",
             "src": "user",
             "type": "error"

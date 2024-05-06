@@ -569,6 +569,12 @@ const currentInputMatches = key => {
 }
 
 /**
+ * Send a notification to the renderer thread.
+ * @param {import("./util").NotificationInfo} opts
+ */
+const notify = opts => mainWindow?.webContents.send("notify", opts)
+
+/**
  * Resolve local paths to absolute file protocol paths.
  * @param {(string|{
  *   container?: unknown, url?: unknown, script?: unknown
@@ -700,7 +706,7 @@ const permissionHandler = (_, pm, callback, details) => {
     if (permission === "certificateerror") {
         if (allowedFingerprints[domain]
             ?.includes(details.cert?.fingerprint ?? "")) {
-            mainWindow.webContents.send("notify", {
+            notify({
                 "fields": [permission, details.requestingUrl ?? ""],
                 "id": "permissions.domainCachedAllowed",
                 "src": "user",
@@ -772,14 +778,14 @@ const permissionHandler = (_, pm, callback, details) => {
                 action = "block"
             }
             if (settingRule) {
-                mainWindow.webContents.send("notify", {
+                notify({
                     "fields": [permission, details.requestingUrl ?? "", action],
                     "id": "permissions.notify.ask",
                     "src": "user",
                     "type": "permission"
                 })
             } else {
-                mainWindow.webContents.send("notify", {
+                notify({
                     "fields": [action, permission, details.requestingUrl ?? ""],
                     "id": "permissions.notify.manual",
                     "src": "user",
@@ -805,7 +811,7 @@ const permissionHandler = (_, pm, callback, details) => {
         })
     } else {
         if (settingRule) {
-            mainWindow.webContents.send("notify", {
+            notify({
                 "fields": [
                     setting,
                     permission,
@@ -817,7 +823,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 "type": "permission"
             })
         } else {
-            mainWindow.webContents.send("notify", {
+            notify({
                 "fields": [
                     setting,
                     permission,
@@ -1492,7 +1498,7 @@ const reloadAdblocker = () => {
         // Adblocker module not present, skipping initialization
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
-        mainWindow?.webContents.send("notify", {
+        notify({
             "id": "adblocker.missing",
             "src": "user",
             "type": "error"
@@ -1540,7 +1546,7 @@ const enableAdblocker = type => {
             if (!url) {
                 continue
             }
-            mainWindow?.webContents.send("notify", {
+            notify({
                 "fields": [list],
                 "id": "adblocker.updating",
                 "src": "user"
@@ -1552,7 +1558,7 @@ const enableAdblocker = type => {
                 res.on("end", () => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     reloadAdblocker()
-                    mainWindow?.webContents.send("notify", {
+                    notify({
                         "fields": [list],
                         "id": "adblocker.updated",
                         "src": "user",
@@ -1563,13 +1569,13 @@ const enableAdblocker = type => {
                     body += chunk
                 })
             })
-            request.on("abort", () => mainWindow?.webContents.send("notify", {
+            request.on("abort", () => notify({
                 "fields": [list],
                 "id": "adblocker.aborted",
                 "src": "user",
                 "type": "error"
             }))
-            request.on("error", e => mainWindow?.webContents.send("notify", {
+            request.on("error", e => notify({
                 "fields": [list, e.message],
                 "id": "adblocker.failed",
                 "src": "user",
@@ -1764,11 +1770,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "uuid": randomUUID()
         }
         downloads.push(info)
-        const downloadSrc = downloadSettings.src
+        const downloadSrc = downloadSettings.src ?? "user"
         if (downloadSrc === "execute") {
             downloadSettings.src = "user"
         }
-        mainWindow.webContents.send("notify", {
+        notify({
             "fields": [info.name],
             "id": "downloads.started",
             "src": downloadSrc
@@ -1799,7 +1805,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 info.state = "cancelled"
             }
             if (info.state === "completed") {
-                mainWindow?.webContents.send("notify", {
+                notify({
                     "action": {
                         "path": info.file, "type": "download-success"
                     },
@@ -1809,7 +1815,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     "type": "success"
                 })
             } else {
-                mainWindow?.webContents.send("notify", {
+                notify({
                     "fields": [info.name],
                     "id": "downloads.failed",
                     "src": downloadSrc,

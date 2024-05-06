@@ -984,8 +984,7 @@ const intervalValueToDate = value => {
 }
 
 /**
- * Show the user a notification bubble and store it in the history.
- * @param {{
+ * @typedef {{
  *   id: import("../types/i18n").TranslationKeys,
  *   fields?: string[],
  *   action?: {
@@ -995,14 +994,15 @@ const intervalValueToDate = value => {
  *   }|false,
  *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
  *   src: import("./renderer/common").RunSource
- * }} opts
+ * }} NotificationInfo
+ */
+
+/**
+ * Show the user a notification bubble and store it in the history.
+ * @param {NotificationInfo} opts
  */
 const notify = opts => {
     const {translate} = require("./translate")
-    if (typeof opts === "string") {
-        console.warn(opts)
-        return
-    }
     const message = translate(opts.id, {"fields": opts.fields ?? []})
     if (opts.src === "execute") {
         const {appendFileSync} = require("fs")
