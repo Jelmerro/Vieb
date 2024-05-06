@@ -454,13 +454,14 @@ const viebMenu = (src, options, force = false) => {
                 }
                 url?.select()
             },
-            "title": "Select all"
+            "title": translate("contextmenu.text.selectAll")
         })
         if (url?.value.trim().length) {
             if ("sec".includes(currentMode()[0])) {
                 createMenuItem({
                     /** Menu item: Go to url. */
-                    "action": () => useEnteredData({src}), "title": "Go"
+                    "action": () => useEnteredData({src}),
+                    "title": translate("contextmenu.general.go")
                 })
             }
         }
@@ -475,7 +476,7 @@ const viebMenu = (src, options, force = false) => {
                     const {cutInput} = require("./input")
                     cutInput()
                 },
-                "title": "Cut"
+                "title": translate("contextmenu.text.cut")
             })
             createMenuItem({
                 /** Menu item: Copy selection. */
@@ -487,7 +488,7 @@ const viebMenu = (src, options, force = false) => {
                     const {copyInput} = require("./input")
                     copyInput()
                 },
-                "title": "Copy"
+                "title": translate("contextmenu.text.copy")
             })
         }
         if (clipboard.readText().trim()) {
@@ -501,7 +502,7 @@ const viebMenu = (src, options, force = false) => {
                     const {pasteInput} = require("./input")
                     pasteInput()
                 },
-                "title": "Paste"
+                "title": translate("contextmenu.text.paste")
             })
             createMenuItem({
                 /** Menu item: Paste and go to url. */
@@ -514,7 +515,7 @@ const viebMenu = (src, options, force = false) => {
                     pasteInput()
                     useEnteredData({src})
                 },
-                "title": "Paste & go"
+                "title": translate("contextmenu.text.pasteGo")
             })
         }
         fixAlignmentNearBorders()
@@ -534,9 +535,9 @@ const viebMenu = (src, options, force = false) => {
             return
         }
         const pinned = tab.classList.contains("pinned")
-        let pinTitle = "Pin"
+        let pinTitle = translate("contextmenu.tab.pin")
         if (pinned) {
-            pinTitle = "Unpin"
+            pinTitle = translate("contextmenu.tab.unpin")
         }
         createMenuItem({
             /** Menu item: Pin. */
@@ -545,9 +546,9 @@ const viebMenu = (src, options, force = false) => {
         })
         const isSuspended = page?.tagName?.toLowerCase() !== "webview"
         if (!tab.classList.contains("visible-tab") || isSuspended) {
-            let suspendTitle = "Suspend"
+            let suspendTitle = translate("contextmenu.tab.suspend")
             if (isSuspended) {
-                suspendTitle = "Unsuspend"
+                suspendTitle = translate("contextmenu.tab.unsuspend")
             }
             createMenuItem({
                 /** Menu item: toggle suspend. */
@@ -566,7 +567,7 @@ const viebMenu = (src, options, force = false) => {
             createMenuItem({
                 /** Menu item: Refresh tab. */
                 "action": () => refreshTab({"customPage": page, src}),
-                "title": "Refresh"
+                "title": translate("contextmenu.tab.refresh")
             })
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
@@ -574,7 +575,7 @@ const viebMenu = (src, options, force = false) => {
                     "action": () => {
                         backInHistory({"customPage": page, src})
                     },
-                    "title": "Previous"
+                    "title": translate("contextmenu.tab.previous")
                 })
             }
             if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
@@ -583,7 +584,7 @@ const viebMenu = (src, options, force = false) => {
                     "action": () => {
                         forwardInHistory({"customPage": page, src})
                     },
-                    "title": "Next"
+                    "title": translate("contextmenu.tab.next")
                 })
             }
         }
@@ -597,18 +598,18 @@ const viebMenu = (src, options, force = false) => {
                 }
                 addTab({"customIndex": index, pinned, src})
             },
-            "title": "Add tab here"
+            "title": translate("contextmenu.tab.addHere")
         })
         createMenuItem({
             /** Menu item: Copy url. */
             "action": () => clipboard.writeText(urlToString(
                 page.getAttribute("src") ?? "").replace(/ /g, "%20")),
-            "title": "Copy url"
+            "title": translate("contextmenu.tab.copy")
         })
         createMenuItem({
             /** Menu item: Open an empty new tab to edit the current url. */
             "action": () => openNewTabWithCurrentUrl({"customPage": page, src}),
-            "title": "Clone & edit"
+            "title": translate("contextmenu.tab.cloneEdit")
         })
         createMenuItem({
             /** Menu item: Open a new tab with the current url and navigate. */
@@ -624,31 +625,33 @@ const viebMenu = (src, options, force = false) => {
                     "url": page.getAttribute("src") ?? ""
                 })
             },
-            "title": "Clone & go"
+            "title": translate("contextmenu.tab.cloneGo")
         })
         createMenuItem({
             /** Menu item: Close tab. */
             "action": () => closeTab(src, listTabs().indexOf(tab), true),
-            "title": "Close"
+            "title": translate("contextmenu.tab.close")
         })
         createMenuGroup("general")
         createMenuItem({
             /** Menu item: Add tab. */
             "action": () => addTab({src}),
-            "title": "Add tab"
+            "title": translate("contextmenu.tab.add")
         })
         createMenuItem({
             /** Menu item: Split horizontal. */
-            "action": () => execute("split", {src}), "title": "Split"
+            "action": () => execute("split", {src}),
+            "title": translate("contextmenu.general.split")
         })
         createMenuItem({
             /** Menu item: Split vertical. */
-            "action": () => execute("vsplit", {src}), "title": "Vsplit"
+            "action": () => execute("vsplit", {src}),
+            "title": translate("contextmenu.general.vsplit")
         })
         createMenuItem({
             /** Menu item: Reopen tab. */
             "action": () => reopenTab(src),
-            "title": "Reopen"
+            "title": translate("contextmenu.tab.reopen")
         })
         fixAlignmentNearBorders()
     }
@@ -669,11 +672,13 @@ const linkMenu = (src, options) => {
     const {addTab, navigateTo} = require("./tabs")
     createMenuItem({
         /** Menu item: Navigate to link. */
-        "action": () => navigateTo(src, options.link), "title": "Navigate"
+        "action": () => navigateTo(src, options.link),
+        "title": translate("contextmenu.general.navigate")
     })
     createMenuItem({
         /** Menu item: Link in new tab. */
-        "action": () => addTab({src, "url": options.link}), "title": "Newtab"
+        "action": () => addTab({src, "url": options.link}),
+        "title": translate("contextmenu.general.newtab")
     })
     createMenuItem({
         /** Menu item: Link to clipboard. */
@@ -681,7 +686,7 @@ const linkMenu = (src, options) => {
             const {clipboard} = require("electron")
             clipboard.writeText(urlToString(options.link).replace(/ /g, "%20"))
         },
-        "title": "Copy"
+        "title": translate("contextmenu.general.copy")
     })
     createMenuItem({
         /** Menu item: Link download. */
@@ -696,25 +701,25 @@ const linkMenu = (src, options) => {
                 currentPage()?.downloadURL(options.link)
             }
         },
-        "title": "Download"
+        "title": translate("contextmenu.general.download")
     })
     createMenuItem({
         /** Menu item: Open link externally. */
         "action": () => commonAction(src, "link", "external",
             {"link": options.link}),
-        "title": "External"
+        "title": translate("contextmenu.general.external")
     })
     createMenuItem({
         /** Menu item: Open link in split. */
         "action": () => commonAction(
             src, "link", "split", {"link": options.link}),
-        "title": "Split"
+        "title": translate("contextmenu.general.split")
     })
     createMenuItem({
         /** Menu item: Open link in vertical split. */
         "action": () => commonAction(
             src, "link", "vsplit", {"link": options.link}),
-        "title": "Vsplit"
+        "title": translate("contextmenu.general.vsplit")
     })
     fixAlignmentNearBorders()
 }
@@ -739,7 +744,7 @@ const commandMenu = (src, options) => {
             const {execute} = require("./command")
             execute(options.command, {src})
         },
-        "title": "Execute"
+        "title": translate("contextmenu.general.execute")
     })
     createMenuItem({
         /** Menu item: Copy the command. */
@@ -747,7 +752,7 @@ const commandMenu = (src, options) => {
             const {clipboard} = require("electron")
             clipboard.writeText(options.command)
         },
-        "title": "Copy"
+        "title": translate("contextmenu.general.copy")
     })
     fixAlignmentNearBorders()
 }
@@ -796,18 +801,21 @@ const webviewMenu = (src, options, force = false) => {
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
     createMenuItem({
         /** Menu item: Refresh tab. */
-        "action": () => refreshTab({src}), "title": "Refresh"
+        "action": () => refreshTab({src}),
+        "title": translate("contextmenu.tab.refresh")
     })
     if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
         createMenuItem({
             /** Menu item: Back in history. */
-            "action": () => backInHistory({src}), "title": "Previous"
+            "action": () => backInHistory({src}),
+            "title": translate("contextmenu.tab.previous")
         })
     }
     if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
         createMenuItem({
             /** Menu item: Forward in history. */
-            "action": () => forwardInHistory({src}), "title": "Next"
+            "action": () => forwardInHistory({src}),
+            "title": translate("contextmenu.tab.next")
         })
     }
     createMenuItem({
@@ -816,14 +824,14 @@ const webviewMenu = (src, options, force = false) => {
             const {execute} = require("./command")
             execute("write", {src})
         },
-        "title": "Save page"
+        "title": translate("contextmenu.tab.save")
     })
     createMenuItem({
         /** Menu item: Open the devtools and inspect the pointed element. */
         "action": () => page.inspectElement(
             Math.round(options.x * zoom + webviewX),
             Math.round(options.y * zoom + webviewY)),
-        "title": "Inspect"
+        "title": translate("contextmenu.tab.inspect")
     })
     const {updateKeysOnScreen} = require("./input")
     updateKeysOnScreen()
@@ -866,46 +874,46 @@ const webviewMenu = (src, options, force = false) => {
         /** Menu item: Select all text. */
         "action": () => sendToPageOrSubFrame("action", "selectionAll",
             options.x, options.y),
-        "title": "Select all"
+        "title": translate("contextmenu.text.selectAll")
     })
     if (options.text) {
         createMenuItem({
             /** Menu item: Navigate to the link or search the text. */
             "action": () => commonAction(src, "text", "open", options),
-            "title": "Navigate"
+            "title": translate("contextmenu.general.navigate")
         })
         createMenuItem({
             /** Menu item: Open the link or search the text in newtab. */
             "action": () => commonAction(src, "text", "newtab", options),
-            "title": "Newtab"
+            "title": translate("contextmenu.general.newtab")
         })
         createMenuItem({
             /** Menu item: Search the page for the selection. */
             "action": () => commonAction(src, "text", "search", options),
-            "title": "Search/find"
+            "title": translate("contextmenu.general.search")
         })
         createMenuItem({
             /** Menu item: Split the selection as a link or a search. */
             "action": () => commonAction(src, "text", "split", options),
-            "title": "Split"
+            "title": translate("contextmenu.general.split")
         })
         createMenuItem({
             /** Menu item: Vsplit the selection as a link or a search. */
             "action": () => commonAction(src, "text", "vsplit", options),
-            "title": "Vsplit"
+            "title": translate("contextmenu.general.vsplit")
         })
         if (options.canEdit) {
             createMenuItem({
                 /** Menu item: Cut the selection. */
                 "action": () => sendToPageOrSubFrame("action", "selectionCut",
                     options.x, options.y),
-                "title": "Cut"
+                "title": translate("contextmenu.text.cut")
             })
         }
         createMenuItem({
             /** Menu item: Copy the selection. */
             "action": () => commonAction(src, "text", "copy", options),
-            "title": "Copy"
+            "title": translate("contextmenu.text.copy")
         })
     }
     if (options.canEdit && clipboard.readText().trim()) {
@@ -913,19 +921,19 @@ const webviewMenu = (src, options, force = false) => {
             /** Menu item: Paste text from clipboard at the pointed location. */
             "action": () => sendToPageOrSubFrame("action", "selectionPaste",
                 options.x, options.y),
-            "title": "Paste"
+            "title": translate("contextmenu.text.paste")
         })
     }
     if (options.text) {
         createMenuItem({
             /** Menu item: Download the selected text as if a link. */
             "action": () => commonAction(src, "text", "download", options),
-            "title": "Download"
+            "title": translate("contextmenu.general.download")
         })
         createMenuItem({
             /** Menu item: Open the selected text externally. */
             "action": () => commonAction(src, "text", "external", options),
-            "title": "With external"
+            "title": translate("contextmenu.general.external")
         })
     }
     if (options.img || options.backgroundImg || options.svgData) {
@@ -933,42 +941,42 @@ const webviewMenu = (src, options, force = false) => {
         createMenuItem({
             /** Menu item: Navigate to an image. */
             "action": () => commonAction(src, "img", "open", options),
-            "title": "Navigate"
+            "title": translate("contextmenu.general.navigate")
         })
         createMenuItem({
             /** Menu item: Open the image in a new tab. */
             "action": () => commonAction(src, "img", "newtab", options),
-            "title": "Newtab"
+            "title": translate("contextmenu.general.newtab")
         })
         createMenuItem({
             /** Menu item: Copy the image link to clipboard. */
             "action": () => commonAction(src, "img", "copy", options),
-            "title": "Copy link"
+            "title": translate("contextmenu.general.copyLink")
         })
         createMenuItem({
             /** Menu item: Copy the image data to clipboard as a buffer. */
             "action": () => commonAction(src, "img", "copyimage", options),
-            "title": "Copy image"
+            "title": translate("contextmenu.general.copyImage")
         })
         createMenuItem({
             /** Menu item: Download the image to disk. */
             "action": () => commonAction(src, "img", "download", options),
-            "title": "Download"
+            "title": translate("contextmenu.general.download")
         })
         createMenuItem({
             /** Menu item: Open the image link externally. */
             "action": () => commonAction(src, "img", "external", options),
-            "title": "External"
+            "title": translate("contextmenu.general.external")
         })
         createMenuItem({
             /** Menu item: Open the image link in a horizontal split. */
             "action": () => commonAction(src, "img", "split", options),
-            "title": "Split"
+            "title": translate("contextmenu.general.split")
         })
         createMenuItem({
             /** Menu item: Open the image link in a vertical split. */
             "action": () => commonAction(src, "img", "vsplit", options),
-            "title": "Vsplit"
+            "title": translate("contextmenu.general.vsplit")
         })
     }
     /** @type {("frame"|"video"|"audio"|"link")[]} */
@@ -981,44 +989,44 @@ const webviewMenu = (src, options, force = false) => {
             createMenuItem({
                 /** Menu item: Navigate to some media. */
                 "action": () => commonAction(src, type, "open", options),
-                "title": "Navigate"
+                "title": translate("contextmenu.general.navigate")
             })
             createMenuItem({
                 /** Menu item: Open the media in a new tab. */
                 "action": () => commonAction(src, type, "newtab", options),
-                "title": "Newtab"
+                "title": translate("contextmenu.general.newtab")
             })
             createMenuItem({
                 /** Menu item: Copy the media link to clipboard. */
                 "action": () => commonAction(src, type, "copy", options),
-                "title": "Copy link"
+                "title": translate("contextmenu.general.copyLink")
             })
             createMenuItem({
                 /** Menu item: Download the media(/link) to disk. */
                 "action": () => commonAction(src, type, "download", options),
-                "title": "Download"
+                "title": translate("contextmenu.general.download")
             })
             createMenuItem({
                 /** Menu item: Open the media link externally. */
                 "action": () => commonAction(src, type, "external", options),
-                "title": "External"
+                "title": translate("contextmenu.general.external")
             })
             createMenuItem({
                 /** Menu item: Open the media link in a horizontal split. */
                 "action": () => commonAction(src, type, "split", options),
-                "title": "Split"
+                "title": translate("contextmenu.general.split")
             })
             createMenuItem({
                 /** Menu item: Open the media link in a vertical split. */
                 "action": () => commonAction(src, type, "vsplit", options),
-                "title": "Vsplit"
+                "title": translate("contextmenu.general.vsplit")
             })
         }
         if (options[`${type}Data`]?.controllable) {
-            let playTitle = "Pause"
+            let playTitle = translate("contextmenu.tab.pause")
             if ((type === "audio" || type === "video")
                 && options[`${type}Data`].paused) {
-                playTitle = "Play"
+                playTitle = translate("contextmenu.tab.play")
             }
             createMenuItem({
                 /** Toggle media pause if controllable. */
@@ -1026,10 +1034,10 @@ const webviewMenu = (src, options, force = false) => {
                     "togglePause", options.x, options.y),
                 "title": playTitle
             })
-            let muteTitle = "Mute"
+            let muteTitle = translate("contextmenu.tab.mute")
             if ((type === "audio" || type === "video")
                 && options[`${type}Data`].muted) {
-                muteTitle = "Unmute"
+                muteTitle = translate("contextmenu.tab.unmute")
             }
             createMenuItem({
                 /** Toggle media mute if controllable. */
@@ -1037,10 +1045,10 @@ const webviewMenu = (src, options, force = false) => {
                     "toggleMute", options.x, options.y),
                 "title": muteTitle
             })
-            let loopTitle = "Loop"
+            let loopTitle = translate("contextmenu.tab.loop")
             if ((type === "audio" || type === "video")
                 && options[`${type}Data`].loop) {
-                loopTitle = "Unloop"
+                loopTitle = translate("contextmenu.tab.unloop")
             }
             createMenuItem({
                 /** Toggle media loop if controllable. */
@@ -1049,9 +1057,9 @@ const webviewMenu = (src, options, force = false) => {
                 "title": loopTitle
             })
             if (type === "video") {
-                let controlsTitle = "Show controls"
+                let controlsTitle = translate("contextmenu.tab.showControls")
                 if (options[`${type}Data`].controls) {
-                    controlsTitle = "Hide controls"
+                    controlsTitle = translate("contextmenu.tab.hideControls")
                 }
                 createMenuItem({
                     /** Toggle video controls. */
@@ -1064,13 +1072,13 @@ const webviewMenu = (src, options, force = false) => {
                 /** Increase the media volume. */
                 "action": () => sendToPageOrSubFrame("action",
                     "volumeUp", options.x, options.y),
-                "title": "Volume up"
+                "title": translate("contextmenu.tab.volumeUp")
             })
             createMenuItem({
                 /** Decrease the media volume. */
                 "action": () => sendToPageOrSubFrame("action",
                     "volumeDown", options.x, options.y),
-                "title": "Volume down"
+                "title": translate("contextmenu.tab.volumeDown")
             })
         }
     }

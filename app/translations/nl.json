@@ -221,6 +221,20 @@
         }
     },
     "contextmenu": {
+        "general": {
+            "copy": "Kopieer",
+            "copyImage": "Kopieer afbeelding",
+            "copyLink": "Kopieer link",
+            "download": "Download",
+            "execute": "Uitvoeren",
+            "external": "Extern openen",
+            "go": "Open",
+            "navigate": "Navigeer",
+            "newtab": "Nieuw tab",
+            "search": "Zoeken",
+            "split": "Split",
+            "vsplit": "Vsplit"
+        },
         "groups": {
             "audio": "Audio",
             "frame": "Frame",
@@ -230,6 +244,41 @@
             "suggestions": "Suggesties",
             "text": "Tekst",
             "video": "Video"
+        },
+        "tab": {
+            "add": "Nieuw tab",
+            "addHere": "Nieuw tab hier",
+            "cloneEdit": "Dupliceer en bewerk",
+            "cloneGo": "Dupliceer en open",
+            "close": "Sluit",
+            "copy": "Kopieer",
+            "hideControls": "Verberg controls",
+            "inspect": "Inspecteer",
+            "loop": "Herhaal",
+            "mute": "Demp",
+            "next": "Volgende",
+            "pause": "Pauzeer",
+            "pin": "Vastmaken",
+            "play": "Afspelen",
+            "previous": "Vorige",
+            "refresh": "Ververs",
+            "reopen": "Heropen",
+            "save": "Opslaan",
+            "showControls": "Toon controls",
+            "suspend": "Sluimer",
+            "unloop": "Niet meer herhalen",
+            "unmute": "Niet meer dempen",
+            "unpin": "Niet meer vastmaken",
+            "unsuspend": "Niet meer sluimeren",
+            "volumeDown": "Volume omlaag",
+            "volumeUp": "Volume omhoog"
+        },
+        "text": {
+            "copy": "Kopieer",
+            "cut": "Knip",
+            "paste": "Plak",
+            "pasteGo": "Plak en open",
+            "selectAll": "Selecteer alles"
         }
     },
     "downloads": {

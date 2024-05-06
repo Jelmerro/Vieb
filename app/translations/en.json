@@ -221,6 +221,20 @@
         }
     },
     "contextmenu": {
+        "general": {
+            "copy": "Copy",
+            "copyImage": "Copy image",
+            "copyLink": "Copy link",
+            "download": "Download",
+            "execute": "Execute",
+            "external": "External",
+            "go": "Go",
+            "navigate": "Navigate",
+            "newtab": "Newtab",
+            "search": "Search",
+            "split": "Split",
+            "vsplit": "Vsplit"
+        },
         "groups": {
             "audio": "Audio",
             "frame": "Frame",
@@ -230,6 +244,41 @@
             "suggestions": "Suggestions",
             "text": "Text",
             "video": "Video"
+        },
+        "tab": {
+            "add": "Add tab",
+            "addHere": "Add tab here",
+            "cloneEdit": "Clone & edit",
+            "cloneGo": "Clone & go",
+            "close": "Close",
+            "copy": "Copy url",
+            "hideControls": "Hide controls",
+            "inspect": "Inspect",
+            "loop": "Loop",
+            "mute": "Mute",
+            "next": "Next",
+            "pause": "Pause",
+            "pin": "Pin",
+            "play": "Play",
+            "previous": "Previous",
+            "refresh": "Refresh",
+            "reopen": "Reopen",
+            "save": "Save page",
+            "showControls": "Show controls",
+            "suspend": "Suspend",
+            "unloop": "Unloop",
+            "unmute": "Unmute",
+            "unpin": "Unpin",
+            "unsuspend": "Unsuspend",
+            "volumeDown": "Volume down",
+            "volumeUp": "Volume up"
+        },
+        "text": {
+            "copy": "Copy",
+            "cut": "Cut",
+            "paste": "Paste",
+            "pasteGo": "Paste & go",
+            "selectAll": "Select all"
         }
     },
     "downloads": {

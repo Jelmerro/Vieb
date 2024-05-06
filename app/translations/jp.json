@@ -221,6 +221,20 @@
         }
     },
     "contextmenu": {
+        "general": {
+            "copy": "コピー",
+            "copyImage": "コピー画像",
+            "copyLink": "コピーリンク",
+            "download": "ダウンロード",
+            "execute": "実行",
+            "external": "外部",
+            "go": "ゴー",
+            "navigate": "ナビゲート",
+            "newtab": "新しいタブ",
+            "search": "検索",
+            "split": "横に分割",
+            "vsplit": "縦に分割"
+        },
         "groups": {
             "audio": "音声",
             "frame": "フレーム",
@@ -230,6 +244,41 @@
             "suggestions": "提案",
             "text": "テキスト",
             "video": "動画"
+        },
+        "tab": {
+            "add": "新しいタブ",
+            "addHere": "ここに新しいタブ",
+            "cloneEdit": "クローンと編集",
+            "cloneGo": "クローンとゴー",
+            "close": "閉じる",
+            "copy": "コピー",
+            "hideControls": "コントロールを非表示",
+            "inspect": "検査",
+            "loop": "ループ",
+            "mute": "ミュート",
+            "next": "次のページ",
+            "pause": "ポース",
+            "pin": "ピン",
+            "play": "プレー",
+            "previous": "前のページ",
+            "refresh": "リフレッシュ",
+            "reopen": "再度開く",
+            "save": "保存",
+            "showControls": "コントロールを表示",
+            "suspend": "中断",
+            "unloop": "アンループ",
+            "unmute": "アンミュート",
+            "unpin": "アンピン",
+            "unsuspend": "レジュメ",
+            "volumeDown": "音量ダウン",
+            "volumeUp": "音量アップ"
+        },
+        "text": {
+            "copy": "コピー",
+            "cut": "カット",
+            "paste": "ペースト",
+            "pasteGo": "ペーストとゴー",
+            "selectAll": "すべて選択"
         }
     },
     "downloads": {
