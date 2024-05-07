@@ -260,6 +260,8 @@
             "pause": "Pause",
             "pin": "Pin",
             "play": "Play",
+            "playbackDown": "Speed down",
+            "playbackUp": "Speed up",
             "previous": "Previous",
             "refresh": "Refresh",
             "reopen": "Reopen",

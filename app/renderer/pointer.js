@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -740,6 +740,12 @@ const mediaDown = () => sendToPageOrSubFrame("action", "volumeDown", X, Y)
 /** Incease the volume for the hovered audio/video element. */
 const mediaUp = () => sendToPageOrSubFrame("action", "volumeUp", X, Y)
 
+/** Decrease the playbackRate for the hovered audio/video element. */
+const mediaSlower = () => sendToPageOrSubFrame("action", "playbackDown", X, Y)
+
+/** Increase the playbackRate for the hovered audio/video element. */
+const mediaFaster = () => sendToPageOrSubFrame("action", "playbackUp", X, Y)
+
 /** Toggle the mute state for the hovered audio/video element. */
 const toggleMediaMute = () => sendToPageOrSubFrame("action", "toggleMute", X, Y)
 
@@ -1185,6 +1191,8 @@ module.exports = {
     inspectElement,
     leftClick,
     mediaDown,
+    mediaFaster,
+    mediaSlower,
     mediaUp,
     move,
     moveDown,

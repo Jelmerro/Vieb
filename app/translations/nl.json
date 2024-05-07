@@ -260,6 +260,8 @@
             "pause": "Pauzeer",
             "pin": "Vastmaken",
             "play": "Afspelen",
+            "playbackDown": "Snelheid omlaag",
+            "playbackUp": "Snelheid omhoog",
             "previous": "Vorige",
             "refresh": "Ververs",
             "reopen": "Heropen",

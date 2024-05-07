@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019-2023 Jelmer van Arnhem
+    Copyright (C) 2019-2024 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1793,6 +1793,10 @@
         Lower the volume of an audio or video element by 10%. If already at 0% volume, nothing happens. Can be counted to lower the volume faster. If the volume is zero and you call <a href="#pointer.toggleMediaMute">toggleMediaMute</a> you will put it back to 100% volume, not to what the volume was before you set it to 0.
         <h3 id="pointer.mediaUp">pointer.mediaUp</h3>
         Raise the volume of an audio or video element by 10%. If already at 100% volume, nothing happens. Can be counted to raise the volume faster.
+        <h3 id="pointer.mediaFaster">pointer.mediaFaster</h3>
+        Increase the playback rate of an audio or video element to the next level. The fastest speed is 4x, if already at this level, this action does nothing.
+        <h3 id="pointer.mediaSlower">pointer.mediaSlower</h3>
+        Decrease the playback rate of an audio or video element to the previous level. The slowest speed is 0.25x, if already at this level, this action does nothing.
         <h2 id="menu">Menu actions</h2>
         Menu actions are for interacting with the right click context menu. You can open the menu with a right <a href="#mouse">mouse</a> click (if not disabled by mouse or menu settings), using the <a href="#pointer.rightClick">pointer.rightClick</a> action (if not disabled by menu settings) or always using <a href="#action.menuOpen">action.menuOpen</a>. Most of these actions don't do anything when no contextmenu is currently opened. As such, it's recommended to only use these actions with the <a href="#:mmap">:mmap</a> command. The most notable exception is <a href="#action.menuOpen">action.menuOpen</a> to open the menu. You can control, disable or enable the different menus with <a href="#menupage">menupage</a>, <a href="#menusuggest">menusuggest</a> and <a href="#menuvieb">menuvieb</a>, which if disabled prevent them from being opened with the mouse or as a side effect in <a class="pointer" href="#pointer">pointer mode</a>. The open action will always open the menu, though you can <a href="#:unmap">unmap</a> it if that's unwanted.
         <h3 id="action.menuOpen">action.menuOpen</h3>

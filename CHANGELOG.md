@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default mappings for navbar modes to select suggestions with C-j and C-k
 - Default mappings for cancelling recordings using `q<Esc>` and `q<C-[>`
 - Clone tab buttons to mouse menu of a tab, to either edit or navigate directly
+- Actions "p.mediaFaster" and "p.mediaSlower" to control audio/video playback speed
 
 ### Changed
 

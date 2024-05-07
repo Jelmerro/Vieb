@@ -1080,6 +1080,18 @@ const webviewMenu = (src, options, force = false) => {
                     "volumeDown", options.x, options.y),
                 "title": translate("contextmenu.tab.volumeDown")
             })
+            createMenuItem({
+                /** Increase the media speed. */
+                "action": () => sendToPageOrSubFrame("action",
+                    "playbackUp", options.x, options.y),
+                "title": translate("contextmenu.tab.playbackUp")
+            })
+            createMenuItem({
+                /** Decrease the media speed. */
+                "action": () => sendToPageOrSubFrame("action",
+                    "playbackDown", options.x, options.y),
+                "title": translate("contextmenu.tab.playbackDown")
+            })
         }
     }
     fixAlignmentNearBorders()

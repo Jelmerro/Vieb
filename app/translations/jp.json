@@ -260,6 +260,8 @@
             "pause": "ポース",
             "pin": "ピン",
             "play": "プレー",
+            "playbackDown": "スピードダウン",
+            "playbackUp": "スピードアップ",
             "previous": "前のページ",
             "refresh": "リフレッシュ",
             "reopen": "再度開く",

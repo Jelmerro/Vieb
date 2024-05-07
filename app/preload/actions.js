@@ -292,6 +292,35 @@ const volumeUp = (x, y) => {
     }
 }
 
+const playbackLevels = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4]
+
+/**
+ * Decrease the playbackRate to the slower level.
+ * @param {number} x
+ * @param {number} y
+ */
+const playbackDown = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
+        el.playbackRate = playbackLevels[Math.max(
+            0, playbackLevels.indexOf(el.playbackRate) - 1)]
+    }
+}
+
+/**
+ * Increase the playbackRate to the faster level.
+ * @param {number} x
+ * @param {number} y
+ */
+const playbackUp = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
+        el.playbackRate = playbackLevels[Math.max(0, Math.min(
+            playbackLevels.length - 1,
+            playbackLevels.indexOf(el.playbackRate) + 1))]
+    }
+}
+
 /**
  * Find the base document at location x,y.
  * @param {number} x
@@ -735,6 +764,8 @@ const functions = {
     focusTopLeftCorner,
     hideTOC,
     nextPage,
+    playbackDown,
+    playbackUp,
     previousPage,
     print,
     rerenderTOC,
