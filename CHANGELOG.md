@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default mappings for cancelling recordings using `q<Esc>` and `q<C-[>`
 - Clone tab buttons to mouse menu of a tab, to either edit or navigate directly
 - Actions "p.mediaFaster" and "p.mediaSlower" to control audio/video playback speed
+- Experimental optional DRM builds to the build script (default release is not affected)
 
 ### Changed
 

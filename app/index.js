@@ -856,7 +856,7 @@ const permissionHandler = (_, pm, callback, details) => {
     return false
 }
 
-app.on("ready", () => {
+app.whenReady().then(async() => {
     app.userAgentFallback = defaultUseragent()
     const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
     deleteFile(executeOut)
@@ -927,6 +927,12 @@ app.on("ready", () => {
             }
         })
         return
+    }
+    try {
+        const {components} = require("electron")
+        await components.whenReady()
+    } catch {
+        // Using regular Electron instead of Castlabs DRM fork, not a problem.
     }
     app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))

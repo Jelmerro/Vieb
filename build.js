@@ -35,7 +35,29 @@ const defaultConfig = {"config": {
         {"from": "app/index.html", "to": "app/index.html"},
         "!node_modules",
         "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
-    ]
+    ],
+    "linux": {
+        "target": [
+            {"arch": ["arm64", "x64"], "target": "AppImage"},
+            {"arch": ["arm64", "x64"], "target": "deb"},
+            {"arch": ["arm64", "x64"], "target": "pacman"},
+            {"arch": ["arm64", "x64"], "target": "rpm"},
+            {"arch": ["x64"], "target": "snap"},
+            {"arch": ["arm64", "x64"], "target": "tar.gz"}
+        ]
+    },
+    "mac": {
+        "target": [
+            {"arch": ["arm64", "x64"], "target": "zip"}
+        ]
+    },
+    "win": {
+        "target": [
+            {"arch": ["x64"], "target": "nsis"},
+            {"arch": ["x64"], "target": "portable"},
+            {"arch": ["arm64", "x64"], "target": "zip"}
+        ]
+    }
 }}
 /** @typedef {{
  *   description: string,
@@ -59,12 +81,44 @@ const releases = {
                         && !f.includes("node_modules")
                         && !f.includes("popups")))
             },
-            "linux": {
-                "executableName": "vieb-debug"
-            },
             "productName": "Vieb-debug"
         },
         "webpack": false
+    },
+    "drm": {
+        "description": "Build DRM enabled releases using Castlabs's Electron",
+        "ebuilder": {
+            "electronDownload": {
+                "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
+            },
+            "electronVersion": "30.0.2+wvcus",
+            "extraMetadata": {
+                "name": "vieb-drm",
+                "productName": "Vieb-drm"
+            },
+            "linux": {
+                "target": [
+                    {"arch": ["x64"], "target": "AppImage"},
+                    {"arch": ["x64"], "target": "deb"},
+                    {"arch": ["x64"], "target": "pacman"},
+                    {"arch": ["x64"], "target": "rpm"},
+                    {"arch": ["x64"], "target": "tar.gz"}
+                ]
+            },
+            "mac": {
+                "target": [
+                    {"arch": ["arm64", "x64"], "target": "zip"}
+                ]
+            },
+            "productName": "Vieb-drm",
+            "win": {
+                "target": [
+                    {"arch": ["x64"], "target": "nsis"},
+                    {"arch": ["x64"], "target": "portable"},
+                    {"arch": ["x64"], "target": "zip"}
+                ]
+            }
+        }
     },
     "lite": {
         "description": "Build lite releases, which exclude locales & "
@@ -92,9 +146,6 @@ const releases = {
                 }
                 return !f.includes("blocklists") && !f.includes("@cliqz")
             }),
-            "linux": {
-                "executableName": "vieb-lite"
-            },
             "productName": "Vieb-lite"
         },
         "webpack": {
@@ -129,7 +180,7 @@ Generate runnable builds of Vieb for your platform, or other ones.
 "build.js", "electron-builder.yml" and "webpack.config.js" are used to build,
 as well as the main source code in "app/" and packages from "node_modules/".
 Specific platforms require different software to be installed to build,
-if a platform is giving you issues, try removing it from "electron-builder.yml".
+if a platform is giving you issues, try removing it from "build.js".
 By default, regular builds are generated for your platform (win, mac or linux),
 but you can override this and other things by passing options.
 
@@ -144,7 +195,7 @@ Platform options:
  --win            Only build for Windows.
 
  --linux          Only build for (all) Linux distributions.
-                  You can comment out platforms in "electron-builder.yml".
+                  You can comment out platforms in "build.js".
 
  --mac            Only build for Mac.
 
