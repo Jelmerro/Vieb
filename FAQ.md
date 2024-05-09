@@ -101,10 +101,13 @@ Google own Widevine, the one and only DRM solution for Chromium-based browsers.
 They are in control of approving and verifying the inclusion of Widevine into a (software) project.
 The process is [far from straightforward](https://github.com/electron/electron/issues/12427) and [is blocked for open-source software](https://blog.samuelmaddock.com/posts/google-widevine-blocked-my-browser/).
 For a few years this was also listed on the criticism paragraph on Wikipedia, but [they removed it as unreliably sourced](https://en.wikipedia.org/w/index.php?title=Widevine&oldid=1084600989).
-PRs to implement DRM will be rejected on the basis that they need proprietary keys and software to work.
 Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
 You, and only you, need to consider if it's worth using services that require DRM and thus Google approved proprietary software.
 For more info on why DRM usually isn't a good idea, see [the GNU website on DRM](https://www.gnu.org/proprietary/proprietary-drm.html) or [Defective by Design](https://www.defectivebydesign.org/).
+The Vieb build script does have the option to at least make builds with Widevine included,
+though I will not build these by default, as you need proprietary keys for Widevine to be accepted.
+If you want to make your own Vieb build with Widevine included you can do `node build.js --drm`,
+though keep in mind you still need to go through [these Castlab EVS instructions](https://github.com/castlabs/electron-releases/wiki/EVS) to play anything but development demos.
 
 #### Why do I see ads on some sites (such as Youtube)?
 

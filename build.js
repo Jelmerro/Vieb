@@ -17,8 +17,37 @@
 */
 "use strict"
 
-const {rmSync, readdir, unlinkSync} = require("fs")
+const {rmSync, readdir, unlinkSync, readFileSync} = require("fs")
 const defaultConfig = {"config": {
+    "appId": "com.github.Jelmerro.vieb",
+    "copyright": "Copyright @ Jelmer van Arnhem | "
+        + "Licensed as free software (GPL-3.0 or later)",
+    "deb": {
+        "afterInstall": "./after-install.sh",
+        "fpm": ["--after-upgrade=./after-install.sh"]
+    },
+    "fileAssociations": [
+        {
+            "ext": "html",
+            "name": "HyperText Markup File"
+        },
+        {
+            "ext": "xhtml",
+            "name": "Extensible HyperText Markup File"
+        },
+        {
+            "ext": "htm",
+            "name": "HyperText Markup File"
+        },
+        {
+            "ext": "shtml",
+            "name": "HyperText Markup File"
+        },
+        {
+            "ext": "xhtm",
+            "name": "Extensible HyperText Markup File"
+        }
+    ],
     "files": [
         "app/**/*.html",
         "app/**/*.css",
@@ -37,6 +66,12 @@ const defaultConfig = {"config": {
         "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
     ],
     "linux": {
+        "category": "Network;WebBrowser;",
+        "executableArgs": ["--ozone-platform-hint=auto"],
+        "executableName": "vieb",
+        "icon": "app/img/icons",
+        "maintainer": "Jelmer van Arnhem",
+        "publish": null,
         "target": [
             {"arch": ["arm64", "x64"], "target": "AppImage"},
             {"arch": ["arm64", "x64"], "target": "deb"},
@@ -47,11 +82,37 @@ const defaultConfig = {"config": {
         ]
     },
     "mac": {
+        "category": "public.app-category.navigation",
+        "icon": "app/img/icons",
+        "publish": null,
         "target": [
             {"arch": ["arm64", "x64"], "target": "zip"}
         ]
     },
+    "nsis": {
+        "differentialPackage": false,
+        "license": "LICENSE",
+        "oneClick": false
+    },
+    "productName": "Vieb",
+    "protocols": [
+        {
+            "name": "HyperText Transfer Protocol",
+            "schemes": ["http", "https"]
+        }
+    ],
+    "rpm": {
+        "afterInstall": "./after-install.sh",
+        "fpm": [
+            "--rpm-rpmbuild-define=_build_id_links none",
+            "--after-upgrade=./after-install.sh"
+        ]
+    },
     "win": {
+        "icon": "app/img/icons/512x512.png",
+        "legalTrademarks": "Copyright @ Jelmer van Arnhem | "
+            + "Licensed as free software (GPL-3.0 or later)",
+        "publish": null,
         "target": [
             {"arch": ["x64"], "target": "nsis"},
             {"arch": ["x64"], "target": "portable"},
@@ -91,12 +152,14 @@ const releases = {
             "electronDownload": {
                 "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
             },
-            "electronVersion": "30.0.2+wvcus",
+            "electronVersion": `${JSON.parse(readFileSync(
+                "./package.json")).devDependencies.electron}+wvcus`,
             "extraMetadata": {
                 "name": "vieb-drm",
                 "productName": "Vieb-drm"
             },
             "linux": {
+                ...defaultConfig.config.linux,
                 "target": [
                     {"arch": ["x64"], "target": "AppImage"},
                     {"arch": ["x64"], "target": "deb"},
@@ -106,12 +169,14 @@ const releases = {
                 ]
             },
             "mac": {
+                ...defaultConfig.config.mac,
                 "target": [
                     {"arch": ["arm64", "x64"], "target": "zip"}
                 ]
             },
             "productName": "Vieb-drm",
             "win": {
+                ...defaultConfig.config.win,
                 "target": [
                     {"arch": ["x64"], "target": "nsis"},
                     {"arch": ["x64"], "target": "portable"},
@@ -177,8 +242,7 @@ const printUsage = () => {
     console.info(`Vieb-builder
 
 Generate runnable builds of Vieb for your platform, or other ones.
-"build.js", "electron-builder.yml" and "webpack.config.js" are used to build,
-as well as the main source code in "app/" and packages from "node_modules/".
+The main source is in "app/", along with "build.js" and "webpack.config.js".
 Specific platforms require different software to be installed to build,
 if a platform is giving you issues, try removing it from "build.js".
 By default, regular builds are generated for your platform (win, mac or linux),
