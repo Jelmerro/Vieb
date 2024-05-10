@@ -107,7 +107,7 @@ For more info on why DRM usually isn't a good idea, see [the GNU website on DRM]
 The Vieb build script does have the option to at least make builds with Widevine included,
 though I will not build these by default, as you need proprietary keys for Widevine to be accepted.
 If you want to make your own Vieb build with Widevine included you can do `node build.js --drm`,
-though keep in mind you still need to go through [these Castlab EVS instructions](https://github.com/castlabs/electron-releases/wiki/EVS) to play anything but development demos.
+though keep in mind you still need to go through [these Castlabs EVS instructions](https://github.com/castlabs/electron-releases/wiki/EVS) to play anything but development demos.
 
 #### Why do I see ads on some sites (such as Youtube)?
 

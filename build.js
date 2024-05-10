@@ -147,7 +147,7 @@ const releases = {
         "webpack": false
     },
     "drm": {
-        "description": "Build DRM enabled releases using Castlabs's Electron",
+        "description": "Build DRM enabled releases using Castlabs' Electron",
         "ebuilder": {
             "electronDownload": {
                 "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"

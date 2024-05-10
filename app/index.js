@@ -261,6 +261,7 @@ let argDevtoolsTheme = process.env.VIEB_DEVTOOLS_THEME?.trim().toLowerCase()
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
+let DRM = false
 args.forEach(a => {
     const arg = a.trim()
     if (arg.startsWith("-")) {
@@ -641,9 +642,9 @@ const permissionHandler = (_, pm, callback, details) => {
     }
     let permission = pm.toLowerCase().replace("sanitized", "").replace(/-/g, "")
     if (permission === "mediakeysystem") {
-        // Block any access to DRM, there is no Electron support for it anyway
-        callback?.(false)
-        return false
+        // Block any access to DRM, unless Castlabs' DRM fork is used.
+        callback?.(DRM)
+        return DRM
     }
     if (permission === "media") {
         if (details.mediaTypes?.includes("video")) {
@@ -930,10 +931,12 @@ app.whenReady().then(async() => {
         return
     }
     try {
+        // @ts-expect-error Only present for the Castlabs Widevine project.
         const {components} = require("electron")
         await components.whenReady()
+        DRM = true
     } catch {
-        // Using regular Electron instead of Castlabs DRM fork, not a problem.
+        // Using regular Electron instead of Castlabs' DRM fork, not a problem.
     }
     app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
