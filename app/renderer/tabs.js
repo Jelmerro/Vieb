@@ -94,7 +94,7 @@ const updateUrl = (webview, force = false) => {
         return
     }
     let niceUrl = urlToString(url)
-    if (niceUrl === `${appConfig()?.name.toLowerCase()}://newtab`) {
+    if (niceUrl === "vieb://newtab") {
         niceUrl = ""
     }
     const urlInput = getUrl()
@@ -468,7 +468,7 @@ const closeTab = (src, index = null, force = false) => {
         }
     }
     const tabLinkId = tab.getAttribute("link-id")
-    const url = stringToUrl(page.getAttribute("src") || "")
+    const url = urlToString(page.getAttribute("src") || "")
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
         recentlyClosed.push({
@@ -995,16 +995,7 @@ const addWebviewListeners = webview => {
             return
         }
         if (e.url && (correctMode || getMouseConf("pageoutsideinsert"))) {
-            const special = pathToSpecialPageName(e.url)
-            const appName = appConfig()?.name.toLowerCase() ?? ""
-            if (!special?.name) {
-                hoverEl.textContent = urlToString(e.url)
-            } else if (special.section) {
-                hoverEl.textContent = `${
-                    appName}://${special.name}#${special.section}`
-            } else {
-                hoverEl.textContent = `${appName}://${special.name}`
-            }
+            hoverEl.textContent = urlToString(e.url)
             hoverEl.style.display = "block"
         } else {
             hoverEl.textContent = ""

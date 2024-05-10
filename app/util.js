@@ -1337,9 +1337,8 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
  */
 const pathToSpecialPageName = urlPath => {
     const {normalize} = require("path/posix")
-    const appName = appConfig()?.name.toLowerCase() ?? ""
-    if (urlPath?.startsWith?.(`${appName}://`)) {
-        const parts = urlPath.replace(`${appName}://`, "").split("#")
+    if (urlPath?.startsWith?.("vieb://")) {
+        const parts = urlPath.replace("vieb://", "").split("#")
         const [partName] = parts
         /** @type {SpecialPage} */
         let name = "help"
@@ -1381,7 +1380,7 @@ const pathToSpecialPageName = urlPath => {
         return {"name": "newtab", "section": ""}
     }
     const appImagePathPattern = RegExp(
-        "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
+        "^file:///tmp/[.]mount_Vieb[a-zA-Z0-9-]+"
         + "/resources/app[.]asar/app/pages/")
     if (urlPath.match(appImagePathPattern)) {
         const name = urlPath.replace(appImagePathPattern, "").replace(/\..+/, "")

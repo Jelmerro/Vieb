@@ -35,7 +35,8 @@ const {
     pathToSpecialPageName,
     appConfig,
     userAgentTemplated,
-    isValidIntervalValue
+    isValidIntervalValue,
+    urlToString
 } = require("../util")
 const {
     listTabs,
@@ -1985,14 +1986,7 @@ const updateWindowTitle = () => {
     const version = config?.version ?? ""
     const title = tabForPage(currentPage())
         ?.querySelector("span")?.textContent || ""
-    let url = currentPage()?.src || ""
-    const specialPage = pathToSpecialPageName(url)
-    if (specialPage?.name) {
-        url = `${name.toLowerCase()}://${specialPage.name}`
-        if (specialPage.section) {
-            url += `#${specialPage.section}`
-        }
-    }
+    const url = urlToString(currentPage()?.src || "")
     ipcRenderer.send("set-window-title", allSettings.windowtitle
         .replace(/%app/g, name).replace(/%title/g, title)
         .replace(/%url/g, url).replace(/%version/g, version))

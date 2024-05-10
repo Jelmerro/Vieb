@@ -31,6 +31,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Special pages to no longer use a fixed minimum width
 - Additional cut/copy/paste keys to also work in the navbar (S-del, C-Insert & S-Insert)
 - Styling category to be correct for filebrowser (previously page, now file)
+- Stored urls of closed tabs to also be in human readable format to better account for special pages
+- Special pages to always use the vieb:// prefix again for simpler datafolder switching
 
 ### Fixed
 
