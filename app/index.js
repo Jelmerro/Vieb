@@ -52,7 +52,8 @@ const {
     domainName,
     defaultUseragent,
     rm,
-    watchFile
+    watchFile,
+    getSetting
 } = require("./util")
 const {translate} = require("./translate")
 
@@ -1514,6 +1515,7 @@ const reloadAdblocker = () => {
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
         notify({
             "id": "adblocker.missing",
+            "silent": getSetting("adblockernotifications") === "none",
             "src": "user",
             "type": "error"
         })
@@ -1553,6 +1555,7 @@ const enableAdblocker = type => {
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
+        const adblockerNotify = getSetting("adblockernotifications")
         const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
@@ -1563,6 +1566,7 @@ const enableAdblocker = type => {
             notify({
                 "fields": [list],
                 "id": "adblocker.updating",
+                "silent": adblockerNotify !== "all",
                 "src": "user"
             })
             session.fromPartition("persist:main")
@@ -1575,6 +1579,7 @@ const enableAdblocker = type => {
                     notify({
                         "fields": [list],
                         "id": "adblocker.updated",
+                        "silent": ["error", "none"].includes(adblockerNotify),
                         "src": "user",
                         "type": "success"
                     })
@@ -1586,12 +1591,14 @@ const enableAdblocker = type => {
             request.on("abort", () => notify({
                 "fields": [list],
                 "id": "adblocker.aborted",
+                "silent": adblockerNotify === "none",
                 "src": "user",
                 "type": "error"
             }))
             request.on("error", e => notify({
                 "fields": [list, e.message],
                 "id": "adblocker.failed",
+                "silent": adblockerNotify === "none",
                 "src": "user",
                 "type": "error"
             }))

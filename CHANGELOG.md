@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clone tab buttons to mouse menu of a tab, to either edit or navigate directly
 - Actions "p.mediaFaster" and "p.mediaSlower" to control audio/video playback speed
 - Experimental optional DRM builds to the build script (default release is not affected)
+- Setting "adblockernotifications" to control which notifications should be shown for the adblocker
 
 ### Changed
 

@@ -993,7 +993,8 @@ const intervalValueToDate = value => {
  *     func?: () => void
  *   }|false,
  *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
- *   src: import("./renderer/common").RunSource
+ *   src: import("./renderer/common").RunSource,
+ *   silent?: boolean
  * }} NotificationInfo
  */
 
@@ -1028,6 +1029,9 @@ const notify = opts => {
         message,
         "type": properType
     })
+    if (opts.silent) {
+        return
+    }
     if (properType === "permission") {
         if (notifyForPerm === "silent") {
             return

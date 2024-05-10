@@ -78,6 +78,8 @@ const mouseFeatures = [
 const defaultSettings = {
     /** @type {"off"|"static"|"update"|"custom"} */
     "adblocker": "static",
+    /** @type {"all"|"done"|"error"|"none"} */
+    "adblockernotifications": "all",
     /** @type {"none"|"clearonquit"|"full"} */
     "cache": "clearonquit",
     "clearcookiesonquit": false,
@@ -427,6 +429,7 @@ const freeText = [
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
+    "adblockernotifications": ["all", "done", "error", "none"],
     "cache": ["none", "clearonquit", "full"],
     "commandhist": ["all", "persistall", "useronly", "persistuseronly", "none"],
     "containershowname": ["automatic", "always", "never"],
@@ -2235,9 +2238,6 @@ const set = (src, setting, value) => {
         }
         if (setting.startsWith("gui")) {
             updateGuiVisibility()
-        }
-        if (setting === "lang") {
-            // TODO live update perhaps
         }
         if (setting === "mintabwidth") {
             listTabs().forEach(tab => {
