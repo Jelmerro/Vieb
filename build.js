@@ -17,7 +17,10 @@
 */
 "use strict"
 
-const {rmSync, readdir, unlinkSync, readFileSync} = require("fs")
+const {
+    rmSync, readdir, unlinkSync, readFileSync, mkdirSync, cpSync
+} = require("fs")
+const {dirname, join} = require("path")
 const defaultConfig = {"config": {
     "appId": "com.github.Jelmerro.vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "
@@ -123,10 +126,40 @@ const defaultConfig = {"config": {
 /** @typedef {{
  *   description: string,
  *   ebuilder?: import("electron-builder").CliOptions,
- *   webpack?: import("webpack").Configuration
+ *   webpack?: import("webpack").Configuration,
+ *   postinstall?: Promise<void>
  * }} ReleaseConfig
 /** @type {{[key: string]: ReleaseConfig}} */
 const releases = {
+    "asar": {
+        "description": "Build only an asar file that can be run with Electron",
+        "ebuilder": false,
+        /** Skip Electron builder and only compress an asar file of the app. */
+        "postinstall": async() => {
+            rmSync("asar-build/", {"force": true, "recursive": true})
+            const {globSync} = require("glob")
+            let files = []
+            const filePatterns = defaultConfig.config.files
+                .filter(f => typeof f !== "object")
+            for (const pattern of filePatterns) {
+                if (pattern.startsWith("!")) {
+                    files = files.filter(f => !f.startsWith(pattern.slice(1)))
+                } else {
+                    files = [...files, ...globSync(pattern)]
+                }
+            }
+            files = [...files, ...globSync("build/*"), "package.json"]
+            const asar = require("@electron/asar")
+            for (const file of files) {
+                const dest = join("./asar-build", file.replace(/^build/, "app"))
+                mkdirSync(dirname(dest), {"recursive": true})
+                cpSync(file, dest, {"recursive": true})
+            }
+            mkdirSync("dist", {"recursive": true})
+            await asar.createPackage("asar-build", "dist/app.asar")
+            rmSync("asar-build/", {"force": true, "recursive": true})
+        }
+    },
     "debug": {
         "description": "Build debug releases, which do not use webpack.\n"
             + "This makes debugging much easier, as scripts are not minified.",
@@ -344,13 +377,14 @@ const generateBuild = async release => {
     if (release.webpack !== false) {
         await webpackBuild(release.webpack || {})
     }
-    if (release.ebuilder === false) {
-        return
-    }
     try {
-        const builder = require("electron-builder")
-        const res = await builder.build(mergeEBConfig(release.ebuilder || {}))
-        console.info(res)
+        if (release.ebuilder !== false) {
+            const builder = require("electron-builder")
+            const res = await builder.build(
+                mergeEBConfig(release.ebuilder || {}))
+            console.info(res)
+        }
+        await release.postinstall?.()
     } finally {
         rmSync("build/", {"force": true, "recursive": true})
     }

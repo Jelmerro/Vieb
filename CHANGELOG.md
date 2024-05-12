@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "p.mediaFaster" and "p.mediaSlower" to control audio/video playback speed
 - Experimental optional DRM builds to the build script (default release is not affected)
 - Setting "adblockernotifications" to control which notifications should be shown for the adblocker
+- Build option for compressing just an asar file of the app to run directly with Electron
 
 ### Changed
 
