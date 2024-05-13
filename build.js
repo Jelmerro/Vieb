@@ -156,7 +156,7 @@ const releases = {
                 cpSync(file, dest, {"recursive": true})
             }
             mkdirSync("dist", {"recursive": true})
-            await asar.createPackage("asar-build", "dist/app.asar")
+            await asar.createPackage("asar-build", "dist/vieb.asar")
             rmSync("asar-build/", {"force": true, "recursive": true})
         }
     },
