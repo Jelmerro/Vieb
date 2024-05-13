@@ -73,7 +73,7 @@ window.addEventListener("load", () => {
             if (e.key === "Enter") {
                 ipcRenderer.send("login-credentials",
                     [username.value, password.value])
-            } else if (e.shiftKey || e.metaKey || e.altKey) {
+            } else if (e.metaKey || e.altKey) {
                 // Don't trigger the escape keys below
             } else if (e.ctrlKey && e.key === "[") {
                 ipcRenderer.send("hide-login-window")

@@ -424,6 +424,12 @@
             "ok": "OK",
             "title": "Confirm"
         },
+        "display": {
+            "audio": "Share system audio",
+            "currentTab": "Current tab",
+            "echo": "Enable audio echo",
+            "title": "Display capture"
+        },
         "login": {
             "info": "$1 said the following:\n$2",
             "password": "Password",
@@ -431,7 +437,6 @@
             "username": "Username"
         },
         "notification": {
-            "loading": "Loading...",
             "shortcuts": "SPACE/d/j: screen/page/line down, b/u/k: up, q: quit"
         },
         "prompt": {

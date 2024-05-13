@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2022-2024 Jelmer van Arnhem
+    Copyright (C) 2024 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,13 +19,18 @@
 <html>
 <head>
     <link id="default-styling" href="../colors/default.css" rel="stylesheet" type="text/css">
-    <title>Prompt</title>
-    <meta http-equiv="Content-Security-Policy" content="img-src file://*; object-src 'none'; style-src 'unsafe-inline' file://*; script-src 'none'; default-src 'none'">
+    <title>Display capture</title>
+    <meta http-equiv="Content-Security-Policy" content="img-src file://* data:; object-src 'none'; style-src 'unsafe-inline' file://*; script-src 'none'; default-src 'none'">
     <link rel="shortcut icon" type="image/svg+xml" href="../img/vieb.svg">
 </head>
-<body class="popup" id="promptpopup">
-    <h3>Prompt</h3>
-    <input spellcheck="false" type="text" autofocus>
-    <p id="info"></p>
+<body class="popup" id="displaypopup">
+    <div id="title">
+        <h3>Display capture</h3>
+        <input type="checkbox" id="audio-enabled">
+        <label for="audio-enabled">Share system audio</label>
+        <input type="checkbox" id="echo-enabled">
+        <label for="echo-enabled">Enable audio echo</label>
+    </div>
+    <div id="screens"></div>
 </body>
 </html>

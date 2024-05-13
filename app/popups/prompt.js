@@ -59,7 +59,7 @@ window.addEventListener("load", () => {
     input.addEventListener("keydown", e => {
         if (e.key === "Enter") {
             ipcRenderer.send("prompt-response", input.value)
-        } else if (e.shiftKey || e.metaKey || e.altKey) {
+        } else if (e.metaKey || e.altKey) {
             // Don't trigger the escape keys below
         } else if (e.ctrlKey && e.key === "[") {
             ipcRenderer.send("hide-prompt-window")

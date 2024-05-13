@@ -36,7 +36,7 @@ ipcRenderer.on("notification-details", (_, information) => {
     if (!notification) {
         return
     }
-    notification.textContent = information.translations.loading
+    notification.textContent = ""
     notification.scrollBy(0, -1000000000)
     notification.textContent = information.translations.escapedMessage
     const footer = document.querySelector("footer")
@@ -58,24 +58,32 @@ ipcRenderer.on("notification-details", (_, information) => {
     document.body.style.opacity = "1"
 })
 window.addEventListener("keydown", e => {
-    if (e.metaKey || e.altKey) {
+    const notification = document.getElementById("notification")
+    if (e.metaKey || e.altKey || !notification) {
         return
     }
     if (e.ctrlKey) {
-        if (e.key === "[" && !e.shiftKey) {
+        if (e.key === "[") {
             ipcRenderer.send("hide-notification-window")
+        } else if (e.key === "u") {
+            notification.scrollBy(0, -window.innerHeight / 2 + fontsize)
+            fixScrollHeight()
+        } else if (e.key === "d") {
+            notification.scrollBy(0, window.innerHeight / 2 - fontsize)
+            fixScrollHeight()
+        } else if (e.key === "b") {
+            notification.scrollBy(0, -window.innerHeight + fontsize * 2)
+            fixScrollHeight()
+        } else if (e.key === "f" || e.key === " ") {
+            notification.scrollBy(0, window.innerHeight - fontsize * 2)
+            fixScrollHeight()
         }
-        return
-    }
-    const notification = document.getElementById("notification")
-    if (!notification) {
         return
     }
     if (e.key === "G") {
         notification.scrollBy(0, 1000000000)
         fixScrollHeight()
-    }
-    if (e.key === "k") {
+    } else if (e.key === "k") {
         notification.scrollBy(0, -fontsize)
         fixScrollHeight()
     } else if (e.key === "j") {

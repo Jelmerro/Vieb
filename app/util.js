@@ -496,6 +496,21 @@ const isHTMLIFrameElement = el => {
 /**
  * Check if a node is an input or textarea, taking subframes into account.
  * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLInputElement}
+ */
+const isInputElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLInputElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLInputElement
+}
+
+/**
+ * Check if a node is an input or textarea, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLInputElement|HTMLTextAreaElement}
  */
 const isInputOrTextElement = el => {
@@ -1576,6 +1591,7 @@ module.exports = {
     isHTMLImageElement,
     isHTMLLinkElement,
     isHTMLVideoElement,
+    isInputElement,
     isInputOrTextElement,
     isSVGElement,
     isUrl,

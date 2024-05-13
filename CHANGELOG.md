@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Experimental optional DRM builds to the build script (default release is not affected)
 - Setting "adblockernotifications" to control which notifications should be shown for the adblocker
 - Build option for compressing just an asar file of the app to run directly with Electron
+- Tab and system audio sharing option support to the improved display capture popup
 
 ### Changed
 
@@ -34,6 +35,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Styling category to be correct for filebrowser (previously page, now file)
 - Stored urls of closed tabs to also be in human readable format to better account for special pages
 - Special pages to always use the vieb:// prefix again for simpler datafolder switching
+- Shift modifier to be less strict for popup input keys
+- Display capture popup to be outside of the page as a proper notification
 
 ### Fixed
 

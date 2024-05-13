@@ -424,6 +424,12 @@
             "ok": "OK",
             "title": "Confirm"
         },
+        "display": {
+            "audio": "Deel systeem audio",
+            "currentTab": "Huidig tabblad",
+            "echo": "Geluidsecho inschakelen",
+            "title": "Scherm delen"
+        },
         "login": {
             "info": "$1 meldt het volgende:\n$2",
             "password": "Wachtwoord",
@@ -431,7 +437,6 @@
             "username": "Gebruikersnaam"
         },
         "notification": {
-            "loading": "Aan het laden...",
             "shortcuts": "Spatie/d/j: scherm/pagina/regel omlaag, b/u/k: omhoog, q: sluiten"
         },
         "prompt": {

@@ -548,6 +548,8 @@ let loginWindow = null
 let notificationWindow = null
 /** @type {Electron.BrowserWindow|null} */
 let promptWindow = null
+/** @type {Electron.BrowserWindow|null} */
+let displayWindow = null
 
 /**
  * Check if an input matches a given key.
@@ -1124,6 +1126,28 @@ app.whenReady().then(async() => {
     promptWindow = new BrowserWindow(promptWindowData)
     const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
+    // Show a sync display dialog if requested by any of the pages
+    /** @type {Electron.BrowserWindowConstructorOptions} */
+    const displayWindowData = {
+        "alwaysOnTop": true,
+        "frame": false,
+        "fullscreenable": false,
+        "modal": true,
+        "parent": mainWindow,
+        "resizable": false,
+        "show": false,
+        "webPreferences": {
+            "partition": "display",
+            "preload": joinPath(__dirname, "popups/display.js"),
+            "sandbox": false
+        }
+    }
+    if (customIcon) {
+        displayWindowData.icon = customIcon
+    }
+    displayWindow = new BrowserWindow(displayWindowData)
+    const displayPage = `file:///${joinPath(__dirname, "pages/displaypopup.html")}`
+    displayWindow.loadURL(displayPage)
 })
 // Handle Basic HTTP login attempts
 /** @type {number[]} */
@@ -1170,8 +1194,6 @@ app.on("login", (e, contents, _, auth, callback) => {
         Math.round(bounds.x + bounds.width / 2 - size / 2),
         Math.round(bounds.y + bounds.height / 2 - size / 2))
     loginWindow.resizable = false
-    loginWindow.show()
-    loginWindow.focus()
     const information = {
         customCSS,
         fontsize,
@@ -1184,6 +1206,8 @@ app.on("login", (e, contents, _, auth, callback) => {
         }
     }
     loginWindow.webContents.send("login-information", information)
+    loginWindow.show()
+    loginWindow.focus()
 })
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
@@ -1205,7 +1229,6 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
         properType,
         "translations": {
             escapedMessage,
-            "loading": translate("popups.notification.loading"),
             "shortcuts": translate("popups.notification.shortcuts")
         }
     }
@@ -1229,8 +1252,6 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
         Math.round(bounds.x + bounds.width / 2 - size / 2),
         Math.round(bounds.y + bounds.height / 2 - size / 2))
     promptWindow.resizable = false
-    promptWindow.show()
-    promptWindow.focus()
     const information = {
         customCSS,
         fontsize,
@@ -1241,6 +1262,8 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
         }
     }
     promptWindow.webContents.send("prompt-info", information)
+    promptWindow.show()
+    promptWindow.focus()
     ipcMain.on("prompt-response", (_, response) => {
         promptWindow?.hide()
         mainWindow?.focus()
@@ -1645,6 +1668,97 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         (__, pm, url, details) => permissionHandler(null, pm, null, {
             ...details, "requestingUrl": details.requestingUrl ?? url
         }))
+    newSess.setDisplayMediaRequestHandler((request, callback) => {
+        desktopCapturer.getSources({
+            "fetchWindowIcons": true,
+            "thumbnailSize": {"height": 20 * fontsize, "width": 20 * fontsize},
+            "types": ["screen", "window"]
+        }).then(async sources => {
+            if (!mainWindow || !displayWindow) {
+                return
+            }
+            ipcMain.removeAllListeners("display-response")
+            ipcMain.removeAllListeners("hide-display-window")
+            displayWindow.removeAllListeners("close")
+            const bounds = mainWindow.getBounds()
+            const width = Math.round(bounds.width * 0.9)
+            let height = Math.round(bounds.height * 0.9)
+            height -= Math.round(height % fontsize + fontsize * 0.75)
+            displayWindow.setMinimumSize(width, height)
+            displayWindow.setSize(width, height)
+            displayWindow.setPosition(
+                Math.round(bounds.x + bounds.width / 2 - width / 2),
+                Math.round(bounds.y + bounds.height / 2 - height / 2))
+            const tabId = webContents.getAllWebContents().find(wc => {
+                try {
+                    return wc.mainFrame === request.frame
+                } catch {
+                    return false
+                }
+            })?.id ?? null
+            let tabImg = null
+            if (tabId) {
+                try {
+                    tabImg = (await webContents.fromId(tabId)?.capturePage())
+                        ?.resize({"width": 20 * fontsize})?.toDataURL() ?? null
+                } catch {
+                    // No tab preview, not a huge problem
+                }
+            }
+            const information = {
+                customCSS,
+                fontsize,
+                "sources": sources.map(s => ({
+                    "icon": s.appIcon?.toDataURL() ?? "",
+                    "img": s.thumbnail.toDataURL(),
+                    "title": s.name
+                })),
+                tabImg,
+                "translations": {
+                    "audio": translate("popups.display.audio"),
+                    "echo": translate("popups.display.echo"),
+                    "title": translate("popups.display.title")
+                }
+            }
+            displayWindow.webContents.send("display-info", information)
+            displayWindow.show()
+            displayWindow.focus()
+            ipcMain.on("display-response", (__, response) => {
+                displayWindow?.hide()
+                mainWindow?.focus()
+                if (response) {
+                    /** @type {Electron.Streams} */
+                    let stream = {"video": sources[response.index]}
+                    if (response.index === "frame") {
+                        stream = {...stream, "video": request.frame}
+                    }
+                    if (response.audio) {
+                        stream = {...stream, "audio": "loopback"}
+                    }
+                    if (response.echo) {
+                        stream = {...stream, "enableLocalEcho": true}
+                    }
+                    callback({...stream})
+                } else {
+                    // @ts-expect-error Incorrectly typed in Electron
+                    callback(null)
+                }
+            })
+            ipcMain.on("hide-display-window", () => {
+                displayWindow?.hide()
+                mainWindow?.focus()
+                // @ts-expect-error Incorrectly typed in Electron
+                callback(null)
+            })
+            displayWindow.on("close", ev => {
+                ev.preventDefault()
+                displayWindow?.hide()
+                mainWindow?.focus()
+                // @ts-expect-error Incorrectly typed in Electron
+                callback(null)
+            })
+        })
+    })
     newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, () => null, {
             ...details, "requestingUrl": details.origin
@@ -2397,9 +2511,6 @@ ipcMain.handle("make-default-app", () => {
     app.setAsDefaultProtocolClient("http")
     app.setAsDefaultProtocolClient("https")
 })
-ipcMain.handle("desktop-capturer-sources", () => desktopCapturer.getSources({
-    "fetchWindowIcons": true, "types": ["screen", "window"]
-}))
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
