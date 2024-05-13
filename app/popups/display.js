@@ -18,8 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {isInputElement} = require("../util")
+
 const keys = "abcdefghijklmnopqrstuvwxyz0123456789".split("")
 /** @type {{title: string, img: string, icon: string}[]} */
 let sources = []
@@ -27,8 +26,13 @@ window.addEventListener("load", () => {
     const screensContainer = document.getElementById("screens")
     const audioEnabledBox = document.getElementById("audio-enabled")
     const echoEnabledBox = document.getElementById("echo-enabled")
-    if (!screensContainer || !isInputElement(
-        audioEnabledBox) || !isInputElement(echoEnabledBox)) {
+    if (!screensContainer) {
+        return
+    }
+    if (!(audioEnabledBox instanceof HTMLInputElement)) {
+        return
+    }
+    if (!(echoEnabledBox instanceof HTMLInputElement)) {
         return
     }
     ipcRenderer.on("display-info", (_, information) => {
@@ -97,7 +101,7 @@ window.addEventListener("load", () => {
         })
         const tabTitleEl = document.createElement("span")
         tabTitleEl.classList.add("screen-title")
-        tabTitleEl.textContent = translate("popups.display.currentTab")
+        tabTitleEl.textContent = information.translations.currentTab
         tabScreenEl.append(tabKeyEl, tabPreviewEl, tabTitleEl)
         screensContainer.append(tabScreenEl)
         document.body.style.opacity = "1"

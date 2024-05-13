@@ -1716,6 +1716,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 tabImg,
                 "translations": {
                     "audio": translate("popups.display.audio"),
+                    "currentTab": translate("popups.display.currentTab"),
                     "echo": translate("popups.display.echo"),
                     "title": translate("popups.display.title")
                 }
