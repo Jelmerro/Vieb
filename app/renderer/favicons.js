@@ -15,27 +15,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {
-    joinPath,
-    appData,
-    isFile,
-    readJSON,
-    writeJSON,
-    deleteFile,
-    modifiedAt,
-    makeDir,
+import {
     appConfig,
-    listDir,
-    pathToSpecialPageName,
-    stringToUrl,
+    appData,
+    deleteFile,
+    getAppRootDir,
     getSetting,
-    getAppRootDir
-} = require("../util")
-const {tabForPage, listPages, currentPage} = require("./common")
+    isFile,
+    joinPath,
+    listDir,
+    makeDir,
+    modifiedAt,
+    pathToSpecialPageName,
+    readJSON,
+    stringToUrl,
+    writeJSON
+} from "../util.js"
+import {currentPage, listPages, tabForPage} from "./common.js"
+import {ipcRenderer} from "electron"
 
-const faviconFolder = joinPath(appData(), "favicons")
+const faviconFolder = joinPath(await appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
 /** @type {{redirects?: {[url: string]: string}} & {[url: string]: string }} */
 let mappings = {}
@@ -57,7 +56,7 @@ const urlToPath = url => joinPath(faviconFolder,
  * Update the current mappings and delete unused ones.
  * @param {{currentUrl?: string|null, now?: boolean|null}} arg
  */
-const updateMappings = ({currentUrl = null, now = null} = {}) => {
+export const updateMappings = async({currentUrl = null, now = null} = {}) => {
     // Don't update the mappings before done loading or in rapid succession
     window.clearTimeout(faviconWriteTimeout ?? undefined)
     if (!now || !isParsed) {
@@ -67,7 +66,7 @@ const updateMappings = ({currentUrl = null, now = null} = {}) => {
         return
     }
     // Delete mappings for urls that aren't present in the history
-    const {visitCount} = require("./history")
+    const {visitCount} = await import("./history.js")
     Object.keys(mappings).forEach(m => {
         if (m === "redirects") {
             Object.keys(mappings.redirects ?? {}).forEach(r => {
@@ -110,8 +109,8 @@ const updateMappings = ({currentUrl = null, now = null} = {}) => {
  * @param {Electron.WebviewTag} webview
  * @param {boolean} empty
  */
-const loading = (webview, empty = false) => {
-    const loadingIndicator = getSetting("loadingindicator")
+export const loading = async(webview, empty = false) => {
+    const loadingIndicator = await getSetting("loadingindicator")
     const tab = tabForPage(webview)
     const status = tab?.querySelector(".status")
     if (["line", "all"].includes(loadingIndicator)) {
@@ -170,8 +169,8 @@ const setPath = (tab, loc) => {
  * Delete a favicon if too old based on timestamp and favicon setting.
  * @param {string} loc
  */
-const deleteIfTooOld = loc => {
-    const setting = getSetting("favicons")
+const deleteIfTooOld = async loc => {
+    const setting = await getSetting("favicons")
     if (setting === "forever") {
         return
     }
@@ -202,20 +201,20 @@ const deleteIfTooOld = loc => {
  * @param {Electron.WebviewTag} webview
  * @param {string} favicon
  */
-const update = (webview, favicon) => {
+export const update = async(webview, favicon) => {
     const tab = tabForPage(webview)
     if (viebIcon === favicon) {
         if (!pathToSpecialPageName(webview.src)?.name) {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
-        const customIcon = appConfig()?.icon
+        const customIcon = (await appConfig())?.icon
         if (tab && customIcon) {
-            setPath(tab, stringToUrl(customIcon))
+            setPath(tab, await stringToUrl(customIcon))
             return
         }
     }
-    if (getSetting("favicons") === "disabled") {
+    if (await getSetting("favicons") === "disabled") {
         if (tab) {
             setPath(tab, "img/empty.png")
         }
@@ -235,7 +234,6 @@ const update = (webview, favicon) => {
         return
     }
     makeDir(faviconFolder)
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("download-favicon", {
         "fav": favicon,
         "linkId": webview.getAttribute("link-id"),
@@ -249,14 +247,14 @@ const update = (webview, favicon) => {
  * Get a redirect.
  * @param {string} url
  */
-const getRedirect = url => mappings.redirects?.[url] || url
+export const getRedirect = url => mappings.redirects?.[url] || url
 
 /**
  * Get the url for a given site.
  * @param {string} url
  */
-const forSite = url => {
-    if (getSetting("favicons") === "disabled") {
+export const forSite = async url => {
+    if (await getSetting("favicons") === "disabled") {
         return ""
     }
     const mapping = mappings[getRedirect(url)]
@@ -284,7 +282,7 @@ const forSite = url => {
  * Show the favicon that was previously set for this site, and stop loading.
  * @param {Electron.WebviewTag} webview
  */
-const show = webview => {
+export const show = async webview => {
     const tab = tabForPage(webview)
     if (webview === currentPage()) {
         const loadingProgress = document.getElementById("loading-progress")
@@ -301,7 +299,7 @@ const show = webview => {
         return
     }
     if (favicon.getAttribute("src") === "img/empty.png") {
-        favicon.src = forSite(webview.src) ?? favicon.src
+        favicon.src = await forSite(webview.src) ?? favicon.src
     }
     if (favicon.getAttribute("src") !== "img/empty.png") {
         favicon.style.display = ""
@@ -309,13 +307,12 @@ const show = webview => {
 }
 
 /** Initialize/load the favicon cache in memory and register event handlers. */
-const init = () => {
+export const init = () => {
     const parsed = readJSON(mappingFile)
     if (parsed) {
         mappings = parsed
     }
     isParsed = true
-    const {ipcRenderer} = require("electron")
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
         const webview = listPages().find(
             p => p.getAttribute("link-id") === linkId)
@@ -333,8 +330,4 @@ const init = () => {
         mappings.redirects ||= {}
         mappings.redirects[src] = redirect
     })
-}
-
-module.exports = {
-    forSite, getRedirect, init, loading, show, update, updateMappings
 }

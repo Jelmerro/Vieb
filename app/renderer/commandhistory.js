@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
+import {appData, appendFile, getSetting, joinPath, readFile} from "../util.js"
+import {currentMode, getUrl} from "./common.js"
 
-const {currentMode, getUrl} = require("./common")
-const {joinPath, getSetting, appData, appendFile, readFile} = require("../util")
-
-const commandsFile = joinPath(appData(), "commandhist")
+const commandsFile = joinPath(await appData(), "commandhist")
 /** @type {string[]} */
 let previousCommands = []
 let previousIndex = -1
@@ -28,22 +26,22 @@ let originalCommand = ""
 let storeCommands = false
 
 /** Load the command hist of the previous session if stored. */
-const init = () => {
+export const init = () => {
     previousCommands = readFile(commandsFile)?.split("\n").filter(s => s) || []
 }
 
 /** Pause the collection of commands to the history. */
-const pause = () => {
+export const pause = () => {
     storeCommands = false
 }
 
 /** Resume the collection of new commands into the history. */
-const resume = () => {
+export const resume = () => {
     storeCommands = true
 }
 
 /** Show the right entry based on new index set by previous or next. */
-const updateNavWithHistory = () => {
+const updateNavWithHistory = async() => {
     let commandText = originalCommand
     if (previousIndex !== -1) {
         commandText = previousCommands[previousIndex]
@@ -52,12 +50,12 @@ const updateNavWithHistory = () => {
     if (url) {
         url.value = commandText
     }
-    const {suggestCommand} = require("./suggest")
+    const {suggestCommand} = await import("./suggest.js")
     suggestCommand(commandText)
 }
 
 /** Go to the previous item in the command history. */
-const previous = () => {
+export const previous = () => {
     if (currentMode() !== "command") {
         return
     }
@@ -71,7 +69,7 @@ const previous = () => {
 }
 
 /** Go to the next item in the command history. */
-const next = () => {
+export const next = () => {
     if (currentMode() !== "command" || previousIndex === -1) {
         return
     }
@@ -84,7 +82,7 @@ const next = () => {
 }
 
 /** Reset the position info for the command history. */
-const resetPosition = () => {
+export const resetPosition = () => {
     previousIndex = -1
     originalCommand = ""
 }
@@ -94,8 +92,8 @@ const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-const push = (command, user) => {
-    const setting = getSetting("commandhist")
+export const push = async(command, user) => {
+    const setting = await getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return
     }
@@ -112,5 +110,3 @@ const push = (command, user) => {
         appendFile(commandsFile, `${command}\n`)
     }
 }
-
-module.exports = {init, next, pause, previous, push, resetPosition, resume}

@@ -15,42 +15,40 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {ipcRenderer} = require("electron")
-const {
-    specialChars,
-    joinPath,
-    notify,
-    isUrl,
-    stringToUrl,
+import {
+    appConfig,
     appData,
     expandPath,
-    isFile,
     isDir,
-    readFile,
-    writeFile,
-    writeJSON,
+    isFile,
+    isUrl,
+    isValidIntervalValue,
+    joinPath,
+    notify,
     pathExists,
     pathToSpecialPageName,
-    appConfig,
+    readFile,
+    specialChars,
+    stringToUrl,
+    urlToString,
     userAgentTemplated,
-    isValidIntervalValue,
-    urlToString
-} = require("../util")
-const {
-    listTabs,
-    listPages,
-    currentTab,
+    writeFile,
+    writeJSON
+} from "../util.js"
+import {argsAsHumanList, validLanguages} from "../translate.js"
+import {
     currentPage,
-    updateGuiVisibility,
+    currentTab,
     getMouseConf,
+    listPages,
+    listReadyPages,
+    listTabs,
     tabForPage,
-    listReadyPages
-} = require("./common")
-const {argsAsHumanList, validLanguages} = require("../translate")
+    updateGuiVisibility
+} from "./common.js"
+import {ipcRenderer} from "electron"
 
-const mouseFeatures = [
+export const mouseFeatures = [
     "pageininsert",
     "pageoutsideinsert",
     "switchtab",
@@ -76,7 +74,8 @@ const mouseFeatures = [
     "scrolltabs",
     "screenshotframe"
 ]
-const defaultSettings = {
+
+export const defaultSettings = {
     /** @type {"off"|"static"|"update"|"custom"} */
     "adblocker": "static",
     /** @type {"all"|"done"|"error"|"none"} */
@@ -196,9 +195,9 @@ const defaultSettings = {
     "mapsuggest": 9000000000000000,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "mapsuggestposition": "topright",
-    /** @type {import("./tabs").tabPosition} */
+    /** @type {import("./tabs.js").tabPosition} */
     "markposition": "newtab",
-    /** @type {import("./tabs").tabPosition|"default"} */
+    /** @type {import("./tabs.js").tabPosition|"default"} */
     "markpositionshifted": "default",
     "maxmapdepth": 10,
     /** @type {"always"|"globalasneeded"|"elementasneeded"|"never"} */
@@ -420,7 +419,8 @@ const defaultErwicSettings = {
     "permissionmicrophone": "allow",
     "permissionnotifications": "allow"
 }
-const freeText = [
+
+export const freeText = [
     "downloadpath",
     "externalcommand",
     "shell",
@@ -428,7 +428,8 @@ const freeText = [
     "vimcommand",
     "windowtitle"
 ]
-const validOptions = {
+
+export const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "adblockernotifications": ["all", "done", "error", "none"],
     "cache": ["none", "clearonquit", "full"],
@@ -652,7 +653,7 @@ let spelllangs = []
 
 /**
  * Check if an option is considered a valid one, only checks at all if an enum.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {keyof typeof validOptions} setting
  * @param {string} value
  */
@@ -676,7 +677,7 @@ const checkOption = (src, setting, value) => {
 
 /**
  * Check if an option is considered a valid value for a number setting.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {keyof typeof numberRanges} setting
  * @param {number} value
  */
@@ -696,7 +697,7 @@ const checkNumber = (src, setting, value) => {
 
 /**
  * Check if the provided suggest order is valid.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} value
  */
 const checkSuggestOrder = (src, value) => {
@@ -782,11 +783,11 @@ const checkSuggestOrder = (src, value) => {
 
 /**
  * Check if other more advanced settings are configured correctly.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {keyof typeof defaultSettings} setting
  * @param {number|string|boolean|string[]|{[key: string]: string}} value
  */
-const checkOther = (src, setting, value) => {
+const checkOther = async(src, setting, value) => {
     // Special cases
     if (setting === "clearhistoryinterval") {
         if (typeof value !== "string") {
@@ -1083,7 +1084,7 @@ const checkOther = (src, setting, value) => {
             }
         }
     }
-    const {keyNames, splitMapString} = require("./input")
+    const {keyNames, splitMapString} = await import("./input.js")
     if (setting === "modifiers") {
         if (!Array.isArray(value)) {
             return false
@@ -1123,7 +1124,8 @@ const checkOther = (src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
+        const url = (await stringToUrl(value)).replace(/^https?:\/\//g, "")
+        if (value && !isUrl(url)) {
             notify({
                 "fields": [value],
                 "id": "settings.errors.newtaburl",
@@ -1597,7 +1599,7 @@ const checkOther = (src, setting, value) => {
             return false
         }
         for (const ignore of value) {
-            const {rangeToTabIdxs} = require("./command")
+            const {rangeToTabIdxs} = await import("./command.js")
             if (!rangeToTabIdxs(src, ignore).valid) {
                 return false
             }
@@ -1625,7 +1627,8 @@ const checkOther = (src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
+        const url = (await stringToUrl(value)).replace(/^https?:\/\//g, "")
+        if (!isUrl(url)) {
             notify({
                 "fields": [value],
                 "id": "settings.errors.translateurl",
@@ -1672,7 +1675,7 @@ const checkOther = (src, setting, value) => {
  * @param {string} set
  * @returns {set is keyof typeof defaultSettings}
  */
-const isExistingSetting = set => set in defaultSettings
+export const isExistingSetting = set => set in defaultSettings
 
 /**
  * Check if a setting is of type boolean.
@@ -1687,21 +1690,21 @@ const isBooleanSetting = set => isExistingSetting(set)
  * @param {string} set
  * @returns {set is keyof typeof validOptions}
  */
-const isEnumSetting = set => set in validOptions
+export const isEnumSetting = set => set in validOptions
 
 /**
  * Check if a setting is of type number, so it has to validate the ranges.
  * @param {string} set
  * @returns {set is keyof typeof numberRanges}
  */
-const isNumberSetting = set => set in numberRanges
+export const isNumberSetting = set => set in numberRanges
 
 /**
  * Check if a setting is of type string[], to treat it like an array.
  * @param {string} set
  * @returns {set is GetKeysOfType<string[], defaultSettings>|"mouse"}
  */
-const isArraySetting = set => isExistingSetting(set)
+export const isArraySetting = set => isExistingSetting(set)
     && (Array.isArray(defaultSettings[set]) || set === "mouse")
 
 /**
@@ -1709,7 +1712,7 @@ const isArraySetting = set => isExistingSetting(set)
  * @param {string} set
  * @returns {set is GetKeysOfType<{[key: string]: string}, defaultSettings>}
  */
-const isObjectSetting = set => isExistingSetting(set)
+export const isObjectSetting = set => isExistingSetting(set)
     && !isArraySetting(set) && typeof defaultSettings[set] === "object"
 
 /**
@@ -1717,13 +1720,13 @@ const isObjectSetting = set => isExistingSetting(set)
  * @param {string} set
  * @returns {set is GetKeysOfType<string, defaultSettings>}
  */
-const isStringSetting = set => isExistingSetting(set)
+export const isStringSetting = set => isExistingSetting(set)
     && typeof defaultSettings[set] === "string"
 
 /**
  * Check if a setting will be valid for a given value.
  * @template {keyof typeof defaultSettings} T
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {T} setting
  * @param {typeof defaultSettings[T]} value
  */
@@ -1773,9 +1776,9 @@ const isValidSetting = (src, setting, value) => {
 }
 
 /** Update the mouse related settings on the local DOM body for CSS rules. */
-const updateMouseSettings = () => {
+const updateMouseSettings = async() => {
     for (const mouseSetting of mouseFeatures) {
-        if (getMouseConf(mouseSetting)) {
+        if (await getMouseConf(mouseSetting)) {
             document.body.classList.add(`mouse-${mouseSetting}`)
         } else {
             document.body.classList.remove(`mouse-${mouseSetting}`)
@@ -1807,7 +1810,7 @@ const updatePdfOption = () => {
  * Update container related settings on change and update labels/colors.
  * @param {boolean} full
  */
-const updateContainerSettings = (full = true) => {
+export const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
             const color = allSettings.containercolors.find(
@@ -1849,7 +1852,7 @@ const updateContainerSettings = (full = true) => {
  * Update download related settings in the main thread on change.
  * @param {boolean} fromExecute
  */
-const updateDownloadSettings = (fromExecute = false) => {
+export const updateDownloadSettings = (fromExecute = false) => {
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
     const downloads = {}
@@ -1865,9 +1868,9 @@ const updateDownloadSettings = (fromExecute = false) => {
 }
 
 /** Update the settings in the file so they are updated in main/preload. */
-const updateSettings = () => {
+const updateSettings = async() => {
     sessionStorage.setItem("settings", JSON.stringify(allSettings))
-    const settingsFile = joinPath(appData(), "settings")
+    const settingsFile = joinPath(await appData(), "settings")
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
     const data = {
@@ -1899,7 +1902,7 @@ const updatePermissionSettings = () => {
 const listSettingsAsArray = () => Object.keys(defaultSettings)
 
 /** Return the list of suggestions for all settings. */
-const suggestionList = () => {
+export const suggestionList = () => {
     const listOfSuggestions = ["all", ...listSettingsAsArray()]
     listOfSuggestions.push("all&")
     listOfSuggestions.push("all?")
@@ -1980,8 +1983,8 @@ const suggestionList = () => {
 }
 
 /** Update the window title using the windowtitle setting and app config. */
-const updateWindowTitle = () => {
-    const config = appConfig()
+export const updateWindowTitle = async() => {
+    const config = await appConfig()
     const name = config?.name ?? ""
     const version = config?.version ?? ""
     const title = tabForPage(currentPage())
@@ -1993,15 +1996,15 @@ const updateWindowTitle = () => {
 }
 
 /** Get the custom styling CSS lines. */
-const getCustomStyling = () => customStyling
+export const getCustomStyling = () => customStyling
 
 /** Update the custom styling in the webview using colorscheme and fontsize. */
-const updateCustomStyling = () => {
+const updateCustomStyling = async() => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateSettings()
-    const {addColorschemeStylingToWebview} = require("./tabs")
+    const {addColorschemeStylingToWebview} = await import("./tabs.js")
     listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
-    const {applyLayout} = require("./pagelayout")
+    const {applyLayout} = await import("./pagelayout.js")
     applyLayout()
     ipcRenderer.send("set-custom-styling",
         allSettings.guifontsize, customStyling)
@@ -2011,13 +2014,15 @@ const updateCustomStyling = () => {
  * Apply custom styling based on the colorscheme.
  * @param {string} css
  */
-const setCustomStyling = css => {
+export const setCustomStyling = css => {
     customStyling = css
     updateCustomStyling()
 }
 
 /** Return a list of all settings with default, type and allowed values. */
-const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
+export const settingsWithDefaults = () => Object.keys(
+    allSettings
+).map(setting => {
     let typeLabel = "String"
     /** @type {string|string[]} */
     let allowedValues = ""
@@ -2103,16 +2108,16 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
 
 /**
  * Update the help page with updated settings, mapping and commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  */
-const updateHelpPage = src => {
-    listReadyPages().forEach(p => {
+export const updateHelpPage = src => {
+    listReadyPages().forEach(async p => {
         const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
         if (special?.name === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
-            } = require("./input")
-            const {rangeCompatibleCommands} = require("./command")
+            } = await import("./input.js")
+            const {rangeCompatibleCommands} = await import("./command.js")
             p.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList(src, null, true), uncountableActions,
                 rangeCompatibleCommands)
@@ -2123,13 +2128,13 @@ const updateHelpPage = src => {
 /**
  * Set the value of a setting, if considered valid, else notify the user.
  * @template {keyof typeof defaultSettings} T
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {T} setting
  * @param {typeof defaultSettings[T]} value
  */
-const set = (src, setting, value) => {
+export const set = async(src, setting, value) => {
     if (isValidSetting(src, setting, value)) {
-        const {applyLayout} = require("./pagelayout")
+        const {applyLayout} = await import("./pagelayout.js")
         if (isBooleanSetting(setting)) {
             allSettings[setting] = value === "true" || value === true
         } else if (isNumberSetting(setting)) {
@@ -2220,7 +2225,9 @@ const set = (src, setting, value) => {
             updateCustomStyling()
         }
         if (setting === "guiscrollbar") {
-            const {showScrollbar, hideScrollbar} = require("./pagelayout")
+            const {
+                showScrollbar, hideScrollbar
+            } = await import("./pagelayout.js")
             if (value === "always") {
                 showScrollbar()
             } else {
@@ -2316,7 +2323,7 @@ const set = (src, setting, value) => {
             ipcRenderer.send("set-redirects", allSettings.redirects)
         }
         if (setting === "suspendtimeout") {
-            const {restartSuspendTimeouts} = require("./pagelayout")
+            const {restartSuspendTimeouts} = await import("./pagelayout.js")
             restartSuspendTimeouts()
         }
         if (setting === "windowtitle") {
@@ -2331,18 +2338,18 @@ const set = (src, setting, value) => {
 /**
  * Load the settings from disk, either as a first run or regular.
  * @param {boolean} firstRun
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  */
-const loadFromDisk = (firstRun, src = "source") => {
-    const {pause, resume} = require("./commandhistory")
+export const loadFromDisk = async(firstRun, src = "source") => {
+    const {pause, resume} = await import("./commandhistory.js")
     pause()
-    const config = appConfig()
+    const config = await appConfig()
     const files = config?.files ?? []
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
     }
-    if (isFile(joinPath(appData(), "erwicmode"))) {
+    if (isFile(joinPath(await appData(), "erwicmode"))) {
         /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
         Object.keys(erwicDefaults).forEach(t => {
@@ -2363,7 +2370,7 @@ const loadFromDisk = (firstRun, src = "source") => {
             }
             for (const line of parsed.split("\n").filter(l => l.trim())) {
                 if (!line.trim().startsWith("\"")) {
-                    const {execute} = require("./command")
+                    const {execute} = await import("./command.js")
                     execute(line, {"settingsFile": conf, src})
                 }
             }
@@ -2382,10 +2389,10 @@ const loadFromDisk = (firstRun, src = "source") => {
 
 /**
  * Reset a setting to its default value.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} setting
  */
-const reset = (src, setting) => {
+export const reset = (src, setting) => {
     if (setting === "all") {
         Object.keys(defaultSettings).forEach(
             s => set(src, s, defaultSettings[s]))
@@ -2422,12 +2429,12 @@ const escapeValueChars = value => {
  * List all current settings, optionally with defaults included.
  * @param {boolean} full
  */
-const listCurrentSettings = (full = false) => {
+export const listCurrentSettings = async(full = false) => {
     /** @type {typeof defaultSettings} */
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
-        if (isFile(joinPath(appData(), "erwicmode"))) {
+        if (isFile(joinPath(await appData(), "erwicmode"))) {
             const erwicDefaults = JSON.parse(
                 JSON.stringify(defaultErwicSettings)
             )
@@ -2471,16 +2478,16 @@ const listCurrentSettings = (full = false) => {
 
 /**
  * Save the current settings, mappings, custom commands and colorscheme to disk.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} full
  */
-const saveToDisk = (src, full) => {
+export const saveToDisk = async(src, full) => {
     let settingsAsCommands = ""
-    const options = listCurrentSettings(full).split("\n").filter(s => s)
+    const options = (await listCurrentSettings(full)).split("\n").filter(s => s)
         .map(s => `set ${s}`).join("\n").trim()
-    const {listMappingsAsCommandList} = require("./input")
+    const {listMappingsAsCommandList} = await import("./input.js")
     const mappings = listMappingsAsCommandList(src).trim()
-    const {customCommandsAsCommandList} = require("./command")
+    const {customCommandsAsCommandList} = await import("./command.js")
     const commands = customCommandsAsCommandList(full).trim()
     if (!options && !mappings && !commands) {
         notify({"id": "settings.errors.unchanged", src})
@@ -2496,7 +2503,7 @@ const saveToDisk = (src, full) => {
         settingsAsCommands += `" Commands\n${commands}\n\n`
     }
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
-    const destFile = appConfig()?.config
+    const destFile = (await appConfig())?.config
     if (destFile) {
         const success = writeFile(destFile, settingsAsCommands)
         if (success) {
@@ -2520,7 +2527,7 @@ const saveToDisk = (src, full) => {
 }
 
 /** Load the settings from disk and prepare setting-related listeners. */
-const init = () => {
+export const init = () => {
     loadFromDisk(true)
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
@@ -2532,8 +2539,8 @@ const init = () => {
     })
     ipcRenderer.on("set-permission", (
         _, name, value) => set("user", name, value))
-    ipcRenderer.on("notify", (_, opts) => {
-        if (getMouseConf("notification")) {
+    ipcRenderer.on("notify", async(_, opts) => {
+        if (await getMouseConf("notification")) {
             if (opts.action?.type === "download-success") {
                 /** If a download function is provided, add the right action. */
                 opts.action.func = () => ipcRenderer.send(
@@ -2545,31 +2552,4 @@ const init = () => {
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
     ipcRenderer.send("create-session", `persist:main`,
         allSettings.adblocker, allSettings.cache !== "none")
-}
-
-module.exports = {
-    defaultSettings,
-    freeText,
-    getCustomStyling,
-    init,
-    isArraySetting,
-    isEnumSetting,
-    isExistingSetting,
-    isNumberSetting,
-    isObjectSetting,
-    isStringSetting,
-    listCurrentSettings,
-    loadFromDisk,
-    mouseFeatures,
-    reset,
-    saveToDisk,
-    set,
-    setCustomStyling,
-    settingsWithDefaults,
-    suggestionList,
-    updateContainerSettings,
-    updateDownloadSettings,
-    updateHelpPage,
-    updateWindowTitle,
-    validOptions
 }

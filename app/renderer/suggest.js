@@ -15,36 +15,34 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {
-    urlToString,
-    isDir,
-    listDir,
-    joinPath,
-    readFile,
-    expandPath,
+import {
+    appData,
     basePath,
     dirname,
-    pathExists,
-    isAbsolutePath,
     downloadPath,
-    appData,
-    isUrl,
-    searchword,
+    expandPath,
+    getAppRootDir,
     getSetting,
+    isAbsolutePath,
+    isDir,
+    isUrl,
+    joinPath,
+    listDir,
+    pathExists,
+    readFile,
+    searchword,
     stringToUrl,
-    getAppRootDir
-} = require("../util")
-const {
-    listTabs,
+    urlToString
+} from "../util.js"
+import {
     currentMode,
+    currentPage,
     getMouseConf,
-    updateScreenshotHighlight,
     getUrl,
+    listTabs,
     pageForTab,
-    currentPage
-} = require("./common")
+    updateScreenshotHighlight
+} from "./common.js"
 
 /** @type {string[]} */
 let suggestions = []
@@ -54,7 +52,7 @@ let originalValue = ""
  * Update the explore border colors based on the input type.
  * @param {string|null} searchStr
  */
-const updateColors = (searchStr = null) => {
+const updateColors = async(searchStr = null) => {
     const urlElement = getUrl()
     const search = searchStr || urlElement?.value
     if (search !== undefined && urlElement && currentMode() === "explore") {
@@ -69,7 +67,7 @@ const updateColors = (searchStr = null) => {
             urlElement.className = "url"
         } else if (isAbsolutePath(local) && pathExists(local)) {
             urlElement.className = "file"
-        } else if (searchword(search.trim()).word) {
+        } else if ((await searchword(search.trim())).word) {
             urlElement.className = "searchwords"
         } else {
             urlElement.className = "search"
@@ -106,7 +104,7 @@ const topOfSection = () => {
 }
 
 /** Select the previous suggestion from the list. */
-const previous = () => {
+export const previous = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -136,7 +134,7 @@ const previous = () => {
 }
 
 /** Go the previous section in the suggestion list. */
-const previousSection = () => {
+export const previousSection = () => {
     previous()
     while (!topOfSection()) {
         previous()
@@ -144,7 +142,7 @@ const previousSection = () => {
 }
 
 /** Select the next suggestion from the list. */
-const next = () => {
+export const next = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -174,7 +172,7 @@ const next = () => {
 }
 
 /** Go the next section in the suggestion list. */
-const nextSection = () => {
+export const nextSection = () => {
     next()
     while (!topOfSection()) {
         next()
@@ -182,7 +180,7 @@ const nextSection = () => {
 }
 
 /** Remove all suggestions and empty the list. */
-const emptySuggestions = () => {
+export const emptySuggestions = () => {
     const suggestDropdown = document.getElementById("suggest-dropdown")
     const url = getUrl()
     if (suggestDropdown && url) {
@@ -197,11 +195,11 @@ const emptySuggestions = () => {
  * Translate a location to an informative object that can be suggested.
  * @param {string} base
  * @param {string} loc
- * @returns {{path: string, title: string, type: "file", url: string}}
+ * @returns {Promise<{path: string, title: string, type: "file", url: string}>}
  */
-const locationToSuggestion = (base, loc) => {
+const locationToSuggestion = async(base, loc) => {
     let absPath = joinPath(base, loc)
-    let fullPath = stringToUrl(absPath)
+    let fullPath = await stringToUrl(absPath)
     let location = loc
     if (isDir(absPath)) {
         fullPath += "/"
@@ -218,7 +216,7 @@ const locationToSuggestion = (base, loc) => {
  * Suggest files based on current path entry.
  * @param {string} loc
  */
-const suggestFiles = loc => {
+const suggestFiles = async loc => {
     let location = expandPath(loc.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
         location = expandPath(loc.replace(/^file:\/+/g, ""))
@@ -229,8 +227,8 @@ const suggestFiles = loc => {
          * }[]} */
         let matching = []
         if (dirname(location) !== location) {
-            matching = listDir(dirname(location))?.map(
-                p => locationToSuggestion(dirname(location), p)) || []
+            matching = await Promise.all(listDir(dirname(location))?.map(
+                p => locationToSuggestion(dirname(location), p)) || [])
             matching = matching.filter(p => {
                 if (!basePath(p.url).startsWith(basePath(location))) {
                     return false
@@ -238,8 +236,8 @@ const suggestFiles = loc => {
                 return basePath(p.url) !== basePath(location)
             })
         }
-        const inDir = listDir(location)?.map(
-            p => locationToSuggestion(location, p)) || []
+        const inDir = await Promise.all(listDir(location)?.map(
+            p => locationToSuggestion(location, p)) || [])
         return [...matching, ...inDir]
     }
     return []
@@ -249,42 +247,43 @@ const suggestFiles = loc => {
  * Add a suggestion to the explore mode suggestions.
  * @param {{title: string, type?: string, url: string, icon?: string}} explore
  */
-const addExplore = explore => {
+export const addExplore = async explore => {
     if (suggestions.includes(explore.url)) {
         return
     }
     suggestions.push(explore.url)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
-    element.addEventListener("mouseup", e => {
+    element.addEventListener("mouseup", async e => {
         if (e.button === 2) {
-            if (getMouseConf("suggestselect")) {
-                if (["both", "explore"].includes(getSetting("menusuggest"))) {
-                    const {linkMenu} = require("./contextmenu")
+            if (await getMouseConf("suggestselect")) {
+                const menusuggest = await getSetting("menusuggest")
+                if (["both", "explore"].includes(menusuggest)) {
+                    const {linkMenu} = await import("./contextmenu.js")
                     linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
                 }
             }
-        } else if (getMouseConf("menusuggest")) {
-            const {setMode} = require("./modes")
+        } else if (await getMouseConf("menusuggest")) {
+            const {setMode} = await import("./modes.js")
             setMode("normal")
-            const {clear} = require("./contextmenu")
+            const {clear} = await import("./contextmenu.js")
             clear()
             if (e.button === 0) {
-                const {navigateTo} = require("./tabs")
+                const {navigateTo} = await import("./tabs.js")
                 navigateTo("user", explore.url)
             }
             if (e.button === 1) {
-                const {addTab} = require("./tabs")
+                const {addTab} = await import("./tabs.js")
                 addTab({"src": "user", "url": explore.url})
             }
         }
         e.preventDefault()
     })
-    if (explore.icon && getSetting("favicons") !== "disabled") {
+    if (explore.icon && await getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
-        const {forSite} = require("./favicons")
-        thumbnail.src = forSite(explore.icon) || explore.icon
+        const {forSite} = await import("./favicons.js")
+        thumbnail.src = await forSite(explore.icon) || explore.icon
         element.append(thumbnail)
     }
     const title = document.createElement("span")
@@ -311,14 +310,15 @@ const addExplore = explore => {
  * Suggest urls, files and searchwords based on the current input and settings.
  * @param {string} search
  */
-const suggestExplore = search => {
+export const suggestExplore = async search => {
     emptySuggestions()
     updateColors(search)
     if (!search.trim()) {
         return
     }
-    const {suggestHist} = require("./history")
-    getSetting("suggestorder").filter(s => s).forEach(suggest => {
+    const {suggestHist} = await import("./history.js")
+    const suggestorder = await getSetting("suggestorder")
+    suggestorder.filter(s => s).forEach(async suggest => {
         const args = suggest.split("~")
         const type = args.shift()
         let count = 10
@@ -338,21 +338,24 @@ const suggestExplore = search => {
             suggestHist(search, order, count)
         }
         if (type === "file") {
-            suggestFiles(search).slice(0, count).forEach(f => addExplore(f))
+            for (const f of (await suggestFiles(search)).slice(0, count)) {
+                await addExplore(f)
+            }
         }
         if (type === "searchword") {
             if (!order) {
                 order = "alpha"
             }
-            const searchwords = getSetting("searchwords")
-            const words = Object.keys(searchwords).map(title => {
-                const url = searchwords[title]
-                let filledUrl = searchword(search).url
-                if (filledUrl === search) {
-                    filledUrl = url
-                }
-                return {title, "type": "searchword", "url": filledUrl}
-            })
+            const searchwords = await getSetting("searchwords")
+            const words = await Promise.all(
+                Object.keys(searchwords).map(async title => {
+                    const url = searchwords[title]
+                    let filledUrl = (await searchword(search)).url
+                    if (filledUrl === search) {
+                        filledUrl = url
+                    }
+                    return {title, "type": "searchword", "url": filledUrl}
+                }))
             if (order === "alpha") {
                 words.sort((a, b) => {
                     if (a.title > b.title) {
@@ -379,10 +382,10 @@ const suggestExplore = search => {
  * @param {string|null} icon
  * @param {boolean} allowDuplicate
  */
-const addCommand = (
+const addCommand = async(
     command, subtext = null, url = null, icon = null, allowDuplicate = false
 ) => {
-    if (suggestions.length + 1 > getSetting("suggestcommands")) {
+    if (suggestions.length + 1 > await getSetting("suggestcommands")) {
         return
     }
     if (suggestions.includes(command) && !allowDuplicate) {
@@ -391,29 +394,30 @@ const addCommand = (
     suggestions.push(command)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
-    element.addEventListener("mouseup", e => {
+    element.addEventListener("mouseup", async e => {
         if (e.button === 2) {
-            if (getMouseConf("suggestselect")) {
-                if (["both", "command"].includes(getSetting("menusuggest"))) {
-                    const {commandMenu} = require("./contextmenu")
+            if (await getMouseConf("suggestselect")) {
+                const menusuggest = await getSetting("menusuggest")
+                if (["both", "command"].includes(menusuggest)) {
+                    const {commandMenu} = await import("./contextmenu.js")
                     commandMenu("user", {command, "x": e.x, "y": e.y})
                 }
             }
-        } else if (getMouseConf("menusuggest")) {
-            const {setMode} = require("./modes")
+        } else if (await getMouseConf("menusuggest")) {
+            const {setMode} = await import("./modes.js")
             setMode("normal")
-            const {execute} = require("./command")
+            const {execute} = await import("./command.js")
             execute(command, {"src": "user"})
-            const {clear} = require("./contextmenu")
+            const {clear} = await import("./contextmenu.js")
             clear()
         }
         e.preventDefault()
     })
-    if (icon && getSetting("favicons") !== "disabled") {
+    if (icon && await getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
-        const {forSite} = require("./favicons")
-        thumbnail.src = forSite(icon) || icon
+        const {forSite} = await import("./favicons.js")
+        thumbnail.src = await forSite(icon) || icon
         element.append(thumbnail)
     }
     const commandElement = document.createElement("span")
@@ -442,12 +446,12 @@ const addCommand = (
  * Suggest a command based on the current input text.
  * @param {string} searchStr
  */
-const suggestCommand = searchStr => {
+export const suggestCommand = async searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
     const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    const {parseAndValidateArgs} = require("./command")
+    const {parseAndValidateArgs} = await import("./command.js")
     const {
         range, valid, confirm, command, args
     } = parseAndValidateArgs(search)
@@ -470,10 +474,10 @@ const suggestCommand = searchStr => {
     // List all commands unconditionally
     const {
         commandList, customCommandsAsCommandList, rangeToTabIdxs
-    } = require("./command")
+    } = await import("./command.js")
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
-    const {validOptions} = require("./settings")
+    const {validOptions} = await import("./settings.js")
     // Command: screenshot and screencopy
     if (command.startsWith("screen")
         && !range && !confirm && args.length < 3) {
@@ -502,7 +506,7 @@ const suggestCommand = searchStr => {
         const dimsSuggest = `${rect.width},${rect.height},${rect.x},${rect.y}`
         location = expandPath(location || "")
         if (location && !isAbsolutePath(location)) {
-            location = joinPath(downloadPath(), location)
+            location = joinPath(await downloadPath(), location)
         }
         if (fullCommand === "screencopy") {
             if (!dims) {
@@ -510,7 +514,7 @@ const suggestCommand = searchStr => {
             }
             addCommand(`${fullCommand} ${dimsSuggest}`)
         } else if (location) {
-            const fileSuggestions = suggestFiles(location)
+            const fileSuggestions = await suggestFiles(location)
             fileSuggestions.forEach(l => {
                 let loc = l.path
                 if (l.path.includes(" ")) {
@@ -555,7 +559,7 @@ const suggestCommand = searchStr => {
     }
     updateScreenshotHighlight()
     // Command: set
-    const {suggestionList, settingsWithDefaults} = require("./settings")
+    const {suggestionList, settingsWithDefaults} = await import("./settings.js")
     if ("set".startsWith(command) && !confirm && !range) {
         if (args.length) {
             suggestionList().filter(s => s.startsWith(args[args.length - 1]))
@@ -574,7 +578,9 @@ const suggestCommand = searchStr => {
             location = location.slice(1, location.length - 1)
         }
         if (isAbsolutePath(location)) {
-            suggestFiles(location).forEach(l => addCommand(`source ${l.path}`))
+            for (const l of await suggestFiles(location)) {
+                addCommand(`source ${l.path}`)
+            }
         }
     }
     // Command: write
@@ -622,10 +628,10 @@ const suggestCommand = searchStr => {
         }
         if ((path || search.endsWith(" ")) && !range) {
             if (!isAbsolutePath(path)) {
-                path = joinPath(downloadPath(), path)
+                path = joinPath(await downloadPath(), path)
             }
-            const fileSuggestions = suggestFiles(path)
-            fileSuggestions.forEach(l => {
+            const fileSuggestions = await suggestFiles(path)
+            for (const l of fileSuggestions) {
                 let loc = l.path
                 if (l.path.includes(" ")) {
                     loc = `"${loc}"`
@@ -643,7 +649,7 @@ const suggestCommand = searchStr => {
                     addCommand(`write html ${loc}`)
                     addCommand(`write mtml ${loc}`)
                 }
-            })
+            }
             if (!fileSuggestions.length) {
                 if (type && args[0] === type) {
                     addCommand(`write ${typeSuggest} ${path}`)
@@ -708,7 +714,7 @@ const suggestCommand = searchStr => {
             themes[p.replace(/\.css$/g, "")] = "built-in"
         })
         const customDirs = [
-            joinPath(appData(), "colors"),
+            joinPath(await appData(), "colors"),
             expandPath("~/.vieb/colors")
         ]
         customDirs.forEach(dir => {
@@ -741,7 +747,7 @@ const suggestCommand = searchStr => {
     if ("help".startsWith(command) && !range) {
         const {
             listSupportedActions, listMappingsAsCommandList
-        } = require("./input")
+        } = await import("./input.js")
         const sections = [
             "intro",
             "commands",
@@ -841,7 +847,7 @@ const suggestCommand = searchStr => {
         "suspend",
         "vsplit",
         "close"
-    ].forEach(bufferCommand => {
+    ].forEach(async bufferCommand => {
         if (bufferCommand.startsWith(command)) {
             const acceptsConfirm = ["close", "mute", "pin"]
             if (!acceptsConfirm.includes(bufferCommand) && confirm) {
@@ -890,9 +896,9 @@ const suggestCommand = searchStr => {
                 addCommand(`${bufferCommand}${confirmChar} false`)
                 return
             }
-            const {allTabsForBufferArg} = require("./command")
+            const {allTabsForBufferArg} = await import("./command.js")
             const tabs = listTabs()
-            allTabsForBufferArg(args).map(b => {
+            ;(await allTabsForBufferArg(args)).map(b => {
                 if (!b?.tab) {
                     return null
                 }
@@ -934,15 +940,4 @@ const suggestCommand = searchStr => {
             }
         }
     }
-}
-
-module.exports = {
-    addExplore,
-    emptySuggestions,
-    next,
-    nextSection,
-    previous,
-    previousSection,
-    suggestCommand,
-    suggestExplore
 }

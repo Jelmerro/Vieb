@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2023 Jelmer van Arnhem
+* Copyright (C) 2022-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,19 +15,17 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {
+import {
     appConfig,
-    domainName,
-    listDir,
-    joinPath,
     appData,
+    domainName,
     expandPath,
-    readFile,
+    getSetting,
+    joinPath,
+    listDir,
     pathToSpecialPageName,
-    getSetting
-} = require("../util")
+    readFile
+} from "../util.js"
 
 /**
  * Parse the GM userscript header.
@@ -70,7 +68,7 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
  * @param {Electron.WebviewTag} webview
  * @param {string} rawContents
  */
-const runGMScript = (webview, rawContents) => {
+const runGMScript = async(webview, rawContents) => {
     const headerLines = []
     const scriptLines = []
     let pastHeader = false
@@ -87,6 +85,7 @@ const runGMScript = (webview, rawContents) => {
     const info = parseGM(headerLines.join("\n"))
     const os = process.platform.replace("32", "").replace("darwin", "mac")
     const arch = process.arch.replace("arm64", "arm").replace("x64", "x86_64")
+    const config = await appConfig()
     const preload = `const GM = {
         "addElement": (...args) => {
             let parentNode = null
@@ -150,14 +149,14 @@ const runGMScript = (webview, rawContents) => {
             "platform": {
                 "arch": "${arch}",
                 "browserName": "vieb",
-                "browserVersion": "${appConfig()?.version}",
+                "browserVersion": "${config?.version}",
                 "os": "${os}"
             },
             "script": ${JSON.stringify(info)},
             "scriptHandler": "Vieb",
             "scriptMetaStr": ${JSON.stringify(headerLines.join("\n"))},
             "uuid": "${Math.random}",
-            "version": "${appConfig()?.version}"
+            "version": "${config?.version}"
         },
         "listValues": () => new Promise(res => {
             const list = []
@@ -221,7 +220,7 @@ const runGMScript = (webview, rawContents) => {
     /** @type {import("picomatch")|null} */
     let picomatch = null
     try {
-        picomatch = require("picomatch")
+        picomatch = (await import("picomatch")).default
     } catch {
         // No picomatch available, assume scripts should run everywhere
     }
@@ -262,7 +261,7 @@ const runGMScript = (webview, rawContents) => {
  * Load all userscripts into the page.
  * @param {Electron.WebviewTag} webview
  */
-const loadUserscripts = webview => {
+export const loadUserscripts = async webview => {
     let domain = domainName(webview.src)
     let scope = "page"
     const specialPage = pathToSpecialPageName(webview.src)
@@ -273,15 +272,15 @@ const loadUserscripts = webview => {
         domain = "file"
         scope = "file"
     }
-    if (getSetting("userscriptscope").includes(scope)) {
+    if ((await getSetting("userscriptscope")).includes(scope)) {
         const userScriptFiles = [
-            ...(listDir(joinPath(appData(), "userscript/global"), true)
+            ...(listDir(joinPath(await appData(), "userscript/global"), true)
                 || []).filter(f => f.endsWith(".js")),
-            joinPath(appData(), "userscript/global.js"),
+            joinPath(await appData(), "userscript/global.js"),
             ...(listDir(expandPath("~/.vieb/userscript/global"), true)
                 || []).filter(f => f.endsWith(".js")),
             expandPath("~/.vieb/userscript/global.js"),
-            joinPath(appData(), `userscript/${domain}.js`),
+            joinPath(await appData(), `userscript/${domain}.js`),
             expandPath(`~/.vieb/userscript/${domain}.js`)
         ]
         for (const f of userScriptFiles) {
@@ -292,7 +291,7 @@ const loadUserscripts = webview => {
         }
     }
     const gmScriptFiles = [
-        ...(listDir(joinPath(appData(), "userscript/gm"), true)
+        ...(listDir(joinPath(await appData(), "userscript/gm"), true)
             || []).filter(f => f.endsWith(".js")),
         ...(listDir(expandPath("~/.vieb/userscript/gm"), true)
             || []).filter(f => f.endsWith(".js"))
@@ -304,5 +303,3 @@ const loadUserscripts = webview => {
         }
     }
 }
-
-module.exports = {loadUserscripts}

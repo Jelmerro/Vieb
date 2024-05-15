@@ -15,47 +15,45 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {
+import {
+    BrowserWindow,
     app,
     desktopCapturer,
-    BrowserWindow,
     dialog,
     ipcMain,
+    nativeTheme,
     net,
     screen,
     session,
     shell,
-    webContents,
-    nativeTheme
-} = require("electron")
-const {randomUUID} = require("crypto")
-const {
-    specialChars,
-    writeJSON,
-    readJSON,
-    writeFile,
-    readFile,
-    isDir,
-    listDir,
-    expandPath,
+    webContents
+} from "electron"
+import {
+    basePath,
+    defaultUseragent,
     deleteFile,
+    dirname,
+    domainName,
+    expandPath,
+    formatDate,
+    formatSize,
+    getSetting,
+    isAbsolutePath,
+    isDir,
     isFile,
     joinPath,
+    listDir,
     makeDir,
-    dirname,
-    basePath,
-    formatSize,
-    isAbsolutePath,
-    formatDate,
-    domainName,
-    defaultUseragent,
+    readFile,
+    readJSON,
     rm,
+    specialChars,
     watchFile,
-    getSetting
-} = require("./util")
-const {translate} = require("./translate")
+    writeFile,
+    writeJSON
+} from "./util.js"
+import {randomUUID} from "crypto"
+import {translate} from "./translate.js"
 
 const version = process.env.npm_package_version || app.getVersion()
 if (!app.getName().toLowerCase().startsWith("vieb")) {
@@ -574,7 +572,7 @@ const currentInputMatches = key => {
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("./util").NotificationInfo} opts
+ * @param {import("./util.js").NotificationInfo} opts
  */
 const notify = opts => mainWindow?.webContents.send("notify", opts)
 
@@ -934,7 +932,7 @@ app.whenReady().then(async() => {
     }
     try {
         // @ts-expect-error Only present for the Castlabs Widevine project.
-        const {components} = require("electron")
+        const {components} = await import("electron")
         await components.whenReady()
         DRM = true
     } catch {
@@ -945,7 +943,7 @@ app.whenReady().then(async() => {
     app.on("open-url", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
-        customIcon = joinPath(__dirname, "img/vieb.svg")
+        customIcon = joinPath(import.meta.dirname, "img/vieb.svg")
     }
     // Init mainWindow
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -962,7 +960,7 @@ app.whenReady().then(async() => {
             // https://github.com/electron/electron/issues/28620
             "nodeIntegrationInSubFrames": true,
             "nodeIntegrationInWorker": true,
-            "preload": joinPath(__dirname, "renderer/index.js"),
+            // "preload": joinPath(import.meta.dirname, "renderer/index.mjs"),
             "sandbox": false,
             "webviewTag": true
         },
@@ -983,7 +981,8 @@ app.whenReady().then(async() => {
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
-    mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
+    mainWindow.webContents.openDevTools({"mode": "detach"})
+    mainWindow.loadURL(`file://${joinPath(import.meta.dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
         mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
         mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
@@ -994,7 +993,7 @@ app.whenReady().then(async() => {
         mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
     })
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
-        prefs.preload = joinPath(__dirname, "preload/index.js")
+        prefs.preload = joinPath(import.meta.dirname, "preload/index.js")
         prefs.sandbox = false
         prefs.contextIsolation = false
     })
@@ -1053,7 +1052,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "login",
-            "preload": joinPath(__dirname, "popups/login.js"),
+            "preload": joinPath(import.meta.dirname, "popups/login.mjs"),
             "sandbox": false
         }
     }
@@ -1061,7 +1060,8 @@ app.whenReady().then(async() => {
         loginWindowData.icon = customIcon
     }
     loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
+    const loginPage = `file:///${joinPath(
+        import.meta.dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
@@ -1084,7 +1084,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "popups/notification.js"),
+            "preload": joinPath(import.meta.dirname, "popups/notification.mjs"),
             "sandbox": false
         }
     }
@@ -1093,7 +1093,7 @@ app.whenReady().then(async() => {
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${joinPath(
-        __dirname, "pages/notificationpopup.html")}`
+        import.meta.dirname, "pages/notificationpopup.html")}`
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
@@ -1116,7 +1116,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "prompt",
-            "preload": joinPath(__dirname, "popups/prompt.js"),
+            "preload": joinPath(import.meta.dirname, "popups/prompt.mjs"),
             "sandbox": false
         }
     }
@@ -1124,7 +1124,8 @@ app.whenReady().then(async() => {
         promptWindowData.icon = customIcon
     }
     promptWindow = new BrowserWindow(promptWindowData)
-    const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
+    const promptPage = `file:///${joinPath(
+        import.meta.dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
     // Show a sync display dialog if requested by any of the pages
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -1138,7 +1139,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "display",
-            "preload": joinPath(__dirname, "popups/display.js"),
+            "preload": joinPath(import.meta.dirname, "popups/display.mjs"),
             "sandbox": false
         }
     }
@@ -1146,7 +1147,8 @@ app.whenReady().then(async() => {
         displayWindowData.icon = customIcon
     }
     displayWindow = new BrowserWindow(displayWindowData)
-    const displayPage = `file:///${joinPath(__dirname, "pages/displaypopup.html")}`
+    const displayPage = `file:///${joinPath(
+        import.meta.dirname, "pages/displaypopup.html")}`
     displayWindow.loadURL(displayPage)
 })
 // Handle Basic HTTP login attempts
@@ -1288,7 +1290,7 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
  *   cleardownloadsoncompleted?: boolean,
- *   src?: import("./renderer/common").RunSource
+ *   src?: import("./renderer/common.js").RunSource
  * }} */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
 /** @typedef {{
@@ -1322,9 +1324,9 @@ let resourcesBlocked = []
 let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
-const adblockerPreload = joinPath(__dirname,
+const adblockerPreload = joinPath(import.meta.dirname,
     "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
-const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
+const defaultCSS = readFile(joinPath(import.meta.dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
@@ -1349,7 +1351,7 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
  *   downloadpath: string,
  *   cleardownloadsonquit: boolean,
  *   cleardownloadsoncompleted: boolean,
- *   src: import("./renderer/common").RunSource
+ *   src: import("./renderer/common.js").RunSource
  * }} settings
  */
 const setDownloadSettings = (_, settings) => {
@@ -1516,7 +1518,7 @@ const disableAdblocker = () => {
 }
 
 /** Reload the adblocker optionally including the default lists. */
-const reloadAdblocker = () => {
+const reloadAdblocker = async() => {
     if (blocker) {
         disableAdblocker()
     }
@@ -1534,21 +1536,22 @@ const reloadAdblocker = () => {
     }
     let ElectronBlocker = null
     try {
-        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
+        ({ElectronBlocker} = await import("@cliqz/adblocker-electron"))
     } catch {
         // Adblocker module not present, skipping initialization
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
         notify({
             "id": "adblocker.missing",
-            "silent": getSetting("adblockernotifications") === "none",
+            "silent": await getSetting("adblockernotifications") === "none",
             "src": "user",
             "type": "error"
         })
         return
     }
     blocker = ElectronBlocker.parse(filters)
-    const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
+    const resources = readFile(joinPath(
+        import.meta.dirname, `./blocklists/resources`))
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
     }
@@ -1566,22 +1569,22 @@ const reloadAdblocker = () => {
  * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
  */
-const enableAdblocker = type => {
+const enableAdblocker = async type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     const blocklists = readJSON(joinPath(
-        __dirname, "blocklists/list.json")) || {}
+        import.meta.dirname, "blocklists/list.json")) || {}
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
         for (const name of Object.keys(blocklists)) {
-            const list = joinPath(__dirname, `blocklists/${name}.txt`)
+            const list = joinPath(import.meta.dirname, `blocklists/${name}.txt`)
             writeFile(joinPath(blocklistDir, `${name}.txt`),
                 readFile(list) ?? "")
         }
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        const adblockerNotify = getSetting("adblockernotifications")
+        const adblockerNotify = await getSetting("adblockernotifications")
         const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
@@ -1963,7 +1966,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    newSess.protocol.handle("sourceviewer", req => {
+    newSess.protocol.handle("sourceviewer", async req => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -1981,7 +1984,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         /** @type {import("highlight.js").HLJSApi|null} */
         let hljs = null
         try {
-            hljs = require("highlight.js").default
+            hljs = (await import("highlight.js")).default
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2057,7 +2060,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         return net.fetch(url.href)
     })
-    newSess.protocol.handle("markdownviewer", req => {
+    newSess.protocol.handle("markdownviewer", async req => {
         markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
@@ -2077,7 +2080,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         /** @type {typeof import("marked").Marked|null} */
         let Marked = null
         try {
-            ({Marked} = require("marked"))
+            ({Marked} = await import("marked"))
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2094,8 +2097,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         let markedObj = new Marked()
         try {
-            const hljs = require("highlight.js").default
-            const {markedHighlight} = require("marked-highlight")
+            const hljs = (await import("highlight.js")).default
+            const {markedHighlight} = await import("marked-highlight")
             markedObj = new Marked(markedHighlight({
                 /**
                  * Highlight the code using highlight.js in the right language.
@@ -2149,7 +2152,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         markedObj.setOptions({"renderer": mdRenderer, "silent": true})
         try {
-            const {baseUrl} = require("marked-base-url")
+            const {baseUrl} = await import("marked-base-url")
             if (url.startsWith("file:")) {
                 let base = url.replace(/^file:\/\//, "")
                 if (base[1] === ":" && process.platform === "win32") {
@@ -2210,7 +2213,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.end()
         })
     })
-    newSess.protocol.handle("readerview", req => {
+    newSess.protocol.handle("readerview", async req => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -2230,8 +2233,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         /** @type {typeof import("jsdom").JSDOM|null} */
         let JSDOM = null
         try {
-            ({Readability} = require("@mozilla/readability"))
-            ;({JSDOM} = require("jsdom"))
+            ({Readability} = await import("@mozilla/readability"))
+            ;({JSDOM} = await import("jsdom"))
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2574,7 +2577,7 @@ const errToMain = exception => {
     return null
 }
 
-/** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
+/** @type {(import("./renderer/follow.js").FollowLink & {frameId: string})[]} */
 let allLinks = []
 /**
  * @typedef {{
@@ -2690,7 +2693,7 @@ ipcMain.on("frame-details", handleFrameDetails)
  * Handle a follow mode response.
  * @param {Electron.IpcMainEvent} e
  * @param {(
- *   import("./renderer/follow").FollowLink & {frameId: string}
+ *   import("./renderer/follow.js").FollowLink & {frameId: string}
  * )[]} rawLinks
  */
 const handleFollowResponse = (e, rawLinks) => {

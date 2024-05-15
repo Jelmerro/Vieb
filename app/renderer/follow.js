@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,20 +15,18 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {ipcRenderer, clipboard} = require("electron")
-const {getSetting} = require("../util")
-const {
+import {clipboard, ipcRenderer} from "electron"
+import {
+    currentMode,
     currentPage,
     currentTab,
-    currentMode,
-    setStored,
-    getStored,
     getMouseConf,
+    getStored,
     getUrl,
-    sendToPageOrSubFrame
-} = require("./common")
+    sendToPageOrSubFrame,
+    setStored
+} from "./common.js"
+import {getSetting} from "../util.js"
 
 /**
  * @typedef {object} FollowLink
@@ -57,10 +55,10 @@ const savedOrder = [
  * Inform preloads on interval that follow mode is on, keeps working on reload.
  * @param {boolean} first
  */
-const informPreload = (first = false) => {
-    let elemTypesToFollow = getSetting("followelement")
+const informPreload = async(first = false) => {
+    let elemTypesToFollow = await getSetting("followelement")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
-        elemTypesToFollow = getSetting("followelementpointer")
+        elemTypesToFollow = await getSetting("followelementpointer")
     }
     if (followLinkDestination !== "current") {
         elemTypesToFollow = ["url"]
@@ -86,7 +84,7 @@ const informPreload = (first = false) => {
  * Start follow mode and open links at the provided location once done.
  * @param {"current"|"newtab"|"copylink"|"hor"|"ver"} dest
  */
-const startFollow = (dest = followLinkDestination) => {
+export const startFollow = async(dest = followLinkDestination) => {
     followLinkDestination = dest || "current"
     const followEl = document.getElementById("follow")
     if (!followEl) {
@@ -97,7 +95,7 @@ const startFollow = (dest = followLinkDestination) => {
     if (!["follow", "insert"].includes(modeBeforeFollow)) {
         setStored("modebeforefollow", modeBeforeFollow)
     }
-    const {setMode} = require("./modes")
+    const {setMode} = await import("./modes.js")
     setMode("follow")
     alreadyFollowing = false
     alreadyFilteringLinks = false
@@ -107,7 +105,7 @@ const startFollow = (dest = followLinkDestination) => {
 }
 
 /** Cancel follow mode mode by clearing the links and stopping the loop. */
-const cancelFollow = () => {
+export const cancelFollow = () => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
     hoverLink = null
@@ -120,7 +118,7 @@ const cancelFollow = () => {
 }
 
 /** Return the current list of characters that should be used for following. */
-const followChars = () => {
+const followChars = async() => {
     const keys = {
         "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
         "alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -129,7 +127,7 @@ const followChars = () => {
         "numbers": "0123456789",
         "qwertyhome": "ASDFGHJKL;"
     }
-    const setName = getSetting("followchars")
+    const setName = await getSetting("followchars")
     let allKeys = setName.replace("custom:", "")
 
     /**
@@ -169,8 +167,8 @@ const digitListInCustomBase = (number, base, minLen = 0) => {
  * @param {number} number
  * @param {number} minLen
  */
-const numberToKeys = (number, minLen = 0) => {
-    const set = followChars()
+const numberToKeys = async(number, minLen = 0) => {
+    const set = await followChars()
     return digitListInCustomBase(number, set.length, minLen).map(
         d => set[d]).join("")
 }
@@ -187,13 +185,13 @@ const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
 /**
  * Click on a follow link.
  * @param {FollowLink} link
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  */
 const clickAtLink = async(link, src = "user") => {
     const factor = currentPage()?.getZoomFactor() ?? 1
-    const {setMode} = require("./modes")
+    const {setMode} = await import("./modes.js")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
-        const {start, move} = require("./pointer")
+        const {start, move} = await import("./pointer.js")
         start()
         if (getStored("modebeforefollow") === "visual") {
             setMode("visual")
@@ -202,9 +200,9 @@ const clickAtLink = async(link, src = "user") => {
             (link.y + link.height / 2) * factor)
         return
     }
-    const {isUrl} = require("../util")
+    const {isUrl} = await import("../util.js")
     if (link.url && link.type === "url" && isUrl(link.url)) {
-        const {navigateTo} = require("./tabs")
+        const {navigateTo} = await import("./tabs.js")
         navigateTo(src, link.url)
         return
     }
@@ -258,13 +256,13 @@ const applyIndexedOrder = () => {
 }
 
 /** Rotate the display order of follow links by type. */
-const reorderDisplayedLinks = () => {
+export const reorderDisplayedLinks = () => {
     savedOrder.push(savedOrder.shift() ?? "")
     applyIndexedOrder()
 }
 
 /** Hide and clear the current hover link. */
-const emptyHoverLink = () => {
+export const emptyHoverLink = () => {
     hoverLink = null
     if (alreadyFollowing) {
         [...document.querySelectorAll(`#follow .hover`)]
@@ -287,7 +285,7 @@ const getWritableDOMRect = el => {
  * Parse the received links and add them to the follow element to be picked.
  * @param {(FollowLink|null)[]} receivedLinks
  */
-const parseAndDisplayLinks = receivedLinks => {
+const parseAndDisplayLinks = async receivedLinks => {
     if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
@@ -296,11 +294,11 @@ const parseAndDisplayLinks = receivedLinks => {
     if (!followEl || !page) {
         return
     }
-    const {updateUrl} = require("./tabs")
+    const {updateUrl} = await import("./tabs.js")
     updateUrl(page, true)
     let newLinks = receivedLinks
     if (followLinkDestination !== "current") {
-        const {hasProtocol} = require("../util")
+        const {hasProtocol} = await import("../util.js")
         newLinks = receivedLinks.flatMap(link => {
             if (!link || !hasProtocol(link.url)) {
                 return []
@@ -339,9 +337,9 @@ const parseAndDisplayLinks = receivedLinks => {
     const factor = currentPage()?.getZoomFactor() ?? 1
     /** @type {HTMLSpanElement[]} */
     const followChildren = []
-    const neededLength = numberToKeys(links.length).length
-    const followlabelposition = getSetting("followlabelposition")
-    links.forEach((link, index) => {
+    const neededLength = (await numberToKeys(links.length)).length
+    const followlabelposition = await getSetting("followlabelposition")
+    links.forEach(async(link, index) => {
         if (!link) {
             return
         }
@@ -354,14 +352,14 @@ const parseAndDisplayLinks = receivedLinks => {
             if (!getMouseConf("follow")) {
                 return
             }
-            const {isUrl} = require("../util")
-            const {setMode} = require("./modes")
+            const {isUrl} = await import("../util.js")
+            const {setMode} = await import("./modes.js")
             if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
                 setMode(getStored("modebeforefollow"))
-                const {addTab} = require("./tabs")
+                const {addTab} = await import("./tabs.js")
                 addTab({
                     "src": "user",
-                    "switchTo": getSetting("mousenewtabswitch"),
+                    "switchTo": await getSetting("mousenewtabswitch"),
                     "url": link.url
                 })
             } else {
@@ -408,7 +406,7 @@ const parseAndDisplayLinks = receivedLinks => {
         followChildren.push(borderElement)
         // Show the link key in the preferred position
         const linkElement = document.createElement("span")
-        linkElement.textContent = numberToKeys(index, neededLength)
+        linkElement.textContent = await numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
         /** @type {{[alignment: string]: {
          *   left?: number,
@@ -545,23 +543,23 @@ const parseAndDisplayLinks = receivedLinks => {
 }
 
 /** Returns true if the follow links have been filtered via typing. */
-const followFiltering = () => alreadyFilteringLinks
+export const followFiltering = () => alreadyFilteringLinks
 
 /**
  * Enter a follow mode key and narrow down results.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} code
  * @param {string} id
  * @param {boolean} stayInFollowMode
  */
-const enterKey = async(src, code, id, stayInFollowMode) => {
+export const enterKey = async(src, code, id, stayInFollowMode) => {
     alreadyFollowing = true
     /** @type {HTMLSpanElement[]} */
     // @ts-expect-error query selector only selects span elements
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
-    const charsInLinks = followChars().map(c => c.toLowerCase())
-    const {setMode} = require("./modes")
-    const fallbackAction = getSetting("followfallbackaction")
+    const charsInLinks = (await followChars()).map(c => c.toLowerCase())
+    const {setMode} = await import("./modes.js")
+    const fallbackAction = await getSetting("followfallbackaction")
     const url = getUrl()
     if (!code || !charsInLinks.includes(code.toLowerCase())) {
         if (fallbackAction === "exit") {
@@ -574,7 +572,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             alreadyFilteringLinks = true
             url.value = ""
         }
-        const {typeCharacterIntoNavbar} = require("./input")
+        const {typeCharacterIntoNavbar} = await import("./input.js")
         typeCharacterIntoNavbar(id, true)
         const filterText = url?.value.toLowerCase()
         /** @type {HTMLSpanElement[]} */
@@ -590,9 +588,9 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                 linkKey.style.display = "none"
             }
         })
-        const neededLength = numberToKeys(visibleLinks.length).length
-        visibleLinks.forEach((linkKey, index) => {
-            linkKey.textContent = numberToKeys(index, neededLength)
+        const neededLength = (await numberToKeys(visibleLinks.length)).length
+        visibleLinks.forEach(async(linkKey, index) => {
+            linkKey.textContent = await numberToKeys(index, neededLength)
         })
         return
     }
@@ -628,12 +626,12 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             if (stayInFollowMode) {
                 startFollow()
             }
-            const {addTab} = require("./tabs")
+            const {addTab} = await import("./tabs.js")
             if (followLinkDestination === "newtab") {
                 addTab({
                     src,
                     "switchTo": !stayInFollowMode
-                        && getSetting("follownewtabswitch"),
+                        && await getSetting("follownewtabswitch"),
                     "url": link.url
                 })
             } else if (followLinkDestination === "copylink") {
@@ -641,15 +639,15 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             } else {
                 const currentTabId = currentTab()?.getAttribute("link-id")
                 addTab({
-                    "container": getSetting("containersplitpage"),
+                    "container": await getSetting("containersplitpage"),
                     src,
                     "url": link.url
                 })
-                const {add} = require("./pagelayout")
+                const {add} = await import("./pagelayout.js")
                 const opposite = followLinkDestination === "ver"
-                    && !getSetting("splitbelow")
+                    && !await getSetting("splitbelow")
                     || followLinkDestination === "hor"
-                    && !getSetting("splitright")
+                    && !await getSetting("splitright")
                 if (currentTabId) {
                     add(currentTabId, followLinkDestination, !opposite)
                 }
@@ -667,17 +665,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
 }
 
 /** Listen for mouse leave to clear hover and follow responses from preload. */
-const init = () => {
+export const init = () => {
     ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
     document.addEventListener("mouseleave", () => emptyHoverLink())
-}
-
-module.exports = {
-    cancelFollow,
-    emptyHoverLink,
-    enterKey,
-    followFiltering,
-    init,
-    reorderDisplayedLinks,
-    startFollow
 }

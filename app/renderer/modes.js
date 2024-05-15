@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,30 +15,29 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {
-    currentPage,
+import {
     currentMode,
-    guiRelatedUpdate,
+    currentPage,
     getMouseConf,
-    updateScreenshotHighlight,
-    getUrl
-} = require("./common")
+    getUrl,
+    guiRelatedUpdate,
+    updateScreenshotHighlight
+} from "./common.js"
 
 // Sort order determines the appearance in the mode list
 /* eslint-disable sort-keys/sort-keys-fix */
-/** @type {{[K in import("./common").Mode]: {
- *   onLeave?: (newMode: import("./common").Mode) => void, onEnter?: () => void
+/** @type {{[K in import("./common.js").Mode]: {
+ *   onLeave?: (newMode: import("./common.js").Mode) => Promise<void>,
+ *   onEnter?: () => Promise<void>
  * }}} */
 const modes = {
     "normal": {},
     "insert": {
         /**
          * When leaving insert mode, all page elements should be unfocused.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./common.js").Mode} newMode
          */
-        "onLeave": newMode => {
+        "onLeave": async newMode => {
             if (currentPage()?.getAttribute("dom-ready")) {
                 currentPage()?.send("action", "blur")
             }
@@ -53,24 +52,26 @@ const modes = {
     },
     "command": {
         /** Clear the url value and restart the command history. */
-        "onEnter": () => {
+        "onEnter": async() => {
             const url = getUrl()
             if (url) {
                 url.value = ""
             }
-            const {resetPosition} = require("./commandhistory")
+            const {resetPosition} = await import("./commandhistory.js")
             resetPosition()
-            const {resetScreenshotDrag, resetInputHistory} = require("./input")
+            const {
+                resetScreenshotDrag, resetInputHistory
+            } = await import("./input.js")
             resetInputHistory()
             resetScreenshotDrag()
         },
         /** Restore url value then hide suggestions, selection and highlight. */
-        "onLeave": () => {
+        "onLeave": async() => {
             const url = getUrl()
-            const {emptySuggestions} = require("./suggest")
+            const {emptySuggestions} = await import("./suggest.js")
             emptySuggestions()
             updateScreenshotHighlight(true)
-            const {resetScreenshotDrag} = require("./input")
+            const {resetScreenshotDrag} = await import("./input.js")
             resetScreenshotDrag()
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
@@ -78,14 +79,14 @@ const modes = {
     },
     "search": {
         /** Restart the search history. */
-        "onEnter": () => {
-            const {resetInputHistory} = require("./input")
+        "onEnter": async() => {
+            const {resetInputHistory} = await import("./input.js")
             resetInputHistory()
         },
         /** Clear any temporary searches and remove selection. */
-        "onLeave": () => {
+        "onLeave": async() => {
             const url = getUrl()
-            const {resetIncrementalSearch} = require("./actions")
+            const {resetIncrementalSearch} = await import("./actions.js")
             resetIncrementalSearch({"src": "user"})
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
@@ -93,16 +94,18 @@ const modes = {
     },
     "explore": {
         /** Select the url value and restart explore history. */
-        "onEnter": () => {
+        "onEnter": async() => {
             const url = getUrl()
-            const {updateUrl} = require("./tabs")
+            const {updateUrl} = await import("./tabs.js")
             const page = currentPage()
             if (page) {
                 updateUrl(page, true)
             }
-            const {resetPosition} = require("./explorehistory")
+            const {resetPosition} = await import("./explorehistory.js")
             resetPosition()
-            const {resetInputHistory, requestSuggestUpdate} = require("./input")
+            const {
+                resetInputHistory, requestSuggestUpdate
+            } = await import("./input.js")
             resetInputHistory()
             requestSuggestUpdate()
             if (!document.getSelection()?.toString() && url) {
@@ -110,9 +113,9 @@ const modes = {
             }
         },
         /** Show the current url again and clear suggestions. */
-        "onLeave": () => {
+        "onLeave": async() => {
             const url = getUrl()
-            const {emptySuggestions} = require("./suggest")
+            const {emptySuggestions} = await import("./suggest.js")
             emptySuggestions()
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
@@ -121,13 +124,13 @@ const modes = {
     "follow": {
         /**
          * Stop running the follow mode parts then release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./common.js").Mode} newMode
          */
-        "onLeave": newMode => {
-            const {cancelFollow} = require("./follow")
+        "onLeave": async newMode => {
+            const {cancelFollow} = await import("./follow.js")
             cancelFollow()
             if (!["visual", "pointer"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
+                const {releaseKeys} = await import("./pointer.js")
                 releaseKeys()
             }
         }
@@ -135,11 +138,11 @@ const modes = {
     "pointer": {
         /**
          * Hide url hover and release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./common.js").Mode} newMode
          */
-        "onLeave": newMode => {
+        "onLeave": async newMode => {
             if (!["visual", "follow"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
+                const {releaseKeys} = await import("./pointer.js")
                 releaseKeys()
             }
             if (newMode !== "insert" && !getMouseConf("pageoutsideinsert")) {
@@ -153,11 +156,11 @@ const modes = {
     "visual": {
         /**
          * Release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./common.js").Mode} newMode
          */
-        "onLeave": newMode => {
+        "onLeave": async newMode => {
             if (!["pointer", "follow"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
+                const {releaseKeys} = await import("./pointer.js")
                 releaseKeys()
             }
         }
@@ -166,9 +169,9 @@ const modes = {
 
 /**
  * Set the current mode.
- * @param {import("./common").Mode} mode
+ * @param {import("./common.js").Mode} mode
  */
-const setMode = mode => {
+export const setMode = async mode => {
     const page = currentPage()
     if (!modes[mode] || currentMode() === mode || !page) {
         return
@@ -186,32 +189,32 @@ const setMode = mode => {
     }
     document.body.setAttribute("current-mode", mode)
     guiRelatedUpdate("navbar")
-    const {setFocusCorrectly} = require("./actions")
+    const {setFocusCorrectly} = await import("./actions.js")
     setFocusCorrectly()
 }
 
 /** Generate the mode suggestions dropdown with click actions. */
-const init = () => {
+export const init = () => {
     const modeList = document.getElementById("mode-suggestions")
     Object.keys(modes).forEach(mode => {
         const modeEntry = document.createElement("div")
         modeEntry.textContent = mode
         modeEntry.className = `no-focus-reset ${mode}`
-        modeEntry.addEventListener("click", e => {
+        modeEntry.addEventListener("click", async e => {
             if (currentMode() === mode) {
                 return
             }
             if (mode === "follow") {
-                const {startFollow} = require("./follow")
+                const {startFollow} = await import("./follow.js")
                 startFollow("current")
             } else if (mode === "search") {
-                const {toSearchMode} = require("./actions")
+                const {toSearchMode} = await import("./actions.js")
                 toSearchMode({"src": "user"})
             } else if (mode === "pointer") {
-                const {start} = require("./pointer")
+                const {start} = await import("./pointer.js")
                 start()
             } else if (mode === "visual") {
-                const {startVisualSelect} = require("./pointer")
+                const {startVisualSelect} = await import("./pointer.js")
                 startVisualSelect()
             } else {
                 setMode(mode)
@@ -221,5 +224,3 @@ const init = () => {
         modeList?.append(modeEntry)
     })
 }
-
-module.exports = {init, setMode}

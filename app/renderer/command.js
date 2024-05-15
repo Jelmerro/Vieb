@@ -15,72 +15,71 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {ipcRenderer} = require("electron")
-const {
-    notify,
-    clearTempContainers,
+import {
+    appConfig,
+    appData,
     clearCache,
     clearCookies,
     clearLocalStorage,
-    readFile,
-    writeFile,
+    clearTempContainers,
     deleteFile,
+    dirname,
+    domainName,
+    downloadPath,
+    execCommand,
+    expandPath,
+    formatDate,
+    getAppRootDir,
+    getSetting,
+    intervalValueToDate,
+    isAbsolutePath,
     isDir,
     isFile,
-    expandPath,
-    isAbsolutePath,
+    isUrl,
+    isValidIntervalValue,
     joinPath,
-    downloadPath,
-    dirname,
-    appData,
-    specialPagePath,
+    notify,
     pathToSpecialPageName,
+    propPixels,
+    readFile,
+    readJSON,
     specialChars,
     specialCharsAllowSpaces,
-    appConfig,
+    specialPagePath,
     stringToUrl,
-    formatDate,
-    propPixels,
-    readJSON,
-    writeJSON,
-    domainName,
     urlToString,
-    isUrl,
-    execCommand,
-    intervalValueToDate,
-    getSetting,
-    isValidIntervalValue,
-    getAppRootDir
-} = require("../util")
-const {
-    listTabs,
-    currentTab,
+    writeFile,
+    writeJSON
+} from "../util.js"
+import {argsAsHumanList, translate} from "../translate.js"
+import {clipboard, ipcRenderer, nativeImage} from "electron"
+import {
     currentPage,
+    currentTab,
+    listRealPages,
+    listTabs,
     pageForTab,
-    tabForPage,
-    listRealPages
-} = require("./common")
-const {argsAsHumanList, translate} = require("../translate")
+    tabForPage
+} from "./common.js"
+import {isExistingSetting} from "./settings.js"
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
- * @param {import("./common").RunSource} src
- * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
+ * @param {import("./common.js").RunSource} src
+ * @param {keyof typeof import("./settings.js").defaultSettings|"all"} setting
  */
-const listSetting = (src, setting) => {
+const listSetting = async(src, setting) => {
     if (setting === "all") {
-        const {listCurrentSettings} = require("./settings")
+        const {listCurrentSettings} = await import("./settings.js")
         notify({
-            "fields": [listCurrentSettings(true)],
+            "fields": [await listCurrentSettings(true)],
             "id": "commands.settings.optionsList",
             src
         })
         return
     }
     notify({
-        "fields": [setting, JSON.stringify(getSetting(setting))],
+        "fields": [setting, JSON.stringify(await getSetting(setting))],
         "id": "commands.settings.listSingle",
         src
     })
@@ -100,12 +99,11 @@ const splitSettingAndValue = (part, separator) => {
 /**
  * Check if a setting name is valid.
  * @param {string} name
- * @returns {name is (keyof typeof import("./settings").defaultSettings|"all")}
+ * @returns {name is (
+ *   keyof typeof import("./settings.js").defaultSettings|"all"
+ * )}
  */
-const isValidSettingName = name => {
-    const {isExistingSetting} = require("./settings")
-    return name === "all" || isExistingSetting(name)
-}
+const isValidSettingName = name => name === "all" || isExistingSetting(name)
 
 /**
  * Check if an unknown or any value is an array of strings.
@@ -137,16 +135,16 @@ const isStringObject = value => typeof value === "object"
 
 /**
  * Modifiy a list or a number.
- * @param {import("./common").RunSource} src
- * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {import("./common.js").RunSource} src
+ * @param {keyof typeof import("./settings.js").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifyListOrObject = (src, setting, value, method) => {
-    const {set, isArraySetting, isObjectSetting} = require("./settings")
+const modifyListOrObject = async(src, setting, value, method) => {
+    const {set, isArraySetting, isObjectSetting} = await import("./settings.js")
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
-    const {mouseFeatures} = require("./settings")
+    const {mouseFeatures} = await import("./settings.js")
     /** @type {{[key: string]: string}|string[]|string[][]} */
     let parsed = {}
     try {
@@ -188,7 +186,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             })
             addition = additionList
         }
-        let current = getSetting(setting)
+        let current = await getSetting(setting)
         if (current === "all") {
             current = mouseFeatures
         }
@@ -237,7 +235,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             set(src, setting, addition)
             return
         }
-        const newValue = getSetting(setting)
+        const newValue = await getSetting(setting)
         if (method === "append") {
             Object.entries(addition).forEach(([key, val]) => {
                 newValue[key] = val
@@ -262,21 +260,21 @@ const modifyListOrObject = (src, setting, value, method) => {
 
 /**
  * Modifiy a list or a number.
- * @param {import("./common").RunSource} src
- * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {import("./common.js").RunSource} src
+ * @param {keyof typeof import("./settings.js").defaultSettings} setting
  * @param {string} rawValue
  * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifySetting = (src, setting, rawValue, method = "replace") => {
+const modifySetting = async(src, setting, rawValue, method = "replace") => {
     let value = rawValue
     const {
         set, isNumberSetting, isStringSetting, isArraySetting, isObjectSetting
-    } = require("./settings")
+    } = await import("./settings.js")
     const isNumber = isNumberSetting(setting)
     const isText = isStringSetting(setting)
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
-    const {mouseFeatures} = require("./settings")
+    const {mouseFeatures} = await import("./settings.js")
     if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
         || value.startsWith("[") && value.endsWith("]"))) {
         modifyListOrObject(src, setting, value, method)
@@ -321,33 +319,33 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
     }
     if (method === "append") {
         if (isObject) {
-            const obj = getSetting(setting)
+            const obj = await getSetting(setting)
             obj[value.split("~")[0]] = value
                 .split("~").slice(1).join("~") ?? ""
             set(src, setting, obj)
         }
         if (isList) {
-            let current = getSetting(setting)
+            let current = await getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
             set(src, setting, [...current, value])
         }
         if (isNumber) {
-            set(src, setting, getSetting(setting) + Number(value))
+            set(src, setting, await getSetting(setting) + Number(value))
         }
         if (isText) {
-            set(src, setting, getSetting(setting) + value)
+            set(src, setting, await getSetting(setting) + value)
         }
     }
     if (method === "remove") {
         if (isObject) {
-            const obj = getSetting(setting)
+            const obj = await getSetting(setting)
             delete obj[value.split("~")[0]]
             set(src, setting, obj)
         }
         if (isList) {
-            let current = getSetting(setting)
+            let current = await getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
@@ -359,10 +357,11 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
             set(src, setting, newValue)
         }
         if (isNumber) {
-            set(src, setting, getSetting(setting) - Number(value))
+            set(src, setting, await getSetting(setting) - Number(value))
         }
         if (isText) {
-            set(src, setting, String(getSetting(setting)).replace(value, ""))
+            set(src, setting, String(
+                await getSetting(setting)).replace(value, ""))
         }
     }
     if (method === "special") {
@@ -374,30 +373,30 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
             })
         }
         if (isList) {
-            let current = getSetting(setting)
+            let current = await getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
             set(src, setting, [value, ...current])
         }
         if (isNumber) {
-            set(src, setting, getSetting(setting) * Number(value))
+            set(src, setting, await getSetting(setting) * Number(value))
         }
         if (isText) {
-            set(src, setting, value + getSetting(setting))
+            set(src, setting, value + await getSetting(setting))
         }
     }
 }
 
 /**
  * Use the set command to list or modify any setting.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const setCommand = (src, args) => {
+const setCommand = async(src, args) => {
     if (args.length === 0) {
-        const {listCurrentSettings} = require("./settings")
-        const allChanges = listCurrentSettings()
+        const {listCurrentSettings} = await import("./settings.js")
+        const allChanges = await listCurrentSettings()
         if (allChanges) {
             notify({
                 "fields": [allChanges],
@@ -489,7 +488,9 @@ const setCommand = (src, args) => {
             const setting = part.slice(0, -1)
             if (isValidSettingName(setting) && setting !== "all") {
                 const value = getSetting(setting)
-                const {isEnumSetting, validOptions} = require("./settings")
+                const {
+                    isEnumSetting, validOptions
+                } = await import("./settings.js")
                 if (["boolean", "undefined"].includes(typeof value)) {
                     modifySetting(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
@@ -514,7 +515,7 @@ const setCommand = (src, args) => {
                 })
             }
         } else if (part.endsWith("&")) {
-            const {reset} = require("./settings")
+            const {reset} = await import("./settings.js")
             reset(src, part.slice(0, -1))
         } else if (part.endsWith("?")) {
             const settingName = part.slice(0, -1)
@@ -561,7 +562,7 @@ const setCommand = (src, args) => {
                 const value = getSetting(settingName)
                 const {
                     isArraySetting, isObjectSetting, isNumberSetting
-                } = require("./settings")
+                } = await import("./settings.js")
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, "false")
                 } else if (isArraySetting(settingName)) {
@@ -601,11 +602,11 @@ const sourcedFiles = []
 
 /**
  * Source a specific viebrc file.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} origin
  * @param {string[]} args
  */
-const source = (src, origin, args) => {
+const source = async(src, origin, args) => {
     if (args.length !== 1) {
         notify({"id": "commands.source.argCount", src, "type": "warning"})
         return
@@ -624,8 +625,9 @@ const source = (src, origin, args) => {
         notify({"id": "commands.source.recursive", src, "type": "error"})
         return
     }
+    const config = await appConfig()
     if ([
-        appConfig()?.override, ...appConfig()?.files ?? []
+        config?.override, ...config?.files ?? []
     ].includes(absFile)) {
         notify({"id": "commands.source.startup", src, "type": "error"})
         return
@@ -662,7 +664,7 @@ const source = (src, origin, args) => {
 
 /**
  * Translate a search based range to a list of tab idxs.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
@@ -727,7 +729,7 @@ const translateSearchRangeToIdx = (src, range, silent) => {
 
 /**
  * Translate a partial range arg to tab index based on mathematical operations.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {number} start
  * @param {string} rangePart
  * @param {boolean} silent
@@ -787,11 +789,11 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
 
 /**
  * Get the tab indices for a given range.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
-const rangeToTabIdxs = (src, range, silent = false) => {
+export const rangeToTabIdxs = (src, range, silent = false) => {
     if (range === "%") {
         return {"tabs": listTabs().map((_, i) => i), "valid": true}
     }
@@ -867,7 +869,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
  * @param {string[]|[number]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
-const allTabsForBufferArg = (args, filter = null) => {
+export const allTabsForBufferArg = async(args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
         if (!isNaN(number)) {
@@ -893,7 +895,7 @@ const allTabsForBufferArg = (args, filter = null) => {
             }]
         }
         if ((args[0] || args) === "#") {
-            const {getLastTabIds} = require("./pagelayout")
+            const {getLastTabIds} = await import("./pagelayout.js")
             const currentTabIdx = currentTab()?.getAttribute("link-id")
             const tabs = listTabs()
             const lastTab = getLastTabIds().map(id => {
@@ -911,7 +913,8 @@ const allTabsForBufferArg = (args, filter = null) => {
             }]
         }
     }
-    const {getSimpleName, getSimpleUrl} = require("./history")
+    const {getSimpleName, getSimpleUrl} = await import("./history.js")
+
     /**
      * Checks if all words appear somewhere in the simple url.
      * @param {string[]} search
@@ -945,8 +948,8 @@ const allTabsForBufferArg = (args, filter = null) => {
  * @param {string[]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
-const tabForBufferArg = (args, filter = null) => {
-    const tabs = allTabsForBufferArg(args, filter)
+const tabForBufferArg = async(args, filter = null) => {
+    const tabs = await allTabsForBufferArg(args, filter)
     if (tabs[0]) {
         return tabs[0].tab ?? null
     }
@@ -954,58 +957,58 @@ const tabForBufferArg = (args, filter = null) => {
 }
 
 /** Quit the entire app entirely, including all quit settings and cleanup. */
-const quitall = () => {
+const quitall = async() => {
     ipcRenderer.send("hide-window")
-    const keepQuickmarkNames = getSetting("quickmarkpersistence")
+    const keepQuickmarkNames = await getSetting("quickmarkpersistence")
     const clearMark = ["scroll", "marks", "pointer"]
         .filter(t => !keepQuickmarkNames.includes(t))
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     for (const markType of clearMark) {
         delete qm[markType]
     }
     if (Object.keys(qm).length > 0) {
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
     } else {
-        deleteFile(joinPath(appData(), "quickmarks"))
+        deleteFile(joinPath(await appData(), "quickmarks"))
     }
-    const clearHistory = getSetting("clearhistoryinterval")
+    const clearHistory = await getSetting("clearhistoryinterval")
     if (clearHistory === "session") {
-        deleteFile(joinPath(appData(), "hist"))
+        deleteFile(joinPath(await appData(), "hist"))
     } else if (clearHistory === "none") {
-        const {writeHistToFile} = require("./history")
+        const {writeHistToFile} = await import("./history.js")
         writeHistToFile(true)
     } else {
-        const {removeOldHistory} = require("./history")
+        const {removeOldHistory} = await import("./history.js")
         removeOldHistory(intervalValueToDate(clearHistory))
     }
-    const {saveTabs} = require("./tabs")
+    const {saveTabs} = await import("./tabs.js")
     saveTabs()
     const pagesContainer = document.getElementById("pages")
     if (pagesContainer) {
         pagesContainer.textContent = ""
     }
     clearTempContainers()
-    if (getSetting("cache") !== "full") {
+    if (await getSetting("cache") !== "full") {
         clearCache()
     }
-    if (getSetting("clearcookiesonquit")) {
+    if (await getSetting("clearcookiesonquit")) {
         clearCookies()
     }
-    if (getSetting("clearlocalstorageonquit")) {
+    if (await getSetting("clearlocalstorageonquit")) {
         clearLocalStorage()
     }
-    const {updateMappings} = require("./favicons")
+    const {updateMappings} = await import("./favicons.js")
     updateMappings({"now": true})
     ipcRenderer.send("destroy-window")
 }
 
 /**
  * Quit the current split, a range of splits or the browser if not using splits.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} range
  */
-const quit = (src, range) => {
-    const {closeTab} = require("./tabs")
+const quit = async(src, range) => {
+    const {closeTab} = await import("./tabs.js")
     if (range) {
         rangeToTabIdxs(src, range).tabs.forEach(t => closeTab(src, t))
         return
@@ -1021,11 +1024,11 @@ let currentscheme = "default"
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} name
  * @param {string|null} trailingArgs
  */
-const colorscheme = (src, name = null, trailingArgs = null) => {
+const colorscheme = async(src, name = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify({"id": "commands.colorscheme.argCount", src, "type": "warning"})
         return
@@ -1040,7 +1043,7 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
     }
     let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
     if (!css) {
-        css = readFile(joinPath(appData(), `colors/${name}.css`))
+        css = readFile(joinPath(await appData(), `colors/${name}.css`))
     }
     if (!css) {
         css = readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
@@ -1067,7 +1070,7 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
         customStyle.textContent = css
     }
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
-    const {setCustomStyling} = require("./settings")
+    const {setCustomStyling} = await import("./settings.js")
     setCustomStyling(css)
     currentscheme = name
 }
@@ -1080,18 +1083,18 @@ const restart = () => {
 
 /**
  * Open the development tools.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} userPosition
  * @param {string|null} trailingArgs
  */
-const openDevTools = (src, userPosition = null, trailingArgs = null) => {
+const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify({"id": "commands.devtools.argCount", src, "type": "warning"})
         return
     }
-    const position = userPosition || getSetting("devtoolsposition")
-    const {addTab} = require("./tabs")
-    const {add} = require("./pagelayout")
+    const position = userPosition || await getSetting("devtoolsposition")
+    const {addTab} = await import("./tabs.js")
+    const {add} = await import("./pagelayout.js")
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
@@ -1100,13 +1103,13 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
             addTab({"devtools": true, src})
-            add(id, "hor", getSetting("splitright"))
+            add(id, "hor", await getSetting("splitright"))
         }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
             addTab({"devtools": true, src})
-            add(id, "ver", getSetting("splitbelow"))
+            add(id, "ver", await getSetting("splitbelow"))
         }
     } else {
         const valid = argsAsHumanList(["window", "vsplit", "split", "tab"])
@@ -1126,20 +1129,23 @@ const openInternalDevTools = () => {
 
 /**
  * Open a special page using commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} specialPage
  * @param {boolean} forceNewtab
  * @param {string|null} section
  */
-const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
+export const openSpecialPage = async(
+    src, specialPage, forceNewtab, section = null
+) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+    const newtabUrl = (await stringToUrl(await getSetting(
+        "newtaburl"))).replace(/\/+$/g, "")
     const isNewtab = currentSpecial === "newtab"
-        || (url?.replace(/\/+$/g, "") ?? "")
-        === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
-    const replaceSpecial = getSetting("replacespecial")
-    const {navigateTo, addTab} = require("./tabs")
+        || (url?.replace(/\/+$/g, "") ?? "") === newtabUrl
+    const replaceSpecial = await getSetting("replacespecial")
+    const {navigateTo, addTab} = await import("./tabs.js")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
         addTab({src, "url": newSpecialUrl})
     } else if (replaceSpecial === "always") {
@@ -1155,7 +1161,7 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
 
 /**
  * Open the help page at a specific section.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} forceNewtab
  * @param {string|null} section
  * @param {boolean} trailingArgs
@@ -1169,14 +1175,14 @@ const help = (src, forceNewtab, section = null, trailingArgs = false) => {
 }
 
 /** Source the startup configs again to reload the config. */
-const reloadconfig = () => {
-    const {loadFromDisk} = require("./settings")
+const reloadconfig = async() => {
+    const {loadFromDisk} = await import("./settings.js")
     loadFromDisk(false)
 }
 
 /**
  * Make a hardcopy print of a page, optionally for a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} range
  */
 const hardcopy = (src, range) => {
@@ -1194,22 +1200,22 @@ const hardcopy = (src, range) => {
 
 /**
  * Resolve file arguments to an absolute path with fixed type extension.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} locationArg
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
  */
-const resolveFileArg = (src, locationArg, type, customPage = null) => {
+const resolveFileArg = async(src, locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
     const tab = tabForPage(page)
     const name = `${tab?.querySelector("span")?.textContent?.replace(
         specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
         .replace(/:/g, "-")}`.replace(/\s/g, "_")
-    let loc = joinPath(downloadPath(), name)
+    let loc = joinPath(await downloadPath(), name)
     if (locationArg) {
         let file = expandPath(locationArg)
         if (!isAbsolutePath(file)) {
-            file = joinPath(downloadPath(), file)
+            file = joinPath(await downloadPath(), file)
         }
         let pathSep = "/"
         if (process.platform === "win32") {
@@ -1237,12 +1243,12 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
 
 /**
  * Write the html of a page to disk based on tab index or current.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} customLoc
  * @param {"mhtml"|"html"} extension
  * @param {number|null} tabIdx
  */
-const writePage = (src, customLoc, extension, tabIdx = null) => {
+const writePage = async(src, customLoc, extension, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
@@ -1255,7 +1261,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
     if (extension === "mhtml") {
         type = "MHTML"
     }
-    const loc = resolveFileArg(src, customLoc, extension, page)
+    const loc = await resolveFileArg(src, customLoc, extension, page)
     if (!loc) {
         return
     }
@@ -1279,7 +1285,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
 
 /**
  * Write the html of a page to disk, optionally a range of pages at custom loc.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1348,7 +1354,7 @@ const translateDimsToRect = dims => {
 
 /**
  * Copy the current page screen to the clipboard, optionally with custom dims.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
 const screencopy = (src, args) => {
@@ -1366,7 +1372,6 @@ const screencopy = (src, args) => {
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            const {nativeImage, clipboard} = require("electron")
             clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
         })
     }, 20)
@@ -1374,13 +1379,13 @@ const screencopy = (src, args) => {
 
 /**
  * Write the actual page to disk based on dims and location.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} dims
  * @param {string} location
  */
-const takeScreenshot = (src, dims, location) => {
+const takeScreenshot = async(src, dims, location) => {
     const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(src, location, "png", currentPage())
+    const loc = await resolveFileArg(src, location, "png", currentPage())
     if (!loc) {
         return
     }
@@ -1408,7 +1413,7 @@ const takeScreenshot = (src, dims, location) => {
 
 /**
  * Write the current page screen a location, optionally with custom dims.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
 const screenshot = (src, args) => {
@@ -1429,11 +1434,11 @@ const screenshot = (src, args) => {
 
 /**
  * Make a custom viebrc config based on current settings.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} full
  * @param {boolean} trailingArgs
  */
-const mkviebrc = (src, full = null, trailingArgs = false) => {
+const mkviebrc = async(src, full = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify({"id": "commands.mkviebrc.argCount", src, "type": "warning"})
         return
@@ -1452,32 +1457,32 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
             return
         }
     }
-    const {saveToDisk} = require("./settings")
+    const {saveToDisk} = await import("./settings.js")
     saveToDisk(src, exportAll)
 }
 
 /**
  * Buffer switch command, switch pages based on arguments.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const buffer = (src, args) => {
+const buffer = async(src, args) => {
     if (args.length === 0) {
         return
     }
-    const tab = tabForBufferArg(args)
+    const tab = await tabForBufferArg(args)
     if (tab) {
-        const {switchToTab} = require("./tabs")
+        const {switchToTab} = await import("./tabs.js")
         switchToTab(tab)
     } else {
-        const {navigateTo} = require("./tabs")
-        navigateTo(src, stringToUrl(args.join(" ")))
+        const {navigateTo} = await import("./tabs.js")
+        navigateTo(src, await stringToUrl(args.join(" ")))
     }
 }
 
 /**
  * List all the buffers currently opened by tab index.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  */
 const buffers = src => {
     const output = listTabs().map((tab, index) => {
@@ -1492,24 +1497,24 @@ const buffers = src => {
 
 /**
  * Open command, navigate to a url by argument, mostly useful for mappings.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const open = (src, args) => {
+const open = async(src, args) => {
     if (args.length === 0) {
         return
     }
-    const {navigateTo} = require("./tabs")
-    navigateTo(src, stringToUrl(args.join(" ")))
+    const {navigateTo} = await import("./tabs.js")
+    navigateTo(src, await stringToUrl(args.join(" ")))
 }
 
 /**
  * Suspend a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
-const suspend = (src, args, range = null) => {
+const suspend = async(src, args, range = null) => {
     if (range && args.length) {
         notify({"id": "commands.suspend.range", src, "type": "warning"})
         return
@@ -1522,14 +1527,14 @@ const suspend = (src, args, range = null) => {
     if (args.length === 0) {
         tab = currentTab()
     } else {
-        tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab")
-                && !t.getAttribute("suspended"))
+        tab = await tabForBufferArg(args, t => !t.classList.contains(
+            "visible-tab") && !t.getAttribute("suspended"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             notify({"id": "commands.suspend.visible", src, "type": "warning"})
         } else {
-            const {suspendTab} = require("./tabs")
+            const {suspendTab} = await import("./tabs.js")
             suspendTab(src, tab)
         }
     }
@@ -1537,11 +1542,11 @@ const suspend = (src, args, range = null) => {
 
 /**
  * Hide a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
-const hideCommand = (src, args, range = null) => {
+const hideCommand = async(src, args, range = null) => {
     if (range && args.length) {
         notify({"id": "commands.hide.range", src, "type": "warning"})
         return
@@ -1554,11 +1559,12 @@ const hideCommand = (src, args, range = null) => {
     if (args.length === 0) {
         tab = currentTab()
     } else {
-        tab = tabForBufferArg(args, t => t.classList.contains("visible-tab"))
+        tab = await tabForBufferArg(
+            args, t => t.classList.contains("visible-tab"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            const {hide} = require("./pagelayout")
+            const {hide} = await import("./pagelayout.js")
             const page = pageForTab(tab)
             if (page) {
                 hide(page)
@@ -1571,11 +1577,11 @@ const hideCommand = (src, args, range = null) => {
 
 /**
  * Mute a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const setMute = (src, args, range) => {
+const setMute = async(src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
         notify({"id": "commands.mute.argCount", src, "type": "warning"})
         return
@@ -1596,17 +1602,17 @@ const setMute = (src, args, range) => {
             page.setAudioMuted(!!tab?.getAttribute("muted"))
         }
     })
-    const {saveTabs} = require("./tabs")
+    const {saveTabs} = await import("./tabs.js")
     saveTabs()
 }
 
 /**
  * Toggle mute for a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
-const mute = (src, args, range = null) => {
+const mute = async(src, args, range = null) => {
     if (range && args.length) {
         notify({"id": "commands.mute.range", src, "type": "warning"})
         return
@@ -1617,7 +1623,7 @@ const mute = (src, args, range = null) => {
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args)
+        tab = await tabForBufferArg(args)
     }
     if (!tab) {
         notify({"id": "commands.mute.noMatch", src, "type": "warning"})
@@ -1632,17 +1638,17 @@ const mute = (src, args, range = null) => {
     if (page && !(page instanceof HTMLDivElement)) {
         page.setAudioMuted(!!tab.getAttribute("muted"))
     }
-    const {saveTabs} = require("./tabs")
+    const {saveTabs} = await import("./tabs.js")
     saveTabs()
 }
 
 /**
  * Set the pin state for a tab or a range of tabs.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const setPin = (src, args, range) => {
+const setPin = async(src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
         notify({"id": "commands.pin.argCount", src, "type": "warning"})
         return
@@ -1666,17 +1672,17 @@ const setPin = (src, args, range) => {
             tab.classList.remove("pinned")
         }
     })
-    const {saveTabs} = require("./tabs")
+    const {saveTabs} = await import("./tabs.js")
     saveTabs()
 }
 
 /**
  * Toggle the pin state for a tab or a range of tabs.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const pin = (src, args, range) => {
+const pin = async(src, args, range) => {
     if (range && args.length) {
         notify({"id": "commands.pin.range", src, "type": "warning"})
         return
@@ -1699,7 +1705,7 @@ const pin = (src, args, range) => {
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
+        tab = await tabForBufferArg(args, t => !t.getAttribute("suspended"))
     }
     if (!tab) {
         notify({"id": "commands.pin.noMatch", src, "type": "warning"})
@@ -1716,19 +1722,19 @@ const pin = (src, args, range) => {
             tabs.find(t => !t.classList.contains("pinned")) ?? null)
         tab.classList.add("pinned")
     }
-    const {saveTabs} = require("./tabs")
+    const {saveTabs} = await import("./tabs.js")
     saveTabs()
 }
 
 /**
  * Add a split to the page layout.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {"hor"|"ver"} method
  * @param {boolean} leftOrAbove
  * @param {string[]} args
  * @param {string|null} range
  */
-const addSplit = (src, method, leftOrAbove, args, range = null) => {
+const addSplit = async(src, method, leftOrAbove, args, range = null) => {
     if (range && args.length) {
         notify({"id": "commands.split.range", src, "type": "warning"})
         return
@@ -1738,18 +1744,19 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
             t => addSplit(src, method, leftOrAbove, [`${t}`]))
         return
     }
-    const {addTab, switchToTab} = require("./tabs")
-    const {add} = require("./pagelayout")
+    const {addTab, switchToTab} = await import("./tabs.js")
+    const {add} = await import("./pagelayout.js")
     const id = currentTab()?.getAttribute("link-id")
     if (!id) {
         return
     }
     if (args.length === 0) {
-        addTab({"container": getSetting("containersplitpage"), src})
+        addTab({"container": await getSetting("containersplitpage"), src})
         add(id, method, !leftOrAbove)
         return
     }
-    const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
+    const tab = await tabForBufferArg(
+        args, t => !t.classList.contains("visible-tab"))
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             notify({"id": "commands.split.visible", src, "type": "warning"})
@@ -1762,9 +1769,9 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
         }
     } else {
         addTab({
-            "container": getSetting("containersplitpage"),
+            "container": await getSetting("containersplitpage"),
             src,
-            "url": stringToUrl(args.join(" "))
+            "url": await stringToUrl(args.join(" "))
         })
         add(id, method, !leftOrAbove)
     }
@@ -1772,17 +1779,17 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
 
 /**
  * Close a page or a custom one with ranges/arguments.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} force
  * @param {string[]} args
  * @param {string} range
  */
-const close = (src, force, args, range) => {
+const close = async(src, force, args, range) => {
     if (range && args.length) {
         notify({"id": "commands.close.range", src, "type": "warning"})
         return
     }
-    const {closeTab} = require("./tabs")
+    const {closeTab} = await import("./tabs.js")
     if (range) {
         const tabs = listTabs()
         rangeToTabIdxs(src, range).tabs.map(id => tabs[id]).forEach(target => {
@@ -1794,7 +1801,7 @@ const close = (src, force, args, range) => {
         closeTab(src, null, force)
         return
     }
-    const tab = tabForBufferArg(args)
+    const tab = await tabForBufferArg(args)
     if (tab) {
         closeTab(src, listTabs().indexOf(tab), force)
         return
@@ -1805,11 +1812,11 @@ const close = (src, force, args, range) => {
 /**
  * Call command, run any mapstring immediately.
  * @param {string[]} args
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  */
 const callAction = (args, src) => {
-    setTimeout(() => {
-        const {executeMapString, sanitiseMapString} = require("./input")
+    setTimeout(async() => {
+        const {executeMapString, sanitiseMapString} = await import("./input.js")
         executeMapString(sanitiseMapString(src, args.join(" "), true), true, {
             "initial": true, src
         })
@@ -1818,9 +1825,9 @@ const callAction = (args, src) => {
 
 /**
  * Make Vieb the default browser of the operating system if possible.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  */
-const makedefault = src => {
+const makedefault = async src => {
     if (process.execPath.endsWith("electron")) {
         notify({"id": "commands.makedefault.installed", src, "type": "error"})
         return
@@ -1841,7 +1848,7 @@ const makedefault = src => {
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
             getAppRootDir(), "defaultapp/windows.bat"))
-        const tempFile = joinPath(appData(), "defaultapp.bat")
+        const tempFile = joinPath(await appData(), "defaultapp.bat")
         if (scriptContents) {
             writeFile(tempFile, scriptContents)
         }
@@ -1865,10 +1872,10 @@ const makedefault = src => {
 
 /**
  * Close all tabs to the left of the current one, optionally including pinned.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} force
  */
-const lclose = (src, force = false) => {
+const lclose = async(src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1878,17 +1885,17 @@ const lclose = (src, force = false) => {
     // without getting stuck trying to close pinned tabs at index 0.
     for (let i = index - 1; i >= 0; i--) {
         index = listTabs().indexOf(tab)
-        const {closeTab} = require("./tabs")
+        const {closeTab} = await import("./tabs.js")
         closeTab(src, index - 1, force)
     }
 }
 
 /**
  * Close all tabs to the right of the current one, optionally including pinned.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} force
  */
-const rclose = (src, force = false) => {
+const rclose = async(src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1899,14 +1906,14 @@ const rclose = (src, force = false) => {
     // without trying to close a potentially pinned tab right of current.
     for (let i = count - 1; i > index; i--) {
         count = listTabs().length
-        const {closeTab} = require("./tabs")
+        const {closeTab} = await import("./tabs.js")
         closeTab(src, count - 1, force)
     }
 }
 
 /**
  * Run custom JS in the page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} raw
  * @param {string} range
  */
@@ -1930,19 +1937,19 @@ const runjsinpage = (src, raw, range) => {
 
 /**
  * Open a new tab optionally with a custom session and url.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string|null} session
  * @param {string|null} url
  */
-const tabnew = (src, session = null, url = null) => {
-    const {addTab} = require("./tabs")
+const tabnew = async(src, session = null, url = null) => {
+    const {addTab} = await import("./tabs.js")
     /** @type {{
-     *   url?: string, session?: string, src: import("./common").RunSource
+     *   url?: string, session?: string, src: import("./common.js").RunSource
      * }}
      */
     const options = {src}
     if (url?.trim()) {
-        options.url = stringToUrl(url)
+        options.url = await stringToUrl(url)
     }
     if (session?.trim()) {
         options.session = session
@@ -1952,16 +1959,16 @@ const tabnew = (src, session = null, url = null) => {
 
 /**
  * Make or list marks.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const marks = (src, args) => {
+const marks = async(src, args) => {
     if (args.length > 2) {
         notify({"id": "commands.marks.argCount", src, "type": "warning"})
         return
     }
     if (args.length === 2) {
-        const {makeMark} = require("./actions")
+        const {makeMark} = await import("./actions.js")
         if (isUrl(args[1])) {
             makeMark({"key": args[0], src, "url": args[1]})
         } else {
@@ -1974,7 +1981,7 @@ const marks = (src, args) => {
         }
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     const relevantMarks = []
     const longest = Object.keys(qm.marks ?? {}).reduce((prev, curr) => {
         if (curr.length > prev) {
@@ -2015,10 +2022,10 @@ const marks = (src, args) => {
 
 /**
  * Restore a mark.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const restoremark = (src, args) => {
+const restoremark = async(src, args) => {
     if (args.length > 2) {
         notify({"id": "commands.restoremark.argCount", src, "type": "warning"})
         return
@@ -2027,14 +2034,14 @@ const restoremark = (src, args) => {
         notify({"id": "commands.restoremark.keyname", src, "type": "warning"})
         return
     }
-    const {restoreMark} = require("./actions")
-    const {validOptions} = require("./settings")
+    const {restoreMark} = await import("./actions.js")
+    const {validOptions} = await import("./settings.js")
     const [key, position] = args
 
     /**
      * Check if a mark position is valid.
      * @param {string} pos
-     * @returns {pos is import("./tabs").tabPosition|undefined}
+     * @returns {pos is import("./tabs.js").tabPosition|undefined}
      */
     const isValidPosition = pos => pos === undefined
         || validOptions.markposition.includes(pos)
@@ -2055,19 +2062,19 @@ const restoremark = (src, args) => {
 
 /**
  * Delete marks.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
-const delmarks = (src, all, args) => {
+const delmarks = async(src, all, args) => {
     if (all && args.length) {
         notify({"id": "commands.delmarks.argCount", src, "type": "warning"})
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (all) {
         qm.marks = {}
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
         return
     }
     if (args.length !== 1) {
@@ -2078,21 +2085,21 @@ const delmarks = (src, all, args) => {
     if (qm.marks?.[key] !== undefined) {
         delete qm.marks[key]
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
  * Set or list scroll positions.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const scrollpos = (src, args) => {
+const scrollpos = async(src, args) => {
     if (args.length > 3) {
         notify({"id": "commands.scrollpos.argCount", src, "type": "warning"})
         return
     }
     if (args.length === 2 || args.length === 3) {
-        const {storeScrollPos} = require("./actions")
+        const {storeScrollPos} = await import("./actions.js")
         const [key, pathOrPixels, pixelsOrPath] = args
         let pixels = Number(pathOrPixels)
         let path = pixelsOrPath
@@ -2117,7 +2124,7 @@ const scrollpos = (src, args) => {
         storeScrollPos({key, path, pixels, src})
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -2178,10 +2185,10 @@ const scrollpos = (src, args) => {
 
 /**
  * Restore a scroll position.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const restorescrollpos = (src, args) => {
+const restorescrollpos = async(src, args) => {
     if (args.length > 2) {
         notify({
             "id": "commands.restorescrollpos.argCount", src, "type": "warning"
@@ -2194,23 +2201,23 @@ const restorescrollpos = (src, args) => {
         })
         return
     }
-    const {restoreScrollPos} = require("./actions")
+    const {restoreScrollPos} = await import("./actions.js")
     const [key, path] = args
     restoreScrollPos({key, path, src})
 }
 
 /**
  * Delete a scroll position.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
-const delscrollpos = (src, all, args) => {
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+const delscrollpos = async(src, all, args) => {
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
-    const scrollPosId = getSetting("scrollposlocalid")
+    const scrollPosId = await getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(urlToString(currentPage()?.src ?? ""))
@@ -2241,7 +2248,7 @@ const delscrollpos = (src, all, args) => {
         } else {
             delete qm.scroll.local[path]
         }
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
         return
     }
     if (args.length === 0) {
@@ -2282,21 +2289,21 @@ const delscrollpos = (src, all, args) => {
             delete qm.scroll
         }
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
  * Set or list a pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const pointerpos = (src, args) => {
+const pointerpos = async(src, args) => {
     if (args.length > 4) {
         notify({"id": "commands.pointerpos.argCount", src, "type": "warning"})
         return
     }
     if (args.length > 1) {
-        const {storePos} = require("./pointer")
+        const {storePos} = await import("./pointer.js")
         const [key, x, y, path] = args
         const location = {"x": Number(x), "y": Number(y)}
         if (isNaN(location.x) || isNaN(location.y)) {
@@ -2308,7 +2315,7 @@ const pointerpos = (src, args) => {
         storePos({key, location, path})
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
@@ -2375,10 +2382,10 @@ const pointerpos = (src, args) => {
 
 /**
  * Restore the pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const restorepointerpos = (src, args) => {
+const restorepointerpos = async(src, args) => {
     if (args.length > 2) {
         notify({
             "id": "commands.restorepointerpos.argCount", src, "type": "warning"
@@ -2391,23 +2398,23 @@ const restorepointerpos = (src, args) => {
         })
         return
     }
-    const {restorePos} = require("./pointer")
+    const {restorePos} = await import("./pointer.js")
     const [key, path] = args
     restorePos({key, path})
 }
 
 /**
  * Delete a pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
-const delpointerpos = (src, all, args) => {
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+const delpointerpos = async(src, all, args) => {
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
-    const pointerPosId = getSetting("pointerposlocalid")
+    const pointerPosId = await getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {
         path = domainName(urlToString(currentPage()?.src ?? ""))
@@ -2438,7 +2445,7 @@ const delpointerpos = (src, all, args) => {
         } else {
             delete qm.pointer.local[path]
         }
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
         return
     }
     if (args.length === 0) {
@@ -2479,23 +2486,23 @@ const delpointerpos = (src, all, args) => {
             delete qm.pointer
         }
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
  * Translate the current page.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
-const translatepage = (src, args) => {
+const translatepage = async(src, args) => {
     if (args.length > 1) {
         notify({
             "id": "commands.translatepage.argCount", src, "type": "warning"
         })
         return
     }
-    const url = getSetting("translateurl").replace(/\/*$/g, "")
-    let api = getSetting("translateapi")
+    const url = (await getSetting("translateurl")).replace(/\/*$/g, "")
+    let api = await getSetting("translateapi")
     if (api === "auto") {
         if (url.includes("deepl.com")) {
             api = "deepl"
@@ -2503,12 +2510,12 @@ const translatepage = (src, args) => {
             api = "libretranslate"
         }
     }
-    const apiKey = getSetting("translatekey").trim()
+    const apiKey = (await getSetting("translatekey")).trim()
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
         notify({"id": "commands.translatepage.apiKey", src, "type": "warning"})
         return
     }
-    const {validOptions} = require("./settings")
+    const {validOptions} = await import("./settings.js")
     let [lang] = args
     if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
         notify({
@@ -2540,12 +2547,12 @@ const translatepage = (src, args) => {
 
 /**
  * Clear history based on an interval.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} type
  * @param {string} interval
  * @param {string|null} trailingArgs
  */
-const clear = (src, type, interval, trailingArgs = null) => {
+const clear = async(src, type, interval, trailingArgs = null) => {
     if (trailingArgs) {
         notify({"id": "commands.clear.argCount", src, "type": "warning"})
         return
@@ -2563,10 +2570,10 @@ const clear = (src, type, interval, trailingArgs = null) => {
         return
     }
     if (type === "history") {
-        const {removeOldHistory} = require("./history")
+        const {removeOldHistory} = await import("./history.js")
         if (isValidIntervalValue(interval, true)) {
             if (interval.startsWith("last")) {
-                const {removeRecentHistory} = require("./history")
+                const {removeRecentHistory} = await import("./history.js")
                 removeRecentHistory(intervalValueToDate(
                     interval.replace(/^last/g, "")))
             } else {
@@ -2575,7 +2582,7 @@ const clear = (src, type, interval, trailingArgs = null) => {
         } else if (interval === "all") {
             removeOldHistory(new Date())
         } else if (isUrl(interval)) {
-            const {removeHistoryByPartialUrl} = require("./history")
+            const {removeHistoryByPartialUrl} = await import("./history.js")
             removeHistoryByPartialUrl(interval)
         } else {
             notify({
@@ -2586,7 +2593,8 @@ const clear = (src, type, interval, trailingArgs = null) => {
 }
 
 const noEscapeCommands = ["command", "delcommand"]
-const rangeCompatibleCommands = [
+
+export const rangeCompatibleCommands = [
     "Sexplore",
     "Vexplore",
     "close",
@@ -2636,7 +2644,7 @@ let userCommands = {}
  *     args: string[],
  *     range: string,
  *     raw: string,
- *     src: import("./common").RunSource
+ *     src: import("./common.js").RunSource
  *   }) => void
  * }} */
 const commands = {
@@ -2699,8 +2707,8 @@ const commands = {
     "notifications": ({src}) => openSpecialPage(src, "notifications", false),
     "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
     "o": ({src, args}) => open(src, args),
-    "only": () => {
-        const {only} = require("./pagelayout")
+    "only": async() => {
+        const {only} = await import("./pagelayout.js")
         only()
     },
     "open": ({src, args}) => open(src, args),
@@ -2723,19 +2731,19 @@ const commands = {
     "s": ({src, args}) => setCommand(src, args),
     "screencopy": ({src, args}) => screencopy(src, args),
     "screenshot": ({src, args}) => screenshot(src, args),
-    "scriptnames": ({args, src}) => {
+    "scriptnames": async({args, src}) => {
         if (args?.length) {
             notify({
                 "id": "commands.scriptnames.noArgs", src, "type": "warning"
             })
             return
         }
-        const names = appConfig()?.files.map(
+        const names = (await appConfig())?.files.map(
             (f, i) => `${i + 1}: ${f}`).join("\n") ?? ""
         notify({"fields": [names], "id": "util.untranslated", src})
     },
-    "scriptnames!": ({args, src}) => {
-        const scripts = [...appConfig()?.files ?? [], ...sourcedFiles]
+    "scriptnames!": async({args, src}) => {
+        const scripts = [...(await appConfig())?.files ?? [], ...sourcedFiles]
         if (args.length === 0) {
             const names = scripts.map((f, i) => `${i + 1}: ${f}`).join("\n")
             notify({"fields": [names], "id": "util.untranslated", src})
@@ -2796,7 +2804,7 @@ const commands = {
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
-const {mapOrList, unmap, clearmap} = require("./input")
+const {mapOrList, unmap, clearmap} = await import("./input.js")
 " nicsefpvm".split("").forEach(prefix => {
     commands[`${prefix.trim()}map!`] = ({src, args}) => {
         mapOrList(src, prefix.trim(), args, false, true)
@@ -2833,11 +2841,11 @@ const {mapOrList, unmap, clearmap} = require("./input")
 
 /**
  * Add a new command, or optionally overwrite existing custom commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {boolean} overwrite
  * @param {string[]} args
  */
-const addCommand = (src, overwrite, args) => {
+const addCommand = async(src, overwrite, args) => {
     if (overwrite && args.length < 2) {
         notify({"id": "commands.command.combined", src, "type": "warning"})
         return
@@ -2900,13 +2908,13 @@ const addCommand = (src, overwrite, args) => {
         })
         return
     }
-    const {sanitiseMapString} = require("./input")
+    const {sanitiseMapString} = await import("./input.js")
     userCommands[command] = sanitiseMapString(src, params.join(" "), true)
 }
 
 /**
  * Delete a custom command.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string[]} args
  */
 const deleteCommand = (src, args) => {
@@ -2931,7 +2939,7 @@ const deleteCommand = (src, args) => {
  * Parse and validate the string to a command.
  * @param {string} commandStr
  */
-const parseAndValidateArgs = commandStr => {
+export const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
     let [command] = commandStr.split(" ")
     let range = ""
@@ -3047,30 +3055,30 @@ const parseAndValidateArgs = commandStr => {
 }
 
 /** Return the page title or an empty string. */
-const getPageTitle = () => currentTab()?.querySelector("span")
+export const getPageTitle = () => currentTab()?.querySelector("span")
     ?.textContent ?? ""
 
 /** Return the page url as a URL object. */
-const getPageUrlClass = () => {
-    const {getPageUrl} = require("./actions")
-    return new URL(getPageUrl())
+const getPageUrlClass = async() => {
+    const {getPageUrl} = await import("./actions.js")
+    return new URL(await getPageUrl())
 }
 
 /** Return the current page url origin. */
-const getPageOrigin = () => getPageUrlClass().origin
+const getPageOrigin = async() => (await getPageUrlClass()).origin
 
 /** Return the current page url domain. */
-const getPageDomain = () => getPageUrlClass().host
+const getPageDomain = async() => (await getPageUrlClass()).host
 
 /**
  * Execute a command.
  * @param {string} com
  * @param {{
  *   settingsFile?: string|null,
- *   src?: import("./common").RunSource
+ *   src?: import("./common.js").RunSource
  * }} opts
  */
-const execute = (com, opts = {}) => {
+export const execute = async(com, opts = {}) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
@@ -3084,19 +3092,20 @@ const execute = (com, opts = {}) => {
     // otherwise they will always use the same value at creation
     if (commandStr.includes("<use")
         && !holdUseCommands.some(command => commandStr.startsWith(command))) {
-        const {getPageUrl} = require("./actions")
+        const {getPageUrl} = await import("./actions.js")
         // Replace all occurrences of <useCurrent for their values
         commandStr = commandStr.replace("<useCurrentUrl>", `${getPageUrl()}`)
             .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
             .replace("<useCurrentTitle>", `${getPageTitle()}`)
             .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
-    const {push} = require("./commandhistory")
+    const {push} = await import("./commandhistory.js")
     push(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
-            execCommand(commandStr.replace("!", ""), (err, stdout) => {
-                const reportExit = getSetting("notificationforsystemcommands")
+            execCommand(commandStr.replace("!", ""), async(err, stdout) => {
+                const reportExit = await getSetting(
+                    "notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify({
                         "fields": [`${err}`],
@@ -3185,8 +3194,8 @@ const execute = (com, opts = {}) => {
             }
             commands[command]({args, range, "raw": com, src})
         } else {
-            setTimeout(() => {
-                const {executeMapString} = require("./input")
+            setTimeout(async() => {
+                const {executeMapString} = await import("./input.js")
                 executeMapString(userCommands[command], true,
                     {"initial": true, src})
             }, 5)
@@ -3212,7 +3221,7 @@ const execute = (com, opts = {}) => {
  * List all commands.
  * @param {boolean} includeCustom
  */
-const commandList = (includeCustom = true) => {
+export const commandList = (includeCustom = true) => {
     if (includeCustom) {
         return Object.keys(commands).filter(c => c.length > 2)
             .concat(Object.keys(userCommands))
@@ -3224,23 +3233,11 @@ const commandList = (includeCustom = true) => {
  * List all custom commands as viebrc statements.
  * @param {boolean} full
  */
-const customCommandsAsCommandList = (full = false) => {
+export const customCommandsAsCommandList = (full = false) => {
     let commandString = Object.keys(userCommands).map(
         command => `command ${command} ${userCommands[command]}`).join("\n")
     if (full || currentscheme !== "default") {
         commandString += `\ncolorscheme ${currentscheme}`
     }
     return commandString
-}
-
-module.exports = {
-    allTabsForBufferArg,
-    commandList,
-    customCommandsAsCommandList,
-    execute,
-    getPageTitle,
-    openSpecialPage,
-    parseAndValidateArgs,
-    rangeCompatibleCommands,
-    rangeToTabIdxs
 }

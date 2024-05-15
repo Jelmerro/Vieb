@@ -15,24 +15,22 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
+import {appData, appendFile, getSetting, joinPath, readFile} from "../util.js"
+import {currentMode, getUrl} from "./common.js"
 
-const {currentMode, getUrl} = require("./common")
-const {joinPath, getSetting, appData, appendFile, readFile} = require("../util")
-
-const exploreFile = joinPath(appData(), "explorehist")
+const exploreFile = joinPath(await appData(), "explorehist")
 /** @type {string[]} */
 let previousSites = []
 let previousIndex = -1
 let originalSite = ""
 
 /** Load the explore hist of the previous session if stored. */
-const init = () => {
+export const init = () => {
     previousSites = readFile(exploreFile)?.split("\n").filter(s => s) || []
 }
 
 /** Show the right entry based on new index set by previous or next. */
-const updateNavWithSite = () => {
+const updateNavWithSite = async() => {
     let exploreText = originalSite
     if (previousIndex !== -1) {
         exploreText = previousSites[previousIndex]
@@ -41,12 +39,12 @@ const updateNavWithSite = () => {
     if (url) {
         url.value = exploreText
     }
-    const {suggestExplore} = require("./suggest")
+    const {suggestExplore} = await import("./suggest.js")
     suggestExplore(exploreText)
 }
 
 /** Go to the previous item in the explore history. */
-const previous = () => {
+export const previous = () => {
     if (currentMode() !== "explore") {
         return
     }
@@ -60,7 +58,7 @@ const previous = () => {
 }
 
 /** Go to the next item in the explore history, or back to typed text. */
-const next = () => {
+export const next = () => {
     if (currentMode() !== "explore" || previousIndex === -1) {
         return
     }
@@ -73,7 +71,7 @@ const next = () => {
 }
 
 /** Reset the position info for the explore history. */
-const resetPosition = () => {
+export const resetPosition = () => {
     previousIndex = -1
     originalSite = ""
 }
@@ -82,8 +80,8 @@ const resetPosition = () => {
  * Push a new user navigation to the list.
  * @param {string} explore
  */
-const push = explore => {
-    const setting = getSetting("explorehist")
+export const push = async explore => {
+    const setting = await getSetting("explorehist")
     if (setting === "none") {
         return
     }
@@ -97,5 +95,3 @@ const push = explore => {
         appendFile(exploreFile, `${explore}\n`)
     }
 }
-
-module.exports = {init, next, previous, push, resetPosition}

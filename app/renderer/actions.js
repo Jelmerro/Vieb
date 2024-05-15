@@ -15,50 +15,48 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
 /** @typedef {{
  *   key?: string,
- *   src: import("./common").RunSource,
+ *   src: import("./common.js").RunSource,
  *   hadModifier?: boolean,
  *   customPage?: Electron.WebviewTag
  * }} ActionParam
  */
 
-const {ipcRenderer, clipboard} = require("electron")
-const {
-    urlToString,
-    joinPath,
+import {
     appData,
+    domainName,
+    execCommand,
+    getSetting,
+    isDir,
+    isFile,
+    isUrl,
+    joinPath,
     makeDir,
-    writeFile,
-    writeJSON,
     notify,
-    watchFile,
     readFile,
     readJSON,
     searchword,
     stringToUrl,
-    domainName,
-    isFile,
-    isDir,
-    execCommand,
-    getSetting,
-    isUrl
-} = require("../util")
-const {
-    listTabs,
-    currentTab,
-    currentPage,
+    urlToString,
+    watchFile,
+    writeFile,
+    writeJSON
+} from "../util.js"
+import {clipboard, ipcRenderer} from "electron"
+import {
     currentMode,
+    currentPage,
+    currentTab,
     getStored,
-    updateGuiVisibility,
-    setStored,
     getUrl,
-    tabForPage,
     listRealPages,
-    sendToPageOrSubFrame
-} = require("./common")
+    listTabs,
+    sendToPageOrSubFrame,
+    setStored,
+    tabForPage,
+    updateGuiVisibility
+} from "./common.js"
 
 let lastSearchFull = false
 let currentSearch = ""
@@ -70,8 +68,8 @@ let potentialNewSearchDirection = "forward"
  * Empty the current search by scope.
  * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
  */
-const emptySearch = args => {
-    const scope = args.scope || getSetting("searchemptyscope")
+export const emptySearch = async args => {
+    const scope = args.scope || await getSetting("searchemptyscope")
     /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
@@ -89,16 +87,16 @@ const emptySearch = args => {
  * Check if the search should be case sensitive or not.
  * @param {string} search
  */
-const matchCase = search => {
-    if (getSetting("smartcase")) {
+const matchCase = async search => {
+    if (await getSetting("smartcase")) {
         return search !== search.toLowerCase()
     }
     return !getSetting("ignorecase")
 }
 
 /** Highlight the next search match based on the scope. */
-const nextSearchMatch = () => {
-    const scope = getSetting("searchscope")
+export const nextSearchMatch = async() => {
+    const scope = await getSetting("searchscope")
     let search = getStored("globalsearch")
     let pages = []
     if (scope === "local") {
@@ -109,12 +107,12 @@ const nextSearchMatch = () => {
         pages = listRealPages()
     }
     if (search) {
-        pages.forEach(page => {
+        pages.forEach(async page => {
             if (tabForPage(page)?.classList.contains("visible-tab")) {
                 page?.findInPage(search, {
                     "findNext": true,
                     "forward": searchDirection === "forward",
-                    "matchCase": matchCase(search)
+                    "matchCase": await matchCase(search)
                 })
             }
         })
@@ -125,11 +123,11 @@ const nextSearchMatch = () => {
  * Switch to search mode.
  * @param {ActionParam} args
  */
-const toSearchMode = args => {
-    const {setMode} = require("./modes")
+export const toSearchMode = async args => {
+    const {setMode} = await import("./modes.js")
     setMode("search")
     let search = getStored("globalsearch")
-    if (getSetting("searchscope") !== "global") {
+    if (await getSetting("searchscope") !== "global") {
         search = currentTab()?.getAttribute("localsearch")
             || getStored("globalsearch")
     }
@@ -143,14 +141,14 @@ const toSearchMode = args => {
     if (url) {
         url.value = search
         url.select()
-        const {requestSuggestUpdate} = require("./input")
+        const {requestSuggestUpdate} = await import("./input.js")
         requestSuggestUpdate()
     }
 }
 
 /** Highlight the previous search match based on the scope. */
-const previousSearchMatch = () => {
-    const scope = getSetting("searchscope")
+export const previousSearchMatch = async() => {
+    const scope = await getSetting("searchscope")
     let search = getStored("globalsearch")
     let pages = []
     if (scope === "local") {
@@ -161,12 +159,12 @@ const previousSearchMatch = () => {
         pages = listRealPages()
     }
     if (search) {
-        pages.forEach(page => {
+        pages.forEach(async page => {
             if (tabForPage(page)?.classList.contains("visible-tab")) {
                 page?.findInPage(search, {
                     "findNext": true,
                     "forward": searchDirection === "backward",
-                    "matchCase": matchCase(search)
+                    "matchCase": await matchCase(search)
                 })
             }
         })
@@ -177,9 +175,9 @@ const previousSearchMatch = () => {
  * Reset the incremental search match.
  * @param {ActionParam} args
  */
-const resetIncrementalSearch = args => {
-    if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
-        emptySearch({"scope": "local", "src": args?.src ?? "other"})
+export const resetIncrementalSearch = async args => {
+    if (await getSetting("searchscope") === "inclocal" && !lastSearchFull) {
+        await emptySearch({"scope": "local", "src": args?.src ?? "other"})
     }
 }
 
@@ -187,8 +185,8 @@ const resetIncrementalSearch = args => {
  * Search for the string incrementally while typing if enabled, by scope.
  * @param {ActionParam&{value?: string}|null} args
  */
-const incrementalSearch = args => {
-    let scope = getSetting("searchscope")
+export const incrementalSearch = async args => {
+    let scope = await getSetting("searchscope")
     if (scope === "inclocal") {
         lastSearchFull = Boolean(args?.value)
         if (args?.value === undefined) {
@@ -214,10 +212,10 @@ const incrementalSearch = args => {
     }
     currentSearch = search
     if (search) {
-        pages.forEach(page => {
+        pages.forEach(async page => {
             page?.stopFindInPage("clearSelection")
             if (tabForPage(page)?.classList.contains("visible-tab")) {
-                page?.findInPage(search, {"matchCase": matchCase(search)})
+                page?.findInPage(search, {"matchCase": await matchCase(search)})
             }
         })
     } else {
@@ -226,39 +224,41 @@ const incrementalSearch = args => {
 }
 
 /** Click on the current search match using the electron API. */
-const clickOnSearch = () => currentPage()?.stopFindInPage("activateSelection")
+export const clickOnSearch = () => currentPage()
+    ?.stopFindInPage("activateSelection")
 
 /** Navigate to the next page as defined by the in-page markers. */
-const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
+export const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
 
 /** Navigate to the previous page as defined by the in-page markers. */
-const previousPage = () => sendToPageOrSubFrame("action", "previousPage")
+export const previousPage = () => sendToPageOrSubFrame("action", "previousPage")
 
 /** Open a new tab with the next page as defined by the in-page markers. */
-const nextPageNewTab = () => sendToPageOrSubFrame("action", "nextPage", true)
+export const nextPageNewTab = () => sendToPageOrSubFrame(
+    "action", "nextPage", true)
 
 /** Open a new tab with the previous page as defined by the in-page markers. */
-const previousPageNewTab = () => sendToPageOrSubFrame(
+export const previousPageNewTab = () => sendToPageOrSubFrame(
     "action", "previousPage", true)
 
 /**
  * Modify a url based on a source pattern and a replacement function.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
-const modifyUrl = (src, source, replacement) => {
+const modifyUrl = async(src, source, replacement) => {
     const url = currentPage()?.src || ""
     const next = url.replace(RegExp(source), replacement)
     if (next !== url) {
-        const {navigateTo} = require("./tabs")
+        const {navigateTo} = await import("./tabs.js")
         navigateTo(src, next)
     }
 }
 
 /**
  * Move the first number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {number} movement
  */
 const moveFirstNumber = (src, movement) => modifyUrl(
@@ -271,7 +271,7 @@ const moveFirstNumber = (src, movement) => modifyUrl(
 
 /**
  * Move the last number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {number} movement
  */
 const moveLastNumber = (src, movement) => modifyUrl(
@@ -284,7 +284,7 @@ const moveLastNumber = (src, movement) => modifyUrl(
 
 /**
  * Move the page number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {number} movement
  */
 const movePageNumber = (src, movement) => modifyUrl(
@@ -299,17 +299,17 @@ const movePageNumber = (src, movement) => modifyUrl(
  * Navigate to the next page as found in the url with `page=` or `p=`.
  * @param {ActionParam} args
  */
-const increasePageNumber = args => movePageNumber(args.src, 1)
+export const increasePageNumber = args => movePageNumber(args.src, 1)
 
 /**
  * Navigate to the previous page as found in the url with `page=` or `p=`.
  * @param {ActionParam} args
  */
-const decreasePageNumber = args => movePageNumber(args.src, -1)
+export const decreasePageNumber = args => movePageNumber(args.src, -1)
 
 /**
  * Move the port number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./common.js").RunSource} src
  * @param {number} movement
  */
 const movePortNumber = (src, movement) => {
@@ -345,43 +345,43 @@ const movePortNumber = (src, movement) => {
  * Increase the port number by one based on port standards.
  * @param {ActionParam} args
  */
-const increasePortNumber = args => movePortNumber(args.src, 1)
+export const increasePortNumber = args => movePortNumber(args.src, 1)
 
 /**
  * Decrease the port number by one based on port standards.
  * @param {ActionParam} args
  */
-const decreasePortNumber = args => movePortNumber(args.src, -1)
+export const decreasePortNumber = args => movePortNumber(args.src, -1)
 
 /**
  * Increase to the very first number in the url.
  * @param {ActionParam} args
  */
-const increaseFirstNumber = args => moveFirstNumber(args.src, 1)
+export const increaseFirstNumber = args => moveFirstNumber(args.src, 1)
 
 /**
  * Decrease to the very first number in the url.
  * @param {ActionParam} args
  */
-const decreaseFirstNumber = args => moveFirstNumber(args.src, -1)
+export const decreaseFirstNumber = args => moveFirstNumber(args.src, -1)
 
 /**
  * Increase to the very last number in the url.
  * @param {ActionParam} args
  */
-const increaseLastNumber = args => moveLastNumber(args.src, 1)
+export const increaseLastNumber = args => moveLastNumber(args.src, 1)
 
 /**
  * Decrease to the very last number in the url.
  * @param {ActionParam} args
  */
-const decreaseLastNumber = args => moveLastNumber(args.src, -1)
+export const decreaseLastNumber = args => moveLastNumber(args.src, -1)
 
 /**
  * Go to root domain, by removing most subdomains, repeats to remove www.
  * @param {ActionParam} args
  */
-const toRootSubdomain = args => {
+export const toRootSubdomain = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -405,7 +405,7 @@ const toRootSubdomain = args => {
         urlObj.hostname = domainNames.slice(-2).join(".")
     }
     if (originalUrl !== urlObj.href) {
-        const {navigateTo} = require("./tabs")
+        const {navigateTo} = await import("./tabs.js")
         navigateTo(args.src, urlObj.href)
     }
 }
@@ -414,7 +414,7 @@ const toRootSubdomain = args => {
  * Go to the parent domain, by removing 1 subdomain until there are none.
  * @param {ActionParam} args
  */
-const toParentSubdomain = args => {
+export const toParentSubdomain = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -430,7 +430,7 @@ const toParentSubdomain = args => {
     }
     urlObj.hostname = domainNames.slice(1).join(".")
     if (originalUrl !== urlObj.href) {
-        const {navigateTo} = require("./tabs")
+        const {navigateTo} = await import("./tabs.js")
         navigateTo(args.src, urlObj.href)
     }
 }
@@ -439,7 +439,7 @@ const toParentSubdomain = args => {
  * Go to the root url by removing the entire path, the search and the hash.
  * @param {ActionParam} args
  */
-const toRootUrl = args => {
+export const toRootUrl = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -449,7 +449,7 @@ const toRootUrl = args => {
     urlObj.pathname = ""
     urlObj.search = ""
     urlObj.hash = ""
-    const {navigateTo} = require("./tabs")
+    const {navigateTo} = await import("./tabs.js")
     if (process.platform === "win32") {
         const isRoot = [
             "file://", "file:///", "file:///C:", "file:///C:/"
@@ -468,7 +468,7 @@ const toRootUrl = args => {
  * Go to the parent url by removing the path part, the search and the hash.
  * @param {ActionParam} args
  */
-const toParentUrl = args => {
+export const toParentUrl = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -479,7 +479,7 @@ const toParentUrl = args => {
         .filter(p => p).slice(0, -1).join("/")
     urlObj.search = ""
     urlObj.hash = ""
-    const {navigateTo} = require("./tabs")
+    const {navigateTo} = await import("./tabs.js")
     if (process.platform === "win32") {
         const isRoot = [
             "file://", "file:///", "file:///C:", "file:///C:/"
@@ -495,8 +495,8 @@ const toParentUrl = args => {
 }
 
 /** Go to the previous tab in the bar, optionally wrapping back to the last. */
-const previousTab = () => {
-    const {switchToTab} = require("./tabs")
+export const previousTab = async() => {
+    const {switchToTab} = await import("./tabs.js")
     const current = currentTab()
     if (current) {
         switchToTab(listTabs().indexOf(current) - 1)
@@ -504,8 +504,8 @@ const previousTab = () => {
 }
 
 /** Go to the next tab in the bar, optionally wrapping to the first. */
-const nextTab = () => {
-    const {switchToTab} = require("./tabs")
+export const nextTab = async() => {
+    const {switchToTab} = await import("./tabs.js")
     const current = currentTab()
     if (current) {
         switchToTab(listTabs().indexOf(current) + 1)
@@ -516,8 +516,8 @@ const nextTab = () => {
  * Toggle the sourceviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleSourceViewer = args => {
-    const {navigateTo} = require("./tabs")
+export const toggleSourceViewer = async args => {
+    const {navigateTo} = await import("./tabs.js")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
@@ -539,8 +539,8 @@ const toggleSourceViewer = args => {
  * Open the sourceviewer in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleSourceViewerNewTab = args => {
-    const {navigateTo, addTab} = require("./tabs")
+export const toggleSourceViewerNewTab = async args => {
+    const {navigateTo, addTab} = await import("./tabs.js")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
@@ -565,8 +565,8 @@ const toggleSourceViewerNewTab = args => {
  * Toggle the readerviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleReaderView = args => {
-    const {navigateTo} = require("./tabs")
+export const toggleReaderView = async args => {
+    const {navigateTo} = await import("./tabs.js")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
@@ -588,8 +588,8 @@ const toggleReaderView = args => {
  * Open the readerview in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleReaderViewNewTab = args => {
-    const {navigateTo, addTab} = require("./tabs")
+export const toggleReaderViewNewTab = async args => {
+    const {navigateTo, addTab} = await import("./tabs.js")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
@@ -614,8 +614,8 @@ const toggleReaderViewNewTab = args => {
  * Toggle the markdownviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleMarkdownViewer = args => {
-    const {navigateTo} = require("./tabs")
+export const toggleMarkdownViewer = async args => {
+    const {navigateTo} = await import("./tabs.js")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
@@ -638,8 +638,8 @@ const toggleMarkdownViewer = args => {
  * Open the markdownviewer in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleMarkdownViewerNewTab = args => {
-    const {navigateTo, addTab} = require("./tabs")
+export const toggleMarkdownViewerNewTab = async args => {
+    const {navigateTo, addTab} = await import("./tabs.js")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
@@ -661,77 +661,82 @@ const toggleMarkdownViewerNewTab = args => {
 }
 
 /** Go to explore mode using regular mode switching. */
-const toExploreMode = () => {
-    const {setMode} = require("./modes")
+export const toExploreMode = async() => {
+    const {setMode} = await import("./modes.js")
     setMode("explore")
 }
 
 /** Go to insert mode at the very first visible input element on the page. */
-const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
+export const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
 
 /** Go to insert mode using regular mode switching. */
-const toInsertMode = () => {
-    const {setMode} = require("./modes")
+export const toInsertMode = async() => {
+    const {setMode} = await import("./modes.js")
     setMode("insert")
 }
 
 /** Scroll to the very top of the page. */
-const scrollTop = () => currentPage()?.send("action", "scrollTop")
+export const scrollTop = () => currentPage()?.send("action", "scrollTop")
 
 /** Scroll to the very bottom of the page. */
-const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
+export const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
 
 /** Scroll to the very right of the page. */
-const scrollRightMax = () => currentPage()?.send("action", "scrollRightMax")
+export const scrollRightMax = () => currentPage()
+    ?.send("action", "scrollRightMax")
 
 /** Scroll to the very left of the page. */
-const scrollLeftMax = () => currentPage()?.send("action", "scrollLeftMax")
+export const scrollLeftMax = () => currentPage()
+    ?.send("action", "scrollLeftMax")
 
 /** Scroll up 100px. */
-const scrollUp = () => currentPage()?.send("action", "scrollUp")
+export const scrollUp = () => currentPage()?.send("action", "scrollUp")
 
 /** Scroll down 100px. */
-const scrollDown = () => currentPage()?.send("action", "scrollDown")
+export const scrollDown = () => currentPage()?.send("action", "scrollDown")
 
 /** Scroll right 100px. */
-const scrollRight = () => currentPage()?.send("action", "scrollRight")
+export const scrollRight = () => currentPage()?.send("action", "scrollRight")
 
 /** Scroll left 100px. */
-const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
+export const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
 
 /** Scroll one page width to the right. */
-const scrollPageRight = () => currentPage()?.send("action", "scrollPageRight")
+export const scrollPageRight = () => currentPage()
+    ?.send("action", "scrollPageRight")
 
 /** Scroll one page width to the left. */
-const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
+export const scrollPageLeft = () => currentPage()
+    ?.send("action", "scrollPageLeft")
 
 /** Scroll one page height up. */
-const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
+export const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
 
 /** Scroll half a page height down. */
-const scrollPageDownHalf = () => currentPage()?.send(
+export const scrollPageDownHalf = () => currentPage()?.send(
     "action", "scrollPageDownHalf")
 
 /** Scroll one page height down. */
-const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
+export const scrollPageDown = () => currentPage()
+    ?.send("action", "scrollPageDown")
 
 /** Scroll half a page height up. */
-const scrollPageUpHalf = () => currentPage()?.send(
+export const scrollPageUpHalf = () => currentPage()?.send(
     "action", "scrollPageUpHalf")
 
 /**
  * Refresh the current page or optionally a custom page.
  * @param {ActionParam} args
  */
-const refreshTab = args => {
+export const refreshTab = async args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
+            const {recreateWebview} = await import("./tabs.js")
             recreateWebview(args.src, page)
             return
         }
-        const {rerollUserAgent, resetTabInfo} = require("./tabs")
+        const {rerollUserAgent, resetTabInfo} = await import("./tabs.js")
         rerollUserAgent(page)
         resetTabInfo(page)
         page.reload()
@@ -739,38 +744,38 @@ const refreshTab = args => {
 }
 
 /** Reopen the last closed tab. */
-const reopenTab = () => {
-    const {"reopenTab": reopen} = require("./tabs")
+export const reopenTab = async() => {
+    const {"reopenTab": reopen} = await import("./tabs.js")
     reopen()
 }
 
 /** Switch to follow mode to copy a link. */
-const startFollowCopyLink = () => {
-    const {startFollow} = require("./follow")
+export const startFollowCopyLink = async() => {
+    const {startFollow} = await import("./follow.js")
     startFollow("copylink")
 }
 
 /** Switch to follow mode to open a horizontal split. */
-const startFollowNewSplit = () => {
-    const {startFollow} = require("./follow")
+export const startFollowNewSplit = async() => {
+    const {startFollow} = await import("./follow.js")
     startFollow("ver")
 }
 
 /** Switch to follow mode to open a vertical split. */
-const startFollowNewVerSplit = () => {
-    const {startFollow} = require("./follow")
+export const startFollowNewVerSplit = async() => {
+    const {startFollow} = await import("./follow.js")
     startFollow("hor")
 }
 
 /** Switch to follow mode to open a new tab. */
-const startFollowNewTab = () => {
-    const {startFollow} = require("./follow")
+export const startFollowNewTab = async() => {
+    const {startFollow} = await import("./follow.js")
     startFollow("newtab")
 }
 
 /** Switch to follow mode to click on links in the current tab. */
-const startFollowCurrentTab = () => {
-    const {startFollow} = require("./follow")
+export const startFollowCurrentTab = async() => {
+    const {startFollow} = await import("./follow.js")
     startFollow("current")
 }
 
@@ -778,11 +783,11 @@ const startFollowCurrentTab = () => {
  * Go back in history for the current page or a custom one.
  * @param {ActionParam} args
  */
-const backInHistory = args => {
+export const backInHistory = async args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
+            const {recreateWebview} = await import("./tabs.js")
             recreateWebview(args.src, page)
             return
         }
@@ -791,7 +796,7 @@ const backInHistory = args => {
             if (tabTitleEl) {
                 tabTitleEl.textContent = ""
             }
-            const {rerollUserAgent, resetTabInfo} = require("./tabs")
+            const {rerollUserAgent, resetTabInfo} = await import("./tabs.js")
             rerollUserAgent(page)
             resetTabInfo(page)
             page.goBack()
@@ -803,11 +808,11 @@ const backInHistory = args => {
  * Go forward in history for the current page or a custom one.
  * @param {ActionParam} args
  */
-const forwardInHistory = args => {
+export const forwardInHistory = async args => {
     const page = args.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
+            const {recreateWebview} = await import("./tabs.js")
             recreateWebview(args.src, page)
             return
         }
@@ -816,7 +821,7 @@ const forwardInHistory = args => {
             if (tabTitleEl) {
                 tabTitleEl.textContent = ""
             }
-            const {rerollUserAgent, resetTabInfo} = require("./tabs")
+            const {rerollUserAgent, resetTabInfo} = await import("./tabs.js")
             rerollUserAgent(page)
             resetTabInfo(page)
             page.goForward()
@@ -828,15 +833,15 @@ const forwardInHistory = args => {
  * Refresh the curren tab without using cache.
  * @param {ActionParam} args
  */
-const refreshTabWithoutCache = args => {
+export const refreshTabWithoutCache = async args => {
     const page = currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
+            const {recreateWebview} = await import("./tabs.js")
             recreateWebview(args.src, page)
             return
         }
-        const {rerollUserAgent, resetTabInfo} = require("./tabs")
+        const {rerollUserAgent, resetTabInfo} = await import("./tabs.js")
         rerollUserAgent(page)
         resetTabInfo(page)
         page.reloadIgnoringCache()
@@ -848,20 +853,20 @@ const refreshTabWithoutCache = args => {
  * Open a new tab, switch to explore mode and have the current url ready.
  * @param {{
  *   key?: string,
- *   src: import("./common").RunSource,
+ *   src: import("./common.js").RunSource,
  *   hadModifier?: boolean,
  *   customPage?: Electron.WebviewTag | HTMLDivElement
  * }} args
  */
-const openNewTabWithCurrentUrl = args => {
+export const openNewTabWithCurrentUrl = async args => {
     const url = args.customPage?.getAttribute("src") || currentPage()?.src || ""
-    const {addTab} = require("./tabs")
+    const {addTab} = await import("./tabs.js")
     if (args.customPage) {
         const tab = tabForPage(args.customPage)
         if (!tab) {
             return
         }
-        const tabnewposition = getSetting("tabnewposition")
+        const tabnewposition = await getSetting("tabnewposition")
         let index = listTabs().indexOf(tab)
         if (tabnewposition === "right") {
             index += 1
@@ -872,7 +877,7 @@ const openNewTabWithCurrentUrl = args => {
         const pinned = currentTab()?.classList.contains("pinned") ?? false
         addTab({pinned, "src": args.src})
     }
-    const {setMode} = require("./modes")
+    const {setMode} = await import("./modes.js")
     setMode("explore")
     const urlEl = getUrl()
     if (urlEl) {
@@ -881,29 +886,29 @@ const openNewTabWithCurrentUrl = args => {
 }
 
 /** Go to command mode using regular mode switching. */
-const toCommandMode = () => {
-    const {setMode} = require("./modes")
+export const toCommandMode = async() => {
+    const {setMode} = await import("./modes.js")
     setMode("command")
 }
 
 /** Stop loading the page for now, might still start new fetch requests. */
-const stopLoadingPage = () => currentPage()?.stop()
+export const stopLoadingPage = () => currentPage()?.stop()
 
 /** Move the current tab one spot to the right/end in the bar. */
-const moveTabForward = () => {
-    const {"moveTabForward": move} = require("./tabs")
+export const moveTabForward = async() => {
+    const {"moveTabForward": move} = await import("./tabs.js")
     move()
 }
 
 /** Move the current tab one spot to the left/beginning in the bar. */
-const moveTabBackward = () => {
-    const {"moveTabBackward": move} = require("./tabs")
+export const moveTabBackward = async() => {
+    const {"moveTabBackward": move} = await import("./tabs.js")
     move()
 }
 
 /** Move the current tab all the way to the right/end in the bar. */
-const moveTabEnd = () => {
-    const {"moveTabForward": move} = require("./tabs")
+export const moveTabEnd = async() => {
+    const {"moveTabForward": move} = await import("./tabs.js")
     let didMove = move()
     while (didMove) {
         didMove = move()
@@ -911,8 +916,8 @@ const moveTabEnd = () => {
 }
 
 /** Move the current tab all the way to the left/beginning in the bar. */
-const moveTabStart = () => {
-    const {"moveTabBackward": move} = require("./tabs")
+export const moveTabStart = async() => {
+    const {"moveTabBackward": move} = await import("./tabs.js")
     let didMove = move()
     while (didMove) {
         didMove = move()
@@ -920,13 +925,13 @@ const moveTabStart = () => {
 }
 
 /** Reset the zoom level to the 100% default. */
-const zoomReset = () => currentPage()?.setZoomLevel(0)
+export const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 /**
  * Zoom the current page out or do it for a custom page.
  * @param {ActionParam} args
  */
-const zoomOut = args => {
+export const zoomOut = args => {
     const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) - 1
     if (level < -7) {
@@ -939,7 +944,7 @@ const zoomOut = args => {
  * Zoom the current page in or do it for a custom page.
  * @param {ActionParam} args
  */
-const zoomIn = args => {
+export const zoomIn = args => {
     const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) + 1
     if (level > 7) {
@@ -949,14 +954,14 @@ const zoomIn = args => {
 }
 
 /** Go to normal mode using regular mode switching. */
-const toNormalMode = () => {
-    const {setMode} = require("./modes")
+export const toNormalMode = async() => {
+    const {setMode} = await import("./modes.js")
     setMode("normal")
 }
 
 /** Go to the previous mode used before follow, or back to normal. */
-const stopFollowMode = () => {
-    const {setMode} = require("./modes")
+export const stopFollowMode = async() => {
+    const {setMode} = await import("./modes.js")
     if (currentMode() === "follow") {
         setMode(getStored("modebeforefollow") || "normal")
     } else {
@@ -965,8 +970,8 @@ const stopFollowMode = () => {
 }
 
 /** Repeat the last used action. */
-const repeatLastAction = () => {
-    const {"repeatLastAction": repeat} = require("./input")
+export const repeatLastAction = async() => {
+    const {"repeatLastAction": repeat} = await import("./input.js")
     repeat()
 }
 
@@ -974,7 +979,7 @@ const repeatLastAction = () => {
  * Edit the current insert mode input or navbar mode text.
  * @param {ActionParam} args
  */
-const editWithVim = args => {
+export const editWithVim = async args => {
     const page = currentPage()
     if (!page) {
         return
@@ -990,12 +995,12 @@ const editWithVim = args => {
     if (!typeOfEdit) {
         return
     }
-    const fileFolder = joinPath(appData(), "vimformedits")
+    const fileFolder = joinPath(await appData(), "vimformedits")
     makeDir(fileFolder)
     const tempFile = joinPath(fileFolder, String(Number(new Date())))
     /** @type {import("child_process").ChildProcess|null} */
     let command = null
-    watchFile(tempFile, () => {
+    watchFile(tempFile, async() => {
         if (command) {
             const contents = readFile(tempFile)
             if (contents === null) {
@@ -1009,13 +1014,14 @@ const editWithVim = args => {
                 if (url) {
                     url.value = contents
                 }
-                const {requestSuggestUpdate} = require("./input")
+                const {requestSuggestUpdate} = await import("./input.js")
                 requestSuggestUpdate()
             }
         } else {
-            const commandStr = `${getSetting("vimcommand")} "${tempFile}"`
-            command = execCommand(commandStr, (err, stdout) => {
-                const reportExit = getSetting("notificationforsystemcommands")
+            const commandStr = `${await getSetting("vimcommand")} "${tempFile}"`
+            command = await execCommand(commandStr, async(err, stdout) => {
+                const reportExit = await getSetting(
+                    "notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify({
                         "fields": [`${err}`],
@@ -1055,8 +1061,8 @@ const editWithVim = args => {
  * Download the current page link to disk.
  * @param {ActionParam} args
  */
-const downloadLink = args => {
-    const {commonAction} = require("./contextmenu")
+export const downloadLink = async args => {
+    const {commonAction} = await import("./contextmenu.js")
     commonAction(args.src, "link", "download",
         {"link": currentPage()?.src ?? ""})
 }
@@ -1065,17 +1071,17 @@ const downloadLink = args => {
  * Open the current page link in an external application as per setting.
  * @param {ActionParam} args
  */
-const openLinkExternal = args => {
-    const {commonAction} = require("./contextmenu")
+export const openLinkExternal = async args => {
+    const {commonAction} = await import("./contextmenu.js")
     commonAction(args.src, "link", "external",
         {"link": currentPage()?.src ?? ""})
 }
 
 /** Completely reset any focus issues there could be in the app. */
-const setFocusCorrectly = () => {
+export const setFocusCorrectly = async() => {
     const urlElement = document.getElementById("url")
-    const {updateUrl} = require("./tabs")
-    const {followFiltering} = require("./follow")
+    const {updateUrl} = await import("./tabs.js")
+    const {followFiltering} = await import("./follow.js")
     const page = currentPage()
     if (page) {
         updateUrl(page)
@@ -1099,182 +1105,183 @@ const setFocusCorrectly = () => {
 }
 
 /** Go to the next suggestion in the list. */
-const nextSuggestion = () => {
-    const {next} = require("./suggest")
+export const nextSuggestion = async() => {
+    const {next} = await import("./suggest.js")
     next()
     setFocusCorrectly()
 }
 
 /** Go to the previous suggestion in the list. */
-const prevSuggestion = () => {
-    const {previous} = require("./suggest")
+export const prevSuggestion = async() => {
+    const {previous} = await import("./suggest.js")
     previous()
     setFocusCorrectly()
 }
 
 /** Go to the next section in the suggestion list. */
-const nextSuggestionSection = () => {
-    const {nextSection} = require("./suggest")
+export const nextSuggestionSection = async() => {
+    const {nextSection} = await import("./suggest.js")
     nextSection()
     setFocusCorrectly()
 }
 
 /** Go to the previous section in the suggestion list. */
-const prevSuggestionSection = () => {
-    const {previousSection} = require("./suggest")
+export const prevSuggestionSection = async() => {
+    const {previousSection} = await import("./suggest.js")
     previousSection()
     setFocusCorrectly()
 }
 
 /** Go back in history to previously run commands. */
-const commandHistoryPrevious = () => {
-    const {previous} = require("./commandhistory")
+export const commandHistoryPrevious = async() => {
+    const {previous} = await import("./commandhistory.js")
     previous()
 }
 
 /** Go forward in history to previously run commands, or back to current. */
-const commandHistoryNext = () => {
-    const {next} = require("./commandhistory")
+export const commandHistoryNext = async() => {
+    const {next} = await import("./commandhistory.js")
     next()
 }
 
 /** Go back in history to previously navigated sites. */
-const exploreHistoryPrevious = () => {
-    const {previous} = require("./explorehistory")
+export const exploreHistoryPrevious = async() => {
+    const {previous} = await import("./explorehistory.js")
     previous()
 }
 
 /** Go forward in history to previously navigated sites, or back to current. */
-const exploreHistoryNext = () => {
-    const {next} = require("./explorehistory")
+export const exploreHistoryNext = async() => {
+    const {next} = await import("./explorehistory.js")
     next()
 }
 
 /** Rotate the current window split forward. */
-const rotateSplitWindowForward = () => {
-    const {rotateForward} = require("./pagelayout")
+export const rotateSplitWindowForward = async() => {
+    const {rotateForward} = await import("./pagelayout.js")
     rotateForward()
 }
 
 /** Rotate the current window split backward. */
-const rotateSplitWindowBackward = () => {
-    const {rotateReverse} = require("./pagelayout")
+export const rotateSplitWindowBackward = async() => {
+    const {rotateReverse} = await import("./pagelayout.js")
     rotateReverse()
 }
 
 /** Make the current window split the entire left side. */
-const leftHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const leftHalfSplitWindow = async() => {
+    const {toTop} = await import("./pagelayout.js")
     toTop("left")
 }
 
 /** Make the current window split the entire bottom half. */
-const bottomHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const bottomHalfSplitWindow = async() => {
+    const {toTop} = await import("./pagelayout.js")
     toTop("bottom")
 }
 
 /** Make the current window split the entire top half. */
-const topHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const topHalfSplitWindow = async() => {
+    const {toTop} = await import("./pagelayout.js")
     toTop("top")
 }
 
 /** Make the current window split the entire right side. */
-const rightHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const rightHalfSplitWindow = async() => {
+    const {toTop} = await import("./pagelayout.js")
     toTop("right")
 }
 
 /** Move the focus to the split to the left of the current one. */
-const toLeftSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toLeftSplitWindow = async() => {
+    const {moveFocus} = await import("./pagelayout.js")
     moveFocus("left")
 }
 
 /** Move the focus to the split to the bottom of the current one. */
-const toBottomSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toBottomSplitWindow = async() => {
+    const {moveFocus} = await import("./pagelayout.js")
     moveFocus("bottom")
 }
 
 /** Move the focus to the split to the top of the current one. */
-const toTopSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toTopSplitWindow = async() => {
+    const {moveFocus} = await import("./pagelayout.js")
     moveFocus("top")
 }
 
 /** Move the focus to the split to the right of the current one. */
-const toRightSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toRightSplitWindow = async() => {
+    const {moveFocus} = await import("./pagelayout.js")
     moveFocus("right")
 }
 
 /** Move the focus back to the previously focused window split. */
-const toLastSplitWindow = () => {
-    const {lastSplit} = require("./pagelayout")
+export const toLastSplitWindow = async() => {
+    const {lastSplit} = await import("./pagelayout.js")
     lastSplit()
 }
 
 /** Move the focus to the very first split by appearance. */
-const toFirstSplitWindow = () => {
-    const {firstSplit} = require("./pagelayout")
+export const toFirstSplitWindow = async() => {
+    const {firstSplit} = await import("./pagelayout.js")
     firstSplit()
 }
 
 /** Move the focus to the next split by appearance. */
-const toNextSplitWindow = () => {
-    const {nextSplit} = require("./pagelayout")
+export const toNextSplitWindow = async() => {
+    const {nextSplit} = await import("./pagelayout.js")
     nextSplit()
 }
 
 /** Move the focus to the previous split by appearance. */
-const toPreviousSplitWindow = () => {
-    const {previousSplit} = require("./pagelayout")
+export const toPreviousSplitWindow = async() => {
+    const {previousSplit} = await import("./pagelayout.js")
     previousSplit()
 }
 
 /** Swap the location of the current split and others in the same level. */
-const exchangeSplitWindow = () => {
-    const {exchange} = require("./pagelayout")
+export const exchangeSplitWindow = async() => {
+    const {exchange} = await import("./pagelayout.js")
     exchange()
 }
 
 /** Increase the height of the current window split within the same level. */
-const increaseHeightSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const increaseHeightSplitWindow = async() => {
+    const {resize} = await import("./pagelayout.js")
     resize("ver", "grow")
 }
 
 /** Decrease the height of the current window split within the same level. */
-const decreaseHeightSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const decreaseHeightSplitWindow = async() => {
+    const {resize} = await import("./pagelayout.js")
     resize("ver", "shrink")
 }
 
 /** Increase the width of the current window split within the same level. */
-const increaseWidthSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const increaseWidthSplitWindow = async() => {
+    const {resize} = await import("./pagelayout.js")
     resize("hor", "grow")
 }
 
 /** Decrease the width of the current window split within the same level. */
-const decreaseWidthSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const decreaseWidthSplitWindow = async() => {
+    const {resize} = await import("./pagelayout.js")
     resize("hor", "shrink")
 }
 
 /** Distribute the space each window split take equally within each level. */
-const distrubuteSpaceSplitWindow = () => {
-    const {resetResizing} = require("./pagelayout")
+export const distrubuteSpaceSplitWindow = async() => {
+    const {resetResizing} = await import("./pagelayout.js")
     resetResizing()
 }
 
 /** Toggle the always on top functionality of the app. */
-const toggleAlwaysOnTop = () => ipcRenderer.invoke("toggle-always-on-top")
+export const toggleAlwaysOnTop = () => ipcRenderer
+    .invoke("toggle-always-on-top")
 
 /** Toggle the fullscreen functionality of the app, then update the GUI. */
-const toggleFullscreen = () => {
+export const toggleFullscreen = () => {
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
@@ -1282,16 +1289,16 @@ const toggleFullscreen = () => {
  * Get a url with the right chars escaped, either a custom or current url.
  * @param {string} customUrl
  */
-const getPageUrl = (customUrl = "") => {
+export const getPageUrl = async(customUrl = "") => {
     let url = customUrl || currentPage()?.src || ""
-    if (getSetting("encodeurlcopy") === "spacesonly") {
+    if (await getSetting("encodeurlcopy") === "spacesonly") {
         url = url.replace(/ /g, "%20")
-    } else if (getSetting("encodeurlcopy") === "nospaces") {
+    } else if (await getSetting("encodeurlcopy") === "nospaces") {
         url = urlToString(url).replace(/ /g, "%20")
-    } else if (getSetting("encodeurlcopy") === "decode") {
+    } else if (await getSetting("encodeurlcopy") === "decode") {
         url = urlToString(url)
-    } else if (getSetting("encodeurlcopy") === "encode") {
-        url = stringToUrl(url)
+    } else if (await getSetting("encodeurlcopy") === "encode") {
+        url = await stringToUrl(url)
     }
     return url
 }
@@ -1301,7 +1308,8 @@ const getPageUrl = (customUrl = "") => {
  * @returns {Promise<string[]|null>}
  */
 const getPageRSSLinks = async args => {
-    const feedUrls = await currentPage()?.executeJavaScript(
+    /** @type {string[]} */
+    const rawFeedUrls = await currentPage()?.executeJavaScript(
         `Array.from(document.querySelectorAll("link[type]")).map(link => [
             "application/rss+xml",
             "application/atom+xml",
@@ -1317,25 +1325,28 @@ const getPageRSSLinks = async args => {
             "text/rdf"
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
-    if (feedUrls.length === 0) {
+    if (rawFeedUrls.length === 0) {
         notify({
             "id": "actions.rss.notFound", "src": args.src, "type": "warning"
         })
         return null
     }
-    return feedUrls.slice(0, 10).map((feed = "") => {
-        if (!isUrl(feed)) {
-            return getPageUrl(`${new URL(getPageUrl()).origin}${feed}`)
+    const feedUrls = []
+    for (const url of rawFeedUrls.filter(u => u).slice(0, 10)) {
+        if (!isUrl(url)) {
+            feedUrls.push(await getPageUrl(`${new URL(
+                await getPageUrl()).origin}${url}`))
         }
-        return getPageUrl(feed)
-    })
+        feedUrls.push(await getPageUrl(url))
+    }
+    return feedUrls
 }
 
 /**
  * Notify with the list of RSS links on the current page.
  * @param {ActionParam} args
  */
-const pageRSSLinksList = async args => {
+export const pageRSSLinksList = async args => {
     const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
@@ -1352,7 +1363,7 @@ const pageRSSLinksList = async args => {
 /** Copy an RSS link to the clipboard by index.
  * @param {ActionParam} args
  */
-const pageRSSLinkToClipboard = async args => {
+export const pageRSSLinkToClipboard = async args => {
     const {key} = args
     if (!key) {
         return
@@ -1372,37 +1383,38 @@ const pageRSSLinkToClipboard = async args => {
 }
 
 /** Copy the current page url to the system clipboard. */
-const pageToClipboard = () => clipboard.writeText(getPageUrl())
+export const pageToClipboard = async() => clipboard
+    .writeText(await getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
-const pageTitleToClipboard = () => {
-    const {getPageTitle} = require("./command")
+export const pageTitleToClipboard = async() => {
+    const {getPageTitle} = await import("./command.js")
     clipboard.writeText(getPageTitle())
 }
 
 /** Copy the current page to the system clipboard formatted as HTML. */
-const pageToClipboardHTML = () => {
+export const pageToClipboardHTML = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`<a href="${url}">${title}</a>`)
 }
 
 /** Copy the current page to the system clipboard formatted as Markdown. */
-const pageToClipboardMarkdown = () => {
+export const pageToClipboardMarkdown = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`[${title}](${url})`)
 }
 
 /** Copy the current page to the system clipboard formatted as RST. */
-const pageToClipboardRST = () => {
+export const pageToClipboardRST = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`\`${title} <${url}>\`_`)
 }
 
 /** Copy the current page to the system clipboard formatted as Emacs. */
-const pageToClipboardEmacs = () => {
+export const pageToClipboardEmacs = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`[[${url}][${title}]]`)
@@ -1412,10 +1424,10 @@ const pageToClipboardEmacs = () => {
  * Open the link currently in the system clipboard in the current tab.
  * @param {ActionParam} args
  */
-const openFromClipboard = args => {
+export const openFromClipboard = async args => {
     if (clipboard.readText().trim()) {
-        const {navigateTo} = require("./tabs")
-        navigateTo(args.src, stringToUrl(clipboard.readText()))
+        const {navigateTo} = await import("./tabs.js")
+        navigateTo(args.src, await stringToUrl(clipboard.readText()))
     }
 }
 
@@ -1423,19 +1435,19 @@ const openFromClipboard = args => {
  * Store a scroll position based on key.
  * @param {ActionParam&{path?: string, pixels?: number}} args
  */
-const storeScrollPos = async args => {
+export const storeScrollPos = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    let scrollType = getSetting("scrollpostype")
+    let scrollType = await getSetting("scrollpostype")
     if (scrollType !== "local" && scrollType !== "global") {
         scrollType = "global"
         if (key !== key.toUpperCase()) {
             scrollType = "local"
         }
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -1449,7 +1461,7 @@ const storeScrollPos = async args => {
     }
     if (scrollType === "local") {
         let path = ""
-        const scrollPosId = getSetting("scrollposlocalid")
+        const scrollPosId = await getSetting("scrollposlocalid")
         if (scrollPosId === "domain") {
             path = domainName(urlToString(currentPage()?.src ?? ""))
                 || domainName(currentPage()?.src ?? "") || ""
@@ -1466,19 +1478,19 @@ const storeScrollPos = async args => {
     } else {
         qm.scroll.global[key] = args.pixels ?? pixels
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored scroll position based on key.
  * @param {ActionParam&{path?: string}} args
  */
-const restoreScrollPos = args => {
+export const restoreScrollPos = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    const scrollPosId = getSetting("scrollposlocalid")
+    const scrollPosId = await getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(urlToString(currentPage()?.src ?? ""))
@@ -1488,7 +1500,7 @@ const restoreScrollPos = args => {
         path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     path = args.path ?? path
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const qm = readJSON(joinPath(await appData(), "quickmarks"))
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
         currentPage()?.executeJavaScript(`
@@ -1504,32 +1516,32 @@ const restoreScrollPos = args => {
  * Make a new mark based on a key.
  * @param {ActionParam&{url?: string}} args
  */
-const makeMark = args => {
+export const makeMark = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.marks) {
         qm.marks = {}
     }
     qm.marks[key] = urlToString(args.url ?? currentPage()?.src ?? "")
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored mark by key to a position.
- * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
+ * @param {ActionParam&{position?: import("./tabs.js").tabPosition}} args
  */
-const restoreMark = args => {
+export const restoreMark = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
-    const {commonAction} = require("./contextmenu")
-    let position = getSetting("markposition")
-    const shiftedPosition = getSetting("markpositionshifted")
+    const qm = readJSON(joinPath(await appData(), "quickmarks"))
+    const {commonAction} = await import("./contextmenu.js")
+    let position = await getSetting("markposition")
+    const shiftedPosition = await getSetting("markpositionshifted")
     if (key === key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
@@ -1541,15 +1553,17 @@ const restoreMark = args => {
  * Run a stored macro recording by key.
  * @param {ActionParam} args
  */
-const runRecording = args => {
+export const runRecording = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    const recording = readJSON(joinPath(appData(), "recordings"))?.[key]
+    const recording = readJSON(joinPath(await appData(), "recordings"))?.[key]
     if (recording) {
-        setTimeout(() => {
-            const {executeMapString, sanitiseMapString} = require("./input")
+        setTimeout(async() => {
+            const {
+                executeMapString, sanitiseMapString
+            } = await import("./input.js")
             executeMapString(sanitiseMapString(args.src, recording, true),
                 true, {"initial": true, "src": args.src})
         }, 5)
@@ -1559,30 +1573,30 @@ const runRecording = args => {
 /** Start a macro recording by key.
  * @param {ActionParam} args
  */
-const startRecording = args => {
+export const startRecording = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    const {"startRecording": start} = require("./input")
+    const {"startRecording": start} = await import("./input.js")
     start(key, args.src)
 }
 
 /** Stop the current macro recording if active. */
-const stopRecording = () => {
-    const {"stopRecording": stop} = require("./input")
+export const stopRecording = async() => {
+    const {"stopRecording": stop} = await import("./input.js")
     const record = stop()
     if (!record) {
         return
     }
-    const recordings = readJSON(joinPath(appData(), "recordings")) ?? {}
+    const recordings = readJSON(joinPath(await appData(), "recordings")) ?? {}
     recordings[record.name] = record.string
-    writeJSON(joinPath(appData(), "recordings"), recordings)
+    writeJSON(joinPath(await appData(), "recordings"), recordings)
 }
 
 /** Change the z-index order of the follow mode elements by type. */
-const reorderFollowLinks = () => {
-    const {reorderDisplayedLinks} = require("./follow")
+export const reorderFollowLinks = async() => {
+    const {reorderDisplayedLinks} = await import("./follow.js")
     reorderDisplayedLinks()
 }
 
@@ -1590,8 +1604,8 @@ const reorderFollowLinks = () => {
  * Open the menu, either for system elements or the current insert element.
  * @param {ActionParam} args
  */
-const menuOpen = args => {
-    const {viebMenu} = require("./contextmenu")
+export const menuOpen = async args => {
+    const {viebMenu} = await import("./contextmenu.js")
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab?.getBoundingClientRect()
@@ -1609,14 +1623,14 @@ const menuOpen = args => {
         const selected = document.querySelector("#suggest-dropdown .selected")
         let bounds = selected?.getBoundingClientRect()
         if (currentMode() === "command" && selected && bounds) {
-            const {commandMenu} = require("./contextmenu")
+            const {commandMenu} = await import("./contextmenu.js")
             commandMenu(args.src, {
                 "command": selected.querySelector("span")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
         } else if (currentMode() === "explore" && selected && bounds) {
-            const {linkMenu} = require("./contextmenu")
+            const {linkMenu} = await import("./contextmenu.js")
             linkMenu(args.src, {
                 "link": selected.querySelector(".url")?.textContent ?? "",
                 "x": bounds.x,
@@ -1626,7 +1640,7 @@ const menuOpen = args => {
             const url = getUrl()
             bounds = url?.getBoundingClientRect()
             if (url && bounds) {
-                const charWidth = getSetting("guifontsize") * 0.60191
+                const charWidth = await getSetting("guifontsize") * 0.60191
                 viebMenu(args.src, {
                     "path": [url],
                     "x": bounds.x + charWidth
@@ -1636,72 +1650,72 @@ const menuOpen = args => {
             }
         }
     } else {
-        const {openMenu} = require("./pointer")
+        const {openMenu} = await import("./pointer.js")
         openMenu(args)
     }
 }
 
 /** Go to the top entry in the context menu. */
-const menuTop = () => {
-    const {top} = require("./contextmenu")
+export const menuTop = async() => {
+    const {top} = await import("./contextmenu.js")
     top()
 }
 
 /** Go one section up in the context menu. */
-const menuSectionUp = () => {
-    const {sectionUp} = require("./contextmenu")
+export const menuSectionUp = async() => {
+    const {sectionUp} = await import("./contextmenu.js")
     sectionUp()
 }
 
 /** Go one entry up in the context menu. */
-const menuUp = () => {
-    const {up} = require("./contextmenu")
+export const menuUp = async() => {
+    const {up} = await import("./contextmenu.js")
     up()
 }
 
 /** Go one entry down in the context menu. */
-const menuDown = () => {
-    const {down} = require("./contextmenu")
+export const menuDown = async() => {
+    const {down} = await import("./contextmenu.js")
     down()
 }
 
 /** Go one section down in the context menu. */
-const menuSectionDown = () => {
-    const {sectionDown} = require("./contextmenu")
+export const menuSectionDown = async() => {
+    const {sectionDown} = await import("./contextmenu.js")
     sectionDown()
 }
 
 /** Go to the bottom entry in the context menu. */
-const menuBottom = () => {
-    const {bottom} = require("./contextmenu")
+export const menuBottom = async() => {
+    const {bottom} = await import("./contextmenu.js")
     bottom()
 }
 
 /** Execute the currently selected entry of the context menu. */
-const menuSelect = () => {
-    const {select} = require("./contextmenu")
+export const menuSelect = async() => {
+    const {select} = await import("./contextmenu.js")
     select()
 }
 
 /** Close the context menu without side effects. */
-const menuClose = () => {
-    const {clear} = require("./contextmenu")
+export const menuClose = async() => {
+    const {clear} = await import("./contextmenu.js")
     clear()
 }
 
 /** Show the table of contents on the current page. */
-const showTOC = () => {
-    const {getCustomStyling} = require("./settings")
+export const showTOC = async() => {
+    const {getCustomStyling} = await import("./settings.js")
     const fontsize = getSetting("guifontsize")
     sendToPageOrSubFrame("action", "showTOC", getCustomStyling(), fontsize)
 }
 
 /** Hide the table of contents. */
-const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
+export const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
 
 /** Toggle the table of contents on the current page. */
-const toggleTOC = () => {
-    const {getCustomStyling} = require("./settings")
+export const toggleTOC = async() => {
+    const {getCustomStyling} = await import("./settings.js")
     const fontsize = getSetting("guifontsize")
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
@@ -1710,8 +1724,8 @@ const toggleTOC = () => {
  * Use the navbar entered data to either navigate, search or run commands.
  * @param {ActionParam} args
  */
-const useEnteredData = args => {
-    const {setMode} = require("./modes")
+export const useEnteredData = async args => {
+    const {setMode} = await import("./modes.js")
     const url = getUrl()
     if (!url) {
         return
@@ -1719,7 +1733,7 @@ const useEnteredData = args => {
     if (currentMode() === "command") {
         const command = url.value.trim()
         setMode("normal")
-        const {execute} = require("./command")
+        const {execute} = await import("./command.js")
         execute(command, {"src": "user"})
     }
     if (currentMode() === "search") {
@@ -1731,156 +1745,16 @@ const useEnteredData = args => {
         const location = url.value.trim()
         setMode("normal")
         if (location) {
-            const modifiedLoc = searchword(location).url
-            const {push} = require("./explorehistory")
+            const modifiedLoc = (await searchword(location)).url
+            const {push} = await import("./explorehistory.js")
             push(urlToString(modifiedLoc))
-            const {navigateTo} = require("./tabs")
-            navigateTo(args.src, stringToUrl(modifiedLoc))
+            const {navigateTo} = await import("./tabs.js")
+            await navigateTo(args.src, await stringToUrl(modifiedLoc))
         }
     }
 }
 
 /** This action does nothing, but can be used as the action of a mapping. */
-const nop = () => {
+export const nop = () => {
     // Explicit No-op action: does nothing
-}
-
-module.exports = {
-    backInHistory,
-    bottomHalfSplitWindow,
-    clickOnSearch,
-    commandHistoryNext,
-    commandHistoryPrevious,
-    decreaseFirstNumber,
-    decreaseHeightSplitWindow,
-    decreaseLastNumber,
-    decreasePageNumber,
-    decreasePortNumber,
-    decreaseWidthSplitWindow,
-    distrubuteSpaceSplitWindow,
-    downloadLink,
-    editWithVim,
-    emptySearch,
-    exchangeSplitWindow,
-    exploreHistoryNext,
-    exploreHistoryPrevious,
-    forwardInHistory,
-    getPageUrl,
-    hideTOC,
-    increaseFirstNumber,
-    increaseHeightSplitWindow,
-    increaseLastNumber,
-    increasePageNumber,
-    increasePortNumber,
-    increaseWidthSplitWindow,
-    incrementalSearch,
-    insertAtFirstInput,
-    leftHalfSplitWindow,
-    makeMark,
-    menuBottom,
-    menuClose,
-    menuDown,
-    menuOpen,
-    menuSectionDown,
-    menuSectionUp,
-    menuSelect,
-    menuTop,
-    menuUp,
-    moveTabBackward,
-    moveTabEnd,
-    moveTabForward,
-    moveTabStart,
-    nextPage,
-    nextPageNewTab,
-    nextSearchMatch,
-    nextSuggestion,
-    nextSuggestionSection,
-    nextTab,
-    nop,
-    openFromClipboard,
-    openLinkExternal,
-    openNewTabWithCurrentUrl,
-    pageRSSLinkToClipboard,
-    pageRSSLinksList,
-    pageTitleToClipboard,
-    pageToClipboard,
-    pageToClipboardEmacs,
-    pageToClipboardHTML,
-    pageToClipboardMarkdown,
-    pageToClipboardRST,
-    prevSuggestion,
-    prevSuggestionSection,
-    previousPage,
-    previousPageNewTab,
-    previousSearchMatch,
-    previousTab,
-    refreshTab,
-    refreshTabWithoutCache,
-    reopenTab,
-    reorderFollowLinks,
-    repeatLastAction,
-    resetIncrementalSearch,
-    restoreMark,
-    restoreScrollPos,
-    rightHalfSplitWindow,
-    rotateSplitWindowBackward,
-    rotateSplitWindowForward,
-    runRecording,
-    scrollBottom,
-    scrollDown,
-    scrollLeft,
-    scrollLeftMax,
-    scrollPageDown,
-    scrollPageDownHalf,
-    scrollPageLeft,
-    scrollPageRight,
-    scrollPageUp,
-    scrollPageUpHalf,
-    scrollRight,
-    scrollRightMax,
-    scrollTop,
-    scrollUp,
-    setFocusCorrectly,
-    showTOC,
-    startFollowCopyLink,
-    startFollowCurrentTab,
-    startFollowNewSplit,
-    startFollowNewTab,
-    startFollowNewVerSplit,
-    startRecording,
-    stopFollowMode,
-    stopLoadingPage,
-    stopRecording,
-    storeScrollPos,
-    toBottomSplitWindow,
-    toCommandMode,
-    toExploreMode,
-    toFirstSplitWindow,
-    toInsertMode,
-    toLastSplitWindow,
-    toLeftSplitWindow,
-    toNextSplitWindow,
-    toNormalMode,
-    toParentSubdomain,
-    toParentUrl,
-    toPreviousSplitWindow,
-    toRightSplitWindow,
-    toRootSubdomain,
-    toRootUrl,
-    toSearchMode,
-    toTopSplitWindow,
-    toggleAlwaysOnTop,
-    toggleFullscreen,
-    toggleMarkdownViewer,
-    toggleMarkdownViewerNewTab,
-    toggleReaderView,
-    toggleReaderViewNewTab,
-    toggleSourceViewer,
-    toggleSourceViewerNewTab,
-    toggleTOC,
-    topHalfSplitWindow,
-    useEnteredData,
-    zoomIn,
-    zoomOut,
-    zoomReset
 }

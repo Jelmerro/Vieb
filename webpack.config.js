@@ -1,9 +1,7 @@
-"use strict"
+import TerserPlugin from "terser-webpack-plugin"
+import {join} from "path"
 
-const {join} = require("path")
-const TerserPlugin = require("terser-webpack-plugin")
-
-module.exports = [{
+export default [{
     "entry": {
         "main": "./app/index.js",
         "preload": "./app/preload/index.js",
@@ -12,13 +10,10 @@ module.exports = [{
     "externals": {
         "bufferutil": "commonjs bufferutil",
         "canvas": "{}",
-        "electron": "require('electron')",
+        "electron": "import('electron')",
         "utf-8-validate": "commonjs utf-8-validate"
     },
     "mode": "production",
-    "node": {
-        "__dirname": false
-    },
     "optimization": {
         "minimize": true,
         "minimizer": [
@@ -45,7 +40,7 @@ module.exports = [{
             }
             return `${data.chunk.name}/index.js`
         },
-        "path": join(__dirname, "build")
+        "path": join(import.meta.dirname, "build")
     },
     "target": "node"
 }]

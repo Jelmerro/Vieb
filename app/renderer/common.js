@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2023 Jelmer van Arnhem
+* Copyright (C) 2021-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,9 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {getSetting} = require("../util")
+import {getSetting} from "../util.js"
 
 /** @typedef {"execute"|"user"|"source"|"other"} RunSource */
 
@@ -26,118 +24,11 @@ let topOfPageWithMouse = false
 let navbarGuiTimer = null
 /** @type {number|null} */
 let tabbarGuiTimer = null
-
-/** Get the current url input element if available. */
-const getUrl = () => {
-    const url = document.getElementById("url")
-    if (url instanceof HTMLInputElement) {
-        return url
-    }
-    return null
-}
-
-/**
- * List all the open tabs.
- */
-const listTabs = () => {
-    /** @type {HTMLSpanElement[]} */
-    // @ts-expect-error query selector includes the span tag
-    const tabs = [...document.querySelectorAll("#tabs > span[link-id]")]
-    return tabs
-}
-
-/**
- * List all the open pages, regular ones are webviews, suspended ones are divs.
- */
-const listPages = () => {
-    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
-    // @ts-expect-error pages should always be div or webview
-    const pages = [...document.querySelectorAll("#pages > .webview")]
-    return pages
-}
-
-/**
- * List all the fake suspended div pages.
- */
-const listFakePages = () => {
-    const pages = [...document.querySelectorAll("#pages > .webview")]
-    return pages.flatMap(p => {
-        if (p instanceof HTMLDivElement) {
-            return p
-        }
-        return []
-    })
-}
-
-/**
- * List all the real unsuspended webview pages.
- */
-const listRealPages = () => {
-    /** @type {Electron.WebviewTag[]} */
-    // @ts-expect-error query selector includes the webview tag
-    const pages = [...document.querySelectorAll("#pages > webview")]
-    return pages
-}
-
-/**
- * List all the webview pages that have completed the dom setup.
- */
-const listReadyPages = () => {
-    /** @type {Electron.WebviewTag[]} */
-    // @ts-expect-error query selector includes the webview tag
-    const pages = [...document.querySelectorAll("#pages > webview[dom-ready]")]
-    return pages
-}
-
-/**
- * Get the current tab.
- */
-const currentTab = () => {
-    /** @type {HTMLSpanElement|null} */
-    const tab = document.getElementById("current-tab")
-    return tab
-}
-
-/**
- * Get the current page.
- */
-const currentPage = () => {
-    /** @type {Electron.WebviewTag|null} */
-    // @ts-expect-error current page id is always set to webview or null
-    const page = document.getElementById("current-page")
-    return page
-}
-
-/**
- * Send a message to the current page and its frames.
- * @param {string} channel
- * @param {any[]} args
- */
-const sendToPageOrSubFrame = (channel, ...args) => {
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.send(channel, currentPage()?.getWebContentsId(), ...args)
-}
-
-/**
- * Find a page for a given tab.
- * @param {HTMLSpanElement|null} tab
- */
-const pageForTab = tab => listPages().find(
-    e => tab && e.getAttribute("link-id") === tab.getAttribute("link-id"))
-
-/**
- * Find a tab for a given page.
- * @param {HTMLDivElement|Electron.WebviewTag|null} page
- */
-const tabForPage = page => listTabs().find(
-    e => page && e.getAttribute("link-id") === page.getAttribute("link-id"))
-
 /**
  * The valid modes of Vieb.
  * @typedef {("normal"|"insert"|"command"|"search"
  *   |"explore"|"follow"|"pointer"|"visual")} Mode
  */
-
 /** @type {Mode[]} */
 const modes = [
     "normal",
@@ -150,6 +41,111 @@ const modes = [
     "visual"
 ]
 
+/** Get the current url input element if available. */
+export const getUrl = () => {
+    const url = document.getElementById("url")
+    if (url instanceof HTMLInputElement) {
+        return url
+    }
+    return null
+}
+
+/**
+ * List all the open tabs.
+ */
+export const listTabs = () => {
+    /** @type {HTMLSpanElement[]} */
+    // @ts-expect-error query selector includes the span tag
+    const tabs = [...document.querySelectorAll("#tabs > span[link-id]")]
+    return tabs
+}
+
+/**
+ * List all the open pages, regular ones are webviews, suspended ones are divs.
+ */
+export const listPages = () => {
+    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
+    // @ts-expect-error pages should always be div or webview
+    const pages = [...document.querySelectorAll("#pages > .webview")]
+    return pages
+}
+
+/**
+ * List all the fake suspended div pages.
+ */
+export const listFakePages = () => {
+    const pages = [...document.querySelectorAll("#pages > .webview")]
+    return pages.flatMap(p => {
+        if (p instanceof HTMLDivElement) {
+            return p
+        }
+        return []
+    })
+}
+
+/**
+ * List all the real unsuspended webview pages.
+ */
+export const listRealPages = () => {
+    /** @type {Electron.WebviewTag[]} */
+    // @ts-expect-error query selector includes the webview tag
+    const pages = [...document.querySelectorAll("#pages > webview")]
+    return pages
+}
+
+/**
+ * List all the webview pages that have completed the dom setup.
+ */
+export const listReadyPages = () => {
+    /** @type {Electron.WebviewTag[]} */
+    // @ts-expect-error query selector includes the webview tag
+    const pages = [...document.querySelectorAll("#pages > webview[dom-ready]")]
+    return pages
+}
+
+/**
+ * Get the current tab.
+ */
+export const currentTab = () => {
+    /** @type {HTMLSpanElement|null} */
+    const tab = document.getElementById("current-tab")
+    return tab
+}
+
+/**
+ * Get the current page.
+ */
+export const currentPage = () => {
+    /** @type {Electron.WebviewTag|null} */
+    // @ts-expect-error current page id is always set to webview or null
+    const page = document.getElementById("current-page")
+    return page
+}
+
+/**
+ * Send a message to the current page and its frames.
+ * @param {string} channel
+ * @param {any[]} args
+ */
+export const sendToPageOrSubFrame = async(channel, ...args) => {
+    const {ipcRenderer} = await import("electron")
+    ipcRenderer.send(channel, currentPage()?.getWebContentsId(), ...args)
+}
+
+/**
+ * Find a page for a given tab.
+ * @param {HTMLSpanElement|null} tab
+ */
+export const pageForTab = tab => listPages().find(
+    e => tab && e.getAttribute("link-id") === tab.getAttribute("link-id"))
+
+/**
+ * Find a tab for a given page.
+ * @param {HTMLDivElement|Electron.WebviewTag|null} page
+ */
+export const tabForPage = page => listTabs().find(
+    e => page && e.getAttribute("link-id") === page.getAttribute("link-id"))
+
 /**
  * Check if a mode is valid.
  * @param {any} mode
@@ -160,7 +156,7 @@ const isValidMode = mode => modes.includes(mode)
 /**
  * Get the current mode.
  */
-const currentMode = () => {
+export const currentMode = () => {
     const mode = document.body.getAttribute("current-mode") ?? "normal"
     if (isValidMode(mode)) {
         return mode
@@ -172,7 +168,7 @@ const currentMode = () => {
  * Get a value from the session storage.
  * @param {string} set
  */
-const getStored = set => {
+export const getStored = set => {
     try {
         return JSON.parse(sessionStorage.getItem(set) ?? "")
     } catch {
@@ -184,8 +180,8 @@ const getStored = set => {
  * Check if a specific mouse feature is enabled.
  * @param {string} val
  */
-const getMouseConf = val => {
-    const mouse = getSetting("mouse")
+export const getMouseConf = async val => {
+    const mouse = await getSetting("mouse")
     return mouse === "all" || mouse.includes(val)
 }
 
@@ -194,18 +190,19 @@ const getMouseConf = val => {
  * @param {string} set
  * @param {any} val
  */
-const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
+export const setStored = (set, val) => sessionStorage
+    .setItem(set, JSON.stringify(val))
 
 /**
  * Get the current gui status value depending on window status.
  * @param {"navbar"|"tabbar"} type
- * @returns {"always"|"onupdate"|"oninput"|"never"}
+ * @returns {Promise<"always"|"onupdate"|"oninput"|"never">}
  */
-const getGuiStatus = type => {
-    let setting = getSetting(`gui${type}`)
-    const {ipcRenderer} = require("electron")
+const getGuiStatus = async type => {
+    let setting = await getSetting(`gui${type}`)
+    const {ipcRenderer} = await import("electron")
     if (ipcRenderer.sendSync("is-fullscreen")) {
-        setting = getSetting(`guifullscreen${type}`)
+        setting = await getSetting(`guifullscreen${type}`)
     }
     if (topOfPageWithMouse && setting !== "never") {
         setting = "always"
@@ -214,9 +211,9 @@ const getGuiStatus = type => {
 }
 
 /** Update the GUI visibility based on navbar and tabbar settings. */
-const updateGuiVisibility = () => {
-    const navbar = getGuiStatus("navbar")
-    const tabbar = getGuiStatus("tabbar")
+export const updateGuiVisibility = async() => {
+    const navbar = await getGuiStatus("navbar")
+    const tabbar = await getGuiStatus("tabbar")
     if (!navbarGuiTimer) {
         const notTyping = !"ces".includes(currentMode()[0])
         if (navbar === "never" || navbar !== "always" && notTyping) {
@@ -232,10 +229,10 @@ const updateGuiVisibility = () => {
             document.body.classList.add("tabshidden")
         }
     }
-    const {applyLayout} = require("./pagelayout")
+    const {applyLayout} = await import("./pagelayout.js")
     applyLayout()
     if (currentMode() === "pointer") {
-        const {updateElement} = require("./pointer")
+        const {updateElement} = await import("./pointer.js")
         updateElement()
     }
 }
@@ -244,7 +241,7 @@ const updateGuiVisibility = () => {
  * Update the mouse state to reflect if it's at the top of the page or not.
  * @param {boolean} status
  */
-const setTopOfPageWithMouse = status => {
+export const setTopOfPageWithMouse = status => {
     if (topOfPageWithMouse !== status) {
         topOfPageWithMouse = status
         updateGuiVisibility()
@@ -255,7 +252,7 @@ const setTopOfPageWithMouse = status => {
  * Update the screenshot highlight visibility and position, or hide it.
  * @param {boolean} hide
  */
-const updateScreenshotHighlight = (hide = false) => {
+export const updateScreenshotHighlight = (hide = false) => {
     const url = getUrl()
     const dims = url?.value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
@@ -305,10 +302,10 @@ const updateScreenshotHighlight = (hide = false) => {
  * Update the GUI to briefly show it again if configured.
  * @param {"navbar"|"tabbar"} type
  */
-const guiRelatedUpdate = type => {
+export const guiRelatedUpdate = async type => {
     updateGuiVisibility()
-    const timeout = getSetting("guihidetimeout")
-    if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
+    const timeout = await getSetting("guihidetimeout")
+    if (type === "navbar" && await getGuiStatus("navbar") === "onupdate") {
         window.clearTimeout(navbarGuiTimer ?? undefined)
         document.body.classList.remove("navigationhidden")
         if (timeout) {
@@ -318,7 +315,7 @@ const guiRelatedUpdate = type => {
             }, timeout)
         }
     }
-    if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
+    if (type === "tabbar" && await getGuiStatus("tabbar") === "onupdate") {
         window.clearTimeout(tabbarGuiTimer ?? undefined)
         document.body.classList.remove("tabshidden")
         if (timeout) {
@@ -328,26 +325,4 @@ const guiRelatedUpdate = type => {
             }, timeout)
         }
     }
-}
-
-module.exports = {
-    currentMode,
-    currentPage,
-    currentTab,
-    getMouseConf,
-    getStored,
-    getUrl,
-    guiRelatedUpdate,
-    listFakePages,
-    listPages,
-    listReadyPages,
-    listRealPages,
-    listTabs,
-    pageForTab,
-    sendToPageOrSubFrame,
-    setStored,
-    setTopOfPageWithMouse,
-    tabForPage,
-    updateGuiVisibility,
-    updateScreenshotHighlight
 }

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,18 +15,16 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-window.addEventListener("DOMContentLoaded", () => {
-    require("./input").init()
-    require("./settings").init()
-    require("./history").init()
-    require("./tabs").init()
-    require("./favicons").init()
-    require("./modes").init()
-    require("./commandhistory").init()
-    require("./explorehistory").init()
-    require("./follow").init()
-    require("./contextmenu").init()
-    require("./pointer").init()
+window.addEventListener("DOMContentLoaded", async() => {
+    (await import("./input.js")).init()
+    ;(await import("./settings.js")).init()
+    ;(await import("./history.js")).init()
+    ;(await import("./tabs.js")).init()
+    ;(await import("./favicons.js")).init()
+    ;(await import("./modes.js")).init()
+    ;(await import("./commandhistory.js")).init()
+    ;(await import("./explorehistory.js")).init()
+    ;(await import("./follow.js")).init()
+    ;(await import("./contextmenu.js")).init()
+    ;(await import("./pointer.js")).init()
 })

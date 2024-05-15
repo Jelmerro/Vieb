@@ -6,7 +6,7 @@ This is a sync-only no-glob native-fs reworked rimraf that also works in Windows
 - rimraf has a hard dependency on glob and async versions which are unnecessary
 - Now I have to maintain a separate version of rimraf that just works...
 
-Copyright (C) 2022-2023 Jelmer van Arnhem
+Copyright (C) 2022-2024 Jelmer van Arnhem
 Copyright (c) 2011-2022 Isaac Z. Schlueter and Contributors
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -21,9 +21,7 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-"use strict"
-
-const fs = require("fs")
+import fs from "node:fs"
 
 /**
  * Check if the exception is a NodeJS Errno Exception.
@@ -147,4 +145,4 @@ const rimrafSync = p => {
     }
 }
 
-module.exports = rimrafSync
+export default rimrafSync
