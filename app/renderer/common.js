@@ -64,8 +64,7 @@ export const listTabs = () => {
  * List all the open pages, regular ones are webviews, suspended ones are divs.
  */
 export const listPages = () => {
-    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
-    // @ts-expect-error pages should always be div or webview
+    /** @type {HTMLElement[]} */
     const pages = [...document.querySelectorAll("#pages > .webview")]
     return pages
 }
@@ -87,8 +86,7 @@ export const listFakePages = () => {
  * List all the real unsuspended webview pages.
  */
 export const listRealPages = () => {
-    /** @type {Electron.WebviewTag[]} */
-    // @ts-expect-error query selector includes the webview tag
+    /** @type {HTMLElement[]} */
     const pages = [...document.querySelectorAll("#pages > webview")]
     return pages
 }
@@ -97,8 +95,7 @@ export const listRealPages = () => {
  * List all the webview pages that have completed the dom setup.
  */
 export const listReadyPages = () => {
-    /** @type {Electron.WebviewTag[]} */
-    // @ts-expect-error query selector includes the webview tag
+    /** @type {HTMLElement[]} */
     const pages = [...document.querySelectorAll("#pages > webview[dom-ready]")]
     return pages
 }
@@ -116,8 +113,7 @@ export const currentTab = () => {
  * Get the current page.
  */
 export const currentPage = () => {
-    /** @type {Electron.WebviewTag|null} */
-    // @ts-expect-error current page id is always set to webview or null
+    /** @type {HTMLElement|null} */
     const page = document.getElementById("current-page")
     return page
 }

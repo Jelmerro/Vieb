@@ -1706,7 +1706,7 @@ export const menuClose = async() => {
 /** Show the table of contents on the current page. */
 export const showTOC = async() => {
     const {getCustomStyling} = await import("./settings.js")
-    const fontsize = getSetting("guifontsize")
+    const fontsize = await getSetting("guifontsize")
     sendToPageOrSubFrame("action", "showTOC", getCustomStyling(), fontsize)
 }
 
@@ -1716,7 +1716,7 @@ export const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
 /** Toggle the table of contents on the current page. */
 export const toggleTOC = async() => {
     const {getCustomStyling} = await import("./settings.js")
-    const fontsize = getSetting("guifontsize")
+    const fontsize = await getSetting("guifontsize")
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
 

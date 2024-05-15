@@ -71,14 +71,16 @@ const loadLang = lang => {
  * Translate a field.
  * @param {import("../types/i18n.js").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
- * @returns {string}
+ * @returns {Promise<string>}
  */
-export const translate = (id, opts = {"customLang": null, "fields": []}) => {
+export const translate = async(
+    id, opts = {"customLang": null, "fields": []}
+) => {
     if (!translations.en) {
         const filePath = joinPath(getAppRootDir(), "translations/en.json")
         translations.en = readJSON(filePath)
     }
-    const currentLang = opts.customLang ?? getSetting("lang")
+    const currentLang = opts.customLang ?? await getSetting("lang")
     if (!translations[currentLang]) {
         loadLang(currentLang)
     }
@@ -131,10 +133,10 @@ const onlyKeepSafeNodes = node => {
  * @param {import("../types/i18n.js").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
  */
-export const translateAsHTML = (
+export const translateAsHTML = async(
     id, opts = {"customLang": null, "fields": []}
 ) => {
-    const value = translate(id, opts)
+    const value = await translate(id, opts)
     const parsed = new DOMParser().parseFromString(value, "text/html")
     const body = parsed.querySelector("body")
     if (!body) {
@@ -150,19 +152,21 @@ export const translateAsHTML = (
  * @param {"or"|"and"|"none"} linkWord
  * @param {"single"|"double"|"none"} quotes
  */
-export const argsAsHumanList = (args, linkWord = "or", quotes = "single") => {
+export const argsAsHumanList = async(
+    args, linkWord = "or", quotes = "single"
+) => {
     let readable = ""
     let quotestart = ""
     let quoteend = ""
-    const commaspaced = translate("util.commaSpaced")
+    const commaspaced = await translate("util.commaSpaced")
     if (quotes !== "none") {
-        quotestart = translate(`util.${quotes}QuoteStart`)
-        quoteend = translate(`util.${quotes}QuoteEnd`)
+        quotestart = await translate(`util.${quotes}QuoteStart`)
+        quoteend = await translate(`util.${quotes}QuoteEnd`)
     }
     for (const arg of args.slice(0, -1)) {
         readable += `${commaspaced}${quotestart}${arg}${quoteend}`
     }
-    readable += `${translate(`util.${linkWord}`)}${
+    readable += `${await translate(`util.${linkWord}`)}${
         quotestart}${args.at(-1)}${quoteend}`
     return readable.replace(commaspaced, "")
 }

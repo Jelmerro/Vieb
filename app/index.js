@@ -954,13 +954,13 @@ app.whenReady().then(async() => {
         "show": argDebugMode,
         "title": app.getName(),
         "webPreferences": {
-            "contextIsolation": false,
+            "contextIsolation": true,
             // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
             // https://github.com/electron/electron/issues/22582
             // https://github.com/electron/electron/issues/28620
             "nodeIntegrationInSubFrames": true,
             "nodeIntegrationInWorker": true,
-            // "preload": joinPath(import.meta.dirname, "renderer/index.mjs"),
+            "preload": joinPath(import.meta.dirname, "renderer/index.mjs"),
             "sandbox": false,
             "webviewTag": true
         },

@@ -15,8 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
 // Always load the misc action functions (such as scrolling before page loads)
 require("./actions")
 // Always load follow mode JavaScript

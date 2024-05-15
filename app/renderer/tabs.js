@@ -218,25 +218,25 @@ export const navigateTo = async(src, location, customPage = null) => {
         return
     }
     const webview = customPage || currentPage()
-    if (!webview || !location || webview.src.startsWith("devtools://")) {
+    if (!webview || !location || webview.getAttribute("src").startsWith("devtools://")) {
         return
     }
-    if (!webview.getAttribute("dom-ready") && webview.isLoading()) {
+    if (!webview.getAttribute("dom-ready") && webview.isLoading?.()) {
         setTimeout(() => navigateTo(src, location, webview), 1)
         return
     }
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    if (webview.isCrashed()) {
+    if (webview.isCrashed?.()) {
         recreateWebview(src, webview, loc)
         return
     }
-    webview.stop()
+    webview.stop?.()
     const wasRecreated = await checkContainerNames(src, webview, loc)
     if (wasRecreated) {
         return
     }
     rerollUserAgent(webview)
-    webview.loadURL(loc).catch(() => null)
+    webview.setAttribute("src", loc)
     resetTabInfo(webview)
     const tabTitleEl = currentTab()?.querySelector("span")
     if (tabTitleEl) {
@@ -571,15 +571,15 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
  * @param {boolean} force
  */
 export const addColorschemeStylingToWebview = async(webview, force = false) => {
-    const isSpecialPage = pathToSpecialPageName(webview.src)?.name
-    const isLocal = webview.src.startsWith("file:/")
+    const isSpecialPage = pathToSpecialPageName(webview.getAttribute("src"))?.name
+    const isLocal = webview.getAttribute("src").startsWith("file:/")
     const isErrorPage = webview.getAttribute("failed-to-load")
-    const isCustomView = webview.src.startsWith("sourceviewer:")
-        || webview.src.startsWith("readerview:")
-        || webview.src.startsWith("markdownviewer:")
+    const isCustomView = webview.getAttribute("src").startsWith("sourceviewer:")
+        || webview.getAttribute("src").startsWith("readerview:")
+        || webview.getAttribute("src").startsWith("markdownviewer:")
     const {getCustomStyling} = await import("./settings.js")
     const customStyling = getCustomStyling()
-    const fontsize = getSetting("guifontsize")
+    const fontsize = await getSetting("guifontsize")
     webview.send("action", "rerenderTOC", customStyling, fontsize)
     if (!isSpecialPage && !isLocal && !isErrorPage && !isCustomView) {
         // This check is also present in preload/styling.js,
@@ -609,8 +609,7 @@ export const addColorschemeStylingToWebview = async(webview, force = false) => {
             return
         }
     }
-    webview.send("add-colorscheme-styling", getSetting("guifontsize"),
-        customStyling)
+    webview.send("add-colorscheme-styling", fontsize, customStyling)
 }
 
 /**
@@ -699,13 +698,13 @@ const addWebviewListeners = webview => {
         // but only when the redirecttohttp setting is active.
         const isSSLError = (e.errorDescription.includes("_SSL_")
             || e.errorDescription.includes("_CERT_"))
-            && webview.src.startsWith("https://")
+            && webview.getAttribute("src").startsWith("https://")
         if (isSSLError && await getSetting("redirecttohttp")) {
-            webview.loadURL(webview.src.replace(/^https?:\/\//g, "http://"))
+            webview.loadURL(webview.getAttribute("src").replace(/^https?:\/\//g, "http://"))
                 .catch(() => null)
             return
         }
-        if (webview.src !== e.validatedURL) {
+        if (webview.getAttribute("src") !== e.validatedURL) {
             webview.setAttribute("src", e.validatedURL)
             const tabTitleEl = tabForPage(webview)?.querySelector("span")
             if (tabTitleEl) {
@@ -723,12 +722,12 @@ const addWebviewListeners = webview => {
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine
-            if (webview.src.startsWith("file:/")) {
-                let local = urlToString(webview.src).replace(/file:\/+/, "/")
+            if (webview.getAttribute("src").startsWith("file:/")) {
+                let local = urlToString(webview.getAttribute("src")).replace(/file:\/+/, "/")
                 if (process.platform === "win32") {
-                    local = urlToString(webview.src).replace(/file:\/+/, "")
+                    local = urlToString(webview.getAttribute("src")).replace(/file:\/+/, "")
                     if (local === "" || local === "C:") {
-                        webview.src = "file:///C:/"
+                        webview.getAttribute("src", "file:///C:/")
                         return
                     }
                 }
@@ -755,11 +754,11 @@ const addWebviewListeners = webview => {
         show(webview)
         updateUrl(webview)
         window.clearTimeout(timeouts[webview.getAttribute("link-id") ?? ""])
-        const specialPageName = pathToSpecialPageName(webview.src)?.name
-        const isLocal = webview.src.startsWith("file:/")
-        const isCustomView = webview.src.startsWith("sourceviewer:")
-            || webview.src.startsWith("readerview:")
-            || webview.src.startsWith("markdownviewer:")
+        const specialPageName = pathToSpecialPageName(webview.getAttribute("src"))?.name
+        const isLocal = webview.getAttribute("src").startsWith("file:/")
+        const isCustomView = webview.getAttribute("src").startsWith("sourceviewer:")
+            || webview.getAttribute("src").startsWith("readerview:")
+            || webview.getAttribute("src").startsWith("markdownviewer:")
         addColorschemeStylingToWebview(webview)
         if (specialPageName === "help") {
             const {
@@ -776,8 +775,8 @@ const addWebviewListeners = webview => {
             webview.send("notification-history", listNotificationHistory())
         }
         const tocPages = await getSetting("tocpages")
-        const readableUrl = urlToString(webview.src)
-        if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
+        const readableUrl = urlToString(webview.getAttribute("src"))
+        if (tocPages.some(t => readableUrl.match(t) || webview.getAttribute("src").match(t))) {
             const {getCustomStyling} = await import("./settings.js")
             const fontsize = await getSetting("guifontsize")
             setTimeout(() => {
@@ -788,20 +787,20 @@ const addWebviewListeners = webview => {
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")
         if (specialPageName && name) {
-            name.textContent = translate(`pages.${specialPageName}.title`)
+            name.textContent = await translate(`pages.${specialPageName}.title`)
         }
         const {
             addToHist, titleForPage, updateTitle
         } = await import("./history.js")
-        addToHist(webview.src)
-        const existing = await titleForPage(webview.src)
+        addToHist(webview.getAttribute("src"))
+        const existing = await titleForPage(webview.getAttribute("src"))
         if (name) {
             if (isLocal && !existing) {
                 name.textContent = readableUrl
             } else if (hasProtocol(name.textContent ?? "") && !isCustomView) {
                 name.textContent = existing
             } else if (name.textContent) {
-                updateTitle(webview.src, name.textContent)
+                updateTitle(webview.getAttribute("src"), name.textContent)
             }
         }
         if (erwicMode) {
@@ -819,9 +818,9 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("page-title-updated", async e => {
-        const isCustomView = webview.src.startsWith("sourceviewer:")
-            || webview.src.startsWith("readerview:")
-            || webview.src.startsWith("markdownviewer:")
+        const isCustomView = webview.getAttribute("src").startsWith("sourceviewer:")
+            || webview.getAttribute("src").startsWith("readerview:")
+            || webview.getAttribute("src").startsWith("markdownviewer:")
         if (hasProtocol(e.title) && !isCustomView) {
             return
         }
@@ -830,12 +829,12 @@ const addWebviewListeners = webview => {
             tabTitleEl.textContent = e.title
             updateUrl(webview)
             const {updateTitle} = await import("./history.js")
-            updateTitle(webview.src, tabTitleEl.textContent)
+            updateTitle(webview.getAttribute("src"), tabTitleEl.textContent)
         }
     })
     webview.addEventListener("page-favicon-updated", async e => {
         const {update} = await import("./favicons.js")
-        const urls = e.favicons.filter(u => u && u !== webview.src)
+        const urls = e.favicons.filter(u => u && u !== webview.getAttribute("src"))
         const url = urls.find(u => u.startsWith("data:"))
             ?? urls.find(u => u.endsWith(".svg"))
             ?? urls[0]
@@ -928,7 +927,7 @@ const addWebviewListeners = webview => {
             navigateTo("user", e.args[0], webview)
         }
         if (e.channel === "new-tab-info-request") {
-            const special = pathToSpecialPageName(webview.src)
+            const special = pathToSpecialPageName(webview.getAttribute("src"))
             if (special?.name !== "newtab") {
                 return
             }
@@ -1024,6 +1023,8 @@ export const unsuspendPage = async page => {
     }
     tab.removeAttribute("suspended")
     const webview = document.createElement("webview")
+    console.log(webview)
+    console.log(webview.getWebContentsId && webview.getWebContentsId())
     sharedAttributes.forEach(attr => {
         const attrValue = page.getAttribute(attr)
         if (attrValue) {
@@ -1055,12 +1056,9 @@ export const unsuspendPage = async page => {
     setLastUsedTab(page?.getAttribute("link-id") ?? null)
     const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
     const isDevtoolsTab = !!currentPageId
-    if (isDevtoolsTab) {
-        webview.src = "about:blank"
-    } else {
-        webview.src = specialPagePath("newtab")
-    }
+    console.log("done")
     webview.addEventListener("dom-ready", async() => {
+        console.log("event")
         if (!webview.getAttribute("dom-ready")) {
             if (webview.getAttribute("custom-first-load")) {
                 webview.clearHistory()
@@ -1082,8 +1080,8 @@ export const unsuspendPage = async page => {
                 }
             } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", "true")
-                webview.loadURL(url || await stringToUrl(
-                    newtabUrl)).catch(() => null)
+                webview.setAttribute("src", url
+                    || await stringToUrl(newtabUrl))
                 resetTabInfo(webview)
                 if (name) {
                     name.textContent = urlToString(url)
@@ -1095,6 +1093,11 @@ export const unsuspendPage = async page => {
         }
     })
     page.replaceWith(webview)
+    if (isDevtoolsTab) {
+        webview.setAttribute("src", "about:blank")
+    } else {
+        webview.setAttribute("src", specialPagePath("newtab"))
+    }
 }
 
 /**
@@ -1226,7 +1229,7 @@ export const addTab = async opts => {
     if (opts.pinned) {
         tab.classList.add("pinned")
     }
-    tab.style.minWidth = `${getSetting("mintabwidth")}px`
+    tab.style.minWidth = `${await getSetting("mintabwidth")}px`
     favicon.src = "img/empty.png"
     favicon.className = "favicon"
     statusIcon.src = "img/spinner.gif"
@@ -1403,6 +1406,7 @@ export const init = async() => {
         }
     }
     ipcRenderer.on("urls", async(_, pages) => {
+        console.log(pages)
         for (const page of pages) {
             const replaceStartup = await getSetting("replacestartup")
             if (replaceStartup !== "never") {
@@ -1468,10 +1472,10 @@ export const init = async() => {
         }
     }
     ipcRenderer.send("window-state-init", {
-        "full": getSetting("windowfullscreen"),
-        "max": getSetting("windowmaximize"),
-        "pos": getSetting("windowposition"),
-        "size": getSetting("windowsize")
+        "full": await getSetting("windowfullscreen"),
+        "max": await getSetting("windowmaximize"),
+        "pos": await getSetting("windowposition"),
+        "size": await getSetting("windowsize")
     })
 }
 

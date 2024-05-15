@@ -487,7 +487,7 @@ const setCommand = async(src, args) => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             if (isValidSettingName(setting) && setting !== "all") {
-                const value = getSetting(setting)
+                const value = await getSetting(setting)
                 const {
                     isEnumSetting, validOptions
                 } = await import("./settings.js")
@@ -530,12 +530,12 @@ const setCommand = async(src, args) => {
                 })
             }
         } else if (isValidSettingName(part) && part !== "all"
-            && typeof getSetting(part) === "boolean") {
+            && typeof await getSetting(part) === "boolean") {
             modifySetting(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
-                const value = getSetting(settingName)
+                const value = await getSetting(settingName)
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, String(!value))
                 } else {
@@ -559,7 +559,7 @@ const setCommand = async(src, args) => {
         } else if (part.startsWith("no")) {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
-                const value = getSetting(settingName)
+                const value = await getSetting(settingName)
                 const {
                     isArraySetting, isObjectSetting, isNumberSetting
                 } = await import("./settings.js")
@@ -1112,7 +1112,8 @@ const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
             add(id, "ver", await getSetting("splitbelow"))
         }
     } else {
-        const valid = argsAsHumanList(["window", "vsplit", "split", "tab"])
+        const valid = await argsAsHumanList(
+            ["window", "vsplit", "split", "tab"])
         notify({
             "fields": [position, valid],
             "id": "commands.devtools.invalid",
@@ -2051,7 +2052,8 @@ const restoremark = async(src, args) => {
     } else {
         notify({
             "fields": [
-                position, argsAsHumanList(validOptions.markpositionshifted)
+                position,
+                await argsAsHumanList(validOptions.markpositionshifted)
             ],
             "id": "commands.restoremark.argCount",
             src,
@@ -2648,10 +2650,10 @@ let userCommands = {}
  *   }) => void
  * }} */
 const commands = {
-    "Sexplore": ({src, args, range}) => addSplit(
-        src, "ver", !getSetting("splitbelow"), args, range),
-    "Vexplore": ({src, args, range}) => addSplit(
-        src, "hor", !getSetting("splitright"), args, range),
+    "Sexplore": async({src, args, range}) => addSplit(
+        src, "ver", !await getSetting("splitbelow"), args, range),
+    "Vexplore": async({src, args, range}) => addSplit(
+        src, "hor", !await getSetting("splitright"), args, range),
     "b": ({src, args}) => buffer(src, args),
     "buffer": ({src, args}) => buffer(src, args),
     "buffers": ({src}) => buffers(src),
@@ -2765,15 +2767,16 @@ const commands = {
                 })
                 return
             }
-            execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
-                if (err) {
-                    notify({
-                        "id": "commands.scriptnames.editor",
-                        src,
-                        "type": "error"
-                    })
-                }
-            })
+            await execCommand(`${await getSetting("vimcommand")} "${script}"`,
+                err => {
+                    if (err) {
+                        notify({
+                            "id": "commands.scriptnames.editor",
+                            src,
+                            "type": "error"
+                        })
+                    }
+                })
         } else {
             notify({
                 "id": "commands.scriptnames.singleArg",
@@ -2785,8 +2788,8 @@ const commands = {
     "scrollpos": ({src, args}) => scrollpos(src, args),
     "set": ({src, args}) => setCommand(src, args),
     "source": ({src, args}) => source(src, null, args),
-    "split": ({src, args, range}) => addSplit(
-        src, "ver", !getSetting("splitbelow"), args, range),
+    "split": async({src, args, range}) => addSplit(
+        src, "ver", !await getSetting("splitbelow"), args, range),
     "suspend": ({src, args, range}) => suspend(src, args, range),
     "tabnew": ({src, raw}) => tabnew(
         src, null, raw.split(" ").slice(1).join(" ")),
@@ -2797,8 +2800,8 @@ const commands = {
     "v!": ({src}) => openSpecialPage(src, "version", true),
     "version": ({src}) => openSpecialPage(src, "version", false),
     "version!": ({src}) => openSpecialPage(src, "version", true),
-    "vsplit": ({src, args, range}) => addSplit(
-        src, "hor", !getSetting("splitright"), args, range),
+    "vsplit": async({src, args, range}) => addSplit(
+        src, "hor", !await getSetting("splitright"), args, range),
     "w": ({src, args, range}) => write(src, args, range),
     "write": ({src, args, range}) => write(src, args, range)
 }
