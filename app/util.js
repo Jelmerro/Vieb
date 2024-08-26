@@ -15,9 +15,9 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-import {resolve, join, basename, dirname as dirnamePATH} from "node:path"
+import {basename, dirname as dirnamePATH, join, resolve} from "node:path"
+import {homedir} from "node:os"
+import {normalize} from "node:path/posix"
 import rimraf from "./rimraf.js"
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
@@ -48,27 +48,9 @@ const specialPages = [
  */
 /** @type {notificationHistory} */
 const notificationHistory = []
-let appDataPath = ""
-let homeDirPath = ""
-/**
- * @type {{
- *   appdata: string,
- *   autoplay: string,
- *   downloads: string,
- *   icon?: string,
- *   name: string,
- *   order: "none"|"user-only"|"datafolder-only"
- *   |"user-first"|"datafolder-first",
- *   override: string,
- *   files: string[],
- *   config: string
- *   version: string
- * }|null}
- */
-let configSettings = null
-/** @type {{element: Element|ShadowRoot, x: number, y: number}[]} */
-const framePaddingInfo = []
+
 export const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
+
 export const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
     "blob",
@@ -88,9 +70,7 @@ const dataUris = [
  * Join multiple path parts into a single resolved path.
  * @param {string[]} paths
  */
-export const joinPath = (...paths) => {
-    return resolve(join(...paths))
-}
+export const joinPath = (...paths) => resolve(join(...paths))
 
 /**
  * Expand a path that is prefixed with ~ to the user's home folder.
@@ -98,11 +78,7 @@ export const joinPath = (...paths) => {
  */
 export const expandPath = loc => {
     if (loc.startsWith("~")) {
-        if (!homeDirPath) {
-            homeDirPath = process.env.HOME || process.env.USERPROFILE
-                || require("os").homedir()
-        }
-        return loc.replace("~", homeDirPath)
+        return loc.replace("~", homedir())
     }
     return loc
 }
@@ -121,72 +97,6 @@ export const pathExists = loc => {
 }
 
 /**
- * Get the root app directory from any location.
- */
-export const getAppRootDir = () => {
-    let currentDir = __dirname
-    let tries = 0
-    while (!pathExists(joinPath(currentDir, "package.json")) && tries < 100) {
-        currentDir = joinPath(currentDir, "..")
-        tries += 1
-    }
-    if (tries === 100) {
-        return __dirname
-    }
-    return joinPath(currentDir, "app")
-}
-
-/**
- * Returns the app configuration settings.
- */
-export const appConfig = () => {
-    if (!configSettings) {
-        const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config")
-        if (!configSettings) {
-            return null
-        }
-        let files = [configSettings.override]
-        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
-        const userFirstConfig = expandPath("~/.vieb/viebrc")
-        const userGlobalConfig = expandPath("~/.viebrc")
-        if (!configSettings.override) {
-            if (configSettings.order === "user-only") {
-                files = [userGlobalConfig, userFirstConfig]
-            }
-            if (configSettings.order === "datafolder-only") {
-                files = [datafolderConfig]
-            }
-            if (configSettings.order === "user-first") {
-                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
-            }
-            if (configSettings.order === "datafolder-first") {
-                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
-            }
-        }
-        configSettings.files = files
-        configSettings.config = configSettings.override || datafolderConfig
-    }
-    return configSettings
-}
-
-/**
- * Returns the appdata path (works from both main, renderer and preloads).
- */
-export const appData = () => {
-    if (!appDataPath) {
-        try {
-            const {app} = require("electron")
-            return app.getPath("appData")
-        } catch {
-            // Not in main thread
-        }
-        appDataPath = appConfig()?.appdata ?? ""
-    }
-    return appDataPath
-}
-
-/**
  * Read the file contents of a file and parse it as JSON.
  * @param {string} loc
  * @returns {any|null}
@@ -198,24 +108,6 @@ export const readJSON = loc => {
     } catch {
         return null
     }
-}
-
-/**
- * @typedef {(typeof import("./renderer/settings.js").defaultSettings & {
- *   "fg": string
- *   "bg": string
- *   "linkcolor": string
- * })} validSetting
- */
-/**
- * Get a setting from the settings file.
- * @template {keyof validSetting} T
- * @param {T} set
- * @returns {validSetting[T]}
- */
-export const getSetting = set => {
-    const settings = readJSON(joinPath(appData(), "settings")) ?? {}
-    return settings[set] ?? null
 }
 
 /**
@@ -261,36 +153,6 @@ export const isUrl = location => {
         return url.hostname === "localhost"
     }
     return true
-}
-
-/**
- * Match a searchword and return the word and filled url.
- * @param {string} location
- */
-export const searchword = location => {
-    const searchwords = getSetting("searchwords")
-    for (const word of Object.keys(searchwords)) {
-        const url = searchwords[word]
-        if (word && url) {
-            const q = location.replace(`${word} `, "")
-            if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
-                const queries = q.split(",")
-                let urlString = url
-                let counter = 1
-                const patternMatches = (urlString.match(/%s/g) || []).length
-                while (urlString.includes("%s") && counter < patternMatches) {
-                    urlString = urlString.replace(/%s/,
-                        encodeURIComponent(queries.shift()?.trim() || ""))
-                    counter += 1
-                }
-                const remainderString = queries.join(",").trim()
-                urlString = urlString.replace(/%s/,
-                    encodeURIComponent(remainderString))
-                return {"url": urlString, word}
-            }
-        }
-    }
-    return {"url": location, "word": null}
 }
 
 /** Return the notification history. */
@@ -391,400 +253,6 @@ export const formatDate = dateStringOrNumber => {
 }
 
 /**
- * Store the location of a frame element.
- * @param {Element|ShadowRoot|null} element
- * @param {{x: number, y: number}} location
- */
-const storeFrameInfo = (element, location) => {
-    if (!element) {
-        return
-    }
-    const info = framePaddingInfo.find(i => i.element === element)
-    if (info) {
-        Object.assign(info, location)
-    } else {
-        framePaddingInfo.push({element, ...location})
-    }
-}
-
-/**
- * Find the frame info for a given element if available.
- * @param {Element|ShadowRoot|null} el
- */
-export const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
-
-/**
- * Get a CSS decleration property from an element as a number of pixels.
- * @param {Element|CSSStyleDeclaration} element
- * @param {string} prop
- */
-export const propPixels = (element, prop) => {
-    let value = ""
-    if (element instanceof CSSStyleDeclaration) {
-        value = element.getPropertyValue(prop)
-    } else {
-        value = getComputedStyle(element).getPropertyValue(prop)
-    }
-    if (typeof value === "number") {
-        return value
-    }
-    if (value?.endsWith("px")) {
-        return Number(value.replace("px", "")) || 0
-    }
-    if (value?.endsWith("em")) {
-        const elementFontSize = Number(getComputedStyle(document.body)
-            .fontSize.replace("px", "")) || 0
-        return Number(value.replace("em", "")) * elementFontSize || 0
-    }
-    return Number(value) || 0
-}
-
-/**
- * Get the position of a given element based on bounding rect plus padding.
- * @param {Element} frame
- */
-export const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x + propPixels(frame, "padding-left")
-        + propPixels(frame, "border-left-width"),
-    "y": frame.getBoundingClientRect().y + propPixels(frame, "padding-top")
-        + propPixels(frame, "border-top-width")
-})
-
-/**
- * Check if a node is an element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is Element}
- */
-export const isElement = el => {
-    if (el instanceof EventTarget && !(el instanceof Element)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.Element
-}
-
-/**
- * Check if a node is an html element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLElement}
- */
-export const isHTMLElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLElement
-}
-
-/**
- * Check if a node is an iframe element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLIFrameElement}
- */
-export const isHTMLIFrameElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLIFrameElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLIFrameElement
-}
-
-/**
- * Check if a node is an input or textarea, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLInputElement|HTMLTextAreaElement}
- */
-export const isInputOrTextElement = el => {
-    if (el instanceof EventTarget && (
-        !(el instanceof HTMLInputElement)
-        && !(el instanceof HTMLTextAreaElement)
-    )) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLInputElement
-        || el instanceof el.ownerDocument.defaultView.HTMLTextAreaElement
-}
-
-/**
- * Check if a node is an anchor element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLAnchorElement}
- */
-export const isHTMLAnchorElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLAnchorElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLAnchorElement
-}
-
-/**
- * Check if a node is a link element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLLinkElement}
- */
-export const isHTMLLinkElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLLinkElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLLinkElement
-}
-
-/**
- * Check if a node is an image element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLImageElement}
- */
-export const isHTMLImageElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLImageElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLImageElement
-}
-
-/**
- * Check if a node is an svg element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is SVGElement}
- */
-export const isSVGElement = el => {
-    if (el instanceof EventTarget && !(el instanceof SVGElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.SVGElement
-}
-
-/**
- * Check if a node is a video element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLVideoElement}
- */
-export const isHTMLVideoElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLVideoElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLVideoElement
-}
-
-/**
- * Check if a node is an audio element, taking subframes into account.
- * @param {Node|EventTarget|null|undefined} el
- * @returns {el is HTMLAudioElement}
- */
-export const isHTMLAudioElement = el => {
-    if (el instanceof EventTarget && !(el instanceof HTMLAudioElement)) {
-        return false
-    }
-    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-        return false
-    }
-    return el instanceof el.ownerDocument.defaultView.HTMLAudioElement
-}
-
-/**
- * Call an element matches in a safe wrapper as not all elements work.
- * @param {Element|EventTarget|null|undefined} el
- * @param {string} query
- */
-export const matchesQuery = (el, query) => {
-    if (!isElement(el)) {
-        return false
-    }
-    try {
-        return el?.matches(query) ?? false
-    } catch {
-        // Not all elements with the 'matches' attribute have it as a function
-        // Therefore we just try to call it as one, and return false otherwise
-        return false
-    }
-}
-
-/**
- * Find the deepest element at a position, including subframes and shadow doms.
- * @param {number} x
- * @param {number} y
- * @param {(Document|ShadowRoot)[]} levels
- * @param {number} px
- * @param {number} py
- * @returns {Element|null}
- */
-export const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
-    // Find out which element is located at a given position.
-    // Will look inside subframes recursively at the corrected position.
-    const elAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
-    if (elAtPos?.shadowRoot && levels.includes(elAtPos.shadowRoot)) {
-        return elAtPos
-    }
-    if (elAtPos instanceof HTMLIFrameElement && elAtPos.contentDocument) {
-        const frameInfo = findFrameInfo(elAtPos)
-        return findElementAtPosition(x, y,
-            [elAtPos.contentDocument, ...levels], frameInfo?.x, frameInfo?.y)
-    }
-    if (elAtPos?.shadowRoot) {
-        const frameInfo = findFrameInfo(elAtPos.shadowRoot)
-        return findElementAtPosition(x, y,
-            [elAtPos.shadowRoot, ...levels], frameInfo?.x, frameInfo?.y)
-    }
-    return elAtPos
-}
-
-/**
- * Queryselector that recursively navigates subframes and shadow doms.
- * @param {string} sel
- * @param {Document|ShadowRoot|Element} base
- * @param {number} paddedX
- * @param {number} paddedY
- */
-export const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
-    if (!base) {
-        return []
-    }
-    /** @type {Element[]} */
-    let elements = []
-    if (base === document) {
-        elements = Array.from(base.querySelectorAll(sel) || [])
-    }
-    Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot || el instanceof HTMLIFrameElement)
-        .forEach(el => {
-            let location = {"x": paddedX, "y": paddedY}
-            if (!el.shadowRoot) {
-                const {"x": frameX, "y": frameY} = framePosition(el)
-                location = {"x": frameX + paddedX, "y": frameY + paddedY}
-            }
-            storeFrameInfo(el?.shadowRoot || el, location)
-            if (el instanceof HTMLIFrameElement && el.contentDocument) {
-                const extra = Array.from(el.contentDocument
-                    .querySelectorAll(sel) || [])
-                extra.forEach(e => storeFrameInfo(e, location))
-                elements = elements.concat([...extra, ...querySelectorAll(sel,
-                    el.contentDocument, location.x, location.y)])
-            }
-            if (el.shadowRoot) {
-                const extra = Array.from(el.shadowRoot
-                    .querySelectorAll(sel) || [])
-                extra.forEach(e => storeFrameInfo(e, location))
-                elements = elements.concat([...extra, ...querySelectorAll(sel,
-                    el.shadowRoot, location.x, location.y)])
-            }
-        })
-    return elements
-}
-
-/**
- * Find the center of a rect within the borders of the visible window.
- * @param {DOMRect} rect
- */
-const correctedCenterAndSizeOfRect = rect => {
-    let {x, y} = rect
-    x ||= rect.left
-    y ||= rect.top
-    let width = Math.min(rect.width, window.innerWidth - x)
-    if (x < 0) {
-        width += x
-        x = 0
-    }
-    let height = Math.min(rect.height, window.innerHeight - y)
-    if (y < 0) {
-        height += y
-        y = 0
-    }
-    const centerX = x + width / 2
-    const centerY = y + height / 2
-    return {centerX, centerY, height, width, x, y}
-}
-
-/**
- * Return the most suitable click area given a list of options if available.
- * @param {Element} element
- * @param {DOMRect[]} rects
- */
-export const findClickPosition = (element, rects) => {
-    let dims = {"height": 0, "width": 0, "x": 0, "y": 0}
-    let clickable = false
-    for (const rect of rects) {
-        const {
-            centerX, centerY, x, y, width, height
-        } = correctedCenterAndSizeOfRect(rect)
-        if (!clickable || width * height > dims.width * dims.height) {
-            const elAtPos = findElementAtPosition(centerX, centerY)
-            if (element === elAtPos || element?.contains(elAtPos)) {
-                clickable = true
-                dims = {height, width, x, y}
-            }
-        }
-    }
-    if (!clickable) {
-        for (const rect of [...element.getClientRects()]) {
-            const {
-                centerX, centerY, x, y, width, height
-            } = correctedCenterAndSizeOfRect(rect)
-            if (!clickable || width * height > dims.width * dims.height) {
-                const elAtPos = findElementAtPosition(centerX, centerY)
-                if (element === elAtPos || element?.contains(elAtPos)) {
-                    clickable = true
-                    dims = {height, width, x, y}
-                }
-            }
-        }
-    }
-    return {clickable, dims}
-}
-
-/** Find the current active element, also inside shadow dom or subframes. */
-export const activeElement = () => {
-    if (document.activeElement?.shadowRoot?.activeElement) {
-        return document.activeElement.shadowRoot.activeElement
-    }
-    if (document.activeElement !== document.body) {
-        if (!(document.activeElement instanceof HTMLIFrameElement)) {
-            return document.activeElement
-        }
-    }
-    return querySelectorAll("iframe").map(frame => {
-        if (!(frame instanceof HTMLIFrameElement)) {
-            return null
-        }
-        const doc = frame.contentDocument
-        if (!doc) {
-            return null
-        }
-        if (doc.activeElement?.shadowRoot?.activeElement) {
-            return doc.activeElement.shadowRoot.activeElement
-        }
-        if (doc.body !== doc.activeElement) {
-            if (!(document.activeElement instanceof HTMLIFrameElement)) {
-                return doc.activeElement
-            }
-        }
-        return null
-    }).find(el => el)
-}
-
-/**
  * Format any number of bytes (<1024 EB) to a value with a nice unit.
  * @param {number} size
  */
@@ -842,80 +310,6 @@ export const compareVersions = (v1Str, v2Str) => {
 }
 
 /**
- * Fetch any url with the Node.JS http and https modules.
- * @param {string} url
- * @param {import("https").RequestOptions} opts
- * @param {string|null} body
- */
-export const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
-    let requestModule = null
-    if (url.startsWith("https://")) {
-        requestModule = require("https")
-    } else if (url.startsWith("http://")) {
-        requestModule = require("http")
-    } else {
-        rej(new Error("invalid protocol"))
-        return
-    }
-    const request = requestModule.request(url, opts, response => {
-        let data = ""
-        response.on("data", chunk => {
-            data += chunk.toString()
-        })
-        response.on("end", () => {
-            try {
-                res(data)
-            } catch (err) {
-                rej(new Error(`${err}: ${data}`))
-            }
-        })
-    })
-    request.on("error", err => rej(err))
-    if (body) {
-        request.write(body)
-    }
-    request.end()
-})
-
-/**
- * Fetch any url with the Node.JS http and https modules and parse its JSON.
- * @param {string} url
- * @param {import("https").RequestOptions} opts
- * @param {string|null} body
- */
-export const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
-    fetchUrl(url, opts, body).then(data => {
-        try {
-            res(JSON.parse(data))
-        } catch {
-            rej(new Error(`Response is not valid JSON: ${data}`))
-        }
-    }).catch(rej)
-})
-
-/** Return the position and dimensions of the page container. */
-export const pageContainerPos = () => {
-    const pagelayout = document.getElementById("page-container")
-    if (!pagelayout) {
-        return {"bottom": 0, "left": 0, "right": 0, "top": 0}
-    }
-    return pagelayout.getBoundingClientRect()
-}
-
-/**
- * Calculate the offset in pixels for each dimension of an element.
- * @param {HTMLElement} page
- */
-export const pageOffset = page => {
-    const border = propPixels(page, "border-width")
-    const top = Math.round(propPixels(page.style, "top") + border)
-    const left = Math.round(propPixels(page.style, "left") + border)
-    const bottom = Math.round(top + propPixels(page.style, "height") + border)
-    const right = Math.round(left + propPixels(page.style, "width") + border)
-    return {bottom, left, right, top}
-}
-
-/**
  * Run any system command in the user's preferred shell.
  * @param {string} command
  * @param {(
@@ -939,173 +333,16 @@ export const execCommand = (command, callback) => {
 }
 
 /**
- * Check if the given value is a valid interval value.
- * @param {string} value
- * @param {boolean} invertedRangesSupported
- */
-export const isValidIntervalValue = (value, invertedRangesSupported = false) => {
-    const validUnits = ["second", "minute", "hour", "day", "month", "year"]
-    for (const unit of validUnits) {
-        if (value.endsWith(unit) || value.endsWith(`${unit}s`)) {
-            const number = value.replace(RegExp(`${unit}s?$`), "")
-            if (invertedRangesSupported) {
-                return !!number.replace(/^last/g, "").match(/^\d+$/g)
-            }
-            return !!number.match(/^\d+$/g)
-        }
-    }
-    return false
-}
-
-/**
- * Convert an interval to a date relative to the current date.
- * @param {string} value
- */
-export const intervalValueToDate = value => {
-    const date = new Date()
-    if (value.includes("second")) {
-        date.setSeconds(date.getSeconds() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("minute")) {
-        date.setMinutes(date.getMinutes() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("hour")) {
-        date.setHours(date.getHours() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("day")) {
-        date.setDate(date.getDate() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("month")) {
-        date.setMonth(date.getMonth() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("year")) {
-        date.setFullYear(date.getFullYear()
-            - Number(value.replace(/[a-z]/g, "")))
-    }
-    return date
-}
-
-/**
- * @typedef {{
- *   id: import("../types/i18n.js").TranslationKeys,
- *   fields?: string[],
- *   action?: {
- *     type: "download-success",
- *     path: string,
- *     func?: () => void
- *   }|false,
- *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
- *   src: import("./renderer/common.js").RunSource,
- *   silent?: boolean
- * }} NotificationInfo
- */
-
-/**
- * Show the user a notification bubble and store it in the history.
- * @param {NotificationInfo} opts
- */
-export const notify = opts => {
-    const {translate} = require("./translate.js")
-    const message = translate(opts.id, {"fields": opts.fields ?? []})
-    if (opts.src === "execute") {
-        const {appendFileSync} = require("fs")
-        appendFileSync(
-            joinPath(appData(), ".tmp-execute-output"), `${message}\t\t\t`)
-    }
-    if (getSetting("notificationduration") === 0) {
-        return
-    }
-    const properType = opts.type ?? "info"
-    let clickInfo = null
-    if (opts?.action) {
-        clickInfo = {...opts.action}
-        delete clickInfo.func
-    }
-    const notifyForPerm = getSetting("notificationforpermissions")
-    if (properType === "permission" && notifyForPerm === "none") {
-        return
-    }
-    notificationHistory.push({
-        "click": clickInfo,
-        "date": new Date(),
-        message,
-        "type": properType
-    })
-    if (opts.silent) {
-        return
-    }
-    if (properType === "permission") {
-        if (notifyForPerm === "silent") {
-            return
-        }
-        if (notifyForPerm === "allowed") {
-            if (!message.replace(/'.*?'/g, "").includes("allowed")) {
-                return
-            }
-        }
-        if (notifyForPerm === "blocked") {
-            if (!message.replace(/'.*?'/g, "").includes("blocked")) {
-                return
-            }
-        }
-    }
-    const native = getSetting("nativenotification")
-    const shortLimitNotify = getSetting("notificationlimitsmall")
-    const showLong = message.split("\n").length > shortLimitNotify
-        && properType !== "dialog"
-    const shortAndSmallNative = !showLong && native === "smallonly"
-    const longAndLargeNative = showLong && native === "largeonly"
-    if (native === "always" || shortAndSmallNative || longAndLargeNative) {
-        const n = new Notification(
-            `${appConfig()?.name} ${properType}`, {"body": message})
-        if (opts?.action && opts?.action?.func) {
-            /** Assin the onclick of the notification. */
-            // @ts-expect-error Func type could be undefined according to TS...
-            n.onclick = () => opts?.action?.func?.()
-        }
-        return
-    }
-    if (showLong) {
-        const {ipcRenderer} = require("electron")
-        ipcRenderer.send("show-notification", message, properType)
-        return
-    }
-    const notificationsElement = document.getElementById("notifications")
-    if (!notificationsElement) {
-        return
-    }
-    notificationsElement.className = getSetting("notificationposition")
-    const notification = document.createElement("span")
-    notification.className = properType
-    notification.textContent = message
-    if (opts.action && opts.action.func) {
-        // @ts-expect-error Func type could be undefined according to TS...
-        notification.addEventListener("click", () => opts.action?.func?.())
-    }
-    notificationsElement.append(notification)
-    setTimeout(() => notification.remove(),
-        getSetting("notificationduration"))
-}
-
-/** Return the location of the downloads, either via setting or OS default. */
-export const downloadPath = () => expandPath(getSetting("downloadpath")
-    || appConfig()?.downloads || "~/Downloads")
-
-/**
  * Return the last part of the path, usually the filename.
  * @param {string} loc
  */
-export const basePath = loc => {
-    return basename(loc)
-}
+export const basePath = loc => basename(loc)
 
 /**
  * Return the directory name of the path.
  * @param {string} loc
  */
-export const dirname = loc => {
-    return dirnamePATH(loc)
-}
+export const dirname = loc => dirnamePATH(loc)
 
 /**
  * Check if a path is absolute or not.
@@ -1305,19 +542,19 @@ const isSpecialPage = page => specialPages.includes(page)
 
 /**
  * Get the url of a special page given a name and an optional section.
- * @param {string} userPage
+ * @param {string} page
  * @param {string|null} section
- * @param {boolean} skipExistCheck
+ * @param {boolean} allowMissing
  */
-export const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
-    let page = userPage
-    if (!isSpecialPage(userPage) && !skipExistCheck) {
-        page = "help"
+export const specialPagePath = (page, section = null, allowMissing = false) => {
+    let p = page
+    if (!isSpecialPage(p) && !allowMissing) {
+        p = "help"
     }
-    let url = joinPath(__dirname, `./pages/${page}.html`)
+    let url = joinPath(import.meta.dirname, `./pages/${p}.html`)
         .replace(/\\/g, "/").replace(/^\/*/g, "")
-    if (isDir(joinPath(__dirname, "../pages"))) {
-        url = joinPath(__dirname, `../pages/${page}.html`)
+    if (isDir(joinPath(import.meta.dirname, "../pages"))) {
+        url = joinPath(import.meta.dirname, `../pages/${p}.html`)
             .replace(/\\/g, "/").replace(/^\/*/g, "")
     }
     if (section) {
@@ -1335,7 +572,6 @@ export const specialPagePath = (userPage, section = null, skipExistCheck = false
  * @returns {{name: SpecialPage, section: string}|null}
  */
 export const pathToSpecialPageName = urlPath => {
-    const {normalize} = require("path/posix")
     if (urlPath?.startsWith?.("vieb://")) {
         const parts = urlPath.replace("vieb://", "").split("#")
         const [partName] = parts
@@ -1435,7 +671,7 @@ export const stringToUrl = location => {
 export const urlToString = url => {
     const special = pathToSpecialPageName(url)
     if (special?.name) {
-        let specialUrl = `${appConfig()?.name.toLowerCase()}://${special.name}`
+        let specialUrl = `vieb://${special.name}`
         if (special.section) {
             specialUrl += `#${special.section}`
         }
@@ -1456,80 +692,6 @@ export const urlToString = url => {
         // Invalid url
     }
     return url
-}
-
-/** Clear all temporary containers (those that start with temp) from disk. */
-export const clearTempContainers = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
-        .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
-    rm(joinPath(appData(), "erwicmode"))
-}
-
-/** Clear the Chromium and Electron cache dirs plus the Vieb cache files. */
-export const clearCache = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
-    /** @type {string[]} */
-    let subNodes = []
-    partitions.forEach(part => subNodes.push(...listDir(part) || []))
-    subNodes = Array.from(new Set(subNodes).values())
-    partitions.forEach(part => rm(joinPath(part, "File System")))
-    partitions.forEach(part => rm(joinPath(part, "MANIFEST")))
-    partitions.forEach(part => rm(joinPath(part, "Service Worker")))
-    partitions.forEach(part => rm(joinPath(part, "VideoDecodeStats")))
-    partitions.forEach(part => rm(joinPath(part, "blob_storage")))
-    partitions.forEach(part => rm(joinPath(part, "databases")))
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.endsWith(".log"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.startsWith(".org.chrom"))) {
-            rm(joinPath(part, node))
-        }
-    }
-    rm(joinPath(appData(), "vimformedits"))
-    rm(joinPath(appData(), "settings"))
-}
-
-/** Claer all cookies, including those inside partition dirs. */
-export const clearCookies = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
-    /** @type {string[]} */
-    let subNodes = []
-    partitions.forEach(part => subNodes.push(...listDir(part) || []))
-    subNodes = Array.from(new Set(subNodes).values())
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.startsWith("QuotaManager"))) {
-            rm(joinPath(part, node))
-        }
-    }
-}
-
-/** Claer all localstorage, including that inside partition dirs. */
-export const clearLocalStorage = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
-    /** @type {string[]} */
-    let subNodes = []
-    partitions.forEach(part => subNodes.push(...listDir(part) || []))
-    subNodes = Array.from(new Set(subNodes).values())
-    partitions.forEach(part => rm(joinPath(part, "IndexedDB")))
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.endsWith("Storage"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.endsWith(".ldb"))) {
-            rm(joinPath(part, node))
-        }
-    }
 }
 
 /**

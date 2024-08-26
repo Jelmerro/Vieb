@@ -17,13 +17,59 @@
 */
 
 import {BaseWindow, WebContentsView, app} from "electron"
-import {defaultUseragent, joinPath} from "../util.js"
+import {defaultUseragent, joinPath, stringToUrl} from "../util.js"
 
+/** @type {Frame[]} */
+const frameList = []
+/** @type {Frame|null} */
+let currentFrame = null
+
+export const getAllFrames = () => frameList
+
+export const getCurrentFrame = () => currentFrame
+    ?? frameList.find(f => f.base.isFocused())
+
+export const getAllPages = () => {
+    const pages = []
+    for (const f of frameList) {
+        pages.push(...f.pages)
+    }
+    return pages
+}
+
+export const getCurrentPage = () => {
+    const f = getCurrentFrame()
+    if (!f) {
+        return null
+    }
+    return f.pages.sort((a, b) => a.lastInteraction.getTime()
+        - b.lastInteraction.getTime())[0]
+}
+/** Represents a single webpage, visible or not. */
 class Page {
     constructor(opts) {
-        const {url} = opts
+        let {url} = opts
+        url = stringToUrl(url)
+        // This.url = url
+        this.lastInteraction = new Date()
+        this.webview = new WebContentsView({
+            "webPreferences": {}
+        })
+        this.webview.webContents.setWindowOpenHandler(e => {
+            if (e.disposition === "foreground-tab") {
+                this.webview.webContents.loadURL(e.url)
+            } else {
+                console.log(e)
+            }
+        })
+        this.webview.webContents.loadURL(url)
     }
 }
+/** Base frame class representing a single frame.
+ *
+ * Renders the Vieb interface and the pages inside of it.
+ * By default a single Frame is used for most things, unless a 2nd one is added.
+ */
 class Frame {
     /**
      * Construct a new Frame.
@@ -33,6 +79,7 @@ class Frame {
      * @param {number} scale
      */
     constructor(frame, debug, icon, scale) {
+        frameList.push(this)
         /** @type {Electron.BaseWindowConstructorOptions} */
         const windowData = {
             "closable": false,
@@ -49,12 +96,15 @@ class Frame {
         this.base.removeMenu()
         this.base.setMinimumSize(Math.min(500 / scale, 500),
             Math.min(500 / scale, 500))
-        this.base.on("focus", () => this.core.webContents.send("window-focus"))
+        this.base.on("focus", () => {
+            this.core.webContents.send("window-focus")
+            currentFrame = this
+        })
         this.base.on("blur", () => this.core.webContents.send("window-blur"))
-        // This.base.on("close", e => {
-        //     e.preventDefault()
-        //     this.core.webContents.send("window-close")
-        // })
+        this.base.on("close", e => {
+            // TODO
+            // e.preventDefault()
+        })
         this.base.on("closed", () => app.exit(0))
         this.core = new WebContentsView({"webPreferences": {
             "nodeIntegrationInSubFrames": true,
@@ -84,18 +134,32 @@ class Frame {
             const {handleKeyboard} = await import("./input.js")
             handleKeyboard(key)
         })
-        // This.core.webContents.on("before-input-event", (e, key) => {
-        //     e.preventDefault()
-        //     console.log(e, key)
-        // })
+        /** @type {Page[]} */
         this.pages = []
         this.mode = "normal"
     }
 
+    /**
+     * Add a new page to this frame, by default switch the current page to it.
+     *
+     * @param {{
+     *   background?: boolean
+     *   url?: string
+     * }} opts
+     */
     addPage(opts) {
         const page = new Page(opts)
         this.pages.push(page)
-        // This.core.addChildView(page)
+        if (!opts.background) {
+            this.base.contentView.addChildView(page.webview)
+            page.webview.webContents.openDevTools()
+            page.webview.setBounds({
+                "height": this.base.getBounds().height - 56,
+                "width": this.base.getBounds().width,
+                "x": 0,
+                "y": 56
+            })
+        }
     }
 }
 
