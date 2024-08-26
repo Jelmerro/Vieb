@@ -1,13 +1,8 @@
 "use strict"
 
-const {
-    listDir,
-    joinPath,
-    readJSON,
-    isFile,
-    getSetting,
-    getAppRootDir
-} = require("./util")
+import {
+    listDir, joinPath, readJSON, isFile, getSetting, getAppRootDir
+} from "./util.js"
 
 /** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */
 /** @type {StringOrObject} */
@@ -34,7 +29,7 @@ const safeElements = [
 const safeAttributes = ["class", "href"]
 
 /** Returns a list of languages according to the language files present. */
-const validLanguages = () => {
+export const validLanguages = () => {
     const files = listDir(joinPath(getAppRootDir(), "translations")) ?? []
     return files.filter(f => f.endsWith(".json"))
         .map(f => f.replace(/\.json$/, ""))
@@ -59,11 +54,11 @@ const loadLang = lang => {
 
 /**
  * Translate a field.
- * @param {import("../types/i18n").TranslationKeys} id
+ * @param {import("../types/i18n.js").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
  * @returns {string}
  */
-const translate = (id, opts = {"customLang": null, "fields": []}) => {
+export const translate = (id, opts = {"customLang": null, "fields": []}) => {
     if (!translations.en) {
         const filePath = joinPath(getAppRootDir(), "translations/en.json")
         translations.en = readJSON(filePath)
@@ -118,10 +113,10 @@ const onlyKeepSafeNodes = node => {
 
 /**
  * Translate a field, then parse it as HTML and return a list of safe elements.
- * @param {import("../types/i18n").TranslationKeys} id
+ * @param {import("../types/i18n.js").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
  */
-const translateAsHTML = (id, opts = {"customLang": null, "fields": []}) => {
+export const translateAsHTML = (id, opts = {"customLang": null, "fields": []}) => {
     const value = translate(id, opts)
     const parsed = new DOMParser().parseFromString(value, "text/html")
     const body = parsed.querySelector("body")
@@ -138,7 +133,7 @@ const translateAsHTML = (id, opts = {"customLang": null, "fields": []}) => {
  * @param {"or"|"and"|"none"} linkWord
  * @param {"single"|"double"|"none"} quotes
  */
-const argsAsHumanList = (args, linkWord = "or", quotes = "single") => {
+export const argsAsHumanList = (args, linkWord = "or", quotes = "single") => {
     let readable = ""
     let quotestart = ""
     let quoteend = ""
@@ -153,11 +148,4 @@ const argsAsHumanList = (args, linkWord = "or", quotes = "single") => {
     readable += `${translate(`util.${linkWord}`)}${
         quotestart}${args.at(-1)}${quoteend}`
     return readable.replace(commaspaced, "")
-}
-
-module.exports = {
-    argsAsHumanList,
-    translate,
-    translateAsHTML,
-    validLanguages
 }

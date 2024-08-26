@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,18 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
+
+import {ipcRenderer} from "electron"
+
+ipcRenderer.on("update-mode", (_, mode) => {
+    console.log(mode)
+})
 
 window.addEventListener("DOMContentLoaded", () => {
-    require("./input").init()
-    require("./settings").init()
-    require("./history").init()
-    require("./tabs").init()
-    require("./favicons").init()
-    require("./modes").init()
-    require("./commandhistory").init()
-    require("./explorehistory").init()
-    require("./follow").init()
-    require("./contextmenu").init()
-    require("./pointer").init()
+    console.log("hey")
 })
