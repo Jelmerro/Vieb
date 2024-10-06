@@ -230,7 +230,7 @@
             "external": "External",
             "go": "Go",
             "navigate": "Navigate",
-            "newtab": "Newtab",
+            "newtab": "New tab",
             "search": "Search",
             "split": "Split",
             "vsplit": "Vsplit"
@@ -357,7 +357,7 @@
         },
         "newtab": {
             "favorites": "Favorites",
-            "title": "Newtab",
+            "title": "New tab",
             "topsites": "Top sites"
         },
         "notifications": {
