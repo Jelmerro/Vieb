@@ -13,10 +13,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Adblock resources file handling, now uses the JSON format for increased coverage
+
+### Fixed
+
+- Argument interface scale not accepting fractional scaling in some cases
+- Occasional scaling issue that affected the position of the menu suggestions
+
 ### Versions
 
-- Electron 32.0.1 (was 30.0.6)
-- Chromium 128.0.6613.36 (was 124.0.6367.207)
+- Electron 33.0.1 (was 30.0.6)
+- Chromium 130.0.6723.59 (was 124.0.6367.207)
 
 ## [12.0.0](https://github.com/Jelmerro/Vieb/compare/11.0.0...12.0.0) - 2024-05-15
 
