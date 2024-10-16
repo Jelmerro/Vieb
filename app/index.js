@@ -456,6 +456,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     if (argDevtoolsTheme === "light") {
         theme = `"light"`
     }
+    preferences.electron.devtools.preferences["ui-theme"] = theme
     preferences.electron.devtools.preferences.uiTheme = theme
     writeJSON(prefFile, preferences)
 }
@@ -973,8 +974,9 @@ app.whenReady().then(async() => {
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
-    mainWindow.setMinimumSize(Math.min(500 / argInterfaceScale, 500),
-        Math.min(500 / argInterfaceScale, 500))
+    mainWindow.setMinimumSize(
+        Math.floor(Math.min(500 / argInterfaceScale, 500)),
+        Math.floor(Math.min(500 / argInterfaceScale, 500)))
     mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
     mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
@@ -1323,7 +1325,7 @@ let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
-    "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
+    "../node_modules/@cliqz/adblocker-electron-preload/dist/index.cjs")
 const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
