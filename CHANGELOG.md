@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Argument interface scale not accepting fractional scaling in some cases
 - Occasional scaling issue that affected the position of the menu suggestions
+- Safer check for document.head.innerText to prevent errors in page console
 
 ### Versions
 

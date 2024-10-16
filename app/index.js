@@ -2473,7 +2473,7 @@ ipcMain.on("destroy-window", () => {
 })
 ipcMain.handle("run-isolated-js-head-check", (_, id) => webContents.fromId(id)
     ?.executeJavaScriptInIsolatedWorld(999, [{
-        "code": "document.head.innerText"
+        "code": "document?.head?.innerText"
     }]))
 ipcMain.handle("list-spelllangs",
     () => session.defaultSession.availableSpellCheckerLanguages)
