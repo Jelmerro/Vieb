@@ -1310,7 +1310,7 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
 let downloads = []
 /** @type {string[]} */
 let redirects = []
-/** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
+/** @type {import("@ghostery/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
 /** @type {"view"|"block"|"download"}} */
 let pdfbehavior = "view"
@@ -1325,7 +1325,7 @@ let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
-    "../node_modules/@cliqz/adblocker-electron-preload/dist/index.cjs")
+    "../node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs")
 const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
@@ -1508,12 +1508,8 @@ const disableAdblocker = () => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
     })
-    ipcMain.removeListener("get-cosmetic-filters-first",
-        blocker.onGetCosmeticFiltersFirst)
-    ipcMain.removeListener("get-cosmetic-filters",
-        blocker.onGetCosmeticFiltersUpdated)
-    ipcMain.removeListener("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
+    ipcMain.removeHandler("@ghostery/adblocker/inject-cosmetic-filters")
+    ipcMain.removeHandler("@ghostery/adblocker/is-mutation-observer-enabled")
     blocker = null
 }
 
@@ -1536,7 +1532,7 @@ const reloadAdblocker = () => {
     }
     let ElectronBlocker = null
     try {
-        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
+        ({ElectronBlocker} = require("@ghostery/adblocker-electron"))
     } catch {
         // Adblocker module not present, skipping initialization
     }
@@ -1558,9 +1554,9 @@ const reloadAdblocker = () => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
     })
-    ipcMain.on("get-cosmetic-filters-first", blocker.onGetCosmeticFiltersFirst)
-    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFiltersUpdated)
-    ipcMain.on("is-mutation-observer-enabled",
+    ipcMain.handle("@ghostery/adblocker/inject-cosmetic-filters",
+        blocker.onInjectCosmeticFilters)
+    ipcMain.handle("@ghostery/adblocker/is-mutation-observer-enabled",
         blocker.onIsMutationObserverEnabled)
 }
 
@@ -2120,18 +2116,17 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         const urlFolder = dirname(url)
         /**
          * Resolve relative paths to the dirname/base path of the url.
-         * @param {string} text
+         * @param {import("marked").Tokens.HTML
+         *   |import("marked").Tokens.Tag} text
          */
-        mdRenderer.html = text => text.replace(
+        mdRenderer.html = ({text}) => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
             .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
         /**
          * Add md-uuid to the url to allow requests to markdownfiles protocol.
-         * @param {string} href
-         * @param {string|undefined|null} title
-         * @param {string} alt
+         * @param {import("marked").Tokens.Image} image
          */
-        mdRenderer.image = (href, title, alt) => {
+        mdRenderer.image = ({href, title, text}) => {
             let safeUrl = href
             try {
                 safeUrl = encodeURI(href).replace(/%25/g, "%")
@@ -2142,7 +2137,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             } catch {
                 safeUrl = ""
             }
-            let output = `<img src="${safeUrl}" alt="${alt}"`
+            let output = `<img src="${safeUrl}" alt="${text}"`
             if (title) {
                 output += ` title="${title}"`
             }

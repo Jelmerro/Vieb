@@ -17,11 +17,29 @@
 */
 "use strict"
 
+const {execSync} = require("child_process")
 const {
     rmSync, readdir, unlinkSync, readFileSync, mkdirSync, cpSync
 } = require("fs")
 const {dirname, join} = require("path")
 const defaultConfig = {"config": {
+    /**
+     * Strip the executables to remove debug and symbol data.
+     * @param {import("electron-builder").AfterPackContext} context
+     */
+    "afterPack": context => {
+        readdir(context.appOutDir, (_err, files) => {
+            const main = files.find(f => f.toLowerCase().startsWith("vieb"))
+            if (!main) {
+                return
+            }
+            try {
+                execSync(`strip ${join(context.appOutDir, main)}`)
+            } catch {
+                // Stripping binary failed, probably wrong arch.
+            }
+        })
+    },
     "appId": "com.github.Jelmerro.vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "
         + "Licensed as free software (GPL-3.0 or later)",
@@ -66,7 +84,7 @@ const defaultConfig = {"config": {
         {"from": "build/", "to": "app/"},
         {"from": "app/index.html", "to": "app/index.html"},
         "!node_modules",
-        "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
+        "node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs"
     ],
     "linux": {
         "category": "Network;WebBrowser;",
@@ -228,6 +246,7 @@ const releases = {
              * @param {import("electron-builder").AfterPackContext} context
              */
             "afterPack": context => {
+                defaultConfig.config.afterPack?.(context)
                 const localeDir = `${context.appOutDir}/locales/`
                 readdir(localeDir, (_err, files) => {
                     files?.filter(f => !f.match(/en-US\.pak/))
@@ -242,7 +261,7 @@ const releases = {
                 if (typeof f === "object") {
                     return true
                 }
-                return !f.includes("blocklists") && !f.includes("@cliqz")
+                return !f.includes("blocklists") && !f.includes("@ghostery")
             }),
             "productName": "Vieb-lite"
         },
@@ -369,6 +388,45 @@ const webpackBuild = overrides => new Promise((res, rej) => {
 })
 
 /**
+ * Apply new buildroot argument to electron-builder's internal outdated fpm.
+ * @param {import("electron-builder").CliOptions} config
+ */
+const fixBuildrootRpmArgumentInFpm = async config => {
+    const rpmConf = config.config.linux?.target?.find(t => t.target === "rpm")
+    if (!rpmConf) {
+        // Not building an rpm target, skipping workaround.
+        return
+    }
+    try {
+        console.info(">> PATCH buildroot arg missing in electron-builder's fpm")
+        const cmd = execSync("./fix_fedora_41_buildroot_arg.sh")
+        console.info(cmd.toString())
+        console.info(">> PATCH done")
+        return
+    } catch {
+        console.warn(">> PATCH failed, running dummy build to fetch fpm")
+    }
+    const builder = require("electron-builder")
+    try {
+        // Running dummy build that will fail due to incorrect outdated args.
+        await builder.build(mergeEBConfig({
+            "files": releases.debug.ebuilder.files,
+            "linux": {
+                ...defaultConfig.config.linux,
+                "target": {"arch": ["x64"], "target": "rpm"}
+            }
+        }))
+    } catch {
+        // Applying fix again when dummy build fails.
+        const cmd = execSync("./fix_fedora_41_buildroot_arg.sh")
+        console.info(cmd.toString())
+        console.info(">> PATCH done")
+    } finally {
+        rmSync("dist/", {"force": true, "recursive": true})
+    }
+}
+
+/**
  * Generate a build for a specific release.
  * @param {ReleaseConfig} release
  */
@@ -380,8 +438,9 @@ const generateBuild = async release => {
     try {
         if (release.ebuilder !== false) {
             const builder = require("electron-builder")
-            const res = await builder.build(
-                mergeEBConfig(release.ebuilder || {}))
+            const config = mergeEBConfig(release.ebuilder || {})
+            await fixBuildrootRpmArgumentInFpm(config)
+            const res = await builder.build(config)
             console.info(res)
         }
         await release.postinstall?.()
