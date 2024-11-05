@@ -23,23 +23,6 @@ const {
 } = require("fs")
 const {dirname, join} = require("path")
 const defaultConfig = {"config": {
-    /**
-     * Strip the executables to remove debug and symbol data.
-     * @param {import("electron-builder").AfterPackContext} context
-     */
-    "afterPack": context => {
-        readdir(context.appOutDir, (_err, files) => {
-            const main = files.find(f => f.toLowerCase().startsWith("vieb"))
-            if (!main) {
-                return
-            }
-            try {
-                execSync(`strip ${join(context.appOutDir, main)}`)
-            } catch {
-                // Stripping binary failed, probably wrong arch.
-            }
-        })
-    },
     "appId": "com.github.Jelmerro.vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "
         + "Licensed as free software (GPL-3.0 or later)",

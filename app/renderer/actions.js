@@ -738,10 +738,13 @@ const refreshTab = args => {
     }
 }
 
-/** Reopen the last closed tab. */
-const reopenTab = () => {
+/**
+ * Reopen the last closed tab.
+ * @param {ActionParam} args
+ * */
+const reopenTab = args => {
     const {"reopenTab": reopen} = require("./tabs")
-    reopen()
+    reopen(args.src)
 }
 
 /** Switch to follow mode to copy a link. */
@@ -964,10 +967,13 @@ const stopFollowMode = () => {
     }
 }
 
-/** Repeat the last used action. */
-const repeatLastAction = () => {
+/**
+ * Repeat the last used action.
+ * @param {ActionParam} args
+ * */
+const repeatLastAction = args => {
     const {"repeatLastAction": repeat} = require("./input")
-    repeat()
+    repeat(args.src)
 }
 
 /**

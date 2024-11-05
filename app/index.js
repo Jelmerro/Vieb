@@ -1728,7 +1728,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 if (response) {
                     /** @type {Electron.Streams} */
                     let stream = {"video": sources[response.index]}
-                    if (response.index === "frame") {
+                    if (response.index === "frame" && request.frame) {
                         stream = {...stream, "video": request.frame}
                     }
                     if (response.audio) {
