@@ -44,7 +44,7 @@ but with release notes and previous versions listed.
 I host a custom DNF repository that you can use for Vieb instead of downloading from [vieb.dev](https://vieb.dev/download) or Github.
 
 ```bash
-sudo dnf config-manager --add-repo https://jelmerro.nl/fedora/jelmerro.repo
+sudo dnf config-manager addrepo --from-repofile=https://jelmerro.nl/fedora/jelmerro.repo
 sudo dnf install vieb
 ```
 

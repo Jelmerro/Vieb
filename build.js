@@ -86,7 +86,7 @@ const defaultConfig = {"config": {
         ]
     },
     "mac": {
-        "category": "public.app-category.navigation",
+        "category": "public.app-category.productivity",
         "icon": "app/img/icons",
         "publish": null,
         "target": [
@@ -382,8 +382,10 @@ const fixBuildrootRpmArgumentInFpm = async config => {
     }
     try {
         console.info(">> PATCH buildroot arg missing in electron-builder's fpm")
-        const cmd = execSync("./fix_fedora_41_buildroot_arg.sh")
-        console.info(cmd.toString())
+        execSync(
+            `sed -i -e 's/args = \\["rpmbuild", "-bb"\\]/args = \\["rpmbuild", `
+            + `"-bb", "--buildroot", "#{build_path}\\/BUILD"\\]/g' ~/.cache/ele`
+            + `ctron-builder/fpm/fpm*/lib/app/lib/fpm/package/rpm.rb`)
         console.info(">> PATCH done")
         return
     } catch {
@@ -401,8 +403,10 @@ const fixBuildrootRpmArgumentInFpm = async config => {
         }))
     } catch {
         // Applying fix again when dummy build fails.
-        const cmd = execSync("./fix_fedora_41_buildroot_arg.sh")
-        console.info(cmd.toString())
+        execSync(
+            `sed -i -e 's/args = \\["rpmbuild", "-bb"\\]/args = \\["rpmbuild", `
+            + `"-bb", "--buildroot", "#{build_path}\\/BUILD"\\]/g' ~/.cache/ele`
+            + `ctron-builder/fpm/fpm*/lib/app/lib/fpm/package/rpm.rb`)
         console.info(">> PATCH done")
     } finally {
         rmSync("dist/", {"force": true, "recursive": true})
