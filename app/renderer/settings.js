@@ -1866,7 +1866,6 @@ const updateDownloadSettings = (fromExecute = false) => {
 
 /** Update the settings in the file so they are updated in main/preload. */
 const updateSettings = () => {
-    sessionStorage.setItem("settings", JSON.stringify(allSettings))
     const settingsFile = joinPath(appData(), "settings")
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
@@ -2340,7 +2339,7 @@ const loadFromDisk = (firstRun, src = "source") => {
     const files = config?.files ?? []
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
-        sessionStorage.setItem("settings", JSON.stringify(allSettings))
+        updateSettings()
     }
     if (isFile(joinPath(appData(), "erwicmode"))) {
         /** @type {typeof defaultErwicSettings} */

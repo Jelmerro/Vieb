@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Occasional scaling issue that affected the position of the menu suggestions
 - Safer check for document.head.innerText to prevent errors in page console
 - Missing space in "New tab" wording of English translation
+- Startup not working for users who never used custom settings before 12.0.0
 
 ### Versions
 

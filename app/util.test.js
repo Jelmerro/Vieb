@@ -18,16 +18,6 @@
 /* eslint-disable padding-lines/statements, jsdoc/require-jsdoc */
 "use strict"
 
-const storageOfSession = {}
-
-global.sessionStorage = {
-    "getItem": key => storageOfSession[key],
-    "removeItem": key => delete storageOfSession[key],
-    "setItem": (key, value) => {
-        storageOfSession[key] = value
-    }
-}
-
 const path = require("path")
 const {homedir} = require("os")
 const UTIL = require("./util")
@@ -525,18 +515,6 @@ test("sameDomain function should match urls that have the same domain", () => {
         "https://localhost:8080/", "http://localhost:3000/test"), true)
     assert.strictEqual(UTIL.sameDomain(
         "https://127.0.0.1/", "http://10.0.0.1"), false)
-})
-
-test(`Expand path to resolve homedir and downloads`, () => {
-    sessionStorage.setItem("settings", JSON.stringify({
-        "downloadpath": `~${path.sep}Downloads${path.sep}`
-    }))
-    assert.strictEqual(UTIL.downloadPath(),
-        `${homedir()}${path.sep}Downloads${path.sep}`)
-    sessionStorage.setItem("settings", JSON.stringify({
-        "downloadpath": `Downloads${path.sep}`
-    }))
-    assert.strictEqual(UTIL.downloadPath(), `Downloads${path.sep}`)
 })
 
 test(`Firefox version should increment by date`, () => {
