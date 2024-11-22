@@ -33,6 +33,14 @@ declare global {
     > = keyof {
         [Key in keyof Obj as Obj[Key] extends Type ? Key : never]: Obj[Key];
     }
+
+     interface Error {
+         name: string
+         message: string
+         stack?: string
+         code?: number | string | undefined
+     }
+
 }
 
 export {}
