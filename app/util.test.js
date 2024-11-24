@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2023 Jelmer van Arnhem
+* Copyright (C) 2020-2024 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 "use strict"
 
 const path = require("path")
-const {homedir} = require("os")
 const UTIL = require("./util")
 const assert = require("assert")
 const {describe, test} = require("node:test")
