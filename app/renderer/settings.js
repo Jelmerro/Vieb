@@ -2405,14 +2405,8 @@ const reset = (src, setting) => {
  * @param {string|number} value
  */
 const escapeValueChars = value => {
-    if (typeof value === "number") {
-        return value
-    }
-    if (value.match(/(')/g)?.length) {
-        return `"${value}"`
-    }
-    if (value.match(/("| )/g)?.length) {
-        return `'${value}'`
+    if (typeof value === "string" && value.match(/('|"| )/g)?.length) {
+        return JSON.stringify(value)
     }
     return value
 }
