@@ -26,7 +26,6 @@ const {
     modifiedAt,
     makeDir,
     appConfig,
-    listDir,
     pathToSpecialPageName,
     stringToUrl,
     getSetting,
@@ -84,26 +83,31 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
             delete mappings[m]
         }
     })
-    // Delete unmapped favicon icons from disk
-    const relevantFaviconFiles = Object.values(mappings).flatMap(f => {
-        if (typeof f === "string") {
-            return encodeURIComponent(f).replace(/%/g, "_").slice(0, 256)
-        }
-        return []
-    })
-    /** @type {string[]} */
-    const files = await listDirAsync(faviconFolder).catch(() => null)
-    files.filter(p => p !== "mappings").forEach(stored => {
-        if (!relevantFaviconFiles.includes(stored)) {
-            deleteFile(joinPath(faviconFolder, stored))
-        }
-    })
     // Write changes to mapping file
     if (Object.keys(mappings).length === 0) {
         deleteFile(mappingFile)
     } else {
         await writeJSONAsync(mappingFile, mappings).catch(() => null)
     }
+    // Delete unused favicons from disk in nested promises to stay responsive
+    await new Promise(resolveAll => {
+        const usedFavNames = Object.values(mappings).flatMap(f => {
+            if (typeof f === "string") {
+                return encodeURIComponent(f).replace(/%/g, "_").slice(0, 256)
+            }
+            return []
+        })
+        listDirAsync(faviconFolder).catch(() => null).then(async files => {
+            const promises = files?.map(file => new Promise(res => {
+                if (!usedFavNames.includes(file) && file !== "mappings") {
+                    deleteFile(joinPath(faviconFolder, file))
+                }
+                res("Done")
+            })) ?? []
+            await Promise.all(promises)
+            resolveAll("Done")
+        })
+    })
 }
 
 /**
@@ -223,8 +227,10 @@ const update = (webview, favicon) => {
         return
     }
     const currentUrl = webview.src
-    mappings[currentUrl] = favicon
-    updateMappings({currentUrl})
+    if (mappings[currentUrl] !== favicon) {
+        mappings[currentUrl] = favicon
+        updateMappings({currentUrl})
+    }
     if (tab && (favicon.startsWith("file:/") || favicon.startsWith("data:"))) {
         setPath(tab, favicon)
         return

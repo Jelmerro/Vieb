@@ -1280,6 +1280,7 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
 /**
  * List all files in a folder async.
  * @param {string} loc
+ * @returns {Promise<string[]>}
  */
 const listDirAsync = loc => new Promise((res, rej) => {
     const {readdir} = require("fs")
