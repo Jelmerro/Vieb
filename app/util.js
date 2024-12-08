@@ -1210,6 +1210,22 @@ const writeJSON = (loc, data, opts = {"replacer": null}) => {
 }
 
 /**
+ * Write JSON data async to a file, optionally with indentation and replacer.
+ * @param {string} loc
+ * @param {any} data
+ */
+const writeJSONAsync = (loc, data) => new Promise((res, rej) => {
+    const {"writeFile": write} = require("fs")
+    write(loc, JSON.stringify(data), err => {
+        if (err) {
+            rej(err)
+        } else {
+            res("Success")
+        }
+    })
+})
+
+/**
  * Delete a file at a location, returns success state.
  * @param {string} loc
  */
@@ -1607,5 +1623,6 @@ module.exports = {
     userAgentTemplated,
     watchFile,
     writeFile,
-    writeJSON
+    writeJSON,
+    writeJSONAsync
 }

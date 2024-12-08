@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- History and favicon storage to be async for reducing temporary freezes
+
 ### Fixed
 
 - Command mkviebrc still using single quotes to generate full output

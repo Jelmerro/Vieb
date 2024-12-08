@@ -22,13 +22,13 @@ const {
     joinPath,
     appData,
     readJSON,
-    writeJSON,
     deleteFile,
     urlToString,
     pathToSpecialPageName,
     hasProtocol,
     specialChars,
-    getSetting
+    getSetting,
+    writeJSONAsync
 } = require("../util")
 const {translate} = require("../translate")
 
@@ -171,7 +171,7 @@ const writeHistToFile = (now = false) => {
     if (Object.keys(groupedHistory).length === 0) {
         return deleteFile(histFile)
     }
-    return writeJSON(histFile, groupedHistory)
+    return writeJSONAsync(histFile, groupedHistory)
 }
 
 /**
@@ -281,12 +281,12 @@ const removeFromHistory = entries => {
  * @param {"range"|null} action
  * @param {{date: string, url: string}[]} entries
  */
-const handleRequest = (webview, action = null, entries = []) => {
+const handleRequest = async(webview, action = null, entries = []) => {
     const {updateMappings} = require("./favicons")
     if (action) {
         let success = false
         if (action === "range" && entries.length > 0) {
-            success = removeFromHistory(entries)
+            success = await removeFromHistory(entries)
         }
         webview.send("history-removal-status", success)
         updateMappings()

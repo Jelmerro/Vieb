@@ -22,7 +22,6 @@ const {
     appData,
     isFile,
     readJSON,
-    writeJSON,
     deleteFile,
     modifiedAt,
     makeDir,
@@ -31,7 +30,8 @@ const {
     pathToSpecialPageName,
     stringToUrl,
     getSetting,
-    getAppRootDir
+    getAppRootDir,
+    writeJSONAsync
 } = require("../util")
 const {tabForPage, listPages, currentPage} = require("./common")
 
@@ -45,19 +45,28 @@ let isParsed = false
 let faviconWriteTimeout = 0
 const viebIcon = `file:///${joinPath(
     getAppRootDir(), "img/vieb.svg").replace(/^\/*/g, "")}`
+/** @type {{[url: string]: string }} */
+const urlToPathCache = {}
 
 /**
  * Get the path for a given url.
  * @param {string} url
  */
-const urlToPath = url => joinPath(faviconFolder,
-    encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
+const urlToPath = url => {
+    if (urlToPathCache[url]) {
+        return urlToPathCache[url]
+    }
+    const path = joinPath(faviconFolder, encodeURIComponent(url)
+        .replace(/%/g, "_")).slice(0, 256)
+    urlToPathCache[url] = path
+    return path
+}
 
 /**
  * Update the current mappings and delete unused ones.
  * @param {{currentUrl?: string|null, now?: boolean|null}} arg
  */
-const updateMappings = ({currentUrl = null, now = null} = {}) => {
+const updateMappings = async({currentUrl = null, now = null} = {}) => {
     // Don't update the mappings before done loading or in rapid succession
     window.clearTimeout(faviconWriteTimeout ?? undefined)
     if (!now || !isParsed) {
@@ -101,7 +110,7 @@ const updateMappings = ({currentUrl = null, now = null} = {}) => {
     if (Object.keys(mappings).length === 0) {
         deleteFile(mappingFile)
     } else {
-        writeJSON(mappingFile, mappings, {"indent": 4})
+        await writeJSONAsync(mappingFile, mappings)
     }
 }
 

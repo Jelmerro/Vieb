@@ -954,7 +954,7 @@ const tabForBufferArg = (args, filter = null) => {
 }
 
 /** Quit the entire app entirely, including all quit settings and cleanup. */
-const quitall = () => {
+const quitall = async() => {
     ipcRenderer.send("hide-window")
     const keepQuickmarkNames = getSetting("quickmarkpersistence")
     const clearMark = ["scroll", "marks", "pointer"]
@@ -976,7 +976,7 @@ const quitall = () => {
         writeHistToFile(true)
     } else {
         const {removeOldHistory} = require("./history")
-        removeOldHistory(intervalValueToDate(clearHistory))
+        await removeOldHistory(intervalValueToDate(clearHistory))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
@@ -995,7 +995,7 @@ const quitall = () => {
         clearLocalStorage()
     }
     const {updateMappings} = require("./favicons")
-    updateMappings({"now": true})
+    await updateMappings({"now": true})
     ipcRenderer.send("destroy-window")
 }
 
