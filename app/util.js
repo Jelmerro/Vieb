@@ -1278,6 +1278,21 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
 }
 
 /**
+ * List all files in a folder async.
+ * @param {string} loc
+ */
+const listDirAsync = loc => new Promise((res, rej) => {
+    const {readdir} = require("fs")
+    readdir(loc, (err, files) => {
+        if (err) {
+            rej(err)
+            return
+        }
+        res(files)
+    })
+})
+
+/**
  * Watch a specific file including the polling fallback of 500ms.
  * @param {string} file
  * @param {(info: import("fs").Stats, oldInfo: import("fs").Stats) => void} call
@@ -1598,6 +1613,7 @@ module.exports = {
     isValidIntervalValue,
     joinPath,
     listDir,
+    listDirAsync,
     listNotificationHistory,
     makeDir,
     matchesQuery,

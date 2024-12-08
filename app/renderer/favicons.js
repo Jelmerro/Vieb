@@ -31,7 +31,8 @@ const {
     stringToUrl,
     getSetting,
     getAppRootDir,
-    writeJSONAsync
+    writeJSONAsync,
+    listDirAsync
 } = require("../util")
 const {tabForPage, listPages, currentPage} = require("./common")
 
@@ -45,22 +46,13 @@ let isParsed = false
 let faviconWriteTimeout = 0
 const viebIcon = `file:///${joinPath(
     getAppRootDir(), "img/vieb.svg").replace(/^\/*/g, "")}`
-/** @type {{[url: string]: string }} */
-const urlToPathCache = {}
 
 /**
  * Get the path for a given url.
  * @param {string} url
  */
-const urlToPath = url => {
-    if (urlToPathCache[url]) {
-        return urlToPathCache[url]
-    }
-    const path = joinPath(faviconFolder, encodeURIComponent(url)
-        .replace(/%/g, "_")).slice(0, 256)
-    urlToPathCache[url] = path
-    return path
-}
+const urlToPath = url => joinPath(faviconFolder,
+    encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
 /**
  * Update the current mappings and delete unused ones.
@@ -93,24 +85,24 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
         }
     })
     // Delete unmapped favicon icons from disk
-    const mappedFavicons = Object.values(mappings).flatMap(f => {
+    const relevantFaviconFiles = Object.values(mappings).flatMap(f => {
         if (typeof f === "string") {
-            return urlToPath(f)
+            return encodeURIComponent(f).replace(/%/g, "_").slice(0, 256)
         }
         return []
     })
-    const files = listDir(faviconFolder)
-    files?.filter(p => p !== "mappings").map(p => joinPath(faviconFolder, p))
-        .forEach(img => {
-            if (!mappedFavicons.includes(img)) {
-                deleteFile(img)
-            }
-        })
+    /** @type {string[]} */
+    const files = await listDirAsync(faviconFolder).catch(() => null)
+    files.filter(p => p !== "mappings").forEach(stored => {
+        if (!relevantFaviconFiles.includes(stored)) {
+            deleteFile(joinPath(faviconFolder, stored))
+        }
+    })
     // Write changes to mapping file
     if (Object.keys(mappings).length === 0) {
         deleteFile(mappingFile)
     } else {
-        await writeJSONAsync(mappingFile, mappings)
+        await writeJSONAsync(mappingFile, mappings).catch(() => null)
     }
 }
 
