@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2024 Jelmer van Arnhem
+* Copyright (C) 2020-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -401,6 +401,28 @@ describe("Versions", () => {
     })
 })
 
+describe("Format sizes work correctly", () => {
+    const sizes = [
+        {"number": 0, "output": "0 B"},
+        {"number": 45, "output": "45 B"},
+        {"number": 999, "output": "999 B"},
+        {"number": 1023, "output": "1023 B"},
+        {"number": 1024, "output": "1 KB"},
+        {"number": 1048575, "output": "1024 KB"},
+        {"number": 1048576, "output": "1 MB"},
+        {"number": 45345237, "output": "43.24 MB"},
+        {"number": 92445237293, "output": "86.1 GB"},
+        {"number": 1099511627776, "output": "1 TB"},
+        {"number": 9999999999999, "output": "9.09 TB"},
+        {"number": 1.1111111111111111e+35, "output": "87651.21 QB"}
+    ]
+    sizes.forEach(s => {
+        test(`Testing that ${s.number} becomes ${s.output}`, () => {
+            assert.strictEqual(UTIL.formatSize(s.number), s.output)
+        })
+    })
+})
+
 test("Filesystem helpers should work as expected", () => {
     const {tmpdir} = require("os")
     const {rmdirSync} = require("fs")
@@ -469,12 +491,6 @@ test("Filesystem helpers should work as expected", () => {
     assert.strictEqual(UTIL.basePath("/home/test/"), basename("/home/test/"))
     assert.strictEqual(
         UTIL.isAbsolutePath("/home/test/"), isAbsolute("/home/test/"))
-})
-
-test("formatSize helper to show file sizes in human readable form", () => {
-    assert.strictEqual(UTIL.formatSize(45), "45 B")
-    assert.strictEqual(UTIL.formatSize(45345237), "43.24 MB")
-    assert.strictEqual(UTIL.formatSize(92445237293), "86.10 GB")
 })
 
 test("formatDate helper to show dates in proper standard format", () => {

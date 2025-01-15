@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -783,15 +783,13 @@ const activeElement = () => {
 }
 
 /**
- * Format any number of bytes (<1024 EB) to a value with a nice unit.
+ * Format any number of bytes to a value with a nice unit.
  * @param {number} size
  */
 const formatSize = size => {
-    if (size < 1024) {
-        return `${size} B`
-    }
-    const exp = Math.floor(Math.log(size) / Math.log(1024))
-    return `${(size / 1024 ** exp).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
+    const exp = Math.min(Math.floor(Math.log(size) / Math.log(1024)), 10)
+    const unit = (size / 1024 ** exp || 0).toFixed(2).replace(/\.?0+$/g, "")
+    return `${unit} ${" KMGTPEZYRQ"[exp]?.trim() ?? ""}B`
 }
 
 /**
