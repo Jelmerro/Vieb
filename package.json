@@ -30,7 +30,7 @@
   "devDependencies": {
     "@electron/asar": "3.2.18",
     "@types/jsdom": "21.1.7",
-    "@types/picomatch": "3.0.1",
+    "@types/picomatch": "3.0.2",
     "electron": "34.0.0",
     "electron-builder": "25.1.8",
     "eslint-config": "github:Jelmerro/eslint-config",
