@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Pointer not displaying in the right place when used in a split that's not in the topleft area
+
+### Versions
+
+- Electron 34.0.0 (unchanged)
+- Chromium 132.0.6834.83 (unchanged)
+
 ## [12.2.0](https://github.com/Jelmerro/Vieb/compare/12.1.0...12.2.0) - 2025-01-20
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.1.0...12.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.2.0)

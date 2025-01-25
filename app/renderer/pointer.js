@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -65,8 +65,8 @@ const updateElement = () => {
     const {top, left, bottom, right} = pageOffset(page)
     X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
-    pointerEl.style.left = `${X}px`
-    pointerEl.style.top = `${Y}px`
+    pointerEl.style.left = `${X + left}px`
+    pointerEl.style.top = `${Y + top}px`
     currentPage()?.setAttribute("pointer-x", `${X}`)
     currentPage()?.setAttribute("pointer-y", `${Y}`)
     if (currentMode() === "pointer") {
