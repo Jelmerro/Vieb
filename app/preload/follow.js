@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -299,11 +299,16 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         return
     }
     if (isInputOrTextElement(focusEl)) {
-        if (inputfocusalignment.includes("end")) {
-            const focusLength = focusEl.value.length
-            focusEl.setSelectionRange(focusLength, focusLength)
-        } else {
-            focusEl.setSelectionRange(0, 0)
+        try {
+            if (inputfocusalignment.includes("end")) {
+                const focusLength = focusEl.value.length
+                focusEl.setSelectionRange(focusLength, focusLength)
+            } else {
+                focusEl.setSelectionRange(0, 0)
+            }
+            return
+        } catch {
+            // Not the right input type, falling back to collapsing selection
         }
     } else {
         const selection = window.getSelection()

@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Pointer not displaying in the right place when used in a split that's not in the topleft area
+- Focussing non-supported inputs (like number) showing errors on selection for insertAtFirstInput action
 
 ### Versions
 
