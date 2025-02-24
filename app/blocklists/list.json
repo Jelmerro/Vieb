@@ -1,5 +1,11 @@
 {
     "easylist": "https://easylist-downloads.adblockplus.org/easylist.txt",
     "easyprivacy": "https://easylist-downloads.adblockplus.org/easyprivacy.txt",
+    "ublockfilters2020": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2020.txt",
+    "ublockfilters2021": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2021.txt",
+    "ublockfilters2022": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2022.txt",
+    "ublockfilters2023": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2023.txt",
+    "ublockfilters2024": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2024.txt",
+    "ublockfilters2025": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2025.txt",
     "ublockfilters": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt"
 }

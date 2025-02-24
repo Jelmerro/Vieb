@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- More adblocker default blocklists, mainly the yearly ublock lists
+
 ### Fixed
 
 - Pointer not displaying in the right place when used in a split that's not in the topleft area
