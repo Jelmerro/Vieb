@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     listTabs,
     currentPage,
@@ -97,7 +98,7 @@ const applyLayout = () => {
             pagelayout.append(view)
         }
     }
-    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
+    /** @type {HTMLDivElement[]} */
     const visiblePages = []
     /** @type {HTMLSpanElement[]} */
     const visibleTabs = []
@@ -116,6 +117,13 @@ const applyLayout = () => {
         page.style.top = `${Math.round(dimensions.y - containerPos.y)}px`
         page.style.width = `${Math.round(dimensions.width)}px`
         page.style.height = `${Math.round(dimensions.height)}px`
+        ipcRenderer.send("page-action",
+            page.getAttribute("webcontents-id"), "bounds", {
+                "height": Math.round(dimensions.height),
+                "width": Math.round(dimensions.width),
+                "x": Math.round(dimensions.x),
+                "y": Math.round(dimensions.y)
+            })
     })
     if (visiblePages.length > 1) {
         document.getElementById("pages")?.classList.add("multiple")
@@ -197,8 +205,8 @@ const applyLayout = () => {
 
 /**
  * Switch to a new view.
- * @param {Electron.WebviewTag|HTMLDivElement|null} oldViewOrId
- * @param {Electron.WebviewTag|HTMLDivElement} newView
+ * @param {HTMLDivElement|null} oldViewOrId
+ * @param {HTMLDivElement} newView
  */
 const switchView = (oldViewOrId, newView) => {
     const pagelayoutEl = document.getElementById("pagelayout")
@@ -219,7 +227,7 @@ const switchView = (oldViewOrId, newView) => {
 
 /**
  * Hide a page from view.
- * @param {Electron.WebviewTag|HTMLDivElement} view
+ * @param {HTMLDivElement} view
  * @param {boolean} close
  */
 const hide = (view, close = false) => {
@@ -285,7 +293,7 @@ const hide = (view, close = false) => {
 
 /**
  * Add a page to the layout.
- * @param {Electron.WebviewTag|HTMLDivElement|string} viewOrId
+ * @param {HTMLDivElement|string} viewOrId
  * @param {"ver"|"hor"} method
  * @param {boolean} leftOrAbove
  */

@@ -112,15 +112,15 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
 
 /**
  * Show the loading spinner in place of the favicon, optionally clearing it.
- * @param {Electron.WebviewTag} webview
+ * @param {HTMLDivElement} page
  * @param {boolean} empty
  */
-const loading = (webview, empty = false) => {
+const loading = (page, empty = false) => {
     const loadingIndicator = getSetting("loadingindicator")
-    const tab = tabForPage(webview)
+    const tab = tabForPage(page)
     const status = tab?.querySelector(".status")
     if (["line", "all"].includes(loadingIndicator)) {
-        if (webview === currentPage()) {
+        if (page === currentPage()) {
             const loadingProgress = document.getElementById("loading-progress")
             if (loadingProgress) {
                 loadingProgress.style.display = "flex"
@@ -144,7 +144,7 @@ const loading = (webview, empty = false) => {
         favicon.style.display = ""
     }
     if (empty) {
-        if (webview.src.startsWith("devtools://")) {
+        if (page.getAttribute("src")?.startsWith("devtools://")) {
             favicon.src = viebIcon
         } else {
             favicon.src = "img/empty.png"
@@ -260,9 +260,12 @@ const getRedirect = url => mappings.redirects?.[url] || url
 
 /**
  * Get the url for a given site.
- * @param {string} url
+ * @param {string|null} url
  */
 const forSite = url => {
+    if (!url) {
+        return null
+    }
     if (getSetting("favicons") === "disabled") {
         return ""
     }
@@ -289,11 +292,11 @@ const forSite = url => {
 
 /**
  * Show the favicon that was previously set for this site, and stop loading.
- * @param {Electron.WebviewTag} webview
+ * @param {HTMLDivElement} page
  */
-const show = webview => {
-    const tab = tabForPage(webview)
-    if (webview === currentPage()) {
+const show = page => {
+    const tab = tabForPage(page)
+    if (page === currentPage()) {
         const loadingProgress = document.getElementById("loading-progress")
         if (loadingProgress) {
             loadingProgress.style.display = "none"
@@ -308,7 +311,7 @@ const show = webview => {
         return
     }
     if (favicon.getAttribute("src") === "img/empty.png") {
-        favicon.src = forSite(webview.src) ?? favicon.src
+        favicon.src = forSite(page.getAttribute("src")) ?? favicon.src
     }
     if (favicon.getAttribute("src") !== "img/empty.png") {
         favicon.style.display = ""

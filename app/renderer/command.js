@@ -1093,7 +1093,8 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     const {addTab} = require("./tabs")
     const {add} = require("./pagelayout")
     if (position === "window") {
-        currentPage()?.openDevTools()
+        ipcRenderer.send("page-action",
+            currentPage()?.getAttribute("webcontents-id"), "devtools")
     } else if (position === "tab") {
         addTab({"devtools": true, src})
     } else if (position === "vsplit") {

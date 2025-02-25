@@ -28,7 +28,8 @@ const {
     session,
     shell,
     webContents,
-    nativeTheme
+    nativeTheme,
+    WebContentsView
 } = require("electron")
 const {randomUUID} = require("crypto")
 const {
@@ -1653,6 +1654,48 @@ ipcMain.on("update-pdf-option", (_, newPdfValue) => {
         }
     })
 })
+/** @type {{[id: number]: WebContentsView}} */
+const viewsByWebContentsId = {}
+ipcMain.on("page-action", (_, id, action, ...details) => {
+    const page = webContents.fromId(Number(id))
+    if (!page) {
+        return
+    }
+    if (action === "reload") {
+        page.reload()
+    } else if (action === "back") {
+        page.navigationHistory.goBack()
+    } else if (action === "forward") {
+        page.navigationHistory.goForward()
+    } else if (action === "stop") {
+        page.stop()
+    } else if (action === "load") {
+        page.loadURL(details[0])
+    } else if (action === "bounds") {
+        const view = viewsByWebContentsId[page.id]
+        if (view) {
+            view.setBounds(details[0])
+        }
+    } else if (action === "devtools") {
+        page.openDevTools()
+    } else {
+        console.warn("invalid action")
+    }
+})
+ipcMain.handle("create-page", (_, url, sessionName) => {
+    const view = new WebContentsView({
+        "webPreferences": {
+            "preload": joinPath(__dirname, "preload/index.js"),
+            "sandbox": false,
+            "session": session.fromPartition(sessionName)
+        }
+    })
+    view.webContents.loadURL(url)
+    view.setBounds({"height": 0, "width": 0, "x": 0, "y": 0})
+    mainWindow?.contentView.addChildView(view)
+    viewsByWebContentsId[view.webContents.id] = view
+    return view.webContents.id
+})
 ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
@@ -2594,7 +2637,7 @@ let allLinks = []
 const frameInfo = {}
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+        webContents.fromId(Number(id))?.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("follow-mode-start", followTypeFilter)
             } catch (ex) {

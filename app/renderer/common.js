@@ -47,20 +47,10 @@ const listTabs = () => {
 }
 
 /**
- * List all the open pages, regular ones are webviews, suspended ones are divs.
+ * List all the open pages, suspended or not.
  */
 const listPages = () => {
-    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
-    // @ts-expect-error pages should always be div or webview
-    const pages = [...document.querySelectorAll("#pages > .webview")]
-    return pages
-}
-
-/**
- * List all the fake suspended div pages.
- */
-const listFakePages = () => {
-    const pages = [...document.querySelectorAll("#pages > .webview")]
+    const pages = [...document.querySelectorAll("#pages > .page")]
     return pages.flatMap(p => {
         if (p instanceof HTMLDivElement) {
             return p
@@ -70,23 +60,42 @@ const listFakePages = () => {
 }
 
 /**
- * List all the real unsuspended webview pages.
+ * List all the fake suspended div pages.
  */
-const listRealPages = () => {
-    /** @type {Electron.WebviewTag[]} */
-    // @ts-expect-error query selector includes the webview tag
-    const pages = [...document.querySelectorAll("#pages > webview")]
-    return pages
+const listFakePages = () => {
+    const pages = [...document.querySelectorAll("#pages > .page")]
+    return pages.flatMap(p => {
+        if (p instanceof HTMLDivElement && p.getAttribute("suspended")) {
+            return p
+        }
+        return []
+    })
 }
 
 /**
- * List all the webview pages that have completed the dom setup.
+ * List all the real unsuspended pages.
+ */
+const listRealPages = () => {
+    const pages = [...document.querySelectorAll("#pages > .page")]
+    return pages.flatMap(p => {
+        if (p instanceof HTMLDivElement && !p.getAttribute("suspended")) {
+            return p
+        }
+        return []
+    })
+}
+
+/**
+ * List all the pages that have completed the dom setup.
  */
 const listReadyPages = () => {
-    /** @type {Electron.WebviewTag[]} */
-    // @ts-expect-error query selector includes the webview tag
-    const pages = [...document.querySelectorAll("#pages > webview[dom-ready]")]
-    return pages
+    const pages = [...document.querySelectorAll("#pages > .page")]
+    return pages.flatMap(p => {
+        if (p instanceof HTMLDivElement && p.getAttribute("webcontents-id")) {
+            return p
+        }
+        return []
+    })
 }
 
 /**
@@ -102,10 +111,11 @@ const currentTab = () => {
  * Get the current page.
  */
 const currentPage = () => {
-    /** @type {Electron.WebviewTag|null} */
-    // @ts-expect-error current page id is always set to webview or null
     const page = document.getElementById("current-page")
-    return page
+    if (page instanceof HTMLDivElement) {
+        return page
+    }
+    return null
 }
 
 /**

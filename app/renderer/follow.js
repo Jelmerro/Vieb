@@ -66,14 +66,16 @@ const informPreload = (first = false) => {
         elemTypesToFollow = ["url"]
     }
     if (first) {
-        ipcRenderer.send("follow-mode-start", currentPage()?.getWebContentsId(),
+        ipcRenderer.send("follow-mode-start",
+            currentPage()?.getAttribute("webcontents-id"),
             elemTypesToFollow, true)
     }
     setTimeout(() => {
         if (currentPage()?.getAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
                 ipcRenderer.send("follow-mode-start",
-                    currentPage()?.getWebContentsId(), elemTypesToFollow)
+                    currentPage()?.getAttribute("webcontents-id"),
+                    elemTypesToFollow)
                 informPreload()
             } else {
                 ipcRenderer.send("follow-mode-stop")
@@ -190,7 +192,9 @@ const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
  * @param {import("./common").RunSource} src
  */
 const clickAtLink = async(link, src = "user") => {
-    const factor = currentPage()?.getZoomFactor() ?? 1
+    // TODO
+    // const factor = currentPage()?.getZoomFactor() ?? 1
+    const factor = 1
     const {setMode} = require("./modes")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
         const {start, move} = require("./pointer")
@@ -296,6 +300,7 @@ const parseAndDisplayLinks = receivedLinks => {
     if (!followEl || !page) {
         return
     }
+    console.log(receivedLinks)
     const {updateUrl} = require("./tabs")
     updateUrl(page, true)
     let newLinks = receivedLinks
@@ -336,7 +341,9 @@ const parseAndDisplayLinks = receivedLinks => {
     baseDims.bottom = window.innerHeight - baseDims.top - baseDims.height
     const elWidth = document.querySelector("#follow [link-id]")
         ?.getBoundingClientRect()?.width ?? 0
-    const factor = currentPage()?.getZoomFactor() ?? 1
+    // TODO
+    // const factor = currentPage()?.getZoomFactor() ?? 1
+    const factor = 1
     /** @type {HTMLSpanElement[]} */
     const followChildren = []
     const neededLength = numberToKeys(links.length).length
