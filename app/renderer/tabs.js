@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -313,51 +313,6 @@ const saveTabs = () => {
             "src": "other"
         })
     }
-}
-
-/**
- * Reopen the last closed tab and switch to it.
- * @param {import("./common").RunSource} src
- */
-const reopenTab = src => {
-    if (recentlyClosed.length === 0 || listTabs().length === 0) {
-        return
-    }
-    /** @type {{
-     *   muted: boolean,
-     *   url: string,
-     *   index: number
-     *   session?: string
-     *   container?: string
-     *   customIndex?: number
-     *   src?: import("./common").RunSource
-     * }|undefined} */
-    const restore = recentlyClosed.pop()
-    if (!restore) {
-        return
-    }
-    restore.url = stringToUrl(restore.url)
-    if (getSetting("containerkeeponreopen") && restore.container) {
-        restore.session = restore.container
-    } else {
-        delete restore.container
-    }
-    restore.customIndex = restore.index
-    const tab = currentTab()
-    if (!tab) {
-        return
-    }
-    if (getSetting("tabreopenposition") === "left") {
-        restore.customIndex = listTabs().indexOf(tab)
-    }
-    if (getSetting("tabreopenposition") === "right") {
-        restore.customIndex = listTabs().indexOf(tab) + 1
-    }
-    const rememberMuted = getSetting("tabreopenmuted")
-    restore.muted = rememberMuted === "always"
-        || rememberMuted === "remember" && restore.muted
-    /* eslint-disable-next-line no-use-before-define */
-    addTab({...restore, src})
 }
 
 /**
@@ -1330,6 +1285,50 @@ const addTab = opts => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     }
+}
+
+/**
+ * Reopen the last closed tab and switch to it.
+ * @param {import("./common").RunSource} src
+ */
+const reopenTab = src => {
+    if (recentlyClosed.length === 0 || listTabs().length === 0) {
+        return
+    }
+    /** @type {{
+     *   muted: boolean,
+     *   url: string,
+     *   index: number
+     *   session?: string
+     *   container?: string
+     *   customIndex?: number
+     *   src?: import("./common").RunSource
+     * }|undefined} */
+    const restore = recentlyClosed.pop()
+    if (!restore) {
+        return
+    }
+    restore.url = stringToUrl(restore.url)
+    if (getSetting("containerkeeponreopen") && restore.container) {
+        restore.session = restore.container
+    } else {
+        delete restore.container
+    }
+    restore.customIndex = restore.index
+    const tab = currentTab()
+    if (!tab) {
+        return
+    }
+    if (getSetting("tabreopenposition") === "left") {
+        restore.customIndex = listTabs().indexOf(tab)
+    }
+    if (getSetting("tabreopenposition") === "right") {
+        restore.customIndex = listTabs().indexOf(tab) + 1
+    }
+    const rememberMuted = getSetting("tabreopenmuted")
+    restore.muted = rememberMuted === "always"
+        || rememberMuted === "remember" && restore.muted
+    addTab({...restore, src})
 }
 
 /** Load the tabs from disk and from startup args. */
