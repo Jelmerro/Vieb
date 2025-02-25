@@ -50,10 +50,14 @@ let mouseSelection = null
 let skipNextClick = false
 
 /** Return the x position taking zoom into account. */
-const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
+// TODO
+// const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
+const zoomX = () => 1
 
 /** Return the y position taking zoom into account. */
-const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
+// TODO
+// const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
+const zoomY = () => 1
 
 /** Update the pointer position to respect bounds and send the new hover. */
 const updateElement = () => {
@@ -75,7 +79,9 @@ const updateElement = () => {
     }
     if (currentMode() === "visual") {
         lastSelection = {"endX": X, "endY": Y, startX, startY}
-        const factor = currentPage()?.getZoomFactor() ?? 1
+        // TODO
+        // const factor = currentPage()?.getZoomFactor() ?? 1
+        const factor = 1
         sendToPageOrSubFrame("action", "selectionRequest",
             Math.round(startX / factor), Math.round(startY / factor),
             zoomX(), zoomY())
@@ -793,7 +799,9 @@ const moveLeft = () => {
 
 /** Focus an input at the pointer position (goes to insert mode if found). */
 const insertAtPosition = () => {
-    const factor = currentPage()?.getZoomFactor() ?? 1
+    // TODO
+    // const factor = currentPage()?.getZoomFactor() ?? 1
+    const factor = 1
     sendToPageOrSubFrame("focus-input", {"x": X * factor, "y": Y * factor})
 }
 
@@ -1081,9 +1089,9 @@ const init = () => {
             setMode("normal")
         }
         if (clickInfo.webviewId) {
-            if (clickInfo.webviewId !== currentPage()?.getWebContentsId()) {
+            if (clickInfo.webviewId !== currentPage()?.getAttribute("webcontents-id")) {
                 const page = listReadyPages().find(
-                    p => p.getWebContentsId() === clickInfo.webviewId)
+                    p => p.getAttribute("webcontents-id") === clickInfo.webviewId)
                 if (page) {
                     const tab = tabForPage(page)
                     if (tab) {
@@ -1101,7 +1109,9 @@ const init = () => {
                     "selectionRemove", zoomX(), zoomY())
             }
             if (getMouseConf("movepointer")) {
-                const factor = currentPage()?.getZoomFactor() ?? 1
+                // TODO
+                // const factor = currentPage()?.getZoomFactor() ?? 1
+                const factor = 1
                 move(clickInfo.x * factor, clickInfo.y * factor)
             } else {
                 updateElement()
@@ -1146,7 +1156,9 @@ const init = () => {
         const switchToVisual = getSetting("mousevisualmode")
         if (switchToVisual !== "never" || currentMode() === "visual") {
             skipNextClick = true
-            const factor = currentPage()?.getZoomFactor() ?? 1
+            // TODO
+            // const factor = currentPage()?.getZoomFactor() ?? 1
+            const factor = 1
             storeMouseSelection({
                 "endX": selectInfo.endX * factor,
                 "endY": selectInfo.endY * factor,

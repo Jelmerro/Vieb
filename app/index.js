@@ -989,49 +989,6 @@ app.whenReady().then(async() => {
         }
         mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
     })
-    mainWindow.webContents.on("did-attach-webview", (_, contents) => {
-        contents.on("will-prevent-unload", e => e.preventDefault())
-        contents.on("unresponsive", () => mainWindow?.webContents.send(
-            "unresponsive", contents.id))
-        contents.on("responsive", () => mainWindow?.webContents.send(
-            "responsive", contents.id))
-        let navigationUrl = ""
-        contents.on("did-start-navigation", (__, url) => {
-            navigationUrl = url
-        })
-        contents.on("did-redirect-navigation", (__, url) => {
-            if (navigationUrl !== url) {
-                mainWindow?.webContents.send("redirect", navigationUrl, url)
-            }
-        })
-        contents.setWebRTCIPHandlingPolicy("default_public_interface_only")
-        contents.on("before-input-event", (e, input) => {
-            if (blockedInsertMappings === "pass") {
-                return
-            }
-            if (currentInputMatches(input)) {
-                e.preventDefault()
-            }
-            mainWindow?.webContents.send("insert-mode-input-event", input)
-        })
-        contents.on("zoom-changed", (__, dir) => {
-            mainWindow?.webContents.send("zoom-changed", contents.id, dir)
-        })
-        contents.on("certificate-error", (e, url, err, cert, fn) => {
-            e.preventDefault()
-            permissionHandler(null, "certificateerror", fn, {
-                cert, "error": err, "requestingUrl": url
-            })
-        })
-        contents.setWindowOpenHandler(e => {
-            if (e.disposition === "foreground-tab") {
-                mainWindow?.webContents.send("navigate-to", e.url)
-            } else {
-                mainWindow?.webContents.send("new-tab", e.url)
-            }
-            return {"action": "deny"}
-        })
-    })
     // Show a dialog for sites requiring Basic HTTP authentication
     /** @type {Electron.BrowserWindowConstructorOptions} */
     const loginWindowData = {
@@ -1670,18 +1627,73 @@ ipcMain.on("page-action", (_, id, action, ...details) => {
         console.warn("invalid action")
     }
 })
-ipcMain.handle("create-page", (_, url, sessionName) => {
+ipcMain.handle("create-page", (_, opts) => {
     const view = new WebContentsView({
         "webPreferences": {
             "preload": joinPath(__dirname, "preload/index.js"),
             "sandbox": false,
-            "session": session.fromPartition(sessionName)
+            "session": session.fromPartition(opts.sessionName)
         }
     })
-    view.webContents.loadURL(url)
+    view.webContents.loadURL(opts.url)
     view.setBounds({"height": 0, "width": 0, "x": 0, "y": 0})
     mainWindow?.contentView.addChildView(view)
     viewsByWebContentsId[view.webContents.id] = view
+    view.webContents.setWebRTCIPHandlingPolicy("default_public_interface_only")
+    view.webContents.on("will-prevent-unload", e => e.preventDefault())
+    view.webContents.on("unresponsive", () => mainWindow?.webContents.send(
+        "unresponsive", view.webContents.id))
+    view.webContents.on("responsive", () => mainWindow?.webContents.send(
+        "responsive", view.webContents.id))
+    view.webContents.on("zoom-changed", (__, dir) => {
+        mainWindow?.webContents.send("zoom-changed", view.webContents.id, dir)
+    })
+    view.webContents.on("certificate-error", (e, url, err, cert, fn) => {
+        e.preventDefault()
+        permissionHandler(null, "certificateerror", fn, {
+            cert, "error": err, "requestingUrl": url
+        })
+    })
+    let navigationUrl = ""
+    view.webContents.on("did-start-navigation", (__, url) => {
+        navigationUrl = url
+    })
+    view.webContents.on("did-redirect-navigation", (__, url) => {
+        if (navigationUrl !== url) {
+            mainWindow?.webContents.send("redirect", navigationUrl, url)
+        }
+    })
+    view.webContents.on("before-input-event", (e, input) => {
+        if (blockedInsertMappings === "pass") {
+            return
+        }
+        if (currentInputMatches(input)) {
+            e.preventDefault()
+        }
+        mainWindow?.webContents.send("insert-mode-input-event", input)
+    })
+    view.webContents.setWindowOpenHandler(e => {
+        if (e.disposition === "foreground-tab") {
+            mainWindow?.webContents.send("navigate-to", e.url)
+        } else {
+            mainWindow?.webContents.send("new-tab", e.url)
+        }
+        return {"action": "deny"}
+    })
+    view.webContents.on("render-process-gone", (_, details) => {
+        if (details.reason === "clean-exit") {
+            return
+        }
+        // TODO
+    })
+    view.webContents.on("focus", () => {
+        // TODO only do this while not inside insert mode.
+        setTimeout(() => mainWindow?.webContents.focus(), 0)
+    })
+    view.webContents.on("ipc-message", (e, channel, ...details) => {
+        // TODO
+        // console.log(e, channel, details)
+    })
     return view.webContents.id
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {

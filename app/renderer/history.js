@@ -268,7 +268,7 @@ const removeFromHistory = entries => {
 
 /** @typedef {{
  *   date: Date,
- *   icon: string,
+ *   icon: string|null,
  *   title: string,
  *   url: string,
  *   visits: number
@@ -277,18 +277,18 @@ const removeFromHistory = entries => {
 
 /**
  * Handle a request from the preload to remove history or just list it.
- * @param {Electron.WebviewTag} webview
+ * @param {HTMLDivElement} page
  * @param {"range"|null} action
  * @param {{date: string, url: string}[]} entries
  */
-const handleRequest = async(webview, action = null, entries = []) => {
+const handleRequest = async(page, action = null, entries = []) => {
     const {updateMappings} = require("./favicons")
     if (action) {
         let success = false
         if (action === "range" && entries.length > 0) {
             success = await removeFromHistory(entries)
         }
-        webview.send("history-removal-status", success)
+        page.send("history-removal-status", success)
         updateMappings()
         return
     }
@@ -307,7 +307,7 @@ const handleRequest = async(webview, action = null, entries = []) => {
         })
     })
     history = history.sort((a, b) => b.date.getTime() - a.date.getTime())
-    webview.send("history-list", history)
+    page.send("history-list", history)
     updateMappings()
 }
 

@@ -1079,6 +1079,7 @@ const openLinkExternal = args => {
 
 /** Completely reset any focus issues there could be in the app. */
 const setFocusCorrectly = () => {
+    console.log("resetfocus")
     const urlElement = document.getElementById("url")
     const {updateUrl} = require("./tabs")
     const {followFiltering} = require("./follow")

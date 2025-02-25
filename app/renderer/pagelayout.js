@@ -46,7 +46,7 @@ let scrollbarHideTimer = null
 /** @type {number|null} */
 let scrollbarHideIgnoreTimer = null
 
-/** Clean up any single div or webview elements into the parent recursively. */
+/** Clean up any single div element into the parent recursively. */
 const removeRedundantContainers = () => {
     const base = document.getElementById("pagelayout")
     if (!base) {
@@ -75,7 +75,7 @@ const removeRedundantContainers = () => {
         })
 }
 
-/** Apply all layout changes from the div elements to the actual webviews. */
+/** Apply all layout changes from layout divs to the actual page divs. */
 const applyLayout = () => {
     const pagelayout = document.getElementById("pagelayout")
     if (!pagelayout) {
@@ -83,7 +83,7 @@ const applyLayout = () => {
     }
     pagelayout.querySelectorAll("*[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
+        const page = document.querySelector(`#pages .page[link-id='${id}']`)
         if (!page) {
             element.remove()
         }

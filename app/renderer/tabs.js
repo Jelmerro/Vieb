@@ -983,9 +983,9 @@ const unsuspendPage = page => {
     // if (!page.getAttribute("src")) {
     //     page.setAttribute("src", specialPagePath("newtab"))
     // }
-    ipcRenderer.invoke("create-page", url, sessionName, currentPageId)
+    ipcRenderer.invoke("create-page", {sessionName, url})
         .then(id => page.setAttribute("webcontents-id", `${id}`))
-    // webview.addEventListener("dom-ready", () => {
+    // Webview.addEventListener("dom-ready", () => {
     //     if (!webview.getAttribute("dom-ready")) {
     //         if (webview.getAttribute("custom-first-load")) {
     //             webview.clearHistory()

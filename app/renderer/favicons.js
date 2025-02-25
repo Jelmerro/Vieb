@@ -327,12 +327,12 @@ const init = () => {
     isParsed = true
     const {ipcRenderer} = require("electron")
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
-        const webview = listPages().find(
+        const page = listPages().find(
             p => p.getAttribute("link-id") === linkId)
         const filename = urlToPath(favicon)
-        if (webview) {
-            const tab = tabForPage(webview)
-            if (tab && webview.getAttribute("src") === currentUrl
+        if (page) {
+            const tab = tabForPage(page)
+            if (tab && page.getAttribute("src") === currentUrl
                 && isFile(filename)) {
                 setPath(tab, filename)
                 mappings[currentUrl] = favicon
