@@ -958,15 +958,8 @@ app.whenReady().then(async() => {
         "show": argDebugMode,
         "title": app.getName(),
         "webPreferences": {
-            "contextIsolation": false,
-            // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
-            // https://github.com/electron/electron/issues/22582
-            // https://github.com/electron/electron/issues/28620
-            "nodeIntegrationInSubFrames": true,
-            "nodeIntegrationInWorker": true,
             "preload": joinPath(__dirname, "renderer/index.js"),
-            "sandbox": false,
-            "webviewTag": true
+            "sandbox": false
         },
         "width": 800
     }
@@ -995,11 +988,6 @@ app.whenReady().then(async() => {
             mainWindow?.webContents.openDevTools({"mode": "detach"})
         }
         mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
-    })
-    mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
-        prefs.preload = joinPath(__dirname, "preload/index.js")
-        prefs.sandbox = false
-        prefs.contextIsolation = false
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
         contents.on("will-prevent-unload", e => e.preventDefault())

@@ -203,14 +203,14 @@ const deleteIfTooOld = loc => {
 }
 
 /**
- * Update the favicon as emitted by the webview.
- * @param {Electron.WebviewTag} webview
+ * Update the favicon as emitted by the page.
+ * @param {HTMLDivElement} page
  * @param {string} favicon
  */
-const update = (webview, favicon) => {
-    const tab = tabForPage(webview)
+const update = (page, favicon) => {
+    const tab = tabForPage(page)
     if (viebIcon === favicon) {
-        if (!pathToSpecialPageName(webview.src)?.name) {
+        if (!pathToSpecialPageName(page.src)?.name) {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
@@ -226,7 +226,7 @@ const update = (webview, favicon) => {
         }
         return
     }
-    const currentUrl = webview.src
+    const currentUrl = page.src
     if (mappings[currentUrl] !== favicon) {
         mappings[currentUrl] = favicon
         updateMappings({currentUrl})
@@ -245,10 +245,10 @@ const update = (webview, favicon) => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send("download-favicon", {
         "fav": favicon,
-        "linkId": webview.getAttribute("link-id"),
+        "linkId": page.getAttribute("link-id"),
         "location": filename,
         "url": currentUrl,
-        "webId": webview.getWebContentsId()
+        "webId": page.getAttribute("webcontents-id")
     })
 }
 

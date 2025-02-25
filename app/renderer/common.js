@@ -125,7 +125,8 @@ const currentPage = () => {
  */
 const sendToPageOrSubFrame = (channel, ...args) => {
     const {ipcRenderer} = require("electron")
-    ipcRenderer.send(channel, currentPage()?.getWebContentsId(), ...args)
+    ipcRenderer.send(channel,
+        currentPage()?.getAttribute("webcontents-id"), ...args)
 }
 
 /**
@@ -137,7 +138,7 @@ const pageForTab = tab => listPages().find(
 
 /**
  * Find a tab for a given page.
- * @param {HTMLDivElement|Electron.WebviewTag|null} page
+ * @param {HTMLDivElement|null} page
  */
 const tabForPage = page => listTabs().find(
     e => page && e.getAttribute("link-id") === page.getAttribute("link-id"))

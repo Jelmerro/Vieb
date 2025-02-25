@@ -1120,7 +1120,7 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     }
 }
 
-/** Open the internal devtools of the app, not the webview one. */
+/** Open the internal devtools of the app, not the page tools. */
 const openInternalDevTools = () => {
     ipcRenderer.send("open-internal-devtools")
 }
@@ -1198,7 +1198,7 @@ const hardcopy = (src, range) => {
  * @param {import("./common").RunSource} src
  * @param {string|null} locationArg
  * @param {string} type
- * @param {Electron.WebviewTag|null} customPage
+ * @param {HTMLDivElement|null} customPage
  */
 const resolveFileArg = (src, locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
@@ -1244,12 +1244,11 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
  * @param {number|null} tabIdx
  */
 const writePage = (src, customLoc, extension, tabIdx = null) => {
-    /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
         page = pageForTab(listTabs()[tabIdx]) ?? null
     }
-    if (!page || page instanceof HTMLDivElement) {
+    if (!page) {
         return
     }
     let type = "HTMLComplete"
@@ -1260,7 +1259,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
     if (!loc) {
         return
     }
-    const webContentsId = page.getWebContentsId()
+    const webContentsId = page.getAttribute("webcontents-id")
     ipcRenderer.invoke("save-page", webContentsId, loc, type).then(() => {
         notify({
             "fields": [loc],

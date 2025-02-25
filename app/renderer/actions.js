@@ -21,7 +21,7 @@
  *   key?: string,
  *   src: import("./common").RunSource,
  *   hadModifier?: boolean,
- *   customPage?: Electron.WebviewTag
+ *   customPage?: HTMLDivElement
  * }} ActionParam
  */
 
@@ -72,7 +72,7 @@ let potentialNewSearchDirection = "forward"
  */
 const emptySearch = args => {
     const scope = args.scope || getSetting("searchemptyscope")
-    /** @type {(Electron.WebviewTag|null)[]} */
+    /** @type {(HTMLDivElement|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
         pages = [currentPage()]
@@ -853,7 +853,7 @@ const refreshTabWithoutCache = args => {
  *   key?: string,
  *   src: import("./common").RunSource,
  *   hadModifier?: boolean,
- *   customPage?: Electron.WebviewTag | HTMLDivElement
+ *   customPage?: HTMLDivElement
  * }} args
  */
 const openNewTabWithCurrentUrl = args => {

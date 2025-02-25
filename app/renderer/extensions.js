@@ -67,10 +67,10 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
 
 /**
  * Run a GM script in the page.
- * @param {Electron.WebviewTag} webview
+ * @param {HTMLDivElement} page
  * @param {string} rawContents
  */
-const runGMScript = (webview, rawContents) => {
+const runGMScript = (page, rawContents) => {
     const headerLines = []
     const scriptLines = []
     let pastHeader = false
@@ -245,31 +245,31 @@ const runGMScript = (webview, rawContents) => {
         let excluded = false
         if (picomatch) {
             included = picomatch.isMatch(
-                webview.src, info.includes, {"bash": true})
+                page.src, info.includes, {"bash": true})
             excluded = picomatch.isMatch(
-                webview.src, info.excludes, {"bash": true})
+                page.src, info.excludes, {"bash": true})
         }
         if (included && !excluded) {
             const start = "(() => {\n"
             const end = ";\n})()"
             const script = `${start}${preload}${scriptLines.join("\n")}${end}`
-            webview.executeJavaScript(script, true).catch(() => null)
+            page.executeJavaScript(script, true).catch(() => null)
         }
     }
 }
 
 /**
  * Load all userscripts into the page.
- * @param {Electron.WebviewTag} webview
+ * @param {HTMLDivElement} page
  */
-const loadUserscripts = webview => {
-    let domain = domainName(webview.src)
+const loadUserscripts = page => {
+    let domain = domainName(page.src)
     let scope = "page"
-    const specialPage = pathToSpecialPageName(webview.src)
+    const specialPage = pathToSpecialPageName(page.src)
     if (specialPage?.name) {
         domain = "special"
         scope = "special"
-    } else if (webview.src.startsWith("file://")) {
+    } else if (page.src.startsWith("file://")) {
         domain = "file"
         scope = "file"
     }
@@ -287,7 +287,7 @@ const loadUserscripts = webview => {
         for (const f of userScriptFiles) {
             const text = readFile(f)
             if (text) {
-                webview.executeJavaScript(text, true).catch(() => null)
+                page.executeJavaScript(text, true).catch(() => null)
             }
         }
     }
@@ -300,7 +300,7 @@ const loadUserscripts = webview => {
     for (const f of gmScriptFiles) {
         const text = readFile(f)
         if (text) {
-            runGMScript(webview, text)
+            runGMScript(page, text)
         }
     }
 }
