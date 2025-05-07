@@ -220,7 +220,8 @@ const navigateTo = (src, location, customPage = null) => {
         recreateWebview(src, page, loc)
         return
     }
-    ipcRenderer.send("page-action", page.getAttribute("webcontents-id"), "stop")
+    ipcRenderer.send("page-action",
+        Number(page.getAttribute("webcontents-id") ?? 0), "stop")
     const wasRecreated = checkContainerNames(src, page, loc)
     if (wasRecreated) {
         return
@@ -228,7 +229,7 @@ const navigateTo = (src, location, customPage = null) => {
     // TODO
     // rerollUserAgent(page)
     ipcRenderer.send("page-action",
-        page.getAttribute("webcontents-id"), "load", loc)
+        Number(page.getAttribute("webcontents-id") ?? 0), "load", loc)
     resetTabInfo(page)
     const tabTitleEl = currentTab()?.querySelector("span")
     if (tabTitleEl) {

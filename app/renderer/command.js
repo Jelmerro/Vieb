@@ -1093,8 +1093,8 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     const {addTab} = require("./tabs")
     const {add} = require("./pagelayout")
     if (position === "window") {
-        ipcRenderer.send("page-action",
-            currentPage()?.getAttribute("webcontents-id"), "devtools")
+        ipcRenderer.send("page-action", Number(currentPage()
+            ?.getAttribute("webcontents-id") ?? 0), "devtools")
     } else if (position === "tab") {
         addTab({"devtools": true, src})
     } else if (position === "vsplit") {
@@ -1259,7 +1259,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
     if (!loc) {
         return
     }
-    const webContentsId = page.getAttribute("webcontents-id")
+    const webContentsId = Number(page.getAttribute("webcontents-id") ?? 0)
     ipcRenderer.invoke("save-page", webContentsId, loc, type).then(() => {
         notify({
             "fields": [loc],

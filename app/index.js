@@ -544,6 +544,8 @@ if (argErwic) {
 // When the app is ready to start, open the main window
 /** @type {Electron.BrowserWindow|null} */
 let mainWindow = null
+/** @type {Electron.WebContentsView|null} */
+let mainView = null
 /** @type {Electron.BrowserWindow|null} */
 let loginWindow = null
 /** @type {Electron.BrowserWindow|null} */
@@ -578,7 +580,7 @@ const currentInputMatches = key => {
  * Send a notification to the renderer thread.
  * @param {import("./util").NotificationInfo} opts
  */
-const notify = opts => mainWindow?.webContents.send("notify", opts)
+const notify = opts => mainView?.webContents.send("notify", opts)
 
 /**
  * Resolve local paths to absolute file protocol paths.
@@ -641,7 +643,7 @@ let permissions = {}
  * }} details
  */
 const permissionHandler = (_, pm, callback, details) => {
-    if (!mainWindow) {
+    if (!mainWindow || !mainView) {
         return false
     }
     let permission = pm.toLowerCase().replace("sanitized", "").replace(/-/g, "")
@@ -664,7 +666,7 @@ const permissionHandler = (_, pm, callback, details) => {
     let permissionName = `permission${permission}`
     if (permission === "openexternal" && details.externalURL) {
         if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
-            mainWindow.webContents.send("navigate-to", details.externalURL)
+            mainView.webContents.send("navigate-to", details.externalURL)
             return false
         }
     }
@@ -775,7 +777,7 @@ const permissionHandler = (_, pm, callback, details) => {
         }
         dialogOptions.message = message
         dialog.showMessageBox(mainWindow, dialogOptions).then(e => {
-            if (!mainWindow) {
+            if (!mainWindow || !mainView) {
                 return false
             }
             /** @type {"allow"|"block"|"ask"|"allowkind"|"allowfull"} */
@@ -809,7 +811,7 @@ const permissionHandler = (_, pm, callback, details) => {
             const allow = action === "allow"
             const canSave = !allow || permission !== "displaycapture"
             if (e.checkboxChecked && canSave) {
-                mainWindow.webContents.send(
+                mainView.webContents.send(
                     "set-permission", permissionName, action)
                 permissions[permissionName] = action
             }
@@ -884,7 +886,7 @@ app.whenReady().then(async() => {
                 }
                 // @ts-expect-error command might be there, if so use it
                 if (extra?.command) {
-                    mainWindow.webContents.send(
+                    mainView.webContents.send(
                         // @ts-expect-error command might be there, if so use it
                         "execute-command", extra?.command)
                     return
@@ -892,8 +894,8 @@ app.whenReady().then(async() => {
                 if (mainWindow.isMinimized()) {
                     mainWindow.restore()
                 }
-                mainWindow.focus()
-                mainWindow.webContents.send("urls", resolveLocalPaths(
+                mainView?.webContents.focus()
+                mainView?.webContents.send("urls", resolveLocalPaths(
                     // @ts-expect-error argv might be there, if so use it
                     extra?.argv || getArguments(newArgs), cwd))
             })
@@ -942,9 +944,9 @@ app.whenReady().then(async() => {
     } catch {
         // Using regular Electron instead of Castlabs' DRM fork, not a problem.
     }
-    app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
+    app.on("open-file", (_, url) => mainView?.webContents.send("urls",
         resolveLocalPaths([url])))
-    app.on("open-url", (_, url) => mainWindow?.webContents.send("urls",
+    app.on("open-url", (_, url) => mainView?.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
         customIcon = joinPath(__dirname, "img/vieb.svg")
@@ -957,37 +959,47 @@ app.whenReady().then(async() => {
         "height": 600,
         "show": argDebugMode,
         "title": app.getName(),
-        "webPreferences": {
-            "preload": joinPath(__dirname, "renderer/index.js"),
-            "sandbox": false
-        },
         "width": 800
     }
     if (customIcon) {
         windowData.icon = customIcon
     }
+    mainView = new WebContentsView({
+        "webPreferences": {
+            "preload": joinPath(__dirname, "renderer/index.js"),
+            "sandbox": false
+        }
+    })
     mainWindow = new BrowserWindow(windowData)
+    mainWindow?.contentView.addChildView(mainView)
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(
         Math.floor(Math.min(500 / argInterfaceScale, 500)),
         Math.floor(Math.min(500 / argInterfaceScale, 500)))
-    mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
-    mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
+    mainView.setBounds({...mainWindow.getBounds(), "x": 0, "y": 0})
+    mainView.setBackgroundColor("#00000000")
+    mainWindow.webContents.on("focus", () => {
+        setTimeout(() => mainView?.webContents.focus(), 0)
+    })
+    mainView.webContents.on(
+        "focus", () => mainView?.webContents.send("window-focus"))
+    mainView.webContents.on(
+        "blur", () => mainView?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
         e.preventDefault()
-        mainWindow?.webContents.send("window-close")
+        mainView?.webContents.send("window-close")
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
-    mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
-    mainWindow.webContents.once("did-finish-load", () => {
-        mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
-        mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
-        mainWindow?.webContents.on("will-redirect", e => e.preventDefault())
+    mainView.webContents.loadURL(`file://${joinPath(__dirname, "index.html")}`)
+    mainView.webContents.once("did-finish-load", () => {
+        mainView?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
+        mainView?.webContents.on("will-navigate", e => e.preventDefault())
+        mainView?.webContents.on("will-redirect", e => e.preventDefault())
         if (argDebugMode) {
-            mainWindow?.webContents.openDevTools({"mode": "detach"})
+            mainView?.webContents.openDevTools({"mode": "detach"})
         }
-        mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
+        mainView?.webContents.send("urls", resolveLocalPaths(urls))
     })
     // Show a dialog for sites requiring Basic HTTP authentication
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -1014,11 +1026,11 @@ app.whenReady().then(async() => {
     loginWindow.on("close", e => {
         e.preventDefault()
         loginWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
     })
     ipcMain.on("hide-login-window", () => {
         loginWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
     })
     // Show a dialog for large notifications
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -1046,11 +1058,11 @@ app.whenReady().then(async() => {
     notificationWindow.on("close", e => {
         e.preventDefault()
         notificationWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
     })
     ipcMain.on("hide-notification-window", () => {
         notificationWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
     })
     // Show a sync prompt dialog if requested by any of the pages
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -1129,7 +1141,7 @@ app.on("login", (e, contents, _, auth, callback) => {
         try {
             callback(credentials[0], credentials[1])
             loginWindow?.hide()
-            mainWindow?.focus()
+            mainView?.webContents.focus()
         } catch {
             // Window is already being closed
         }
@@ -1214,18 +1226,18 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
     promptWindow.focus()
     ipcMain.on("prompt-response", (_, response) => {
         promptWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
         e.returnValue = response
     })
     ipcMain.on("hide-prompt-window", () => {
         promptWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
         e.returnValue = null
     })
     promptWindow.on("close", ev => {
         ev.preventDefault()
         promptWindow?.hide()
-        mainWindow?.focus()
+        mainView?.webContents.focus()
         e.returnValue = null
     })
 })
@@ -1602,7 +1614,8 @@ ipcMain.on("update-pdf-option", (_, newPdfValue) => {
 /** @type {{[id: number]: WebContentsView}} */
 const viewsByWebContentsId = {}
 ipcMain.on("page-action", (_, id, action, ...details) => {
-    const page = webContents.fromId(Number(id))
+    console.log(id, action)
+    const page = webContents.fromId(id)
     if (!page) {
         return
     }
@@ -1637,16 +1650,20 @@ ipcMain.handle("create-page", (_, opts) => {
     })
     view.webContents.loadURL(opts.url)
     view.setBounds({"height": 0, "width": 0, "x": 0, "y": 0})
+    view.setBackgroundColor("#00000000")
     mainWindow?.contentView.addChildView(view)
+    if (mainView) {
+        mainWindow?.contentView.addChildView(mainView)
+    }
     viewsByWebContentsId[view.webContents.id] = view
     view.webContents.setWebRTCIPHandlingPolicy("default_public_interface_only")
     view.webContents.on("will-prevent-unload", e => e.preventDefault())
-    view.webContents.on("unresponsive", () => mainWindow?.webContents.send(
+    view.webContents.on("unresponsive", () => mainView?.webContents.send(
         "unresponsive", view.webContents.id))
-    view.webContents.on("responsive", () => mainWindow?.webContents.send(
+    view.webContents.on("responsive", () => mainView?.webContents.send(
         "responsive", view.webContents.id))
     view.webContents.on("zoom-changed", (__, dir) => {
-        mainWindow?.webContents.send("zoom-changed", view.webContents.id, dir)
+        mainView?.webContents.send("zoom-changed", view.webContents.id, dir)
     })
     view.webContents.on("certificate-error", (e, url, err, cert, fn) => {
         e.preventDefault()
@@ -1660,7 +1677,7 @@ ipcMain.handle("create-page", (_, opts) => {
     })
     view.webContents.on("did-redirect-navigation", (__, url) => {
         if (navigationUrl !== url) {
-            mainWindow?.webContents.send("redirect", navigationUrl, url)
+            mainView?.webContents.send("redirect", navigationUrl, url)
         }
     })
     view.webContents.on("before-input-event", (e, input) => {
@@ -1670,13 +1687,13 @@ ipcMain.handle("create-page", (_, opts) => {
         if (currentInputMatches(input)) {
             e.preventDefault()
         }
-        mainWindow?.webContents.send("insert-mode-input-event", input)
+        mainView?.webContents.send("insert-mode-input-event", input)
     })
     view.webContents.setWindowOpenHandler(e => {
         if (e.disposition === "foreground-tab") {
-            mainWindow?.webContents.send("navigate-to", e.url)
+            mainView?.webContents.send("navigate-to", e.url)
         } else {
-            mainWindow?.webContents.send("new-tab", e.url)
+            mainView?.webContents.send("new-tab", e.url)
         }
         return {"action": "deny"}
     })
@@ -1688,7 +1705,7 @@ ipcMain.handle("create-page", (_, opts) => {
     })
     view.webContents.on("focus", () => {
         // TODO only do this while not inside insert mode.
-        setTimeout(() => mainWindow?.webContents.focus(), 0)
+        setTimeout(() => mainView?.webContents.focus(), 0)
     })
     view.webContents.on("ipc-message", (e, channel, ...details) => {
         // TODO
@@ -1767,7 +1784,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             displayWindow.focus()
             ipcMain.on("display-response", (__, response) => {
                 displayWindow?.hide()
-                mainWindow?.focus()
+                mainView?.webContents.focus()
                 if (response) {
                     /** @type {Electron.Streams} */
                     let stream = {"video": sources[response.index]}
@@ -1788,14 +1805,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             })
             ipcMain.on("hide-display-window", () => {
                 displayWindow?.hide()
-                mainWindow?.focus()
+                mainView?.webContents.focus()
                 // @ts-expect-error Incorrectly typed in Electron
                 callback(null)
             })
             displayWindow.on("close", ev => {
                 ev.preventDefault()
                 displayWindow?.hide()
-                mainWindow?.focus()
+                mainView?.webContents.focus()
                 // @ts-expect-error Incorrectly typed in Electron
                 callback(null)
             })
@@ -2357,11 +2374,11 @@ ipcMain.on("download-favicon", (_, options) => {
             const hasExtension = knownExts.some(ex => options.fav.endsWith(ex))
             if (!hasExtension && (/<\/svg>/).test(file.toString())) {
                 writeFile(`${options.location}.svg`, file)
-                mainWindow?.webContents.send("favicon-downloaded",
+                mainView?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
             } else {
                 writeFile(options.location, file)
-                mainWindow?.webContents.send("favicon-downloaded",
+                mainView?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, options.fav)
             }
         })
@@ -2385,7 +2402,7 @@ const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
  */
 const saveWindowState = (statesOnly = false) => {
     try {
-        mainWindow?.webContents?.send("window-update-gui")
+        mainView?.webContents?.send("window-update-gui")
         let state = readJSON(windowStateFile) || {}
         if (!statesOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
@@ -2405,6 +2422,9 @@ const saveWindowState = (statesOnly = false) => {
         writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
+    }
+    if (mainView && mainWindow) {
+        mainView.setBounds({...mainWindow.getBounds(), "x": 0, "y": 0})
     }
 }
 
@@ -2450,8 +2470,9 @@ ipcMain.on("window-state-init", (_, restore) => {
     if (restore.full === "true") {
         mainWindow.fullScreen = true
     }
+    mainView?.setBounds({...mainWindow.getBounds(), "x": 0, "y": 0})
     mainWindow.show()
-    mainWindow.focus()
+    mainView?.webContents.focus()
     // Save the window state when resizing or maximizing.
     // Move and resize state are saved and checked to detect window snapping.
     let justMoved = false
@@ -2459,6 +2480,9 @@ ipcMain.on("window-state-init", (_, restore) => {
     mainWindow.on("maximize", saveWindowState)
     mainWindow.on("unmaximize", saveWindowState)
     mainWindow.on("resize", () => {
+        if (mainView && mainWindow) {
+            mainView.setBounds({...mainWindow.getBounds(), "x": 0, "y": 0})
+        }
         justResized = true
         setTimeout(() => {
             if (!justMoved) {
@@ -2504,7 +2528,7 @@ ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     }
 })
 ipcMain.on("open-internal-devtools",
-    () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
+    () => mainView?.webContents.openDevTools({"mode": "detach"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
     mainWindow?.destroy()
@@ -2606,10 +2630,10 @@ ipcMain.on("mouse-location", e => {
  */
 const errToMain = exception => {
     if (exception instanceof Error && exception.stack) {
-        mainWindow?.webContents.send("main-error", exception.stack)
+        mainView?.webContents.send("main-error", exception.stack)
     }
     if (typeof exception === "string") {
-        mainWindow?.webContents.send("main-error", exception)
+        mainView?.webContents.send("main-error", exception)
     }
     return null
 }
@@ -2637,7 +2661,7 @@ let allLinks = []
 const frameInfo = {}
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
-        webContents.fromId(Number(id))?.mainFrame.framesInSubtree.forEach(f => {
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("follow-mode-start", followTypeFilter)
             } catch (ex) {
@@ -2788,7 +2812,7 @@ const handleFollowResponse = (e, rawLinks) => {
         allLinks = allLinks.filter(l => l.frameId !== frameId
             && allFramesIds?.includes(l.frameId))
         allLinks = allLinks.concat(frameLinks)
-        mainWindow?.webContents.send("follow-response", allLinks)
+        mainView?.webContents.send("follow-response", allLinks)
     } catch (ex) {
         errToMain(ex)
     }
@@ -3075,13 +3099,13 @@ const translateMouseEvent = (e, clickInfo = null) => {
     }
 }
 
-ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow?.webContents.send(
+ipcMain.on("mouse-selection", (e, clickInfo) => mainView?.webContents.send(
     "mouse-selection", translateMouseEvent(e, clickInfo)))
-ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow?.webContents
+ipcMain.on("mouse-down-location", (e, clickInfo) => mainView?.webContents
     .send("mouse-down-location", translateMouseEvent(e, clickInfo)))
-ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow?.webContents.send(
+ipcMain.on("mouse-click-info", (e, clickInfo) => mainView?.webContents.send(
     "mouse-click-info", translateMouseEvent(e, clickInfo)))
-ipcMain.on("context-click-info", (e, clickInfo) => mainWindow?.webContents.send(
+ipcMain.on("context-click-info", (e, clickInfo) => mainView?.webContents.send(
     "context-click-info", translateMouseEvent(e, clickInfo)))
 ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
     // Temporary code as a last resort workaround for:

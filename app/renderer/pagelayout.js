@@ -118,7 +118,7 @@ const applyLayout = () => {
         page.style.width = `${Math.round(dimensions.width)}px`
         page.style.height = `${Math.round(dimensions.height)}px`
         ipcRenderer.send("page-action",
-            page.getAttribute("webcontents-id"), "bounds", {
+            Number(page.getAttribute("webcontents-id") ?? 0), "bounds", {
                 "height": Math.round(dimensions.height),
                 "width": Math.round(dimensions.width),
                 "x": Math.round(dimensions.x),

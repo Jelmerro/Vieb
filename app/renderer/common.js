@@ -125,8 +125,12 @@ const currentPage = () => {
  */
 const sendToPageOrSubFrame = (channel, ...args) => {
     const {ipcRenderer} = require("electron")
-    ipcRenderer.send(channel,
-        currentPage()?.getAttribute("webcontents-id"), ...args)
+    const id = Number(currentPage()?.getAttribute("webcontents-id") ?? 0)
+    if (id) {
+        ipcRenderer.send(channel, id, ...args)
+    } else {
+        // TODO
+    }
 }
 
 /**

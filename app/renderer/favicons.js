@@ -248,7 +248,7 @@ const update = (page, favicon) => {
         "linkId": page.getAttribute("link-id"),
         "location": filename,
         "url": currentUrl,
-        "webId": page.getAttribute("webcontents-id")
+        "webId": Number(page.getAttribute("webcontents-id") ?? 0)
     })
 }
 

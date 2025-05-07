@@ -1089,9 +1089,12 @@ const init = () => {
             setMode("normal")
         }
         if (clickInfo.webviewId) {
-            if (clickInfo.webviewId !== currentPage()?.getAttribute("webcontents-id")) {
-                const page = listReadyPages().find(
-                    p => p.getAttribute("webcontents-id") === clickInfo.webviewId)
+            const id = Number(currentPage()?.getAttribute("webcontents-id") ?? 0)
+            if (clickInfo.webviewId !== id) {
+                const page = listReadyPages().find(p => {
+                    const i = Number(p.getAttribute("webcontents-id") ?? 0)
+                    return i === Number(clickInfo.webviewId)
+                })
                 if (page) {
                     const tab = tabForPage(page)
                     if (tab) {
