@@ -3,13 +3,13 @@
     {
       "name": "safe-self.fn",
       "aliases": [],
-      "body": "function safeSelf(){if(scriptletGlobals.safeSelf)return scriptletGlobals.safeSelf;const e=globalThis;const t={Array_from:Array.from,Error:e.Error,Function_toStringFn:e.Function.prototype.toString,Function_toString:e=>t.Function_toStringFn.call(e),Math_floor:Math.floor,Math_max:Math.max,Math_min:Math.min,Math_random:Math.random,Object:Object,Object_defineProperty:Object.defineProperty.bind(Object),Object_defineProperties:Object.defineProperties.bind(Object),Object_fromEntries:Object.fromEntries.bind(Object),Object_getOwnPropertyDescriptor:Object.getOwnPropertyDescriptor.bind(Object),RegExp:e.RegExp,RegExp_test:e.RegExp.prototype.test,RegExp_exec:e.RegExp.prototype.exec,Request_clone:e.Request.prototype.clone,String_fromCharCode:String.fromCharCode,String_split:String.prototype.split,XMLHttpRequest:e.XMLHttpRequest,addEventListener:e.EventTarget.prototype.addEventListener,removeEventListener:e.EventTarget.prototype.removeEventListener,fetch:e.fetch,JSON:e.JSON,JSON_parseFn:e.JSON.parse,JSON_stringifyFn:e.JSON.stringify,JSON_parse:(...e)=>t.JSON_parseFn.call(t.JSON,...e),JSON_stringify:(...e)=>t.JSON_stringifyFn.call(t.JSON,...e),log:console.log.bind(console),logLevel:0,makeLogPrefix(...e){return this.sendToLogger&&`[${e.join(\" \\u205d \")}]`||\"\"},uboLog(...e){if(this.sendToLogger===void 0)return;if(e===void 0||e[0]===\"\")return;return this.sendToLogger(\"info\",...e)},uboErr(...e){if(this.sendToLogger===void 0)return;if(e===void 0||e[0]===\"\")return;return this.sendToLogger(\"error\",...e)},escapeRegexChars(e){return e.replace(/[.*+?^${}()|[\\]\\\\]/g,\"\\\\$&\")},initPattern(e,t={}){if(e===\"\")return{matchAll:true,expect:true};const r=t.canNegate!==true||e.startsWith(\"!\")===false;if(r===false)e=e.slice(1);const o=/^\\/(.+)\\/([gimsu]*)$/.exec(e);if(o!==null)return{re:new this.RegExp(o[1],o[2]||t.flags),expect:r};if(t.flags!==void 0)return{re:new this.RegExp(this.escapeRegexChars(e),t.flags),expect:r};return{pattern:e,expect:r}},testPattern(e,t){if(e.matchAll)return true;if(e.re)return this.RegExp_test.call(e.re,t)===e.expect;return t.includes(e.pattern)===e.expect},patternToRegex(e,t=void 0,r=false){if(e===\"\")return/^/;const o=/^\\/(.+)\\/([gimsu]*)$/.exec(e);if(o===null){const o=this.escapeRegexChars(e);return new RegExp(r?`^${o}$`:o,t)}try{return new RegExp(o[1],o[2]||void 0)}catch{}return/^/},getExtraArgs(e,t=0){const r=e.slice(t).reduce(((e,t,r,o)=>{if((r&1)===0){const t=o[r+1];const n=/^\\d+$/.test(t)?parseInt(t,10):t;e.push([o[r],n])}return e}),[]);return this.Object_fromEntries(r)},onIdle(t,r){if(e.requestIdleCallback)return e.requestIdleCallback(t,r);return e.requestAnimationFrame(t)},offIdle(t){if(e.requestIdleCallback)return e.cancelIdleCallback(t);return e.cancelAnimationFrame(t)}};scriptletGlobals.safeSelf=t;if(scriptletGlobals.bcSecret===void 0)return t;t.logLevel=scriptletGlobals.logLevel||1;let r=\"\";let o=\"\";let n=0;t.toLogText=(e,...t)=>{if(t.length===0)return;const s=`[${document.location.hostname||document.location.href}]${t.join(\" \")}`;if(s===o&&e===r)if(Date.now()-n<5e3)return;r=e;o=s;n=Date.now();return s};try{const r=new e.BroadcastChannel(scriptletGlobals.bcSecret);let o=[];t.sendToLogger=(e,...n)=>{const s=t.toLogText(e,...n);if(s===void 0)return;if(o===void 0)return r.postMessage({what:\"messageToLogger\",type:e,text:s});o.push({type:e,text:s})};r.onmessage=e=>{const n=e.data;switch(n){case\"iamready!\":if(o===void 0)break;o.forEach((({type:e,text:t})=>r.postMessage({what:\"messageToLogger\",type:e,text:t})));o=void 0;break;case\"setScriptletLogLevelToOne\":t.logLevel=1;break;case\"setScriptletLogLevelToTwo\":t.logLevel=2;break}};r.postMessage(\"areyouready?\")}catch{t.sendToLogger=(e,...r)=>{const o=t.toLogText(e,...r);if(o===void 0)return;t.log(`uBO ${o}`)}}return t}",
+      "body": "function safeSelf(){if(scriptletGlobals.safeSelf)return scriptletGlobals.safeSelf;const e=globalThis;const t={Array_from:Array.from,Error:e.Error,Function_toStringFn:e.Function.prototype.toString,Function_toString:e=>t.Function_toStringFn.call(e),Math_floor:Math.floor,Math_max:Math.max,Math_min:Math.min,Math_random:Math.random,Object:Object,Object_defineProperty:Object.defineProperty.bind(Object),Object_defineProperties:Object.defineProperties.bind(Object),Object_fromEntries:Object.fromEntries.bind(Object),Object_getOwnPropertyDescriptor:Object.getOwnPropertyDescriptor.bind(Object),Object_hasOwn:Object.hasOwn.bind(Object),RegExp:e.RegExp,RegExp_test:e.RegExp.prototype.test,RegExp_exec:e.RegExp.prototype.exec,Request_clone:e.Request.prototype.clone,String:e.String,String_fromCharCode:String.fromCharCode,String_split:String.prototype.split,XMLHttpRequest:e.XMLHttpRequest,addEventListener:e.EventTarget.prototype.addEventListener,removeEventListener:e.EventTarget.prototype.removeEventListener,fetch:e.fetch,JSON:e.JSON,JSON_parseFn:e.JSON.parse,JSON_stringifyFn:e.JSON.stringify,JSON_parse:(...e)=>t.JSON_parseFn.call(t.JSON,...e),JSON_stringify:(...e)=>t.JSON_stringifyFn.call(t.JSON,...e),log:console.log.bind(console),logLevel:0,makeLogPrefix(...e){return this.sendToLogger&&`[${e.join(\" \\u205d \")}]`||\"\"},uboLog(...e){if(this.sendToLogger===void 0)return;if(e===void 0||e[0]===\"\")return;return this.sendToLogger(\"info\",...e)},uboErr(...e){if(this.sendToLogger===void 0)return;if(e===void 0||e[0]===\"\")return;return this.sendToLogger(\"error\",...e)},escapeRegexChars(e){return e.replace(/[.*+?^${}()|[\\]\\\\]/g,\"\\\\$&\")},initPattern(e,t={}){if(e===\"\")return{matchAll:true,expect:true};const r=t.canNegate!==true||e.startsWith(\"!\")===false;if(r===false)e=e.slice(1);const n=/^\\/(.+)\\/([gimsu]*)$/.exec(e);if(n!==null)return{re:new this.RegExp(n[1],n[2]||t.flags),expect:r};if(t.flags!==void 0)return{re:new this.RegExp(this.escapeRegexChars(e),t.flags),expect:r};return{pattern:e,expect:r}},testPattern(e,t){if(e.matchAll)return true;if(e.re)return this.RegExp_test.call(e.re,t)===e.expect;return t.includes(e.pattern)===e.expect},patternToRegex(e,t=void 0,r=false){if(e===\"\")return/^/;const n=/^\\/(.+)\\/([gimsu]*)$/.exec(e);if(n===null){const n=this.escapeRegexChars(e);return new RegExp(r?`^${n}$`:n,t)}try{return new RegExp(n[1],n[2]||void 0)}catch{}return/^/},getExtraArgs(e,t=0){const r=e.slice(t).reduce(((e,t,r,n)=>{if((r&1)===0){const t=n[r+1];const o=/^\\d+$/.test(t)?parseInt(t,10):t;e.push([n[r],o])}return e}),[]);return this.Object_fromEntries(r)},onIdle(t,r){if(e.requestIdleCallback)return e.requestIdleCallback(t,r);return e.requestAnimationFrame(t)},offIdle(t){if(e.requestIdleCallback)return e.cancelIdleCallback(t);return e.cancelAnimationFrame(t)}};scriptletGlobals.safeSelf=t;if(scriptletGlobals.bcSecret===void 0)return t;t.logLevel=scriptletGlobals.logLevel||1;let r=\"\";let n=\"\";let o=0;t.toLogText=(e,...t)=>{if(t.length===0)return;const s=`[${document.location.hostname||document.location.href}]${t.join(\" \")}`;if(s===n&&e===r)if(Date.now()-o<5e3)return;r=e;n=s;o=Date.now();return s};try{const r=new e.BroadcastChannel(scriptletGlobals.bcSecret);let n=[];t.sendToLogger=(e,...o)=>{const s=t.toLogText(e,...o);if(s===void 0)return;if(n===void 0)return r.postMessage({what:\"messageToLogger\",type:e,text:s});n.push({type:e,text:s})};r.onmessage=e=>{const o=e.data;switch(o){case\"iamready!\":if(n===void 0)break;n.forEach((({type:e,text:t})=>r.postMessage({what:\"messageToLogger\",type:e,text:t})));n=void 0;break;case\"setScriptletLogLevelToOne\":t.logLevel=1;break;case\"setScriptletLogLevelToTwo\":t.logLevel=2;break}};r.postMessage(\"areyouready?\")}catch{t.sendToLogger=(e,...r)=>{const n=t.toLogText(e,...r);if(n===void 0)return;t.log(`uBO ${n}`)}}return t}",
       "dependencies": []
     },
     {
       "name": "run-at.fn",
       "aliases": [],
-      "body": "function runAt(e,t){const n=e=>{const t={loading:1,asap:1,interactive:2,end:2,2:2,complete:3,idle:3,3:3};const n=Array.isArray(e)?e:[e];for(const e of n){const n=`${e}`;if(t.hasOwnProperty(n)===false)continue;return t[n]}return 0};const r=n(t);if(n(document.readyState)>=r){e();return}const o=()=>{if(n(document.readyState)<r)return;e();a.removeEventListener.apply(document,c)};const a=safeSelf();const c=[\"readystatechange\",o,{capture:true}];a.addEventListener.apply(document,c)}",
+      "body": "function runAt(e,t){const n=e=>{const t={loading:1,asap:1,interactive:2,end:2,2:2,complete:3,idle:3,3:3};const n=Array.isArray(e)?e:[e];for(const e of n){const n=`${e}`;if(Object.hasOwn(t,n)===false)continue;return t[n]}return 0};const r=n(t);if(n(document.readyState)>=r){e();return}const a=()=>{if(n(document.readyState)<r)return;e();c.removeEventListener.apply(document,o)};const c=safeSelf();const o=[\"readystatechange\",a,{capture:true}];c.addEventListener.apply(document,o)}",
       "dependencies": [
         "safe-self.fn"
       ]
@@ -62,9 +62,19 @@
       ]
     },
     {
+      "name": "trusted-create-html.js",
+      "aliases": [],
+      "body": "function trustedCreateHTML(e,t=\"\",n=\"\"){if(e===\"\")return;if(t===\"\")return;const r=safeSelf();const o=r.makeLogPrefix(\"trusted-create-html\",e,t,n);self.trustedCreateHTML=true;let u=self.frameElement;while(u!==null){const e=u.ownerDocument;if(e===null)break;const t=e.defaultView;if(t===null)break;if(t.trustedCreateHTML)return;u=u.frameElement}const s=parseInt(n,10);const l=new DOMParser;const i=l.parseFromString(t,\"text/html\");const c=new DocumentFragment;const d=[];while(i.body.firstChild!==null){const e=document.adoptNode(i.body.firstChild);c.appendChild(e);if(isNaN(s))continue;d.push(e)}if(c.firstChild===null)return;const f=()=>{for(const e of d){if(e.parentNode===null)continue;e.parentNode.removeChild(e)}r.uboLog(o,\"Node(s) removed\")};const a=()=>{const t=document.querySelector(e);if(t===null)return false;t.append(c);r.uboLog(o,\"Node(s) appended\");if(d.length===0)return true;setTimeout(f,s);return true};if(a())return;const m=new MutationObserver((()=>{if(a()===false)return;m.disconnect()}));m.observe(document,{childList:true,subtree:true})}",
+      "dependencies": [
+        "safe-self.fn"
+      ],
+      "executionWorld": "ISOLATED",
+      "requiresTrust": true
+    },
+    {
       "name": "urlskip.fn",
       "aliases": [],
-      "body": "function urlSkip(e,t,n,c={}){try{let r=false;let i=e;for(const e of n){const t=i;const n=e.charCodeAt(0);if(n===35&&e===\"#\"){const e=t.indexOf(\"#\");i=e!==-1?t.slice(e+1):\"\";continue}if(n===38){const n=(parseInt(e.slice(1))||0)-1;if(n<0)return;const c=new URL(t);if(n>=c.searchParams.size)return;const r=Array.from(c.searchParams.keys());i=decodeURIComponent(r[n]);continue}if(n===43&&e===\"+https\"){const e=t.replace(/^https?:\\/\\//,\"\");if(/^[\\w-]:\\/\\//.test(e))return;i=`https://${e}`;continue}if(n===45){if(e===\"-base64\"){i=self.atob(t);continue}if(e===\"-safebase64\"){if(urlSkip.safeBase64Replacer===void 0){urlSkip.safeBase64Map={\"-\":\"+\",_:\"/\"};urlSkip.safeBase64Replacer=e=>urlSkip.safeBase64Map[e]}i=t.replace(/[-_]/g,urlSkip.safeBase64Replacer);i=self.atob(i);continue}if(e===\"-uricomponent\"){i=decodeURIComponent(t);continue}if(e===\"-blocked\"){r=true;continue}}if(n===47){const n=c.cache??new RegExp(e.slice(1,-1));if(c.cache===null)c.cache=n;const r=n.exec(t);if(r===null)return;if(r.length<=1)return;i=r[1];continue}if(n===63){i=new URL(t).searchParams.get(e.slice(1));if(i===null)return;if(i.includes(\" \"))i=i.replace(/ /g,\"%20\");continue}return}const s=new URL(i);if(s.protocol!==\"https:\"){if(s.protocol!==\"http:\")return;i=i.replace(\"http\",\"https\")}if(t&&r!==true)return;return i}catch{}}",
+      "body": "function urlSkip(e,t,n,c={}){try{let r=false;let i=e;for(const e of n){const t=i;const n=e.charCodeAt(0);if(n===35&&e===\"#\"){const e=t.indexOf(\"#\");i=e!==-1?t.slice(e+1):\"\";continue}if(n===38){const n=(parseInt(e.slice(1))||0)-1;if(n<0)return;const c=new URL(t);if(n>=c.searchParams.size)return;const r=Array.from(c.searchParams.keys());i=decodeURIComponent(r[n]);continue}if(n===43&&e===\"+https\"){const e=t.replace(/^https?:\\/\\//,\"\");if(/^[\\w-]:\\/\\//.test(e))return;i=`https://${e}`;continue}if(n===45){if(e===\"-base64\"){i=self.atob(t);continue}if(e===\"-safebase64\"){if(urlSkip.safeBase64Replacer===void 0){urlSkip.safeBase64Map={\"-\":\"+\",_:\"/\"};urlSkip.safeBase64Replacer=e=>urlSkip.safeBase64Map[e]}i=t.replace(/[-_]/g,urlSkip.safeBase64Replacer);i=self.atob(i);continue}if(e===\"-uricomponent\"){i=decodeURIComponent(t);continue}if(e===\"-blocked\"){r=true;continue}}if(n===47){const n=c.cache??new RegExp(e.slice(1,-1));if(c.cache===null)c.cache=n;const r=n.exec(t);if(r===null)return;if(r.length<=1)return;i=r[1];continue}if(n===63){i=new URL(t).searchParams.get(e.slice(1));if(i===null)return;if(i.includes(\" \"))i=i.replace(/ /g,\"%20\");continue}return}const s=new URL(i);if(s.protocol!==\"https:\")if(s.protocol!==\"http:\")return;if(t&&r!==true)return;return i}catch{}}",
       "dependencies": []
     },
     {
@@ -81,10 +91,315 @@
       "executionWorld": "ISOLATED"
     },
     {
+      "name": "get-random-token.fn",
+      "aliases": [],
+      "body": "function getRandomTokenFn(){const n=safeSelf();return n.String_fromCharCode(Date.now()%26+97)+n.Math_floor(n.Math_random()*982451653+982451653).toString(36)}",
+      "dependencies": [
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "get-exception-token.fn",
+      "aliases": [],
+      "body": "function getExceptionTokenFn(){const n=getRandomTokenFn();const e=self.onerror;self.onerror=function(t,...o){if(typeof t===\"string\"&&t.includes(n))return true;if(e instanceof Function)return e.call(this,t,...o)}.bind();return n}",
+      "dependencies": [
+        "get-random-token.fn"
+      ]
+    },
+    {
+      "name": "parse-properties-to-match.fn",
+      "aliases": [],
+      "body": "function parsePropertiesToMatchFn(t,e=\"\"){const i=safeSelf();const n=new Map;if(t===void 0||t===\"\")return n;const o={canNegate:true};for(const s of i.String_split.call(t,/\\s+/)){let[t,r]=i.String_split.call(s,\":\");if(t===\"\")continue;if(r!==void 0&&/[^$\\w -]/.test(t)){t=`${t}:${r}`;r=void 0}if(r!==void 0)n.set(t,i.initPattern(r,o));else if(e!==\"\")n.set(e,i.initPattern(t,o))}return n}",
+      "dependencies": [
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "match-object-properties.fn",
+      "aliases": [],
+      "body": "function matchObjectPropertiesFn(t,...n){const e=safeSelf();const f=[];for(const o of n){if(o instanceof Object===false)continue;for(const[n,i]of t){let t=o[n];if(t===void 0)continue;if(typeof t!==\"string\"){try{t=e.JSON_stringify(t)}catch{}if(typeof t!==\"string\")continue}if(e.testPattern(i,t)===false)return;f.push(`${n}: ${t}`)}}return f}",
+      "dependencies": [
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "generate-content.fn",
+      "aliases": [],
+      "body": "function generateContentFn(t,e){const n=safeSelf();const r=t=>{const e=[];let r=0;do{const t=n.Math_random().toString(36).slice(2);e.push(t);r+=t.length}while(r<t);return e.join(\" \").slice(0,t)};if(e===\"true\")return r(10);if(e===\"emptyObj\")return\"{}\";if(e===\"emptyArr\")return\"[]\";if(e===\"emptyStr\")return\"\";if(e.startsWith(\"length:\")){const t=/^length:(\\d+)(?:-(\\d+))?$/.exec(e);if(t===null)return\"\";const s=parseInt(t[1],10);const o=n.Math_max(parseInt(t[2],10)||0,s)-s;const i=n.Math_min(s+o*n.Math_random(),5e5);return r(i|0)}if(e.startsWith(\"war:\")){if(scriptletGlobals.warOrigin===void 0)return\"\";return new Promise((t=>{const r=scriptletGlobals.warOrigin;const s=e.slice(4);const o=[r,\"/\",s];const i=scriptletGlobals.warSecret;if(i!==void 0)o.push(\"?secret=\",i);const c=new n.XMLHttpRequest;c.responseType=\"text\";c.onloadend=e=>{t(e.target.responseText||\"\")};c.open(\"GET\",o.join(\"\"));c.send()})).catch((()=>\"\"))}if(t)return e;return\"\"}",
+      "dependencies": [
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "arglist-parser.fn",
+      "aliases": [],
+      "body": "class ArglistParser{constructor(t=\",\",e=false){this.separatorChar=this.actualSeparatorChar=t;this.separatorCode=this.actualSeparatorCode=t.charCodeAt(0);this.mustQuote=e;this.quoteBeg=0;this.quoteEnd=0;this.argBeg=0;this.argEnd=0;this.separatorBeg=0;this.separatorEnd=0;this.transform=false;this.failed=false;this.reWhitespaceStart=/^\\s+/;this.reWhitespaceEnd=/(?:^|\\S)(\\s+)$/;this.reOddTrailingEscape=/(?:^|[^\\\\])(?:\\\\\\\\)*\\\\$/;this.reTrailingEscapeChars=/\\\\+$/}nextArg(t,e=0){const s=t.length;this.quoteBeg=e+this.leftWhitespaceCount(t.slice(e));this.failed=false;const r=t.charCodeAt(this.quoteBeg);if(r===34||r===39||r===96){this.indexOfNextArgSeparator(t,r);if(this.argEnd!==s){this.quoteEnd=this.argEnd+1;this.separatorBeg=this.separatorEnd=this.quoteEnd;this.separatorEnd+=this.leftWhitespaceCount(t.slice(this.quoteEnd));if(this.separatorEnd===s)return this;if(t.charCodeAt(this.separatorEnd)===this.separatorCode){this.separatorEnd+=1;return this}}}this.indexOfNextArgSeparator(t,this.separatorCode);this.separatorBeg=this.separatorEnd=this.argEnd;if(this.separatorBeg<s)this.separatorEnd+=1;this.argEnd-=this.rightWhitespaceCount(t.slice(0,this.separatorBeg));this.quoteEnd=this.argEnd;if(this.mustQuote)this.failed=true;return this}normalizeArg(t,e=\"\"){if(e===\"\")e=this.actualSeparatorChar;let s=\"\";let r=0;while((r=t.lastIndexOf(e))!==-1){s=t.slice(r)+s;t=t.slice(0,r);const e=this.reTrailingEscapeChars.exec(t);if(e===null)continue;const a=(e[0].length&1)!==0?e[0].slice(0,-1):e[0];s=a+s;t=t.slice(0,-e[0].length)}if(s===\"\")return t;return t+s}leftWhitespaceCount(t){const e=this.reWhitespaceStart.exec(t);return e===null?0:e[0].length}rightWhitespaceCount(t){const e=this.reWhitespaceEnd.exec(t);return e===null?0:e[1].length}indexOfNextArgSeparator(t,e){this.argBeg=this.argEnd=e!==this.separatorCode?this.quoteBeg+1:this.quoteBeg;this.transform=false;if(e!==this.actualSeparatorCode){this.actualSeparatorCode=e;this.actualSeparatorChar=String.fromCharCode(e)}while(this.argEnd<t.length){const e=t.indexOf(this.actualSeparatorChar,this.argEnd);if(e===-1)return this.argEnd=t.length;if(this.reOddTrailingEscape.test(t.slice(0,e))===false)return this.argEnd=e;this.transform=true;this.argEnd=e+1}}}",
+      "dependencies": []
+    },
+    {
+      "name": "jsonpath.fn",
+      "aliases": [],
+      "body": "class JSONPath{static create(t){const e=new JSONPath;e.compile(t);return e}static toJSON(t,e,...s){return(e||JSON.stringify)(t,...s).replace(/\\//g,\"\\\\/\")}get value(){return this.#t&&this.#t.rval}set value(t){if(this.#t===void 0)return;this.#t.rval=t}get valid(){return this.#t!==void 0}compile(t){this.#t=void 0;const e=this.#e(t,0);if(e===void 0)return;if(e.i!==t.length){if(t.startsWith(\"=\",e.i)===false)return;try{e.rval=JSON.parse(t.slice(e.i+1))}catch{return}}this.#t=e}evaluate(t){if(this.valid===false)return[];this.#s=t;const e=this.#i(this.#t.steps,[]);this.#s=null;return e}apply(t){if(this.valid===false)return 0;const{rval:e}=this.#t;this.#s=t;const s=this.#i(this.#t.steps,[]);const i=s.length;let r=i;while(r--){const{obj:t,key:i}=this.#r(s[r]);if(e!==void 0)t[i]=e;else if(Array.isArray(t)&&typeof i===\"number\")t.splice(i,1);else delete t[i]}this.#s=null;return i}dump(){return JSON.stringify(this.#t)}toJSON(t,...e){return JSONPath.toJSON(t,null,...e)}get[Symbol.toStringTag](){return\"JSONPath\"}#n=0;#o=1;#a=2;#h=3;#c=4;#l=/^[A-Za-z_][\\w]*|^\\*/;#u=/^([!=^$*]=|[<>]=?)(.+?)\\]/;#f=/^-?\\d+/;#s;#t;#e(t,e){if(t.length===0)return;const s=[];let i=t.charCodeAt(e);s.push({mv:i===36?this.#o:this.#a});if(i===36||i===64)e+=1;let r=this.#n;for(;;){if(e===t.length)break;i=t.charCodeAt(e);if(i===32){e+=1;continue}if(i===46){if(r!==this.#n)return;if(t.startsWith(\"..\",e)){r=this.#c;e+=2}else{r=this.#h;e+=1}continue}if(i!==91){if(r===this.#n){const i=s.at(-1);if(i===void 0)return;e=this.#p(t,i,e);break}const i=this.#d(t,e);if(i===void 0)return;s.push({mv:r,k:i});e+=i.length;r=this.#n;continue}if(t.startsWith(\"[?\",e)){const i=t.charCodeAt(e+2)===33;const n=e+2+(i?1:0);const o=this.#e(t,n);if(o===void 0)return;if(t.startsWith(\"]\",o.i)===false)return;if(i)o.steps.at(-1).not=true;s.push({mv:r||this.#h,steps:o.steps});e=o.i+1;r=this.#n;continue}if(t.startsWith(\"[*]\",e)){r||=this.#h;s.push({mv:r,k:\"*\"});e+=3;r=this.#n;continue}const n=this.#v(t,e+1);if(n===void 0)return;r||=this.#h;s.push({mv:r,k:n.s});e=n.i+1;r=this.#n}if(s.length<=1)return;return{steps:s,i:e}}#i(t,e){let s=[];if(Array.isArray(t)===false)return s;for(const i of t)switch(i.mv){case this.#o:s=[[]];break;case this.#a:s=[e];break;case this.#h:case this.#c:s=this.#k(s,i);break;default:break}return s}#k(t,e){const s=[];for(const i of t){const{value:t}=this.#r(i);if(e.k===\"*\")this.#m(i,e,t,s);else if(e.k!==void 0)this.#y(i,e,t,s);else if(e.steps)this.#N(i,e,t,s)}return s}#m(t,e,s,i){const r=e.mv===this.#c;for(const{path:e}of this.#E(s,r))i.push([...t,...e])}#y(t,e,s,i){const r=Array.isArray(e.k)?e.k:[e.k];for(const n of r){const r=this.#b(e,s,n);if(r===void 0)continue;i.push([...t,r])}if(e.mv!==this.#c)return;for(const{obj:n,key:o,path:a}of this.#E(s,true))for(const s of r){const r=this.#b(e,n[o],s);if(r===void 0)continue;i.push([...t,...a,r])}}#N(t,e,s,i){const r=e.mv===this.#c;if(Array.isArray(s)===false){const s=this.#i(e.steps,t);if(s.length!==0)i.push(t);if(r!==true)return}for(const{obj:n,key:o,path:a}of this.#E(s,r)){if(Array.isArray(n[o]))continue;const s=[...t,...a];const r=this.#i(e.steps,s);if(r.length===0)continue;i.push(s)}}#g(t,e){if(typeof e===\"number\")if(Array.isArray(t))return e>=0?e:t.length+e;return e}#E(t,e){const s={next(){const t=this.stack.length;if(t===0){this.value=void 0;this.done=true;return this}const s=this.stack[t-1];const i=s.keys.next();if(i.done){this.stack.pop();this.path.pop();return this.next()}this.path[t-1]=i.value;this.value={obj:s.obj,key:i.value,path:this.path.slice()};const r=this.value.obj[this.value.key];if(e)if(Array.isArray(r))this.stack.push({obj:r,keys:r.keys()});else if(typeof r===\"object\"&&r!==null)this.stack.push({obj:r,keys:Object.keys(r).values()});return this},path:[],value:void 0,done:false,stack:[],[Symbol.iterator](){return this}};if(Array.isArray(t))s.stack.push({obj:t,keys:t.keys()});else if(typeof t===\"object\"&&t!==null)s.stack.push({obj:t,keys:Object.keys(t).values()});return s}#v(t,e){const s=[];for(;;){const i=t.charCodeAt(e);if(i===93)break;if(i===44){e+=1;continue}if(i===39){const i=this.#D(t,e+1);if(i===void 0)return;s.push(i.s);e=i.i;continue}if(i===45||i>=48&&i<=57){const i=this.#f.exec(t.slice(e));if(i===null)return;const r=parseInt(t.slice(e),10);s.push(r);e+=i[0].length;continue}const r=this.#d(t,e);if(r===void 0)return;s.push(r);e+=r.length}return{s:s.length===1?s[0]:s,i:e}}#D(t,e){const s=t.length;const i=[];let r=e,n=e;for(;;){if(n===s)return;const e=t.charCodeAt(n);if(e===39){i.push(t.slice(r,n));n+=1;break}if(e===92&&n+1<s){i.push(t.slice(r,n));const e=t.chatCodeAt(n+1);if(e===39||e===92){n+=1;r=n}}n+=1}return{s:i.join(\"\"),i:n}}#d(t,e){const s=this.#l.exec(t.slice(e));if(s===null)return;return s[0]}#p(t,e,s){const i=this.#u.exec(t.slice(s));if(i===null)return s;try{e.rval=JSON.parse(i[2]);e.op=i[1]}catch{}return s+i[1].length+i[2].length}#r(t){if(t.length===0)return{value:this.#s};const e=t.at(-1);let s=this.#s;for(let e=0,i=t.length-1;e<i;e++)s=s[t[e]];return{obj:s,key:e,value:s[e]}}#b(t,e,s){if(e===void 0||e===null)return;if(typeof s===\"number\")if(Array.isArray(e)===false)return;const i=this.#g(e,s);const r=Object.hasOwn(e,i);if(t.op!==void 0&&r===false)return;const n=t.not!==true;const o=e[i];let a=false;switch(t.op){case\"==\":a=o===t.rval===n;break;case\"!=\":a=o!==t.rval===n;break;case\"<\":a=o<t.rval===n;break;case\"<=\":a=o<=t.rval===n;break;case\">\":a=o>t.rval===n;break;case\">=\":a=o>=t.rval===n;break;case\"^=\":a=`${o}`.startsWith(t.rval)===n;break;case\"$=\":a=`${o}`.endsWith(t.rval)===n;break;case\"*=\":a=`${o}`.includes(t.rval)===n;break;default:a=r===n;break}if(a)return i}}",
+      "dependencies": []
+    },
+    {
       "name": "proxy-apply.fn",
       "aliases": [],
       "body": "function proxyApplyFn(t=\"\",n=\"\"){let r=globalThis;let p=t;for(;;){const t=p.indexOf(\".\");if(t===-1)break;r=r[p.slice(0,t)];if(r instanceof Object===false)return;p=p.slice(t+1)}const o=r[p];if(typeof o!==\"function\")return;if(proxyApplyFn.CtorContext===void 0){proxyApplyFn.ctorContexts=[];proxyApplyFn.CtorContext=class{constructor(...t){this.init(...t)}init(t,n){this.callFn=t;this.callArgs=n;return this}reflect(){const t=Reflect.construct(this.callFn,this.callArgs);this.callFn=this.callArgs=this.private=void 0;proxyApplyFn.ctorContexts.push(this);return t}static factory(...t){return proxyApplyFn.ctorContexts.length!==0?proxyApplyFn.ctorContexts.pop().init(...t):new proxyApplyFn.CtorContext(...t)}};proxyApplyFn.applyContexts=[];proxyApplyFn.ApplyContext=class{constructor(...t){this.init(...t)}init(t,n,r){this.callFn=t;this.thisArg=n;this.callArgs=r;return this}reflect(){const t=Reflect.apply(this.callFn,this.thisArg,this.callArgs);this.callFn=this.thisArg=this.callArgs=this.private=void 0;proxyApplyFn.applyContexts.push(this);return t}static factory(...t){return proxyApplyFn.applyContexts.length!==0?proxyApplyFn.applyContexts.pop().init(...t):new proxyApplyFn.ApplyContext(...t)}}}const l=o.toString();const s=function t(){return l}.bind(null);const i={apply(t,r,p){return n(proxyApplyFn.ApplyContext.factory(t,r,p))},get(t,n){if(n===\"toString\")return s;return Reflect.get(t,n)}};if(o.prototype?.constructor===o)i.construct=function(t,r){return n(proxyApplyFn.CtorContext.factory(t,r))};r[p]=new Proxy(o,i)}",
       "dependencies": []
+    },
+    {
+      "name": "json-edit.fn",
+      "aliases": [],
+      "body": "function jsonEditFn(e,t=\"\"){const n=safeSelf();const o=n.makeLogPrefix(`${e?\"trusted-\":\"\"}json-edit`,t);const r=JSONPath.create(t);if(r.valid===false||r.value!==void 0&&e!==true)return n.uboLog(o,\"Bad JSONPath query\");proxyApplyFn(\"JSON.parse\",(function(e){const t=e.reflect();if(r.apply(t)!==0)return t;n.uboLog(o,\"Edited\");if(n.logLevel>1)n.uboLog(o,`After edit:\\n${n.JSON_stringify(t,null,2)}`);return t}))}",
+      "dependencies": [
+        "jsonpath.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-edit.js",
+      "aliases": [],
+      "body": "function jsonEdit(n=\"\"){jsonEditFn(false,n)}",
+      "dependencies": [
+        "json-edit.fn"
+      ]
+    },
+    {
+      "name": "trusted-json-edit.js",
+      "aliases": [],
+      "body": "function trustedJsonEdit(t=\"\"){jsonEditFn(true,t)}",
+      "dependencies": [
+        "json-edit.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "json-edit-xhr-response.fn",
+      "aliases": [],
+      "body": "function jsonEditXhrResponseFn(e,t=\"\"){const s=safeSelf();const o=s.makeLogPrefix(`${e?\"trusted-\":\"\"}json-edit-xhr-response`,t);const r=new WeakMap;const n=JSONPath.create(t);if(n.valid===false||n.value!==void 0&&e!==true)return s.uboLog(o,\"Bad JSONPath query\");const p=s.getExtraArgs(Array.from(arguments),2);const i=parsePropertiesToMatchFn(p.propsToMatch,\"url\");self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,t,...n){const p={method:e,url:t};const a=i.size===0||matchObjectPropertiesFn(i,p);if(a){if(s.logLevel>1&&Array.isArray(a))s.uboLog(o,`Matched \"propsToMatch\":\\n\\t${a.join(\"\\n\\t\")}`);r.set(this,p)}return super.open(e,t,...n)}get response(){const e=super.response;const t=r.get(this);if(t===void 0)return e;const p=typeof e===\"string\"?e.length:void 0;if(t.lastResponseLength!==p){t.response=void 0;t.lastResponseLength=p}if(t.response!==void 0)return t.response;let i;if(typeof e===\"object\")i=e;else if(typeof e===\"string\")try{i=s.JSON_parse(e)}catch{}if(typeof i!==\"object\"||i===null||n.apply(i)===0)return t.response=e;s.uboLog(o,\"Edited\");const a=typeof e===\"string\"?JSONPath.toJSON(i,s.JSON_stringify):i;return t.response=a}get responseText(){const e=this.response;return typeof e!==\"string\"?super.responseText:e}}}",
+      "dependencies": [
+        "jsonpath.fn",
+        "match-object-properties.fn",
+        "parse-properties-to-match.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-edit-xhr-response.js",
+      "aliases": [],
+      "body": "function jsonEditXhrResponse(n=\"\",...s){jsonEditXhrResponseFn(false,n,...s)}",
+      "dependencies": [
+        "json-edit-xhr-response.fn"
+      ]
+    },
+    {
+      "name": "trusted-json-edit-xhr-response.js",
+      "aliases": [],
+      "body": "function trustedJsonEditXhrResponse(n=\"\",...s){jsonEditXhrResponseFn(true,n,...s)}",
+      "dependencies": [
+        "json-edit-xhr-response.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "json-edit-fetch-response.fn",
+      "aliases": [],
+      "body": "function jsonEditFetchResponseFn(e,t=\"\"){const r=safeSelf();const o=r.makeLogPrefix(`${e?\"trusted-\":\"\"}json-edit-fetch-response`,t);const n=JSONPath.create(t);if(n.valid===false||n.value!==void 0&&e!==true)return r.uboLog(o,\"Bad JSONPath query\");const s=r.getExtraArgs(Array.from(arguments),2);const c=parsePropertiesToMatchFn(s.propsToMatch,\"url\");proxyApplyFn(\"fetch\",(function(e){const t=e.callArgs;const s=e.reflect();if(c.size!==0){const e=[t[0]instanceof Object?t[0]:{url:t[0]}];if(e[0]instanceof Request)try{e[0]=r.Request_clone.call(e[0])}catch(e){r.uboErr(o,\"Error:\",e)}if(t[1]instanceof Object)e.push(t[1]);const n=matchObjectPropertiesFn(c,...e);if(n===void 0)return s;if(r.logLevel>1)r.uboLog(o,`Matched \"propsToMatch\":\\n\\t${n.join(\"\\n\\t\")}`)}return s.then((e=>{const t=e.clone();return t.json().then((t=>{if(typeof t!==\"object\")return e;if(n.apply(t)===0)return e;r.uboLog(o,\"Edited\");const s=Response.json(t,{status:e.status,statusText:e.statusText,headers:e.headers});Object.defineProperties(s,{ok:{value:e.ok},redirected:{value:e.redirected},type:{value:e.type},url:{value:e.url}});return s})).catch((t=>{r.uboErr(o,\"Error:\",t);return e}))})).catch((e=>{r.uboErr(o,\"Error:\",e);return s}))}))}",
+      "dependencies": [
+        "jsonpath.fn",
+        "match-object-properties.fn",
+        "parse-properties-to-match.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-edit-fetch-response.js",
+      "aliases": [],
+      "body": "function jsonEditFetchResponse(e=\"\",...n){jsonEditFetchResponseFn(false,e,...n)}",
+      "dependencies": [
+        "json-edit-fetch-response.fn"
+      ]
+    },
+    {
+      "name": "trusted-json-edit-fetch-response.js",
+      "aliases": [],
+      "body": "function trustedJsonEditFetchResponse(e=\"\",...t){jsonEditFetchResponseFn(true,e,...t)}",
+      "dependencies": [
+        "json-edit-fetch-response.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "jsonl-edit.fn",
+      "aliases": [],
+      "body": "function jsonlEditFn(n,t=\"\"){const o=safeSelf();const s=t.split(/\\n+/);const c=[];for(const t of s){let s;try{s=o.JSON_parse(t)}catch{}if(typeof s!==\"object\"||s===null){c.push(t);continue}if(n.apply(s)===0){c.push(t);continue}c.push(JSONPath.toJSON(s,o.JSON_stringify))}return c.join(\"\\n\")}",
+      "dependencies": [
+        "jsonpath.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "jsonl-edit-xhr-response.fn",
+      "aliases": [],
+      "body": "function jsonlEditXhrResponseFn(e,s=\"\"){const t=safeSelf();const o=t.makeLogPrefix(`${e?\"trusted-\":\"\"}jsonl-edit-xhr-response`,s);const n=new WeakMap;const r=JSONPath.create(s);if(r.valid===false||r.value!==void 0&&e!==true)return t.uboLog(o,\"Bad JSONPath query\");const p=t.getExtraArgs(Array.from(arguments),2);const i=parsePropertiesToMatchFn(p.propsToMatch,\"url\");self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,s,...r){const p={method:e,url:s};const a=i.size===0||matchObjectPropertiesFn(i,p);if(a){if(t.logLevel>1&&Array.isArray(a))t.uboLog(o,`Matched \"propsToMatch\":\\n\\t${a.join(\"\\n\\t\")}`);n.set(this,p)}return super.open(e,s,...r)}get response(){const e=super.response;const s=n.get(this);if(s===void 0)return e;const p=typeof e===\"string\"?e.length:void 0;if(s.lastResponseLength!==p){s.response=void 0;s.lastResponseLength=p}if(s.response!==void 0)return s.response;if(typeof e!==\"string\")return s.response=e;const i=jsonlEditFn(r,e);if(i!==e)t.uboLog(o,\"Pruned\");return s.response=i}get responseText(){const e=this.response;return typeof e!==\"string\"?super.responseText:e}}}",
+      "dependencies": [
+        "jsonpath.fn",
+        "jsonl-edit.fn",
+        "match-object-properties.fn",
+        "parse-properties-to-match.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "jsonl-edit-xhr-response.js",
+      "aliases": [],
+      "body": "function jsonlEditXhrResponse(n=\"\",...s){jsonlEditXhrResponseFn(false,n,...s)}",
+      "dependencies": [
+        "jsonl-edit-xhr-response.fn"
+      ]
+    },
+    {
+      "name": "trusted-jsonl-edit-xhr-response.js",
+      "aliases": [],
+      "body": "function trustedJsonlEditXhrResponse(n=\"\",...s){jsonlEditXhrResponseFn(true,n,...s)}",
+      "dependencies": [
+        "jsonl-edit-xhr-response.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "jsonl-edit-fetch-response.fn",
+      "aliases": [],
+      "body": "function jsonlEditFetchResponseFn(e,t=\"\"){const r=safeSelf();const o=r.makeLogPrefix(`${e?\"trusted-\":\"\"}jsonl-edit-fetch-response`,t);const n=JSONPath.create(t);if(n.valid===false||n.value!==void 0&&e!==true)return r.uboLog(o,\"Bad JSONPath query\");const s=r.getExtraArgs(Array.from(arguments),2);const c=parsePropertiesToMatchFn(s.propsToMatch,\"url\");const u=t===\"\";proxyApplyFn(\"fetch\",(function(e){const t=e.callArgs;const s=e.reflect();if(c.size!==0){const e=[t[0]instanceof Object?t[0]:{url:t[0]}];if(e[0]instanceof Request)try{e[0]=r.Request_clone.call(e[0])}catch(e){r.uboErr(o,\"Error:\",e)}if(t[1]instanceof Object)e.push(t[1]);const n=matchObjectPropertiesFn(c,...e);if(n===void 0)return s;if(r.logLevel>1)r.uboLog(o,`Matched \"propsToMatch\":\\n\\t${n.join(\"\\n\\t\")}`)}return s.then((e=>{const t=e.clone();return t.text().then((t=>{if(typeof t!==\"string\")return t;if(u){r.uboLog(o,t);return e}const s=jsonlEditFn(n,t);if(s===t)return e;r.uboLog(o,\"Pruned\");const c=new Response(s,{status:e.status,statusText:e.statusText,headers:e.headers});Object.defineProperties(c,{ok:{value:e.ok},redirected:{value:e.redirected},type:{value:e.type},url:{value:e.url}});return c})).catch((t=>{r.uboErr(o,\"Error:\",t);return e}))})).catch((e=>{r.uboErr(o,\"Error:\",e);return s}))}))}",
+      "dependencies": [
+        "jsonpath.fn",
+        "jsonl-edit.fn",
+        "match-object-properties.fn",
+        "parse-properties-to-match.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "jsonl-edit-fetch-response.js",
+      "aliases": [],
+      "body": "function jsonlEditFetchResponse(e=\"\",...n){jsonlEditFetchResponseFn(false,e,...n)}",
+      "dependencies": [
+        "jsonl-edit-fetch-response.fn"
+      ]
+    },
+    {
+      "name": "trusted-jsonl-edit-fetch-response.js",
+      "aliases": [],
+      "body": "function trustedJsonlEditFetchResponse(e=\"\",...t){jsonlEditFetchResponseFn(true,e,...t)}",
+      "dependencies": [
+        "jsonl-edit-fetch-response.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "matches-stack-trace.fn",
+      "aliases": [],
+      "body": "function matchesStackTraceFn(t,e=\"\"){const n=safeSelf();const c=getExceptionTokenFn();const i=new n.Error(c);const s=new URL(self.location.href);s.hash=\"\";const l=/(.*?@)?(\\S+)(:\\d+):\\d+\\)?$/;const o=[];for(let t of n.String_split.call(i.stack,/[\\n\\r]+/)){if(t.includes(c))continue;t=t.trim();const e=n.RegExp_exec.call(l,t);if(e===null)continue;let i=e[2];if(i.startsWith(\"(\"))i=i.slice(1);if(i===s.href)i=\"inlineScript\";else if(i.startsWith(\"<anonymous>\"))i=\"injectedScript\";let r=e[1]!==void 0?e[1].slice(0,-1):t.slice(0,e.index).trim();if(r.startsWith(\"at\"))r=r.slice(2).trim();let a=e[3];o.push(\" \"+`${r} ${i}${a}:1`.trim())}o[0]=`stackDepth:${o.length-1}`;const r=o.join(\"\\t\");const a=t.matchAll!==true&&n.testPattern(t,r);if(e===\"all\"||e===\"match\"&&a||e===\"nomatch\"&&!a)n.uboLog(r.replace(/\\t/g,\"\\n\"));return a}",
+      "dependencies": [
+        "get-exception-token.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "abort-on-stack-trace.js",
+      "aliases": [
+        "aost.js"
+      ],
+      "body": "function abortOnStackTrace(e=\"\",t=\"\"){if(typeof e!==\"string\")return;const n=safeSelf();const r=n.initPattern(t,{canNegate:true});const c=n.getExtraArgs(Array.from(arguments),2);if(t===\"\")c.log=\"all\";const o=function(e,t){const c=t.indexOf(\".\");if(c===-1){let c=e[t];Object.defineProperty(e,t,{get:function(){const e=n.logLevel>1?\"all\":\"match\";if(matchesStackTraceFn(r,e))throw new ReferenceError(getExceptionTokenFn());return c},set:function(e){const t=n.logLevel>1?\"all\":\"match\";if(matchesStackTraceFn(r,t))throw new ReferenceError(getExceptionTokenFn());c=e}});return}const i=t.slice(0,c);let f=e[i];t=t.slice(c+1);if(f){o(f,t);return}const s=Object.getOwnPropertyDescriptor(e,i);if(s&&s.set!==void 0)return;Object.defineProperty(e,i,{get:function(){return f},set:function(e){f=e;if(e instanceof Object)o(e,t)}})};const i=window;o(i,e)}",
+      "dependencies": [
+        "get-exception-token.fn",
+        "matches-stack-trace.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "object-find-owner.fn",
+      "aliases": [],
+      "body": "function objectFindOwnerFn(e,t,n=false){const f=safeSelf();let r=e;let s=t;for(;;){if(typeof r!==\"object\"||r===null)return false;const e=s.indexOf(\".\");if(e===-1){if(n===false)return f.Object_hasOwn(r,s);let e=false;if(s===\"*\")for(const t in r){if(f.Object_hasOwn(r,t)===false)continue;delete r[t];e=true}else if(f.Object_hasOwn(r,s)){delete r[s];e=true}return e}const t=s.slice(0,e);const i=s.slice(e+1);let c=false;if(t===\"[-]\"&&Array.isArray(r)){let e=r.length;while(e--){if(objectFindOwnerFn(r[e],i)===false)continue;r.splice(e,1);c=true}return c}if(t===\"{-}\"&&r instanceof Object){for(const e of Object.keys(r)){if(objectFindOwnerFn(r[e],i)===false)continue;delete r[e];c=true}return c}if(t===\"[]\"&&Array.isArray(r)||t===\"{}\"&&r instanceof Object||t===\"*\"&&r instanceof Object){for(const e of Object.keys(r)){if(objectFindOwnerFn(r[e],i,n)===false)continue;c=true}return c}if(f.Object_hasOwn(r,t)===false)return false;r=r[t];s=s.slice(e+1)}}",
+      "dependencies": [
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "object-prune.fn",
+      "aliases": [],
+      "body": "function objectPruneFn(t,e,n,r={matchAll:true},c={}){if(typeof e!==\"string\")return;const o=safeSelf();const s=e!==\"\"?o.String_split.call(e,/ +/):[];const f=s.length!==0&&n!==\"\"?o.String_split.call(n,/ +/):[];if(r.matchAll!==true)if(matchesStackTraceFn(r,c.logstack)===false)return;if(objectPruneFn.mustProcess===void 0)objectPruneFn.mustProcess=(t,e)=>{for(const n of e)if(objectFindOwnerFn(t,n)===false)return false;return true};if(s.length===0)return;let i=\"nomatch\";if(objectPruneFn.mustProcess(t,f))for(const e of s)if(objectFindOwnerFn(t,e,true))i=\"match\";if(i===\"match\")return t}",
+      "dependencies": [
+        "matches-stack-trace.fn",
+        "object-find-owner.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "trusted-prune-inbound-object.js",
+      "aliases": [],
+      "body": "function trustedPruneInboundObject(t=\"\",n=\"\",e=\"\",r=\"\"){if(t===\"\")return;let i=globalThis;let c=t;for(;;){const t=c.indexOf(\".\");if(t===-1)break;i=i[c.slice(0,t)];if(i instanceof Object===false)return;c=c.slice(t+1)}if(typeof i[c]!==\"function\")return;const f=parseInt(n);if(isNaN(f))return;if(f<1)return;const o=safeSelf();const s=o.getExtraArgs(Array.from(arguments),4);const a=[];if(e!==\"\")a.push(...o.String_split.call(e,/ +/));if(r!==\"\")a.push(...o.String_split.call(r,/ +/));const l=o.initPattern(s.stackToMatch||\"\",{canNegate:true});const u=t=>{for(const n of a)if(objectFindOwnerFn(t,n)===false)return false;return true};i[c]=new Proxy(i[c],{apply:function(t,n,i){const c=f<=i.length?i[f-1]:void 0;if(c instanceof Object&&u(c)){let t=c;if(s.dontOverwrite)try{t=o.JSON_parse(o.JSON_stringify(c))}catch{t=void 0}if(t!==void 0){const n=objectPruneFn(t,e,r,l,s);i[f-1]=n||t}}return Reflect.apply(t,n,i)}})}",
+      "dependencies": [
+        "object-find-owner.fn",
+        "object-prune.fn",
+        "safe-self.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "trusted-prune-outbound-object.js",
+      "aliases": [],
+      "body": "function trustedPruneOutboundObject(t=\"\",n=\"\",e=\"\"){if(t===\"\")return;const r=safeSelf();const c=r.getExtraArgs(Array.from(arguments),3);proxyApplyFn(t,(function(t){const r=t.reflect();if(r instanceof Object===false)return r;const o=objectPruneFn(r,n,e,{matchAll:true},c);return o||r}))}",
+      "dependencies": [
+        "object-prune.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "json-prune.js",
+      "aliases": [],
+      "body": "function jsonPrune(n=\"\",e=\"\",r=\"\"){const o=safeSelf();const t=o.makeLogPrefix(\"json-prune\",n,e,r);const u=o.initPattern(r,{canNegate:true});const i=o.getExtraArgs(Array.from(arguments),3);JSON.parse=new Proxy(JSON.parse,{apply:function(r,s,f){const a=Reflect.apply(r,s,f);if(n===\"\")o.uboLog(t,o.JSON_stringify(a,null,2));const c=objectPruneFn(a,n,e,u,i);if(c===void 0)return a;o.uboLog(t,\"Pruned\");if(o.logLevel>1)o.uboLog(t,`After pruning:\\n${o.JSON_stringify(c,null,2)}`);return c}})}",
+      "dependencies": [
+        "object-prune.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-prune-fetch-response.js",
+      "aliases": [],
+      "body": "function jsonPruneFetchResponse(e=\"\",t=\"\"){const r=safeSelf();const o=r.makeLogPrefix(\"json-prune-fetch-response\",e,t);const n=r.getExtraArgs(Array.from(arguments),2);const s=parsePropertiesToMatchFn(n.propsToMatch,\"url\");const c=r.initPattern(n.stackToMatch||\"\",{canNegate:true});const u=e===\"\";const a=function(a,f,i){const l=Reflect.apply(a,f,i);if(s.size!==0){const e=[i[0]instanceof Object?i[0]:{url:i[0]}];if(e[0]instanceof Request)try{e[0]=r.Request_clone.call(e[0])}catch(e){r.uboErr(o,\"Error:\",e)}if(i[1]instanceof Object)e.push(i[1]);const t=matchObjectPropertiesFn(s,...e);if(t===void 0)return l;if(r.logLevel>1)r.uboLog(o,`Matched \"propsToMatch\":\\n\\t${t.join(\"\\n\\t\")}`)}return l.then((s=>{const a=s.clone();return a.json().then((a=>{if(typeof a!==\"object\")return s;if(u){r.uboLog(o,r.JSON_stringify(a,null,2));return s}const f=objectPruneFn(a,e,t,c,n);if(typeof f!==\"object\")return s;r.uboLog(o,\"Pruned\");const i=Response.json(f,{status:s.status,statusText:s.statusText,headers:s.headers});Object.defineProperties(i,{ok:{value:s.ok},redirected:{value:s.redirected},type:{value:s.type},url:{value:s.url}});return i})).catch((e=>{r.uboErr(o,\"Error:\",e);return s}))})).catch((e=>{r.uboErr(o,\"Error:\",e);return l}))};self.fetch=new Proxy(self.fetch,{apply:a})}",
+      "dependencies": [
+        "match-object-properties.fn",
+        "object-prune.fn",
+        "parse-properties-to-match.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-prune-xhr-response.js",
+      "aliases": [],
+      "body": "function jsonPruneXhrResponse(e=\"\",t=\"\"){const s=safeSelf();const o=s.makeLogPrefix(\"json-prune-xhr-response\",e,t);const n=new WeakMap;const r=s.getExtraArgs(Array.from(arguments),2);const p=parsePropertiesToMatchFn(r.propsToMatch,\"url\");const c=s.initPattern(r.stackToMatch||\"\",{canNegate:true});self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,t,...c){const i={method:e,url:t};let a=\"match\";if(p.size!==0)if(matchObjectPropertiesFn(p,i)===void 0)a=\"nomatch\";if(a===\"match\"){if(s.logLevel>1)s.uboLog(o,`Matched optional \"propsToMatch\", \"${r.propsToMatch}\"`);n.set(this,i)}return super.open(e,t,...c)}get response(){const p=super.response;const i=n.get(this);if(i===void 0)return p;const a=typeof p===\"string\"?p.length:void 0;if(i.lastResponseLength!==a){i.response=void 0;i.lastResponseLength=a}if(i.response!==void 0)return i.response;let f;if(typeof p===\"object\")f=p;else if(typeof p===\"string\")try{f=s.JSON_parse(p)}catch{}if(typeof f!==\"object\")return i.response=p;const u=objectPruneFn(f,e,t,c,r);let h;if(typeof u===\"object\"){h=typeof p===\"string\"?s.JSON_stringify(u):u;s.uboLog(o,\"Pruned\")}else h=p;return i.response=h}get responseText(){const e=this.response;return typeof e!==\"string\"?super.responseText:e}}}",
+      "dependencies": [
+        "match-object-properties.fn",
+        "object-prune.fn",
+        "parse-properties-to-match.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "evaldata-prune.js",
+      "aliases": [],
+      "body": "function evaldataPrune(n=\"\",e=\"\"){proxyApplyFn(\"eval\",(function(t){const r=t.reflect();if(typeof r!==\"object\")return r;if(r===null)return null;const u=objectPruneFn(r,n,e);return u||r}))}",
+      "dependencies": [
+        "object-prune.fn",
+        "proxy-apply.fn"
+      ]
     },
     {
       "name": "noeval-if.js",
@@ -98,25 +413,94 @@
       ]
     },
     {
-      "name": "arglist-parser.fn",
+      "name": "prevent-fetch.fn",
       "aliases": [],
-      "body": "class ArglistParser{constructor(t=\",\",e=false){this.separatorChar=this.actualSeparatorChar=t;this.separatorCode=this.actualSeparatorCode=t.charCodeAt(0);this.mustQuote=e;this.quoteBeg=0;this.quoteEnd=0;this.argBeg=0;this.argEnd=0;this.separatorBeg=0;this.separatorEnd=0;this.transform=false;this.failed=false;this.reWhitespaceStart=/^\\s+/;this.reWhitespaceEnd=/\\s+$/;this.reOddTrailingEscape=/(?:^|[^\\\\])(?:\\\\\\\\)*\\\\$/;this.reTrailingEscapeChars=/\\\\+$/}nextArg(t,e=0){const s=t.length;this.quoteBeg=e+this.leftWhitespaceCount(t.slice(e));this.failed=false;const r=t.charCodeAt(this.quoteBeg);if(r===34||r===39||r===96){this.indexOfNextArgSeparator(t,r);if(this.argEnd!==s){this.quoteEnd=this.argEnd+1;this.separatorBeg=this.separatorEnd=this.quoteEnd;this.separatorEnd+=this.leftWhitespaceCount(t.slice(this.quoteEnd));if(this.separatorEnd===s)return this;if(t.charCodeAt(this.separatorEnd)===this.separatorCode){this.separatorEnd+=1;return this}}}this.indexOfNextArgSeparator(t,this.separatorCode);this.separatorBeg=this.separatorEnd=this.argEnd;if(this.separatorBeg<s)this.separatorEnd+=1;this.argEnd-=this.rightWhitespaceCount(t.slice(0,this.separatorBeg));this.quoteEnd=this.argEnd;if(this.mustQuote)this.failed=true;return this}normalizeArg(t,e=\"\"){if(e===\"\")e=this.actualSeparatorChar;let s=\"\";let r=0;while((r=t.lastIndexOf(e))!==-1){s=t.slice(r)+s;t=t.slice(0,r);const e=this.reTrailingEscapeChars.exec(t);if(e===null)continue;const a=(e[0].length&1)!==0?e[0].slice(0,-1):e[0];s=a+s;t=t.slice(0,-e[0].length)}if(s===\"\")return t;return t+s}leftWhitespaceCount(t){const e=this.reWhitespaceStart.exec(t);return e===null?0:e[0].length}rightWhitespaceCount(t){const e=this.reWhitespaceEnd.exec(t);return e===null?0:e[0].length}indexOfNextArgSeparator(t,e){this.argBeg=this.argEnd=e!==this.separatorCode?this.quoteBeg+1:this.quoteBeg;this.transform=false;if(e!==this.actualSeparatorCode){this.actualSeparatorCode=e;this.actualSeparatorChar=String.fromCharCode(e)}while(this.argEnd<t.length){const e=t.indexOf(this.actualSeparatorChar,this.argEnd);if(e===-1)return this.argEnd=t.length;if(this.reOddTrailingEscape.test(t.slice(0,e))===false)return this.argEnd=e;this.transform=true;this.argEnd=e+1}}}",
+      "body": "function preventFetchFn(e=false,t=\"\",n=\"\",s=\"\"){const r=safeSelf();const o=`${e?\"trusted-\":\"\"}prevent-fetch`;const c=r.makeLogPrefix(o,t,n,s);const i=[];for(const e of r.String_split.call(t,/\\s+/)){if(e===\"\")continue;const t=e.indexOf(\":\");let n,s;if(t!==-1){n=e.slice(0,t);s=e.slice(t+1)}else{n=\"url\";s=e}i.push({key:n,pattern:r.initPattern(s,{canNegate:true})})}const f={ok:[false,true],statusText:[\"\",\"Not Found\"],type:[\"basic\",\"cors\",\"default\",\"error\",\"opaque\"]};const a={statusText:{value:\"OK\"}};if(/^\\{.*\\}$/.test(s))try{Object.entries(JSON.parse(s)).forEach((([e,t])=>{if(f[e]===void 0)return;if(f[e].includes(t)===false)return;a[e]={value:t}}))}catch{}else if(s!==\"\")if(f.type.includes(s))a.type={value:s};proxyApplyFn(\"fetch\",(function s(o){const{callArgs:f}=o;const l=f[0]instanceof self.Request?f[0]:Object.assign({url:f[0]},f[1]);let u=true;try{const e=new Map;for(const t in l){let n=l[t];if(typeof n!==\"string\")try{n=r.JSON_stringify(n)}catch{}if(typeof n!==\"string\")continue;e.set(t,n)}if(r.logLevel>1||t===\"\"&&n===\"\"){const t=Array.from(e).map((e=>`${e[0]}:${e[1]}`));r.uboLog(c,`Called: ${t.join(\"\\n\")}`)}if(t===\"\"&&n===\"\")return o.reflect();u=i.length===0;for(const{key:t,pattern:n}of i)if(n.expect&&e.has(t)===false||r.testPattern(n,e.get(t))===false){u=true;break}}catch{}if(u)return o.reflect();return Promise.resolve(generateContentFn(e,n)).then((e=>{r.uboLog(c,`Prevented with response \"${e}\"`);const t=new Response(e,{headers:{\"Content-Length\":e.length}});const n=Object.assign({url:{value:l.url}},a);r.Object_defineProperties(t,n);return t}))}))}",
+      "dependencies": [
+        "generate-content.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "prevent-fetch.js",
+      "aliases": [
+        "no-fetch-if.js"
+      ],
+      "body": "function preventFetch(...e){preventFetchFn(false,...e)}",
+      "dependencies": [
+        "prevent-fetch.fn"
+      ]
+    },
+    {
+      "name": "trusted-prevent-fetch.js",
+      "aliases": [],
+      "body": "function trustedPreventFetch(...e){preventFetchFn(true,...e)}",
+      "dependencies": [
+        "prevent-fetch.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "prevent-innerHTML.js",
+      "aliases": [],
+      "body": "function preventInnerHTML(e=\"\",t=\"\"){const n=safeSelf();const r=n.makeLogPrefix(\"prevent-innerHTML\",e,t);const i=n.initPattern(t,{canNegate:true});const o=n.Object_getOwnPropertyDescriptor(Element.prototype,\"innerHTML\");if(o===void 0)return;const s=(t,r)=>{if(e!==\"\"){if(typeof t.matches!==\"function\")return false;if(t.matches(e)===false)return false}return n.testPattern(i,r)};Object.defineProperty(Element.prototype,\"innerHTML\",{get:function(){return o.get?o.get.call(this):o.value},set:function(e){if(s(this,e))n.uboLog(r,\"Prevented\");else if(o.set)o.set.call(this,e);if(n.logLevel>1)n.uboLog(r,`Assigned:\\n${e}`);o.value=e}})}",
+      "dependencies": [
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "range-parser.fn",
+      "aliases": [],
+      "body": "class RangeParser{constructor(i){this.not=i.charAt(0)===\"!\";if(this.not)i=i.slice(1);if(i===\"\")return;const t=i.indexOf(\"-\");if(t!==0)this.min=this.max=parseInt(i,10)||0;if(t!==-1)this.max=parseInt(i.slice(t+1),10)||Number.MAX_SAFE_INTEGER}unbound(){return this.min===void 0&&this.max===void 0}test(i){const t=Math.min(Math.max(Number(i)||0,0),Number.MAX_SAFE_INTEGER);if(this.min===this.max)return(this.min===void 0||t===this.min)!==this.not;if(this.min===void 0)return t<=this.max!==this.not;if(this.max===void 0)return t>=this.min!==this.not;return(t>=this.min&&t<=this.max)!==this.not}}",
       "dependencies": []
     },
     {
-      "name": "create-arglist-parser.fn",
-      "aliases": [],
-      "body": "function createArglistParser(...r){return new ArglistParser(...r)}",
+      "name": "prevent-setTimeout.js",
+      "aliases": [
+        "no-setTimeout-if.js",
+        "nostif.js",
+        "setTimeout-defuser.js"
+      ],
+      "body": "function preventSetTimeout(n=\"\",t=\"\"){const e=safeSelf();const o=e.makeLogPrefix(\"prevent-setTimeout\",n,t);const c=n.charAt(0)===\"!\";const r=e.patternToRegex(c?n.slice(1):n);const s=new RangeParser(t);proxyApplyFn(\"setTimeout\",(function(t){const{callArgs:i}=t;const u=i[0]instanceof Function?e.String(e.Function_toString(i[0])):e.String(i[0]);const f=i[1];if(n===\"\"&&s.unbound()){e.uboLog(o,`Called:\\n${u}\\n${f}`);return t.reflect()}if(r.test(u)!==c&&s.test(f)){i[0]=function(){};e.uboLog(o,`Prevented:\\n${u}\\n${f}`)}return t.reflect()}))}",
       "dependencies": [
-        "arglist-parser.fn"
+        "proxy-apply.fn",
+        "range-parser.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "prevent-setInterval.js",
+      "aliases": [
+        "no-setInterval-if.js",
+        "nosiif.js",
+        "setInterval-defuser.js"
+      ],
+      "body": "function preventSetInterval(n=\"\",t=\"\"){const e=safeSelf();const o=e.makeLogPrefix(\"prevent-setInterval\",n,t);const r=n.charAt(0)===\"!\";const c=e.patternToRegex(r?n.slice(1):n);const s=new RangeParser(t);proxyApplyFn(\"setInterval\",(function(t){const{callArgs:i}=t;const a=i[0]instanceof Function?e.String(e.Function_toString(i[0])):e.String(i[0]);const l=i[1];if(n===\"\"&&s.unbound()){e.uboLog(o,`Called:\\n${a}\\n${l}`);return t.reflect()}if(c.test(a)!==r&&s.test(l)){i[0]=function(){};e.uboLog(o,`Prevented:\\n${a}\\n${l}`)}return t.reflect()}))}",
+      "dependencies": [
+        "proxy-apply.fn",
+        "range-parser.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "prevent-requestAnimationFrame.js",
+      "aliases": [
+        "no-requestAnimationFrame-if.js",
+        "norafif.js"
+      ],
+      "body": "function preventRequestAnimationFrame(n=\"\"){const e=safeSelf();const t=e.makeLogPrefix(\"prevent-requestAnimationFrame\",n);const o=n.charAt(0)===\"!\";const i=e.patternToRegex(o?n.slice(1):n);proxyApplyFn(\"requestAnimationFrame\",(function(r){const{callArgs:c}=r;const s=c[0]instanceof Function?e.String(e.Function_toString(c[0])):e.String(c[0]);if(n===\"\")e.uboLog(t,`Called:\\n${s}`);else if(i.test(s)!==o){c[0]=function(){};e.uboLog(t,`Prevented:\\n${s}`)}return r.reflect()}))}",
+      "dependencies": [
+        "proxy-apply.fn",
+        "safe-self.fn"
       ]
     },
     {
       "name": "parse-replace.fn",
       "aliases": [],
-      "body": "function parseReplaceFn(r){if(r.charCodeAt(0)!==47)return;const e=createArglistParser(\"/\");e.nextArg(r,1);let a=r.slice(e.argBeg,e.argEnd);if(e.transform)a=e.normalizeArg(a);if(a===\"\")return;e.nextArg(r,e.separatorEnd);let t=r.slice(e.argBeg,e.argEnd);if(e.separatorEnd===e.separatorBeg)return;if(e.transform)t=e.normalizeArg(t);const n=r.slice(e.separatorEnd);try{return{re:new RegExp(a,n),replacement:t}}catch{}}",
+      "body": "function parseReplaceFn(r){if(r.charCodeAt(0)!==47)return;const e=new ArglistParser(\"/\");e.nextArg(r,1);let n=r.slice(e.argBeg,e.argEnd);if(e.transform)n=e.normalizeArg(n);if(n===\"\")return;e.nextArg(r,e.separatorEnd);let a=r.slice(e.argBeg,e.argEnd);if(e.separatorEnd===e.separatorBeg)return;if(e.transform)a=e.normalizeArg(a);const t=r.slice(e.separatorEnd);try{return{re:new RegExp(n,t),replacement:a}}catch{}}",
       "dependencies": [
-        "create-arglist-parser.fn"
+        "arglist-parser.fn"
       ]
     },
     {
@@ -175,52 +559,6 @@
       "aliases": [],
       "body": "function spoofCSS(e,...t){if(typeof e!==\"string\")return;if(e===\"\")return;const r=e=>e.replace(/-[a-z]/g,(e=>e.charAt(1).toUpperCase()));const n=new Map;const o=new Map;for(let e=0;e<t.length;e+=2){const s=r(t[e+0]);if(s===\"\")break;const c=t[e+1];if(typeof c!==\"string\")break;if(s.charCodeAt(0)===95)o.set(s,c);else n.set(s,c)}const s=safeSelf();const c=s.makeLogPrefix(\"spoof-css\",e,...t);const i=[\"cssText\",\"length\",\"parentRule\"];const a=(e,t)=>{const o=r(e);const i=n.has(o);const a=i?n.get(o):t;if(i)s.uboLog(c,`Spoofing ${e} to ${a}`);return a};const f=(e,t,r)=>{const n=e.bind(t);Object.defineProperty(n,\"name\",{value:r});Object.defineProperty(n,\"toString\",{value:()=>`function ${r}() { [native code] }`});return n};self.getComputedStyle=new Proxy(self.getComputedStyle,{apply:function(t,r,s){if(o.has(\"_debug\"))debugger;const c=Reflect.apply(t,r,s);const l=new WeakSet(document.querySelectorAll(e));if(l.has(s[0])===false)return c;const u=new Proxy(c,{get(e,t){if(typeof e[t]===\"function\"){if(t===\"getPropertyValue\")return f((function t(r){return a(r,e[r])}),e,\"getPropertyValue\");return f(e[t],e,t)}if(i.includes(t))return Reflect.get(e,t);return a(t,Reflect.get(e,t))},getOwnPropertyDescriptor(e,t){if(n.has(t))return{configurable:true,enumerable:true,value:n.get(t),writable:true};return Reflect.getOwnPropertyDescriptor(e,t)}});return u},get(e,t){if(t===\"toString\")return e.toString.bind(e);return Reflect.get(e,t)}});Element.prototype.getBoundingClientRect=new Proxy(Element.prototype.getBoundingClientRect,{apply:function(t,r,s){if(o.has(\"_debug\"))debugger;const c=Reflect.apply(t,r,s);const i=new WeakSet(document.querySelectorAll(e));if(i.has(r)===false)return c;let{x:a,y:f,height:l,width:u}=c;if(o.has(\"_rectx\"))a=parseFloat(o.get(\"_rectx\"));if(o.has(\"_recty\"))f=parseFloat(o.get(\"_recty\"));if(o.has(\"_rectw\"))u=parseFloat(o.get(\"_rectw\"));else if(n.has(\"width\"))u=parseFloat(n.get(\"width\"));if(o.has(\"_recth\"))l=parseFloat(o.get(\"_recth\"));else if(n.has(\"height\"))l=parseFloat(n.get(\"height\"));return new self.DOMRect(a,f,u,l)},get(e,t){if(t===\"toString\")return e.toString.bind(e);return Reflect.get(e,t)}})}",
       "dependencies": [
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "range-parser.fn",
-      "aliases": [],
-      "body": "class RangeParser{constructor(i){this.not=i.charAt(0)===\"!\";if(this.not)i=i.slice(1);if(i===\"\")return;const t=i.indexOf(\"-\");if(t!==0)this.min=this.max=parseInt(i,10)||0;if(t!==-1)this.max=parseInt(i.slice(1),10)||Number.MAX_SAFE_INTEGER}unbound(){return this.min===void 0&&this.max===void 0}test(i){const t=Math.min(Math.max(Number(i)||0,0),Number.MAX_SAFE_INTEGER);if(this.min===this.max)return(this.min===void 0||t===this.min)!==this.not;if(this.min===void 0)return t<=this.max!==this.not;if(this.max===void 0)return t>=this.min!==this.not;return(t>=this.min&&t<=this.max)!==this.not}}",
-      "dependencies": []
-    },
-    {
-      "name": "prevent-setTimeout.js",
-      "aliases": [
-        "no-setTimeout-if.js",
-        "nostif.js",
-        "setTimeout-defuser.js"
-      ],
-      "body": "function preventSetTimeout(n=\"\",t=\"\"){const e=safeSelf();const o=e.makeLogPrefix(\"prevent-setTimeout\",n,t);const c=n.charAt(0)===\"!\";const r=e.patternToRegex(c?n.slice(1):n);const s=new RangeParser(t);proxyApplyFn(\"setTimeout\",(function(t){const{callArgs:i}=t;const u=i[0]instanceof Function?String(e.Function_toString(i[0])):String(i[0]);const f=i[1];if(n===\"\"&&s.unbound()){e.uboLog(o,`Called:\\n${u}\\n${f}`);return t.reflect()}if(r.test(u)!==c&&s.test(f)){i[0]=function(){};e.uboLog(o,`Prevented:\\n${u}\\n${f}`)}return t.reflect()}))}",
-      "dependencies": [
-        "proxy-apply.fn",
-        "range-parser.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "prevent-setInterval.js",
-      "aliases": [
-        "no-setInterval-if.js",
-        "nosiif.js",
-        "setInterval-defuser.js"
-      ],
-      "body": "function preventSetInterval(n=\"\",t=\"\"){const e=safeSelf();const o=e.makeLogPrefix(\"prevent-setInterval\",n,t);const r=n.charAt(0)===\"!\";const c=e.patternToRegex(r?n.slice(1):n);const s=new RangeParser(t);proxyApplyFn(\"setInterval\",(function(t){const{callArgs:i}=t;const a=i[0]instanceof Function?String(e.Function_toString(i[0])):String(i[0]);const l=i[1];if(n===\"\"&&s.unbound()){e.uboLog(o,`Called:\\n${a}\\n${l}`);return t.reflect()}if(c.test(a)!==r&&s.test(l)){i[0]=function(){};e.uboLog(o,`Prevented:\\n${a}\\n${l}`)}return t.reflect()}))}",
-      "dependencies": [
-        "proxy-apply.fn",
-        "range-parser.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "prevent-requestAnimationFrame.js",
-      "aliases": [
-        "no-requestAnimationFrame-if.js",
-        "norafif.js"
-      ],
-      "body": "function preventRequestAnimationFrame(n=\"\"){const e=safeSelf();const t=e.makeLogPrefix(\"prevent-requestAnimationFrame\",n);const o=n.charAt(0)===\"!\";const i=e.patternToRegex(o?n.slice(1):n);proxyApplyFn(\"requestAnimationFrame\",(function(r){const{callArgs:c}=r;const s=c[0]instanceof Function?String(e.Function_toString(c[0])):String(c[0]);if(n===\"\")e.uboLog(t,`Called:\\n${s}`);else if(i.test(s)!==o){c[0]=function(){};e.uboLog(t,`Prevented:\\n${s}`)}return r.reflect()}))}",
-      "dependencies": [
-        "proxy-apply.fn",
         "safe-self.fn"
       ]
     },
@@ -369,39 +707,15 @@
       "requiresTrust": true
     },
     {
-      "name": "get-random-token.fn",
-      "aliases": [],
-      "body": "function getRandomToken(){const o=safeSelf();return o.String_fromCharCode(Date.now()%26+97)+o.Math_floor(o.Math_random()*982451653+982451653).toString(36)}",
-      "dependencies": [
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "get-exception-token.fn",
-      "aliases": [],
-      "body": "function getExceptionToken(){const n=getRandomToken();const e=self.onerror;self.onerror=function(t,...o){if(typeof t===\"string\"&&t.includes(n))return true;if(e instanceof Function)return e.call(this,t,...o)}.bind();return n}",
-      "dependencies": [
-        "get-random-token.fn"
-      ]
-    },
-    {
       "name": "should-debug.fn",
       "aliases": [],
       "body": "function shouldDebug(e){if(e instanceof Object===false)return false;return scriptletGlobals.canDebug&&e.debug}",
       "dependencies": []
     },
     {
-      "name": "generate-content.fn",
-      "aliases": [],
-      "body": "function generateContentFn(t,e){const n=safeSelf();const r=t=>{const e=[];let r=0;do{const t=n.Math_random().toString(36).slice(2);e.push(t);r+=t.length}while(r<t);return e.join(\" \").slice(0,t)};if(e===\"true\")return r(10);if(e===\"emptyObj\")return\"{}\";if(e===\"emptyArr\")return\"[]\";if(e===\"emptyStr\")return\"\";if(e.startsWith(\"length:\")){const t=/^length:(\\d+)(?:-(\\d+))?$/.exec(e);if(t===null)return\"\";const s=parseInt(t[1],10);const o=n.Math_max(parseInt(t[2],10)||0,s)-s;const i=n.Math_min(s+o*n.Math_random(),5e5);return r(i|0)}if(e.startsWith(\"war:\")){if(scriptletGlobals.warOrigin===void 0)return\"\";return new Promise((t=>{const r=scriptletGlobals.warOrigin;const s=e.slice(4);const o=[r,\"/\",s];const i=scriptletGlobals.warSecret;if(i!==void 0)o.push(\"?secret=\",i);const c=new n.XMLHttpRequest;c.responseType=\"text\";c.onloadend=e=>{t(e.target.responseText||\"\")};c.open(\"GET\",o.join(\"\"));c.send()})).catch((()=>\"\"))}if(t)return e;return\"\"}",
-      "dependencies": [
-        "safe-self.fn"
-      ]
-    },
-    {
       "name": "abort-current-script-core.fn",
       "aliases": [],
-      "body": "function abortCurrentScriptCore(e=\"\",t=\"\",r=\"\"){if(typeof e!==\"string\")return;if(e===\"\")return;const n=safeSelf();const c=n.makeLogPrefix(\"abort-current-script\",e,t,r);const o=n.patternToRegex(t);const s=n.patternToRegex(r);const i=n.getExtraArgs(Array.from(arguments),3);const a=document.currentScript;const f=n.String_split.call(e,\".\");let l=window;let u;for(;;){u=f.shift();if(f.length===0)break;if(u in l===false)break;l=l[u];if(l instanceof Object===false)return}let g;let b=Object.getOwnPropertyDescriptor(l,u);if(b instanceof Object===false||b.get instanceof Function===false){g=l[u];b=void 0}const d=shouldDebug(i);const p=getExceptionToken();const h=new WeakMap;const m=e=>{let t=e.textContent;if(t.trim()!==\"\")return t;if(h.has(e))return h.get(e);const[,r,n]=/^data:([^,]*),(.+)$/.exec(e.src.trim())||[\"\",\"\",\"\"];try{switch(true){case r.endsWith(\";base64\"):t=self.atob(n);break;default:t=self.decodeURIComponent(n);break}}catch{}h.set(e,t);return t};const x=()=>{const e=document.currentScript;if(e instanceof HTMLScriptElement===false)return;if(e===a)return;if(r!==\"\"&&s.test(e.src)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1&&r!==\"\")n.uboLog(c,`Matched src\\n${e.src}`);const t=m(e);if(o.test(t)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1)n.uboLog(c,`Matched text\\n${t}`);if(d===\"match\"||d===\"all\")debugger;n.uboLog(c,\"Aborted\");throw new ReferenceError(p)};if(d===\"install\")debugger;try{Object.defineProperty(l,u,{get:function(){x();return b instanceof Object?b.get.call(l):g},set:function(e){x();if(b instanceof Object)b.set.call(l,e);else g=e}})}catch(e){n.uboErr(c,`Error: ${e}`)}}",
+      "body": "function abortCurrentScriptCore(e=\"\",t=\"\",r=\"\"){if(typeof e!==\"string\")return;if(e===\"\")return;const n=safeSelf();const c=n.makeLogPrefix(\"abort-current-script\",e,t,r);const o=n.patternToRegex(t);const s=n.patternToRegex(r);const i=n.getExtraArgs(Array.from(arguments),3);const a=document.currentScript;const f=n.String_split.call(e,\".\");let l=window;let u;for(;;){u=f.shift();if(f.length===0)break;if(u in l===false)break;l=l[u];if(l instanceof Object===false)return}let g;let b=Object.getOwnPropertyDescriptor(l,u);if(b instanceof Object===false||b.get instanceof Function===false){g=l[u];b=void 0}const d=shouldDebug(i);const p=getExceptionTokenFn();const h=new WeakMap;const m=e=>{let t=e.textContent;if(t.trim()!==\"\")return t;if(h.has(e))return h.get(e);const[,r,n]=/^data:([^,]*),(.+)$/.exec(e.src.trim())||[\"\",\"\",\"\"];try{switch(true){case r.endsWith(\";base64\"):t=self.atob(n);break;default:t=self.decodeURIComponent(n);break}}catch{}h.set(e,t);return t};const x=()=>{const e=document.currentScript;if(e instanceof HTMLScriptElement===false)return;if(e===a)return;if(r!==\"\"&&s.test(e.src)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1&&r!==\"\")n.uboLog(c,`Matched src\\n${e.src}`);const t=m(e);if(o.test(t)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1)n.uboLog(c,`Matched text\\n${t}`);if(d===\"match\"||d===\"all\")debugger;n.uboLog(c,\"Aborted\");throw new ReferenceError(p)};if(d===\"install\")debugger;try{Object.defineProperty(l,u,{get:function(){x();return b instanceof Object?b.get.call(l):g},set:function(e){x();if(b instanceof Object)b.set.call(l,e);else g=e}})}catch(e){n.uboErr(c,`Error: ${e}`)}}",
       "dependencies": [
         "get-exception-token.fn",
         "safe-self.fn",
@@ -411,7 +725,7 @@
     {
       "name": "replace-node-text.fn",
       "aliases": [],
-      "body": "function replaceNodeTextFn(e=\"\",t=\"\",n=\"\"){const o=safeSelf();const r=o.makeLogPrefix(\"replace-node-text.fn\",...Array.from(arguments));const c=o.patternToRegex(e,\"i\",true);const s=o.patternToRegex(t,\"gms\");const i=o.getExtraArgs(Array.from(arguments),3);const u=i.includes||i.condition?o.patternToRegex(i.includes||i.condition,\"ms\"):null;const l=i.excludes?o.patternToRegex(i.excludes,\"ms\"):null;const f=(e=true)=>{if(e)x(g.takeRecords());g.disconnect();if(o.logLevel>1)o.uboLog(r,\"Quitting\")};const a=(()=>{const e={createScript:e=>e};const{trustedTypes:t}=self;if(t instanceof Object)if(typeof t.getPropertyType===\"function\")if(t.getPropertyType(\"script\",\"textContent\")===\"TrustedScript\")return t.createPolicy(getRandomToken(),e);return e})();let d=i.sedCount||0;const m=e=>{const c=e.textContent;if(u){u.lastIndex=0;if(o.RegExp_test.call(u,c)===false)return true}if(l){l.lastIndex=0;if(o.RegExp_test.call(l,c))return true}s.lastIndex=0;if(o.RegExp_test.call(s,c)===false)return true;s.lastIndex=0;const i=t!==\"\"?c.replace(s,n):n;e.textContent=e.nodeName===\"SCRIPT\"?a.createScript(i):i;if(o.logLevel>1)o.uboLog(r,`Text before:\\n${c.trim()}`);o.uboLog(r,`Text after:\\n${i.trim()}`);return d===0||(d-=1)!==0};const x=e=>{for(const t of e)for(const e of t.addedNodes){if(c.test(e.nodeName)===false)continue;if(m(e))continue;f(false);return}};const g=new MutationObserver(x);g.observe(document,{childList:true,subtree:true});if(document.documentElement){const e=document.createTreeWalker(document.documentElement,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT);let t=0;for(;;){const n=e.nextNode();t+=1;if(n===null)break;if(c.test(n.nodeName)===false)continue;if(n===document.currentScript)continue;if(m(n))continue;f();break}o.uboLog(r,`${t} nodes present before installing mutation observer`)}if(i.stay)return;runAt((()=>{const e=i.quitAfter||0;if(e!==0)setTimeout((()=>{f()}),e);else f()}),\"interactive\")}",
+      "body": "function replaceNodeTextFn(e=\"\",t=\"\",n=\"\"){const o=safeSelf();const r=o.makeLogPrefix(\"replace-node-text.fn\",...Array.from(arguments));const c=o.patternToRegex(e,\"i\",true);const s=o.patternToRegex(t,\"gms\");const i=o.getExtraArgs(Array.from(arguments),3);const u=i.includes||i.condition?o.patternToRegex(i.includes||i.condition,\"ms\"):null;const l=i.excludes?o.patternToRegex(i.excludes,\"ms\"):null;const f=(e=true)=>{if(e)x(g.takeRecords());g.disconnect();if(o.logLevel>1)o.uboLog(r,\"Quitting\")};const a=(()=>{const e={createScript:e=>e};const{trustedTypes:t}=self;if(t instanceof Object)if(typeof t.getPropertyType===\"function\")if(t.getPropertyType(\"script\",\"textContent\")===\"TrustedScript\")return t.createPolicy(getRandomTokenFn(),e);return e})();let d=i.sedCount||0;const m=e=>{const c=e.textContent;if(u){u.lastIndex=0;if(o.RegExp_test.call(u,c)===false)return true}if(l){l.lastIndex=0;if(o.RegExp_test.call(l,c))return true}s.lastIndex=0;if(o.RegExp_test.call(s,c)===false)return true;s.lastIndex=0;const i=t!==\"\"?c.replace(s,n):n;e.textContent=e.nodeName===\"SCRIPT\"?a.createScript(i):i;if(o.logLevel>1)o.uboLog(r,`Text before:\\n${c.trim()}`);o.uboLog(r,`Text after:\\n${i.trim()}`);return d===0||(d-=1)!==0};const x=e=>{for(const t of e)for(const e of t.addedNodes){if(c.test(e.nodeName)===false)continue;if(m(e))continue;f(false);return}};const g=new MutationObserver(x);g.observe(document,{childList:true,subtree:true});if(document.documentElement){const e=document.createTreeWalker(document.documentElement,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT);let t=0;for(;;){const n=e.nextNode();t+=1;if(n===null)break;if(c.test(n.nodeName)===false)continue;if(n===document.currentScript)continue;if(m(n))continue;f();break}o.uboLog(r,`${t} nodes present before installing mutation observer`)}if(i.stay)return;runAt((()=>{const e=i.quitAfter||0;if(e!==0)setTimeout((()=>{f()}),e);else f()}),\"interactive\")}",
       "dependencies": [
         "get-random-token.fn",
         "run-at.fn",
@@ -419,61 +733,9 @@
       ]
     },
     {
-      "name": "object-prune.fn",
-      "aliases": [],
-      "body": "function objectPruneFn(t,e,n,r={matchAll:true},c={}){if(typeof e!==\"string\")return;const o=safeSelf();const s=e!==\"\"?o.String_split.call(e,/ +/):[];const f=s.length!==0&&n!==\"\"?o.String_split.call(n,/ +/):[];if(r.matchAll!==true)if(matchesStackTraceFn(r,c.logstack)===false)return;if(objectPruneFn.mustProcess===void 0)objectPruneFn.mustProcess=(t,e)=>{for(const n of e)if(objectFindOwnerFn(t,n)===false)return false;return true};if(s.length===0)return;let i=\"nomatch\";if(objectPruneFn.mustProcess(t,f))for(const e of s)if(objectFindOwnerFn(t,e,true))i=\"match\";if(i===\"match\")return t}",
-      "dependencies": [
-        "matches-stack-trace.fn",
-        "object-find-owner.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "object-find-owner.fn",
-      "aliases": [],
-      "body": "function objectFindOwnerFn(e,t,n=false){let r=e;let f=t;for(;;){if(typeof r!==\"object\"||r===null)return false;const e=f.indexOf(\".\");if(e===-1){if(n===false)return r.hasOwnProperty(f);let e=false;if(f===\"*\")for(const t in r){if(r.hasOwnProperty(t)===false)continue;delete r[t];e=true}else if(r.hasOwnProperty(f)){delete r[f];e=true}return e}const t=f.slice(0,e);const i=f.slice(e+1);let s=false;if(t===\"[-]\"&&Array.isArray(r)){let e=r.length;while(e--){if(objectFindOwnerFn(r[e],i)===false)continue;r.splice(e,1);s=true}return s}if(t===\"{-}\"&&r instanceof Object){for(const e of Object.keys(r)){if(objectFindOwnerFn(r[e],i)===false)continue;delete r[e];s=true}return s}if(t===\"[]\"&&Array.isArray(r)||t===\"{}\"&&r instanceof Object||t===\"*\"&&r instanceof Object){for(const e of Object.keys(r)){if(objectFindOwnerFn(r[e],i,n)===false)continue;s=true}return s}if(r.hasOwnProperty(t)===false)return false;r=r[t];f=f.slice(e+1)}}",
-      "dependencies": []
-    },
-    {
-      "name": "matches-stack-trace.fn",
-      "aliases": [],
-      "body": "function matchesStackTraceFn(t,e=\"\"){const n=safeSelf();const c=getExceptionToken();const i=new n.Error(c);const s=new URL(self.location.href);s.hash=\"\";const l=/(.*?@)?(\\S+)(:\\d+):\\d+\\)?$/;const o=[];for(let t of n.String_split.call(i.stack,/[\\n\\r]+/)){if(t.includes(c))continue;t=t.trim();const e=n.RegExp_exec.call(l,t);if(e===null)continue;let i=e[2];if(i.startsWith(\"(\"))i=i.slice(1);if(i===s.href)i=\"inlineScript\";else if(i.startsWith(\"<anonymous>\"))i=\"injectedScript\";let r=e[1]!==void 0?e[1].slice(0,-1):t.slice(0,e.index).trim();if(r.startsWith(\"at\"))r=r.slice(2).trim();let a=e[3];o.push(\" \"+`${r} ${i}${a}:1`.trim())}o[0]=`stackDepth:${o.length-1}`;const r=o.join(\"\\t\");const a=t.matchAll!==true&&n.testPattern(t,r);if(e===\"all\"||e===\"match\"&&a||e===\"nomatch\"&&!a)n.uboLog(r.replace(/\\t/g,\"\\n\"));return a}",
-      "dependencies": [
-        "get-exception-token.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "parse-properties-to-match.fn",
-      "aliases": [],
-      "body": "function parsePropertiesToMatch(t,e=\"\"){const i=safeSelf();const n=new Map;if(t===void 0||t===\"\")return n;const o={canNegate:true};for(const s of i.String_split.call(t,/\\s+/)){let[t,r]=i.String_split.call(s,\":\");if(t===\"\")continue;if(r!==void 0&&/[^$\\w -]/.test(t)){t=`${t}:${r}`;r=void 0}if(r!==void 0)n.set(t,i.initPattern(r,o));else if(e!==\"\")n.set(e,i.initPattern(t,o))}return n}",
-      "dependencies": [
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "match-object-properties.fn",
-      "aliases": [],
-      "body": "function matchObjectProperties(t,...e){if(matchObjectProperties.extractProperties===void 0)matchObjectProperties.extractProperties=(t,e,o)=>{for(const r of o){const o=t[r];if(o===void 0)continue;e[r]=t[r]}};const o=safeSelf();const r={};const c=o.Array_from(t.keys());for(const t of e){if(t instanceof Object===false)continue;matchObjectProperties.extractProperties(t,r,c)}for(const[e,c]of t){let t=r[e];if(t===void 0)continue;if(typeof t!==\"string\"){try{t=o.JSON_stringify(t)}catch{}if(typeof t!==\"string\")continue}if(o.testPattern(c,t))continue;return false}return true}",
-      "dependencies": [
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "json-prune-fetch-response.fn",
-      "aliases": [],
-      "body": "function jsonPruneFetchResponseFn(e=\"\",t=\"\"){const r=safeSelf();const o=r.makeLogPrefix(\"json-prune-fetch-response\",e,t);const n=r.getExtraArgs(Array.from(arguments),2);const s=parsePropertiesToMatch(n.propsToMatch,\"url\");const c=r.initPattern(n.stackToMatch||\"\",{canNegate:true});const a=e===\"\";const u=function(u,f,i){const l=Reflect.apply(u,f,i);let h=a?\"nomatch\":\"match\";if(s.size!==0){const e=[i[0]instanceof Object?i[0]:{url:i[0]}];if(e[0]instanceof Request)try{e[0]=r.Request_clone.call(e[0])}catch(e){r.uboErr(o,\"Error:\",e)}if(i[1]instanceof Object)e.push(i[1]);if(matchObjectProperties(s,...e)===false)h=\"nomatch\"}if(a===false&&h===\"nomatch\")return l;if(r.logLevel>1&&h!==\"nomatch\"&&s.size!==0)r.uboLog(o,`Matched optional \"propsToMatch\"\\n${n.propsToMatch}`);return l.then((s=>{const u=s.clone();return u.json().then((u=>{if(typeof u!==\"object\")return s;if(a){r.uboLog(o,r.JSON_stringify(u,null,2));return s}const f=objectPruneFn(u,e,t,c,n);if(typeof f!==\"object\")return s;r.uboLog(o,\"Pruned\");const i=Response.json(f,{status:s.status,statusText:s.statusText,headers:s.headers});Object.defineProperties(i,{ok:{value:s.ok},redirected:{value:s.redirected},type:{value:s.type},url:{value:s.url}});return i})).catch((e=>{r.uboErr(o,\"Error:\",e);return s}))})).catch((e=>{r.uboErr(o,\"Error:\",e);return l}))};self.fetch=new Proxy(self.fetch,{apply:u})}",
-      "dependencies": [
-        "match-object-properties.fn",
-        "object-prune.fn",
-        "parse-properties-to-match.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
       "name": "replace-fetch-response.fn",
       "aliases": [],
-      "body": "function replaceFetchResponseFn(e=false,t=\"\",r=\"\",c=\"\"){if(e!==true)return;const n=safeSelf();const s=n.makeLogPrefix(\"replace-fetch-response\",t,r,c);if(t===\"*\")t=\".*\";const o=n.patternToRegex(t);const a=parsePropertiesToMatch(c,\"url\");const u=n.getExtraArgs(Array.from(arguments),4);const l=u.includes?n.patternToRegex(u.includes):null;self.fetch=new Proxy(self.fetch,{apply:function(e,u,f){const i=Reflect.apply(e,u,f);if(t===\"\")return i;let h=\"match\";if(a.size!==0){const e=[f[0]instanceof Object?f[0]:{url:f[0]}];if(e[0]instanceof Request)try{e[0]=n.Request_clone.call(e[0])}catch(e){n.uboErr(s,e)}if(f[1]instanceof Object)e.push(f[1]);if(matchObjectProperties(a,...e)===false)h=\"nomatch\"}if(h===\"nomatch\")return i;if(n.logLevel>1)n.uboLog(s,`Matched \"propsToMatch\"\\n${c}`);return i.then((e=>{const t=e.clone();return t.text().then((t=>{if(l&&l.test(t)===false)return e;const c=t.replace(o,r);const a=c!==t?\"match\":\"nomatch\";if(a===\"nomatch\")return e;n.uboLog(s,\"Replaced\");const u=new Response(c,{status:e.status,statusText:e.statusText,headers:e.headers});Object.defineProperties(u,{ok:{value:e.ok},redirected:{value:e.redirected},type:{value:e.type},url:{value:e.url}});return u})).catch((t=>{n.uboErr(s,t);return e}))})).catch((e=>{n.uboErr(s,e);return i}))}})}",
+      "body": "function replaceFetchResponseFn(e=false,t=\"\",r=\"\",n=\"\"){if(e!==true)return;const s=safeSelf();const c=s.makeLogPrefix(\"replace-fetch-response\",t,r,n);if(t===\"*\")t=\".*\";const o=s.patternToRegex(t);const a=parsePropertiesToMatchFn(n,\"url\");const u=s.getExtraArgs(Array.from(arguments),4);const l=u.includes?s.patternToRegex(u.includes):null;self.fetch=new Proxy(self.fetch,{apply:function(e,n,u){const f=Reflect.apply(e,n,u);if(t===\"\")return f;if(a.size!==0){const e=[u[0]instanceof Object?u[0]:{url:u[0]}];if(e[0]instanceof Request)try{e[0]=s.Request_clone.call(e[0])}catch(e){s.uboErr(c,e)}if(u[1]instanceof Object)e.push(u[1]);const t=matchObjectPropertiesFn(a,...e);if(t===void 0)return f;if(s.logLevel>1)s.uboLog(c,`Matched \"propsToMatch\":\\n\\t${t.join(\"\\n\\t\")}`)}return f.then((e=>{const t=e.clone();return t.text().then((t=>{if(l&&l.test(t)===false)return e;const n=t.replace(o,r);if(n===t)return e;s.uboLog(c,\"Replaced\");const a=new Response(n,{status:e.status,statusText:e.statusText,headers:e.headers});Object.defineProperties(a,{ok:{value:e.ok},redirected:{value:e.redirected},type:{value:e.type},url:{value:e.url}});return a})).catch((t=>{s.uboErr(c,t);return e}))})).catch((e=>{s.uboErr(c,e);return f}))}})}",
       "dependencies": [
         "match-object-properties.fn",
         "parse-properties-to-match.fn",
@@ -483,7 +745,7 @@
     {
       "name": "prevent-xhr.fn",
       "aliases": [],
-      "body": "function preventXhrFn(e=false,t=\"\",r=\"\"){if(typeof t!==\"string\")return;const s=safeSelf();const n=e?\"trusted-prevent-xhr\":\"prevent-xhr\";const o=s.makeLogPrefix(n,t,r);const a=new WeakMap;const p=parsePropertiesToMatch(t,\"url\");const i=scriptletGlobals.warOrigin;const u=(e,t)=>{try{e.dispatchEvent(new Event(t))}catch{}};const l=XMLHttpRequest.prototype;self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,n,...u){a.delete(this);if(i!==void 0&&n.startsWith(i))return super.open(e,n,...u);const l={method:e,url:n};if(t===\"\"&&r===\"\"){s.uboLog(o,`Called: ${s.JSON_stringify(l,null,2)}`);return super.open(e,n,...u)}if(matchObjectProperties(p,l)){const e=Object.assign(l,{xhr:this,defer:u.length===0||!!u[0],directive:r,headers:{date:\"\",\"content-type\":\"\",\"content-length\":\"\"},url:l.url,props:{response:{value:\"\"},responseText:{value:\"\"},responseXML:{value:null}}});a.set(this,e)}return super.open(e,n,...u)}send(...t){const n=a.get(this);if(n===void 0)return super.send(...t);n.headers[\"date\"]=(new Date).toUTCString();let p=\"\";switch(this.responseType){case\"arraybuffer\":n.props.response.value=new ArrayBuffer(0);n.headers[\"content-type\"]=\"application/octet-stream\";break;case\"blob\":n.props.response.value=new Blob([]);n.headers[\"content-type\"]=\"application/octet-stream\";break;case\"document\":{const e=new DOMParser;const t=e.parseFromString(\"\",\"text/html\");n.props.response.value=t;n.props.responseXML.value=t;n.headers[\"content-type\"]=\"text/html\";break}case\"json\":n.props.response.value={};n.props.responseText.value=\"{}\";n.headers[\"content-type\"]=\"application/json\";break;default:if(r===\"\")break;p=generateContentFn(e,n.directive);if(p instanceof Promise)p=p.then((e=>{n.props.response.value=e;n.props.responseText.value=e}));else{n.props.response.value=p;n.props.responseText.value=p}n.headers[\"content-type\"]=\"text/plain\";break}if(n.defer===false){n.headers[\"content-length\"]=`${n.props.response.value}`.length;Object.defineProperties(n.xhr,{readyState:{value:4},responseURL:{value:n.url},status:{value:200},statusText:{value:\"OK\"}});Object.defineProperties(n.xhr,n.props);return}Promise.resolve(p).then((()=>n)).then((e=>{Object.defineProperties(e.xhr,{readyState:{value:1,configurable:true},responseURL:{value:n.url}});u(e.xhr,\"readystatechange\");return e})).then((e=>{n.headers[\"content-length\"]=`${e.props.response.value}`.length;Object.defineProperties(e.xhr,{readyState:{value:2,configurable:true},status:{value:200},statusText:{value:\"OK\"}});u(e.xhr,\"readystatechange\");return e})).then((e=>{Object.defineProperties(e.xhr,{readyState:{value:3,configurable:true}});Object.defineProperties(e.xhr,e.props);u(e.xhr,\"readystatechange\");return e})).then((e=>{Object.defineProperties(e.xhr,{readyState:{value:4}});u(e.xhr,\"readystatechange\");u(e.xhr,\"load\");u(e.xhr,\"loadend\");s.uboLog(o,`Prevented with response:\\n${e.xhr.response}`)}))}getResponseHeader(e){const t=a.get(this);if(t===void 0||this.readyState<this.HEADERS_RECEIVED)return super.getResponseHeader(e);const r=t.headers[e.toLowerCase()];if(r!==void 0&&r!==\"\")return r;return null}getAllResponseHeaders(){const e=a.get(this);if(e===void 0||this.readyState<this.HEADERS_RECEIVED)return super.getAllResponseHeaders();const t=[];for(const[r,s]of Object.entries(e.headers)){if(!s)continue;t.push(`${r}: ${s}`)}if(t.length!==0)t.push(\"\");return t.join(\"\\r\\n\")}};self.XMLHttpRequest.prototype.open.toString=function(){return l.open.toString()};self.XMLHttpRequest.prototype.send.toString=function(){return l.send.toString()};self.XMLHttpRequest.prototype.getResponseHeader.toString=function(){return l.getResponseHeader.toString()};self.XMLHttpRequest.prototype.getAllResponseHeaders.toString=function(){return l.getAllResponseHeaders.toString()}}",
+      "body": "function preventXhrFn(e=false,t=\"\",r=\"\"){if(typeof t!==\"string\")return;const s=safeSelf();const n=e?\"trusted-prevent-xhr\":\"prevent-xhr\";const o=s.makeLogPrefix(n,t,r);const a=new WeakMap;const p=parsePropertiesToMatchFn(t,\"url\");const i=scriptletGlobals.warOrigin;const u=(e,t)=>{try{e.dispatchEvent(new Event(t))}catch{}};const l=XMLHttpRequest.prototype;self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,n,...u){a.delete(this);if(i!==void 0&&n.startsWith(i))return super.open(e,n,...u);const l={method:e,url:n};if(t===\"\"&&r===\"\"){s.uboLog(o,`Called: ${s.JSON_stringify(l,null,2)}`);return super.open(e,n,...u)}if(matchObjectPropertiesFn(p,l)){const e=Object.assign(l,{xhr:this,defer:u.length===0||!!u[0],directive:r,headers:{date:\"\",\"content-type\":\"\",\"content-length\":\"\"},url:l.url,props:{response:{value:\"\"},responseText:{value:\"\"},responseXML:{value:null}}});a.set(this,e)}return super.open(e,n,...u)}send(...t){const n=a.get(this);if(n===void 0)return super.send(...t);n.headers[\"date\"]=(new Date).toUTCString();let p=\"\";switch(this.responseType){case\"arraybuffer\":n.props.response.value=new ArrayBuffer(0);n.headers[\"content-type\"]=\"application/octet-stream\";break;case\"blob\":n.props.response.value=new Blob([]);n.headers[\"content-type\"]=\"application/octet-stream\";break;case\"document\":{const e=new DOMParser;const t=e.parseFromString(\"\",\"text/html\");n.props.response.value=t;n.props.responseXML.value=t;n.headers[\"content-type\"]=\"text/html\";break}case\"json\":n.props.response.value={};n.props.responseText.value=\"{}\";n.headers[\"content-type\"]=\"application/json\";break;default:if(r===\"\")break;p=generateContentFn(e,n.directive);if(p instanceof Promise)p=p.then((e=>{n.props.response.value=e;n.props.responseText.value=e}));else{n.props.response.value=p;n.props.responseText.value=p}n.headers[\"content-type\"]=\"text/plain\";break}if(n.defer===false){n.headers[\"content-length\"]=`${n.props.response.value}`.length;Object.defineProperties(n.xhr,{readyState:{value:4},responseURL:{value:n.url},status:{value:200},statusText:{value:\"OK\"}});Object.defineProperties(n.xhr,n.props);return}Promise.resolve(p).then((()=>n)).then((e=>{Object.defineProperties(e.xhr,{readyState:{value:1,configurable:true},responseURL:{value:n.url}});u(e.xhr,\"readystatechange\");return e})).then((e=>{n.headers[\"content-length\"]=`${e.props.response.value}`.length;Object.defineProperties(e.xhr,{readyState:{value:2,configurable:true},status:{value:200},statusText:{value:\"OK\"}});u(e.xhr,\"readystatechange\");return e})).then((e=>{Object.defineProperties(e.xhr,{readyState:{value:3,configurable:true}});Object.defineProperties(e.xhr,e.props);u(e.xhr,\"readystatechange\");return e})).then((e=>{Object.defineProperties(e.xhr,{readyState:{value:4}});u(e.xhr,\"readystatechange\");u(e.xhr,\"load\");u(e.xhr,\"loadend\");s.uboLog(o,`Prevented with response:\\n${e.xhr.response}`)}))}getResponseHeader(e){const t=a.get(this);if(t===void 0||this.readyState<this.HEADERS_RECEIVED)return super.getResponseHeader(e);const r=t.headers[e.toLowerCase()];if(r!==void 0&&r!==\"\")return r;return null}getAllResponseHeaders(){const e=a.get(this);if(e===void 0||this.readyState<this.HEADERS_RECEIVED)return super.getAllResponseHeaders();const t=[];for(const[r,s]of Object.entries(e.headers)){if(!s)continue;t.push(`${r}: ${s}`)}if(t.length!==0)t.push(\"\");return t.join(\"\\r\\n\")}};self.XMLHttpRequest.prototype.open.toString=function(){return l.open.toString()};self.XMLHttpRequest.prototype.send.toString=function(){return l.send.toString()};self.XMLHttpRequest.prototype.getResponseHeader.toString=function(){return l.getResponseHeader.toString()};self.XMLHttpRequest.prototype.getAllResponseHeaders.toString=function(){return l.getAllResponseHeaders.toString()}}",
       "dependencies": [
         "generate-content.fn",
         "match-object-properties.fn",
@@ -509,7 +771,7 @@
       "aliases": [
         "aopr.js"
       ],
-      "body": "function abortOnPropertyRead(t=\"\"){if(typeof t!==\"string\")return;if(t===\"\")return;const e=safeSelf();const n=e.makeLogPrefix(\"abort-on-property-read\",t);const o=getExceptionToken();const r=function(){e.uboLog(n,\"Aborted\");throw new ReferenceError(o)};const c=function(t,e){const n=e.indexOf(\".\");if(n===-1){const n=Object.getOwnPropertyDescriptor(t,e);if(!n||n.get!==r)Object.defineProperty(t,e,{get:r,set:function(){}});return}const o=e.slice(0,n);let i=t[o];e=e.slice(n+1);if(i){c(i,e);return}const f=Object.getOwnPropertyDescriptor(t,o);if(f&&f.set!==void 0)return;Object.defineProperty(t,o,{get:function(){return i},set:function(t){i=t;if(t instanceof Object)c(t,e)}})};const i=window;c(i,t)}",
+      "body": "function abortOnPropertyRead(t=\"\"){if(typeof t!==\"string\")return;if(t===\"\")return;const e=safeSelf();const n=e.makeLogPrefix(\"abort-on-property-read\",t);const o=getExceptionTokenFn();const r=function(){e.uboLog(n,\"Aborted\");throw new ReferenceError(o)};const c=function(t,e){const n=e.indexOf(\".\");if(n===-1){const n=Object.getOwnPropertyDescriptor(t,e);if(!n||n.get!==r)Object.defineProperty(t,e,{get:r,set:function(){}});return}const o=e.slice(0,n);let i=t[o];e=e.slice(n+1);if(i){c(i,e);return}const f=Object.getOwnPropertyDescriptor(t,o);if(f&&f.set!==void 0)return;Object.defineProperty(t,o,{get:function(){return i},set:function(t){i=t;if(t instanceof Object)c(t,e)}})};const i=window;c(i,t)}",
       "dependencies": [
         "get-exception-token.fn",
         "safe-self.fn"
@@ -520,21 +782,9 @@
       "aliases": [
         "aopw.js"
       ],
-      "body": "function abortOnPropertyWrite(e=\"\"){if(typeof e!==\"string\")return;if(e===\"\")return;const t=safeSelf();const r=t.makeLogPrefix(\"abort-on-property-write\",e);const o=getExceptionToken();let n=window;for(;;){const t=e.indexOf(\".\");if(t===-1)break;n=n[e.slice(0,t)];if(n instanceof Object===false)return;e=e.slice(t+1)}delete n[e];Object.defineProperty(n,e,{set:function(){t.uboLog(r,\"Aborted\");throw new ReferenceError(o)}})}",
+      "body": "function abortOnPropertyWrite(e=\"\"){if(typeof e!==\"string\")return;if(e===\"\")return;const t=safeSelf();const r=t.makeLogPrefix(\"abort-on-property-write\",e);const n=getExceptionTokenFn();let o=window;for(;;){const t=e.indexOf(\".\");if(t===-1)break;o=o[e.slice(0,t)];if(o instanceof Object===false)return;e=e.slice(t+1)}delete o[e];Object.defineProperty(o,e,{set:function(){t.uboLog(r,\"Aborted\");throw new ReferenceError(n)}})}",
       "dependencies": [
         "get-exception-token.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "abort-on-stack-trace.js",
-      "aliases": [
-        "aost.js"
-      ],
-      "body": "function abortOnStackTrace(e=\"\",t=\"\"){if(typeof e!==\"string\")return;const n=safeSelf();const r=n.initPattern(t,{canNegate:true});const c=n.getExtraArgs(Array.from(arguments),2);if(t===\"\")c.log=\"all\";const o=function(e,t){const c=t.indexOf(\".\");if(c===-1){let c=e[t];Object.defineProperty(e,t,{get:function(){const e=n.logLevel>1?\"all\":\"match\";if(matchesStackTraceFn(r,e))throw new ReferenceError(getExceptionToken());return c},set:function(e){const t=n.logLevel>1?\"all\":\"match\";if(matchesStackTraceFn(r,t))throw new ReferenceError(getExceptionToken());c=e}});return}const i=t.slice(0,c);let f=e[i];t=t.slice(c+1);if(f){o(f,t);return}const s=Object.getOwnPropertyDescriptor(e,i);if(s&&s.set!==void 0)return;Object.defineProperty(e,i,{get:function(){return f},set:function(e){f=e;if(e instanceof Object)o(e,t)}})};const i=window;o(i,e)}",
-      "dependencies": [
-        "get-exception-token.fn",
-        "matches-stack-trace.fn",
         "safe-self.fn"
       ]
     },
@@ -544,49 +794,12 @@
         "aeld.js",
         "prevent-addEventListener.js"
       ],
-      "body": "function addEventListenerDefuser(t=\"\",e=\"\"){const n=safeSelf();const r=n.getExtraArgs(Array.from(arguments),2);const o=n.makeLogPrefix(\"prevent-addEventListener\",t,e);const s=n.patternToRegex(t,void 0,true);const i=n.patternToRegex(e);const c=shouldDebug(r);const u=r.elements||void 0;const f=t=>{if(u===\"window\")return t===window;if(u===\"document\")return t===document;if(t&&t.matches&&t.matches(u))return true;const e=Array.from(document.querySelectorAll(u));return e.includes(t)};const a=t=>{if(t instanceof Window)return\"window\";if(t instanceof Document)return\"document\";if(t instanceof Element===false)return\"?\";const e=[];const n=String(t.id);if(n!==\"\")e.push(`#${CSS.escape(n)}`);for(let n=0;n<t.classList.length;n++)e.push(`.${CSS.escape(t.classList.item(n))}`);for(let n=0;n<t.attributes.length;n++){const r=t.attributes.item(n);if(r.name===\"id\")continue;if(r.name===\"class\")continue;e.push(`[${CSS.escape(r.name)}=\"${r.value}\"]`)}return e.join(\"\")};const l=(t,e,r)=>{const o=n.RegExp_test.call(s,e);const a=n.RegExp_test.call(i,r);const l=o||a;const d=o&&a;if(c===1&&d||c===2&&l)debugger;if(d&&u!==void 0)if(f(t)===false)return false;return d};runAt((()=>{proxyApplyFn(\"EventTarget.prototype.addEventListener\",(function(r){const{callArgs:s,thisArg:i}=r;let c,u;try{c=String(s[0]);if(typeof s[1]===\"function\")u=String(n.Function_toString(s[1]));else if(typeof s[1]===\"object\"&&s[1]!==null){if(typeof s[1].handleEvent===\"function\")u=String(n.Function_toString(s[1].handleEvent))}else u=String(s[1])}catch{}if(t===\"\"&&e===\"\")n.uboLog(o,`Called: ${c}\\n${u}\\n${a(i)}`);else if(l(i,c,u))return n.uboLog(o,`Prevented: ${c}\\n${u}\\n${a(i)}`);return r.reflect()}))}),r.runAt)}",
+      "body": "function addEventListenerDefuser(t=\"\",e=\"\"){const n=safeSelf();const o=n.getExtraArgs(Array.from(arguments),2);const r=n.makeLogPrefix(\"prevent-addEventListener\",t,e);const s=n.patternToRegex(t,void 0,true);const i=n.patternToRegex(e);const c=shouldDebug(o);const u=o.elements||void 0;const a=t=>{if(u===\"window\")return t===window;if(u===\"document\")return t===document;if(t&&t.matches&&t.matches(u))return true;const e=Array.from(document.querySelectorAll(u));return e.includes(t)};const f=t=>{if(t instanceof Window)return\"window\";if(t instanceof Document)return\"document\";if(t instanceof Element===false)return\"?\";const e=[];const n=String(t.id);if(n!==\"\")e.push(`#${CSS.escape(n)}`);for(let n=0;n<t.classList.length;n++)e.push(`.${CSS.escape(t.classList.item(n))}`);for(let n=0;n<t.attributes.length;n++){const o=t.attributes.item(n);if(o.name===\"id\")continue;if(o.name===\"class\")continue;e.push(`[${CSS.escape(o.name)}=\"${o.value}\"]`)}return e.join(\"\")};const l=(t,e,o)=>{const r=n.RegExp_test.call(s,e);const f=n.RegExp_test.call(i,o);const l=r||f;const d=r&&f;if(c===1&&d||c===2&&l)debugger;if(d&&u!==void 0)if(a(t)===false)return false;return d};const d=function(o){const{callArgs:s,thisArg:i}=o;let c,u;try{c=String(s[0]);if(typeof s[1]===\"function\")u=String(n.Function_toString(s[1]));else if(typeof s[1]===\"object\"&&s[1]!==null){if(typeof s[1].handleEvent===\"function\")u=String(n.Function_toString(s[1].handleEvent))}else u=String(s[1])}catch{}if(t===\"\"&&e===\"\")n.uboLog(r,`Called: ${c}\\n${u}\\n${f(i)}`);else if(l(i,c,u))return n.uboLog(r,`Prevented: ${c}\\n${u}\\n${f(i)}`);return o.reflect()};runAt((()=>{proxyApplyFn(\"EventTarget.prototype.addEventListener\",d);proxyApplyFn(\"document.addEventListener\",d)}),o.runAt)}",
       "dependencies": [
         "proxy-apply.fn",
         "run-at.fn",
         "safe-self.fn",
         "should-debug.fn"
-      ]
-    },
-    {
-      "name": "json-prune.js",
-      "aliases": [],
-      "body": "function jsonPrune(n=\"\",e=\"\",r=\"\"){const o=safeSelf();const t=o.makeLogPrefix(\"json-prune\",n,e,r);const u=o.initPattern(r,{canNegate:true});const i=o.getExtraArgs(Array.from(arguments),3);JSON.parse=new Proxy(JSON.parse,{apply:function(r,s,f){const a=Reflect.apply(r,s,f);if(n===\"\")o.uboLog(t,o.JSON_stringify(a,null,2));const c=objectPruneFn(a,n,e,u,i);if(c===void 0)return a;o.uboLog(t,\"Pruned\");if(o.logLevel>1)o.uboLog(t,`After pruning:\\n${o.JSON_stringify(c,null,2)}`);return c}})}",
-      "dependencies": [
-        "object-prune.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "json-prune-fetch-response.js",
-      "aliases": [],
-      "body": "function jsonPruneFetchResponse(...n){jsonPruneFetchResponseFn(...n)}",
-      "dependencies": [
-        "json-prune-fetch-response.fn"
-      ]
-    },
-    {
-      "name": "json-prune-xhr-response.js",
-      "aliases": [],
-      "body": "function jsonPruneXhrResponse(e=\"\",t=\"\"){const s=safeSelf();const o=s.makeLogPrefix(\"json-prune-xhr-response\",e,t);const n=new WeakMap;const r=s.getExtraArgs(Array.from(arguments),2);const p=parsePropertiesToMatch(r.propsToMatch,\"url\");const c=s.initPattern(r.stackToMatch||\"\",{canNegate:true});self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,t,...c){const i={method:e,url:t};let a=\"match\";if(p.size!==0)if(matchObjectProperties(p,i)===false)a=\"nomatch\";if(a===\"match\"){if(s.logLevel>1)s.uboLog(o,`Matched optional \"propsToMatch\", \"${r.propsToMatch}\"`);n.set(this,i)}return super.open(e,t,...c)}get response(){const p=super.response;const i=n.get(this);if(i===void 0)return p;const a=typeof p===\"string\"?p.length:void 0;if(i.lastResponseLength!==a){i.response=void 0;i.lastResponseLength=a}if(i.response!==void 0)return i.response;let f;if(typeof p===\"object\")f=p;else if(typeof p===\"string\")try{f=s.JSON_parse(p)}catch{}if(typeof f!==\"object\")return i.response=p;const u=objectPruneFn(f,e,t,c,r);let h;if(typeof u===\"object\"){h=typeof p===\"string\"?s.JSON_stringify(u):u;s.uboLog(o,\"Pruned\")}else h=p;return i.response=h}get responseText(){const e=this.response;return typeof e!==\"string\"?super.responseText:e}}}",
-      "dependencies": [
-        "match-object-properties.fn",
-        "object-prune.fn",
-        "parse-properties-to-match.fn",
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "evaldata-prune.js",
-      "aliases": [],
-      "body": "function evaldataPrune(n=\"\",e=\"\"){proxyApplyFn(\"eval\",(function(t){const r=t.reflect();if(typeof r!==\"object\")return r;if(r===null)return null;const u=objectPruneFn(r,n,e);return u||r}))}",
-      "dependencies": [
-        "object-prune.fn",
-        "proxy-apply.fn"
       ]
     },
     {
@@ -608,18 +821,6 @@
       ],
       "body": "function adjustSetTimeout(t=\"\",e=\"\",i=\"\"){if(typeof t!==\"string\")return;const s=safeSelf();const n=s.patternToRegex(t);let a=e!==\"*\"?parseInt(e,10):-1;if(isNaN(a)||isFinite(a)===false)a=1e3;let o=parseFloat(i);o=isNaN(o)===false&&isFinite(o)?Math.min(Math.max(o,.001),50):.05;self.setTimeout=new Proxy(self.setTimeout,{apply:function(t,e,i){const[s,f]=i;if((a===-1||f===a)&&n.test(s.toString()))i[1]=f*o;return t.apply(e,i)}})}",
       "dependencies": [
-        "safe-self.fn"
-      ]
-    },
-    {
-      "name": "prevent-fetch.js",
-      "aliases": [
-        "no-fetch-if.js"
-      ],
-      "body": "function noFetchIf(e=\"\",t=\"\",n=\"\"){const s=safeSelf();const r=s.makeLogPrefix(\"prevent-fetch\",e,t,n);const o=[];for(const t of s.String_split.call(e,/\\s+/)){if(t===\"\")continue;const e=t.indexOf(\":\");let n,r;if(e!==-1){n=t.slice(0,e);r=t.slice(e+1)}else{n=\"url\";r=t}o.push({key:n,pattern:s.initPattern(r,{canNegate:true})})}const c={ok:[false,true],statusText:[\"\",\"Not Found\"],type:[\"basic\",\"cors\",\"default\",\"error\",\"opaque\"]};const f={statusText:{value:\"OK\"}};if(/^\\{.*\\}$/.test(n))try{Object.entries(JSON.parse(n)).forEach((([e,t])=>{if(c[e]===void 0)return;if(c[e].includes(t)===false)return;f[e]={value:t}}))}catch{}else if(n!==\"\")if(c.type.includes(n))f.type={value:n};proxyApplyFn(\"fetch\",(function n(c){const{callArgs:i}=c;const a=i[0]instanceof self.Request?i[0]:Object.assign({url:i[0]},i[1]);let l=true;try{const n=new Map;for(const e in a){let t=a[e];if(typeof t!==\"string\")try{t=s.JSON_stringify(t)}catch{}if(typeof t!==\"string\")continue;n.set(e,t)}if(s.logLevel>1||e===\"\"&&t===\"\"){const e=Array.from(n).map((e=>`${e[0]}:${e[1]}`));s.uboLog(r,`Called: ${e.join(\"\\n\")}`)}if(e===\"\"&&t===\"\")return c.reflect();l=o.length===0;for(const{key:e,pattern:t}of o)if(t.expect&&n.has(e)===false||s.testPattern(t,n.get(e))===false){l=true;break}}catch{}if(l)return c.reflect();return Promise.resolve(generateContentFn(false,t)).then((e=>{s.uboLog(r,`Prevented with response \"${e}\"`);const t=new Response(e,{headers:{\"Content-Length\":e.length}});const n=Object.assign({url:{value:a.url}},f);s.Object_defineProperties(t,n);return t}))}))}",
-      "dependencies": [
-        "generate-content.fn",
-        "proxy-apply.fn",
         "safe-self.fn"
       ]
     },
@@ -697,7 +898,7 @@
     {
       "name": "overlay-buster.js",
       "aliases": [],
-      "body": "function overlayBuster(){if(window!==window.top)return;var e;var t=3e4;var n=0;var o=50;var i=function(){var r=document.documentElement,d=document.body,a=Math.min(r.clientWidth,window.innerWidth),m=Math.min(r.clientHeight,window.innerHeight),u=Math.min(a,m)*.05,l=document.elementFromPoint(a/2,m/2),c,f;for(;;){if(l===null||l.parentNode===null||l===d)break;c=window.getComputedStyle(l);if(parseInt(c.zIndex,10)>=1e3||c.position===\"fixed\"){f=l.getBoundingClientRect();if(f.left<=u&&f.top<=u&&a-f.right<=u&&m-f.bottom<u){l.parentNode.removeChild(l);e=Date.now();l=document.elementFromPoint(a/2,m/2);d.style.setProperty(\"overflow\",\"auto\",\"important\");r.style.setProperty(\"overflow\",\"auto\",\"important\");continue}}l=l.parentNode}if(Date.now()-e<t){n=Math.min(n+o,1e3);setTimeout(i,n)}};var r=function(t){if(t)document.removeEventListener(t.type,r);e=Date.now();setTimeout(i,n)};if(document.readyState===\"loading\")document.addEventListener(\"DOMContentLoaded\",r);else r()}",
+      "body": "function overlayBuster(e){if(e===\"\"&&window!==window.top)return;var t;var n=3e4;var o=0;var i=50;var r=function(){var e=document.documentElement,d=document.body,a=Math.min(e.clientWidth,window.innerWidth),m=Math.min(e.clientHeight,window.innerHeight),u=Math.min(a,m)*.05,l=document.elementFromPoint(a/2,m/2),c,f;for(;;){if(l===null||l.parentNode===null||l===d)break;c=window.getComputedStyle(l);if(parseInt(c.zIndex,10)>=1e3||c.position===\"fixed\"){f=l.getBoundingClientRect();if(f.left<=u&&f.top<=u&&a-f.right<=u&&m-f.bottom<u){l.parentNode.removeChild(l);t=Date.now();l=document.elementFromPoint(a/2,m/2);d.style.setProperty(\"overflow\",\"auto\",\"important\");e.style.setProperty(\"overflow\",\"auto\",\"important\");continue}}l=l.parentNode}if(Date.now()-t<n){o=Math.min(o+i,1e3);setTimeout(r,o)}};var d=function(e){if(e)document.removeEventListener(e.type,d);t=Date.now();setTimeout(r,o)};if(document.readyState===\"loading\")document.addEventListener(\"DOMContentLoaded\",d);else d()}",
       "dependencies": []
     },
     {
@@ -715,7 +916,7 @@
     {
       "name": "disable-newtab-links.js",
       "aliases": [],
-      "body": "function disableNewtabLinks(){document.addEventListener(\"click\",(function(t){var e=t.target;while(e!==null){if(e.localName===\"a\"&&e.hasAttribute(\"target\")){t.stopPropagation();t.preventDefault();break}e=e.parentNode}}))}",
+      "body": "function disableNewtabLinks(){document.addEventListener(\"click\",(e=>{let t=e.target;while(t!==null){if(t.localName===\"a\"&&t.hasAttribute(\"target\")){e.stopPropagation();e.preventDefault();break}t=t.parentNode}}),{capture:true})}",
       "dependencies": []
     },
     {
@@ -796,7 +997,7 @@
     {
       "name": "trusted-replace-xhr-response.js",
       "aliases": [],
-      "body": "function trustedReplaceXhrResponse(e=\"\",s=\"\",t=\"\"){const n=safeSelf();const o=n.makeLogPrefix(\"trusted-replace-xhr-response\",e,s,t);const r=new WeakMap;if(e===\"*\")e=\".*\";const p=n.patternToRegex(e);const c=parsePropertiesToMatch(t,\"url\");const i=n.getExtraArgs(Array.from(arguments),3);const a=i.includes?n.patternToRegex(i.includes):null;self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,s,...t){const p=this;const i={method:e,url:s};let a=\"match\";if(c.size!==0)if(matchObjectProperties(c,i)===false)a=\"nomatch\";if(a===\"match\"){if(n.logLevel>1)n.uboLog(o,`Matched \"propsToMatch\"`);r.set(p,i)}return super.open(e,s,...t)}get response(){const e=super.response;const t=r.get(this);if(t===void 0)return e;const c=typeof e===\"string\"?e.length:void 0;if(t.lastResponseLength!==c){t.response=void 0;t.lastResponseLength=c}if(t.response!==void 0)return t.response;if(typeof e!==\"string\")return t.response=e;if(a&&a.test(e)===false)return t.response=e;const i=e;const f=i.replace(p,s);if(f!==i)n.uboLog(o,\"Match\");return t.response=f}get responseText(){const e=this.response;if(typeof e!==\"string\")return super.responseText;return e}}}",
+      "body": "function trustedReplaceXhrResponse(e=\"\",s=\"\",t=\"\"){const n=safeSelf();const o=n.makeLogPrefix(\"trusted-replace-xhr-response\",e,s,t);const r=new WeakMap;if(e===\"*\")e=\".*\";const p=n.patternToRegex(e);const c=parsePropertiesToMatchFn(t,\"url\");const i=n.getExtraArgs(Array.from(arguments),3);const a=i.includes?n.patternToRegex(i.includes):null;self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,s,...t){const p=this;const i={method:e,url:s};let a=\"match\";if(c.size!==0)if(matchObjectPropertiesFn(c,i)===void 0)a=\"nomatch\";if(a===\"match\"){if(n.logLevel>1)n.uboLog(o,`Matched \"propsToMatch\"`);r.set(p,i)}return super.open(e,s,...t)}get response(){const e=super.response;const t=r.get(this);if(t===void 0)return e;const c=typeof e===\"string\"?e.length:void 0;if(t.lastResponseLength!==c){t.response=void 0;t.lastResponseLength=c}if(t.response!==void 0)return t.response;if(typeof e!==\"string\")return t.response=e;if(a&&a.test(e)===false)return t.response=e;const i=e;const f=i.replace(p,s);if(f!==i)n.uboLog(o,\"Match\");return t.response=f}get responseText(){const e=this.response;if(typeof e!==\"string\")return super.responseText;return e}}}",
       "dependencies": [
         "match-object-properties.fn",
         "parse-properties-to-match.fn",
@@ -815,28 +1016,6 @@
         "safe-self.fn"
       ],
       "executionWorld": "ISOLATED",
-      "requiresTrust": true
-    },
-    {
-      "name": "trusted-prune-inbound-object.js",
-      "aliases": [],
-      "body": "function trustedPruneInboundObject(t=\"\",n=\"\",e=\"\",r=\"\"){if(t===\"\")return;let i=globalThis;let c=t;for(;;){const t=c.indexOf(\".\");if(t===-1)break;i=i[c.slice(0,t)];if(i instanceof Object===false)return;c=c.slice(t+1)}if(typeof i[c]!==\"function\")return;const f=parseInt(n);if(isNaN(f))return;if(f<1)return;const o=safeSelf();const s=o.getExtraArgs(Array.from(arguments),4);const a=[];if(e!==\"\")a.push(...o.String_split.call(e,/ +/));if(r!==\"\")a.push(...o.String_split.call(r,/ +/));const l=o.initPattern(s.stackToMatch||\"\",{canNegate:true});const u=t=>{for(const n of a)if(objectFindOwnerFn(t,n)===false)return false;return true};i[c]=new Proxy(i[c],{apply:function(t,n,i){const c=f<=i.length?i[f-1]:void 0;if(c instanceof Object&&u(c)){let t=c;if(s.dontOverwrite)try{t=o.JSON_parse(o.JSON_stringify(c))}catch{t=void 0}if(t!==void 0){const n=objectPruneFn(t,e,r,l,s);i[f-1]=n||t}}return Reflect.apply(t,n,i)}})}",
-      "dependencies": [
-        "object-find-owner.fn",
-        "object-prune.fn",
-        "safe-self.fn"
-      ],
-      "requiresTrust": true
-    },
-    {
-      "name": "trusted-prune-outbound-object.js",
-      "aliases": [],
-      "body": "function trustedPruneOutboundObject(t=\"\",n=\"\",e=\"\"){if(t===\"\")return;const r=safeSelf();const c=r.getExtraArgs(Array.from(arguments),3);proxyApplyFn(t,(function(t){const r=t.reflect();if(r instanceof Object===false)return r;const o=objectPruneFn(r,n,e,{matchAll:true},c);return o||r}))}",
-      "dependencies": [
-        "object-prune.fn",
-        "proxy-apply.fn",
-        "safe-self.fn"
-      ],
       "requiresTrust": true
     },
     {
@@ -872,7 +1051,7 @@
     {
       "name": "trusted-prevent-dom-bypass.js",
       "aliases": [],
-      "body": "function trustedPreventDomBypass(e=\"\",n=\"\"){if(e===\"\")return;const t=safeSelf();const o=t.makeLogPrefix(\"trusted-prevent-dom-bypass\",e,n);proxyApplyFn(e,(function(e){const c=new Set(e.callArgs.filter((e=>e instanceof HTMLElement)));const f=e.reflect();if(c.length===0)return f;for(const e of c)try{if(`${e.contentWindow}`!==\"[object Window]\")continue;if(e.contentWindow.location.href!==\"about:blank\")if(e.contentWindow.location.href!==self.location.href)continue;if(n!==\"\")e.contentWindow[n]=self[n];else Object.defineProperty(e,\"contentWindow\",{value:self});t.uboLog(o,\"Bypass prevented\")}catch{}return f}))}",
+      "body": "function trustedPreventDomBypass(e=\"\",n=\"\"){if(e===\"\")return;const t=safeSelf();const o=t.makeLogPrefix(\"trusted-prevent-dom-bypass\",e,n);proxyApplyFn(e,(function(e){const c=new Set(e.callArgs.filter((e=>e instanceof HTMLElement)));const i=e.reflect();if(c.length===0)return i;for(const e of c)try{if(`${e.contentWindow}`!==\"[object Window]\")continue;if(e.contentWindow.location.href!==\"about:blank\")if(e.contentWindow.location.href!==self.location.href)continue;if(n!==\"\"){let t=self,o=e.contentWindow;let c=n;for(;;){const e=c.indexOf(\".\");if(e===-1)break;const n=c.slice(0,e);t=t[n];o=o[n];c=c.slice(e+1)}o[c]=t[c]}else Object.defineProperty(e,\"contentWindow\",{value:self});t.uboLog(o,\"Bypass prevented\")}catch{}return i}))}",
       "dependencies": [
         "proxy-apply.fn",
         "safe-self.fn"
@@ -882,7 +1061,7 @@
     {
       "name": "trusted-override-element-method.js",
       "aliases": [],
-      "body": "function trustedOverrideElementMethod(e=\"\",r=\"\",t=\"\"){if(e===\"\")return;const n=safeSelf();const o=n.makeLogPrefix(\"trusted-override-element-method\",e,r,t);proxyApplyFn(e,(function(e){let f=r===\"\";if(f===false){const{thisArg:t}=e;try{f=t.closest(r)===t}catch{}}if(f===false)return e.reflect();n.uboLog(o,\"Overridden\");if(t===\"\")return;if(t===\"debug\"&&n.logLevel!==0)debugger;if(t===\"throw\")throw new ReferenceError;return validateConstantFn(false,t)}))}",
+      "body": "function trustedOverrideElementMethod(e=\"\",r=\"\",t=\"\"){if(e===\"\")return;const n=safeSelf();const o=n.makeLogPrefix(\"trusted-override-element-method\",e,r,t);const f=n.getExtraArgs(Array.from(arguments),3);proxyApplyFn(e,(function(e){let i=r===\"\";if(i===false){const{thisArg:t}=e;try{i=t.closest(r)===t}catch{}}if(i===false)return e.reflect();n.uboLog(o,\"Overridden\");if(t===\"\")return;if(t===\"debug\"&&n.logLevel!==0)debugger;if(t===\"throw\")throw new ReferenceError;return validateConstantFn(true,t,f)}))}",
       "dependencies": [
         "proxy-apply.fn",
         "safe-self.fn",
