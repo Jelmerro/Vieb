@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -1506,7 +1506,8 @@ const disableAdblocker = () => {
     }
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
-        ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
+        ses.getPreloadScripts().filter(p => p.id === "adblock-preload")
+            .forEach(p => ses.unregisterPreloadScript(p.id))
     })
     ipcMain.removeHandler("@ghostery/adblocker/inject-cosmetic-filters")
     ipcMain.removeHandler("@ghostery/adblocker/is-mutation-observer-enabled")
@@ -1552,7 +1553,11 @@ const reloadAdblocker = () => {
     }
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
-        ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
+        ses.registerPreloadScript({
+            "filePath": adblockerPreload,
+            "id": "adblock-preload",
+            "type": "frame"
+        })
     })
     ipcMain.handle("@ghostery/adblocker/inject-cosmetic-filters",
         blocker.onInjectCosmeticFilters)
