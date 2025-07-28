@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Only the latest stable version of Eidos receives security updates. Make sure you are running the most recent release.
+Only the latest stable version of Vieb receives security updates. Make sure you are running the most recent release.
 
 
 ## Reporting a Vulnerability
