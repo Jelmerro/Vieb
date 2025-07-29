@@ -11,6 +11,13 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Versions
+
+- Electron 37.2.4 (was 36.2.0)
+- Chromium 138.0.7204.157 (was 136.0.7103.49)
+
 ## [12.3.0](https://github.com/Jelmerro/Vieb/compare/12.2.0...12.3.0) - 2025-05-08
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.2.0...12.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.3.0)

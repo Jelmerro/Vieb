@@ -1,7 +1,7 @@
 {
   "name": "vieb",
   "productName": "Vieb",
-  "version": "12.3.1-dev",
+  "version": "12.4.0-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -28,28 +28,28 @@
   "funding": "https://github.com/sponsors/Jelmerro/",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@electron/asar": "3.4.1",
+    "@electron/asar": "4.0.0",
     "@types/jsdom": "21.1.7",
-    "@types/picomatch": "4.0.0",
-    "electron": "36.2.0",
+    "@types/picomatch": "4.0.2",
+    "electron": "37.2.4",
     "electron-builder": "26.0.12",
     "eslint-config": "github:Jelmerro/eslint-config",
-    "glob": "11.0.2",
+    "glob": "11.0.3",
     "terser-webpack-plugin": "5.3.14",
     "typescript": "5.8.3",
-    "webpack": "5.99.8",
+    "webpack": "5.101.0",
     "webpack-node-externals": "3.0.0"
   },
   "dependencies": {
-    "@ghostery/adblocker-electron": "2.5.2",
-    "@ghostery/adblocker-electron-preload": "2.5.2",
+    "@ghostery/adblocker-electron": "2.11.3",
+    "@ghostery/adblocker-electron-preload": "2.11.3",
     "@mozilla/readability": "0.6.0",
     "darkreader": "4.9.96",
     "highlight.js": "11.11.1",
     "jsdom": "26.1.0",
-    "marked": "15.0.11",
-    "marked-base-url": "1.1.6",
-    "marked-highlight": "2.2.1",
-    "picomatch": "4.0.2"
+    "marked": "15.0.12",
+    "marked-base-url": "1.1.7",
+    "marked-highlight": "2.2.2",
+    "picomatch": "4.0.3"
   }
 }
