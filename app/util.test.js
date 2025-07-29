@@ -18,10 +18,10 @@
 /* eslint-disable padding-lines/statements, jsdoc/require-jsdoc */
 "use strict"
 
-const path = require("path")
-const UTIL = require("./util")
 const assert = require("assert")
 const {describe, test} = require("node:test")
+const path = require("path")
+const UTIL = require("./util")
 
 describe("Check isUrl", () => {
     const urlTests = [
@@ -424,9 +424,9 @@ describe("Format sizes work correctly", () => {
 })
 
 test("Filesystem helpers should work as expected", () => {
-    const {tmpdir} = require("os")
     const {rmdirSync} = require("fs")
-    const {isAbsolute, dirname, basename} = require("path")
+    const {tmpdir} = require("os")
+    const {basename, dirname, isAbsolute} = require("path")
     const file = UTIL.joinPath(tmpdir(), "vieb-test")
     // Clean old test files
     UTIL.deleteFile(file)

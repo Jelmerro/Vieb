@@ -19,24 +19,24 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    matchesQuery,
-    findElementAtPosition,
-    querySelectorAll,
-    propPixels,
-    findFrameInfo,
-    findClickPosition,
-    framePosition,
     activeElement,
+    findClickPosition,
+    findElementAtPosition,
+    findFrameInfo,
+    framePosition,
     getSetting,
+    isElement,
+    isHTMLAnchorElement,
+    isHTMLAudioElement,
     isHTMLElement,
     isHTMLIFrameElement,
-    isHTMLAnchorElement,
-    isInputOrTextElement,
     isHTMLImageElement,
-    isElement,
-    isSVGElement,
     isHTMLVideoElement,
-    isHTMLAudioElement
+    isInputOrTextElement,
+    isSVGElement,
+    matchesQuery,
+    propPixels,
+    querySelectorAll
 } = require("../util")
 
 /** @type {string[]|null} */
@@ -110,7 +110,7 @@ const parseElement = (element, type = null, customBounds = null) => {
     const rects = [
         boundingBox, ...subImages.map(img => img.getBoundingClientRect())
     ]
-    const {dims, clickable} = findClickPosition(element, rects)
+    const {clickable, dims} = findClickPosition(element, rects)
     if (!clickable) {
         return null
     }
@@ -259,7 +259,7 @@ const getAllFollowLinks = (filter = null) => {
             try {
                 observer.observe(link.el)
                 observingSomething = true
-            } catch (e) {
+            } catch(e) {
                 console.warn(e)
             }
         })
@@ -630,7 +630,7 @@ ipcRenderer.on("contextmenu", () => {
     }
     const els = [el]
     const parsed = parseElement(els[0])
-    if (!parsed || ["iframe", "body"].includes(els[0].tagName.toLowerCase())) {
+    if (!parsed || ["body", "iframe"].includes(els[0].tagName.toLowerCase())) {
         return
     }
     let {x} = parsed
@@ -690,7 +690,7 @@ const isVertScrollable = el => {
         return el.scrollHeight > el.clientHeight
     }
     return el.scrollHeight > el.clientHeight
-        && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
+        && ["auto", "scroll"].includes(getComputedStyle(el).overflowY)
 }
 
 /**
@@ -703,7 +703,7 @@ const isHorScrollable = el => {
         return el.scrollWidth > el.clientWidth
     }
     return el.scrollWidth > el.clientWidth
-        && ["scroll", "auto"].includes(getComputedStyle(el).overflowX)
+        && ["auto", "scroll"].includes(getComputedStyle(el).overflowX)
 }
 
 ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {

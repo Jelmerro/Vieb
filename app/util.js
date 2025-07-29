@@ -86,7 +86,7 @@ const dataUris = [
  * @param {string[]} paths
  */
 const joinPath = (...paths) => {
-    const {resolve, join} = require("path")
+    const {join, resolve} = require("path")
     return resolve(join(...paths))
 }
 
@@ -725,7 +725,7 @@ const findClickPosition = (element, rects) => {
     let clickable = false
     for (const rect of rects) {
         const {
-            centerX, centerY, x, y, width, height
+            centerX, centerY, height, width, x, y
         } = correctedCenterAndSizeOfRect(rect)
         if (!clickable || width * height > dims.width * dims.height) {
             const elAtPos = findElementAtPosition(centerX, centerY)
@@ -738,7 +738,7 @@ const findClickPosition = (element, rects) => {
     if (!clickable) {
         for (const rect of [...element.getClientRects()]) {
             const {
-                centerX, centerY, x, y, width, height
+                centerX, centerY, height, width, x, y
             } = correctedCenterAndSizeOfRect(rect)
             if (!clickable || width * height > dims.width * dims.height) {
                 const elAtPos = findElementAtPosition(centerX, centerY)
@@ -861,7 +861,7 @@ const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
         response.on("end", () => {
             try {
                 res(data)
-            } catch (err) {
+            } catch(err) {
                 rej(new Error(`${err}: ${data}`))
             }
         })

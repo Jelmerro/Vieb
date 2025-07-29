@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {joinPath, getAppRootDir} = require("../util")
+const {getAppRootDir, joinPath} = require("../util")
 
 /** Filter the cookie list based on the search query in the input box. */
 const filterList = () => {

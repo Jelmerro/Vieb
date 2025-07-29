@@ -17,45 +17,45 @@
 */
 "use strict"
 
+const {randomUUID} = require("crypto")
 const {
     app,
-    desktopCapturer,
     BrowserWindow,
+    desktopCapturer,
     dialog,
     ipcMain,
+    nativeTheme,
     net,
     screen,
     session,
     shell,
-    webContents,
-    nativeTheme
+    webContents
 } = require("electron")
-const {randomUUID} = require("crypto")
+const {translate} = require("./translate")
 const {
-    specialChars,
-    writeJSON,
-    readJSON,
-    writeFile,
-    readFile,
-    isDir,
-    listDir,
-    expandPath,
+    basePath,
+    defaultUseragent,
     deleteFile,
+    dirname,
+    domainName,
+    expandPath,
+    formatDate,
+    formatSize,
+    getSetting,
+    isAbsolutePath,
+    isDir,
     isFile,
     joinPath,
+    listDir,
     makeDir,
-    dirname,
-    basePath,
-    formatSize,
-    isAbsolutePath,
-    formatDate,
-    domainName,
-    defaultUseragent,
+    readFile,
+    readJSON,
     rm,
+    specialChars,
     watchFile,
-    getSetting
+    writeFile,
+    writeJSON
 } = require("./util")
-const {translate} = require("./translate")
 
 const version = process.env.npm_package_version || app.getVersion()
 if (!app.getName().toLowerCase().startsWith("vieb")) {
@@ -227,7 +227,7 @@ const getArguments = argv => {
  */
 const isTruthyArg = (arg = null) => {
     const argStr = String(arg).trim().toLowerCase()
-    return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
+    return Number(argStr) > 0 || ["on", "true", "y", "yes"].includes(argStr)
 }
 
 const args = getArguments(process.argv)
@@ -1810,7 +1810,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 }
             }
             if (typeof allow === "boolean") {
-                if (!["mainFrame", "subFrame", "cspReport", "other"]
+                if (!["cspReport", "mainFrame", "other", "subFrame"]
                     .includes(details.resourceType)) {
                     return callback({"cancel": !allow})
                 }
@@ -2131,7 +2131,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
          * Add md-uuid to the url to allow requests to markdownfiles protocol.
          * @param {import("marked").Tokens.Image} image
          */
-        mdRenderer.image = ({href, title, text}) => {
+        mdRenderer.image = ({href, text, title}) => {
             let safeUrl = href
             try {
                 safeUrl = encodeURI(href).replace(/%25/g, "%")
@@ -2602,14 +2602,14 @@ ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
         webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("follow-mode-start", followTypeFilter)
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
         })
         if (switchTo) {
             allLinks = []
         }
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 })
@@ -2618,11 +2618,11 @@ ipcMain.on("follow-mode-stop", e => {
         e.sender.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("follow-mode-stop")
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
         })
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 })
@@ -2649,7 +2649,7 @@ const handleFrameDetails = (e, details) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
         return
     }
@@ -2699,7 +2699,7 @@ const handleFollowResponse = (e, rawLinks) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
         return
     }
@@ -2751,7 +2751,7 @@ const handleFollowResponse = (e, rawLinks) => {
             && allFramesIds?.includes(l.frameId))
         allLinks = allLinks.concat(frameLinks)
         mainWindow?.webContents.send("follow-response", allLinks)
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 }
@@ -2820,7 +2820,7 @@ const findRelevantSubFrame = (wc, x, y) => {
             }
         })
         return relevantFrame
-    } catch (ex) {
+    } catch(ex) {
         return errToMain(ex)
     }
 }
@@ -2849,7 +2849,7 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
                 }
                 frameRef?.send("action", actionName, opts[0] - subframe.absX,
                     opts[1] - subframe.absY, ...opts.slice(2))
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
             return
@@ -2859,11 +2859,11 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
         wc.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("action", actionName, ...opts)
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
         })
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 })
@@ -2889,7 +2889,7 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
                 "x": info.x - subframe.absX,
                 "y": info.y - subframe.absY
             })
-        } catch (ex) {
+        } catch(ex) {
             errToMain(ex)
         }
         return
@@ -2901,11 +2901,11 @@ ipcMain.on("contextmenu", (_, id) => {
         webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("contextmenu")
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
         })
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 })
@@ -2930,7 +2930,7 @@ ipcMain.on("focus-input", (_, id, location = null) => {
                     "x": location.x - subframe.absX,
                     "y": location.y - subframe.absY
                 })
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
             return
@@ -2956,7 +2956,7 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
             return
         }
         wc.send("replace-input-field", correction, inputField)
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 })
@@ -2978,7 +2978,7 @@ const translateMouseEvent = (e, clickInfo = null) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch (ex) {
+    } catch(ex) {
         return errToMain(ex)
     }
     const info = frameInfo[frameId]
@@ -3012,7 +3012,7 @@ const translateMouseEvent = (e, clickInfo = null) => {
                 return false
             }
         })?.id ?? null
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
     return {
@@ -3077,11 +3077,11 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
         }).forEach(f => {
             try {
                 f.send("keyboard-type-event", keyOptions)
-            } catch (ex) {
+            } catch(ex) {
                 errToMain(ex)
             }
         })
-    } catch (ex) {
+    } catch(ex) {
         errToMain(ex)
     }
 })
@@ -3132,7 +3132,7 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                     "x": X - subframe.absX, "y": Y - subframe.absY
                 })
             }
-        } catch (ex) {
+        } catch(ex) {
             errToMain(ex)
         }
         return

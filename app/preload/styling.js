@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2024 Jelmer van Arnhem
+* Copyright (C) 2022-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -23,15 +23,15 @@
 const {ipcRenderer} = require("electron")
 const {
     appData,
-    joinPath,
     domainName,
     expandPath,
-    readFile,
-    listDir,
     fetchUrl,
-    pathToSpecialPageName,
+    getAppRootDir,
     getSetting,
-    getAppRootDir
+    joinPath,
+    listDir,
+    pathToSpecialPageName,
+    readFile
 } = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 
@@ -121,7 +121,7 @@ const enableDarkReader = async() => {
         darkreader.enable(darkreaderOpts)
         const style = await darkreader.exportGeneratedCSS()
         ipcRenderer.sendToHost("custom-style-inject", "darkreader", style)
-    } catch (e) {
+    } catch(e) {
         console.error("Darkreader failed to apply:", e)
     }
 }

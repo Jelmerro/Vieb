@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,16 +18,16 @@
 "use strict"
 
 const {
-    currentPage,
     currentMode,
-    guiRelatedUpdate,
+    currentPage,
     getMouseConf,
-    updateScreenshotHighlight,
-    getUrl
+    getUrl,
+    guiRelatedUpdate,
+    updateScreenshotHighlight
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
-/* eslint-disable sort-keys/sort-keys-fix */
+/* eslint-disable perfectionist/sort-objects */
 /** @type {{[K in import("./common").Mode]: {
  *   onLeave?: (newMode: import("./common").Mode) => void, onEnter?: () => void
  * }}} */
@@ -126,7 +126,7 @@ const modes = {
         "onLeave": newMode => {
             const {cancelFollow} = require("./follow")
             cancelFollow()
-            if (!["visual", "pointer"].includes(newMode)) {
+            if (!["pointer", "visual"].includes(newMode)) {
                 const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
@@ -138,7 +138,7 @@ const modes = {
          * @param {import("./common").Mode} newMode
          */
         "onLeave": newMode => {
-            if (!["visual", "follow"].includes(newMode)) {
+            if (!["follow", "visual"].includes(newMode)) {
                 const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
@@ -156,13 +156,14 @@ const modes = {
          * @param {import("./common").Mode} newMode
          */
         "onLeave": newMode => {
-            if (!["pointer", "follow"].includes(newMode)) {
+            if (!["follow", "pointer"].includes(newMode)) {
                 const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
         }
     }
 }
+/* eslint-enable perfectionist/sort-objects */
 
 /**
  * Set the current mode.

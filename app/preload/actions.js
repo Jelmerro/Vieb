@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -21,21 +21,21 @@ const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {
     activeElement,
-    writeFile,
-    querySelectorAll,
-    findFrameInfo,
-    findElementAtPosition,
     fetchJSON,
-    isHTMLAnchorElement,
-    isHTMLLinkElement,
-    isHTMLElement,
-    isInputOrTextElement,
-    isHTMLVideoElement,
-    isHTMLAudioElement,
+    findElementAtPosition,
+    findFrameInfo,
+    getAppRootDir,
     isElement,
-    readFile,
+    isHTMLAnchorElement,
+    isHTMLAudioElement,
+    isHTMLElement,
+    isHTMLLinkElement,
+    isHTMLVideoElement,
+    isInputOrTextElement,
     joinPath,
-    getAppRootDir
+    querySelectorAll,
+    readFile,
+    writeFile
 } = require("../util")
 
 /**
@@ -335,7 +335,7 @@ const documentAtPos = (x, y) => findElementAtPosition(x, y)
  * @returns {node is Text|Comment|CDATASection}
  */
 const isTextNode = node => [
-    Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
+    Node.CDATA_SECTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE
 ].includes(node.nodeType)
 
 /**
@@ -506,7 +506,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             && n.childNodes[0].nodeName === "#text" && n.parentNode) {
             base = n.parentNode
         }
-        if (["kbd", "style", "script"].includes(base.nodeName.toLowerCase())) {
+        if (["kbd", "script", "style"].includes(base.nodeName.toLowerCase())) {
             return
         }
         if (baseNodes.includes(base) || base === document.body) {
@@ -518,7 +518,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         const txtEl = document.createElement("p")
         for (const textNode of base.childNodes) {
             const subText = document.createElement("p")
-            if (["kbd", "code"].includes(textNode.nodeName.toLowerCase())) {
+            if (["code", "kbd"].includes(textNode.nodeName.toLowerCase())) {
                 // Skip element text
             } else if (isElement(textNode)
                 && textNode.textContent === textNode.innerHTML) {
@@ -586,7 +586,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                     })
                 })
             }
-        } catch (e) {
+        } catch(e) {
             notify({
                 "id": "actions.translations.errors.general",
                 "src": "user",
@@ -633,7 +633,7 @@ const translatepage = async(api, url, lang, apiKey) => {
                 })
             })
         }
-    } catch (e) {
+    } catch(e) {
         notify({
             "id": "actions.translations.errors.general",
             "src": "user",

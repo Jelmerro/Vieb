@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,20 @@
 */
 "use strict"
 
+const {translate} = require("../translate")
 const {
+    appData,
+    deleteFile,
+    getSetting,
+    hasProtocol,
     isFile,
     joinPath,
-    appData,
-    readJSON,
-    deleteFile,
-    urlToString,
     pathToSpecialPageName,
-    hasProtocol,
+    readJSON,
     specialChars,
-    getSetting,
+    urlToString,
     writeJSONAsync
 } = require("../util")
-const {translate} = require("../translate")
 
 const histFile = joinPath(appData(), "hist")
 /** @type {{[url: string]: string}} */

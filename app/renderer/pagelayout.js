@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2023 Jelmer van Arnhem
+* Copyright (C) 2020-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,16 +17,16 @@
 */
 "use strict"
 
-const {
-    listTabs,
-    currentPage,
-    tabForPage,
-    listFakePages,
-    listRealPages,
-    listPages,
-    listReadyPages
-} = require("./common")
 const {getSetting, propPixels} = require("../util")
+const {
+    currentPage,
+    listFakePages,
+    listPages,
+    listReadyPages,
+    listRealPages,
+    listTabs,
+    tabForPage
+} = require("./common")
 
 /**
  * Get a page layout element by id.
@@ -438,7 +438,7 @@ const toTop = direction => {
     } else {
         let pageLayoutClass = "hor"
         let subLayoutClass = "ver"
-        if (["top", "bottom"].includes(direction)) {
+        if (["bottom", "top"].includes(direction)) {
             pageLayoutClass = "ver"
             subLayoutClass = "hor"
         }

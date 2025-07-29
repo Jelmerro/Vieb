@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,37 +18,37 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {argsAsHumanList, validLanguages} = require("../translate")
 const {
-    specialChars,
-    joinPath,
-    notify,
-    isUrl,
-    stringToUrl,
+    appConfig,
     appData,
     expandPath,
-    isFile,
     isDir,
-    readFile,
-    writeFile,
-    writeJSON,
+    isFile,
+    isUrl,
+    isValidIntervalValue,
+    joinPath,
+    notify,
     pathExists,
     pathToSpecialPageName,
-    appConfig,
+    readFile,
+    specialChars,
+    stringToUrl,
+    urlToString,
     userAgentTemplated,
-    isValidIntervalValue,
-    urlToString
+    writeFile,
+    writeJSON
 } = require("../util")
 const {
-    listTabs,
-    listPages,
-    currentTab,
     currentPage,
-    updateGuiVisibility,
+    currentTab,
     getMouseConf,
+    listPages,
+    listReadyPages,
+    listTabs,
     tabForPage,
-    listReadyPages
+    updateGuiVisibility
 } = require("./common")
-const {argsAsHumanList, validLanguages} = require("../translate")
 
 const mouseFeatures = [
     "pageininsert",
@@ -713,7 +713,7 @@ const checkSuggestOrder = (src, value) => {
         }
         const args = suggest.split("~")
         const type = args.shift() ?? ""
-        if (!["history", "file", "searchword"].includes(type)) {
+        if (!["file", "history", "searchword"].includes(type)) {
             notify({
                 "fields": [type],
                 "id": "settings.errors.suggestorder.type",
@@ -792,7 +792,7 @@ const checkOther = (src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        const valid = ["session", "none"].includes(value)
+        const valid = ["none", "session"].includes(value)
             || isValidIntervalValue(value)
         if (!valid) {
             notify({
@@ -1151,7 +1151,7 @@ const checkOther = (src, setting, value) => {
             }
         }
         for (const val of Object.values(value)) {
-            const {valid, maps} = splitMapString(val)
+            const {maps, valid} = splitMapString(val)
             if (!valid) {
                 notify({
                     "fields": [val],
@@ -1288,7 +1288,7 @@ const checkOther = (src, setting, value) => {
             return false
         }
         for (const mType of value) {
-            if (!["scroll", "marks", "pointer"].includes(mType)) {
+            if (!["marks", "pointer", "scroll"].includes(mType)) {
                 notify({
                     "fields": [mType],
                     "id": "settings.errors.markpersistencetype",
@@ -1744,7 +1744,7 @@ const isValidSetting = (src, setting, value) => {
         parsedValue = String(value)
     }
     if (expectedType === "boolean") {
-        if (["true", "false"].includes(String(parsedValue))) {
+        if (["false", "true"].includes(String(parsedValue))) {
             parsedValue = value === "true"
         }
     }
@@ -2108,10 +2108,10 @@ const updateHelpPage = src => {
     listReadyPages().forEach(p => {
         const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
         if (special?.name === "help") {
+            const {rangeCompatibleCommands} = require("./command")
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
-            const {rangeCompatibleCommands} = require("./command")
             p.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList(src, null, true), uncountableActions,
                 rangeCompatibleCommands)
@@ -2219,7 +2219,7 @@ const set = (src, setting, value) => {
             updateCustomStyling()
         }
         if (setting === "guiscrollbar") {
-            const {showScrollbar, hideScrollbar} = require("./pagelayout")
+            const {hideScrollbar, showScrollbar} = require("./pagelayout")
             if (value === "always") {
                 showScrollbar()
             } else {

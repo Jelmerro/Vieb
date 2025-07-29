@@ -19,25 +19,25 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    currentPage,
-    currentMode,
-    getMouseConf,
-    tabForPage,
-    listReadyPages,
-    sendToPageOrSubFrame
-} = require("./common")
-const {
-    getSetting,
-    matchesQuery,
     appData,
-    joinPath,
-    readJSON,
-    writeJSON,
-    urlToString,
     domainName,
+    getSetting,
+    joinPath,
+    matchesQuery,
+    pageContainerPos,
     pageOffset,
-    pageContainerPos
+    readJSON,
+    urlToString,
+    writeJSON
 } = require("../util")
+const {
+    currentMode,
+    currentPage,
+    getMouseConf,
+    listReadyPages,
+    sendToPageOrSubFrame,
+    tabForPage
+} = require("./common")
 
 let X = 0
 let Y = 0
@@ -62,7 +62,7 @@ const updateElement = () => {
     if (!pointerEl || !page) {
         return
     }
-    const {top, left, bottom, right} = pageOffset(page)
+    const {bottom, left, right, top} = pageOffset(page)
     X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
     pointerEl.style.left = `${X + left}px`
@@ -882,7 +882,7 @@ const centerOfView = () => {
     if (!page) {
         return
     }
-    const {top, bottom} = pageOffset(page)
+    const {bottom, top} = pageOffset(page)
     Y = (bottom - top) / 2
     updateElement()
 }

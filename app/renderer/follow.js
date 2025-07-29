@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,17 @@
 */
 "use strict"
 
-const {ipcRenderer, clipboard} = require("electron")
+const {clipboard, ipcRenderer} = require("electron")
 const {getSetting} = require("../util")
 const {
+    currentMode,
     currentPage,
     currentTab,
-    currentMode,
-    setStored,
-    getStored,
     getMouseConf,
+    getStored,
     getUrl,
-    sendToPageOrSubFrame
+    sendToPageOrSubFrame,
+    setStored
 } = require("./common")
 
 /**
@@ -193,7 +193,7 @@ const clickAtLink = async(link, src = "user") => {
     const factor = currentPage()?.getZoomFactor() ?? 1
     const {setMode} = require("./modes")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
-        const {start, move} = require("./pointer")
+        const {move, start} = require("./pointer")
         start()
         if (getStored("modebeforefollow") === "visual") {
             setMode("visual")
@@ -278,7 +278,7 @@ const emptyHoverLink = () => {
  */
 const getWritableDOMRect = el => {
     const {
-        top, right, bottom, left, width, height, x, y
+        bottom, height, left, right, top, width, x, y
     } = el?.getBoundingClientRect() ?? {}
     return {bottom, height, left, right, top, width, x, y}
 }

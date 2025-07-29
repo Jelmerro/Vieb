@@ -1,12 +1,12 @@
 "use strict"
 
 const {
-    listDir,
-    joinPath,
-    readJSON,
-    isFile,
+    getAppRootDir,
     getSetting,
-    getAppRootDir
+    isFile,
+    joinPath,
+    listDir,
+    readJSON
 } = require("./util")
 
 /** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */

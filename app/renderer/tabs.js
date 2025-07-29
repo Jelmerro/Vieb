@@ -20,42 +20,42 @@
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {
-    joinPath,
-    appData,
     appConfig,
+    appData,
+    deleteFile,
+    getSetting,
+    hasProtocol,
+    isDir,
+    isFile,
+    joinPath,
+    listDir,
+    listNotificationHistory,
+    notify,
+    pathToSpecialPageName,
+    propPixels,
     readFile,
     readJSON,
-    writeJSON,
-    isFile,
-    isDir,
-    listDir,
-    specialPagePath,
-    pathToSpecialPageName,
-    urlToString,
-    stringToUrl,
-    hasProtocol,
     sameDomain,
-    notify,
-    listNotificationHistory,
-    propPixels,
+    specialPagePath,
+    stringToUrl,
+    urlToString,
     userAgentTemplated,
-    getSetting,
-    deleteFile
+    writeJSON
 } = require("../util")
 const {
-    listTabs,
-    listPages,
-    currentTab,
-    currentPage,
     currentMode,
-    guiRelatedUpdate,
-    setTopOfPageWithMouse,
+    currentPage,
+    currentTab,
     getMouseConf,
     getUrl,
-    tabForPage,
-    pageForTab,
+    guiRelatedUpdate,
+    listPages,
     listReadyPages,
-    sendToPageOrSubFrame
+    listTabs,
+    pageForTab,
+    sendToPageOrSubFrame,
+    setTopOfPageWithMouse,
+    tabForPage
 } = require("./common")
 const {setMode} = require("./modes")
 
@@ -360,7 +360,7 @@ const switchToTab = tabOrIndex => {
         newCurrentPage.id = "current-page"
     }
     tab.scrollIntoView({"block": "center", "inline": "center"})
-    const {switchView, setLastUsedTab} = require("./pagelayout")
+    const {setLastUsedTab, switchView} = require("./pagelayout")
     if (newCurrentPage) {
         switchView(oldPage, newCurrentPage)
     }
@@ -385,7 +385,7 @@ const switchToTab = tabOrIndex => {
     setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
     const loadingProgress = document.getElementById("loading-progress")
     if (loadingProgress) {
-        if (["line", "all"].includes(getSetting("loadingindicator"))) {
+        if (["all", "line"].includes(getSetting("loadingindicator"))) {
             try {
                 if (newCurrentPage?.isLoading()) {
                     loadingProgress.style.display = "flex"
@@ -439,7 +439,7 @@ const closeTab = (src, index = null, force = false) => {
         regularTab.removeAttribute("devtools-id")
     }
     const closedDevtoolsId = tab.getAttribute("devtools-id")
-    const {layoutDivById, hide} = require("./pagelayout")
+    const {hide, layoutDivById} = require("./pagelayout")
     const isVisible = layoutDivById(tabLinkId)
     const multiLayout = document.getElementById("pages")
         ?.classList.contains("multiple")
@@ -719,11 +719,11 @@ const addWebviewListeners = webview => {
             || webview.src.startsWith("markdownviewer:")
         addColorschemeStylingToWebview(webview)
         if (specialPageName === "help") {
+            const {rangeCompatibleCommands} = require("./command")
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
             const {settingsWithDefaults} = require("./settings")
-            const {rangeCompatibleCommands} = require("./command")
             webview.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList("other", null, true),
                 uncountableActions,

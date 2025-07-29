@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2024 Jelmer van Arnhem
+* Copyright (C) 2020-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 /* eslint-disable no-extra-bind */
 
 const {ipcRenderer} = require("electron")
-const {getSetting} = require("../util")
 const {translate} = require("../translate")
+const {getSetting} = require("../util")
 
 /**
  * Send a notification to the renderer thread.

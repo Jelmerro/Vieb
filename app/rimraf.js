@@ -6,7 +6,7 @@ This is a sync-only no-glob native-fs reworked rimraf that also works in Windows
 - rimraf has a hard dependency on glob and async versions which are unnecessary
 - Now I have to maintain a separate version of rimraf that just works...
 
-Copyright (C) 2022-2023 Jelmer van Arnhem
+Copyright (C) 2022-2025 Jelmer van Arnhem
 Copyright (c) 2011-2022 Isaac Z. Schlueter and Contributors
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -41,7 +41,7 @@ const isErrnoException = e => "code" in e
 const rmdirSync = (p, originalEr) => {
     try {
         fs.rmdirSync(p)
-    } catch (er) {
+    } catch(er) {
         if (isErrnoException(er) && er.code === "ENOENT") {
             return
         }
@@ -49,7 +49,7 @@ const rmdirSync = (p, originalEr) => {
             throw originalEr
         }
         if (isErrnoException(er)
-            && ["ENOTEMPTY", "EEXIST", "EPERM"].includes(er.code ?? "")) {
+            && ["EEXIST", "ENOTEMPTY", "EPERM"].includes(er.code ?? "")) {
             const {join} = require("path")
             /* eslint-disable-next-line no-use-before-define */
             fs.readdirSync(p).forEach(f => rimrafSync(join(p, f)))
@@ -81,7 +81,7 @@ const rmdirSync = (p, originalEr) => {
 const fixWinEPERMSync = (p, er) => {
     try {
         fs.chmodSync(p, 0o666)
-    } catch (er2) {
+    } catch(er2) {
         if (isErrnoException(er2) && er2.code === "ENOENT") {
             return
         }
@@ -90,7 +90,7 @@ const fixWinEPERMSync = (p, er) => {
     let stats = null
     try {
         stats = fs.statSync(p)
-    } catch (er3) {
+    } catch(er3) {
         if (isErrnoException(er3) && er3.code === "ENOENT") {
             return
         }
@@ -112,7 +112,7 @@ const rimrafSync = p => {
     let st = null
     try {
         st = fs.lstatSync(p)
-    } catch (er) {
+    } catch(er) {
         if (isErrnoException(er) && er.code === "ENOENT") {
             return
         }
@@ -128,7 +128,7 @@ const rimrafSync = p => {
         } else {
             fs.unlinkSync(p)
         }
-    } catch (er) {
+    } catch(er) {
         if (isErrnoException(er) && er.code === "ENOENT") {
             return
         }

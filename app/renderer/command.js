@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,51 +18,51 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {argsAsHumanList, translate} = require("../translate")
 const {
-    notify,
-    clearTempContainers,
+    appConfig,
+    appData,
     clearCache,
     clearCookies,
     clearLocalStorage,
-    readFile,
-    writeFile,
+    clearTempContainers,
     deleteFile,
+    dirname,
+    domainName,
+    downloadPath,
+    execCommand,
+    expandPath,
+    formatDate,
+    getAppRootDir,
+    getSetting,
+    intervalValueToDate,
+    isAbsolutePath,
     isDir,
     isFile,
-    expandPath,
-    isAbsolutePath,
+    isUrl,
+    isValidIntervalValue,
     joinPath,
-    downloadPath,
-    dirname,
-    appData,
-    specialPagePath,
+    notify,
     pathToSpecialPageName,
+    propPixels,
+    readFile,
+    readJSON,
     specialChars,
     specialCharsAllowSpaces,
-    appConfig,
+    specialPagePath,
     stringToUrl,
-    formatDate,
-    propPixels,
-    readJSON,
-    writeJSON,
-    domainName,
     urlToString,
-    isUrl,
-    execCommand,
-    intervalValueToDate,
-    getSetting,
-    isValidIntervalValue,
-    getAppRootDir
+    writeFile,
+    writeJSON
 } = require("../util")
 const {
-    listTabs,
-    currentTab,
     currentPage,
+    currentTab,
+    listRealPages,
+    listTabs,
     pageForTab,
-    tabForPage,
-    listRealPages
+    tabForPage
 } = require("./common")
-const {argsAsHumanList, translate} = require("../translate")
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
@@ -143,7 +143,7 @@ const isStringObject = value => typeof value === "object"
  * @param {"append"|"remove"|"special"|"replace"} method
  */
 const modifyListOrObject = (src, setting, value, method) => {
-    const {set, isArraySetting, isObjectSetting} = require("./settings")
+    const {isArraySetting, isObjectSetting, set} = require("./settings")
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
     const {mouseFeatures} = require("./settings")
@@ -270,7 +270,7 @@ const modifyListOrObject = (src, setting, value, method) => {
 const modifySetting = (src, setting, rawValue, method = "replace") => {
     let value = rawValue
     const {
-        set, isNumberSetting, isStringSetting, isArraySetting, isObjectSetting
+        isArraySetting, isNumberSetting, isObjectSetting, isStringSetting, set
     } = require("./settings")
     const isNumber = isNumberSetting(setting)
     const isText = isStringSetting(setting)
@@ -560,7 +560,7 @@ const setCommand = (src, args) => {
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 const {
-                    isArraySetting, isObjectSetting, isNumberSetting
+                    isArraySetting, isNumberSetting, isObjectSetting
                 } = require("./settings")
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, "false")
@@ -1090,8 +1090,8 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
-    const {addTab} = require("./tabs")
     const {add} = require("./pagelayout")
+    const {addTab} = require("./tabs")
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
@@ -1139,7 +1139,7 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
         || (url?.replace(/\/+$/g, "") ?? "")
         === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
     const replaceSpecial = getSetting("replacespecial")
-    const {navigateTo, addTab} = require("./tabs")
+    const {addTab, navigateTo} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
         addTab({src, "url": newSpecialUrl})
     } else if (replaceSpecial === "always") {
@@ -1289,7 +1289,7 @@ const write = (src, args, range) => {
         return
     }
     let [path, type = "html"] = args
-    if (!["mhtml", "html"].includes(type) || ["mhtml", "html"].includes(path)) {
+    if (!["html", "mhtml"].includes(type) || ["html", "mhtml"].includes(path)) {
         [type, path] = args
     }
     if (type !== "html" && type !== "mhtml") {
@@ -1366,7 +1366,7 @@ const screencopy = (src, args) => {
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            const {nativeImage, clipboard} = require("electron")
+            const {clipboard, nativeImage} = require("electron")
             clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
         })
     }, 20)
@@ -1576,7 +1576,7 @@ const hideCommand = (src, args, range = null) => {
  * @param {string} range
  */
 const setMute = (src, args, range) => {
-    if (args.length !== 1 || !["true", "false"].includes(args[0])) {
+    if (args.length !== 1 || !["false", "true"].includes(args[0])) {
         notify({"id": "commands.mute.argCount", src, "type": "warning"})
         return
     }
@@ -1643,7 +1643,7 @@ const mute = (src, args, range = null) => {
  * @param {string} range
  */
 const setPin = (src, args, range) => {
-    if (args.length !== 1 || !["true", "false"].includes(args[0])) {
+    if (args.length !== 1 || !["false", "true"].includes(args[0])) {
         notify({"id": "commands.pin.argCount", src, "type": "warning"})
         return
     }
@@ -1738,8 +1738,8 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
             t => addSplit(src, method, leftOrAbove, [`${t}`]))
         return
     }
-    const {addTab, switchToTab} = require("./tabs")
     const {add} = require("./pagelayout")
+    const {addTab, switchToTab} = require("./tabs")
     const id = currentTab()?.getAttribute("link-id")
     if (!id) {
         return
@@ -2640,89 +2640,85 @@ let userCommands = {}
  *   }) => void
  * }} */
 const commands = {
-    "Sexplore": ({src, args, range}) => addSplit(
-        src, "ver", !getSetting("splitbelow"), args, range),
-    "Vexplore": ({src, args, range}) => addSplit(
-        src, "hor", !getSetting("splitright"), args, range),
-    "b": ({src, args}) => buffer(src, args),
-    "buffer": ({src, args}) => buffer(src, args),
+    "b": ({args, src}) => buffer(src, args),
+    "buffer": ({args, src}) => buffer(src, args),
     "buffers": ({src}) => buffers(src),
     "call": ({args, src}) => callAction(args, src),
-    "clear": ({src, args}) => clear(src, args[0], args[1], args[2]),
-    "close": ({src, args, range}) => close(src, false, args, range),
-    "close!": ({src, args, range}) => close(src, true, args, range),
-    "colorscheme": ({src, args}) => colorscheme(src, ...args),
+    "clear": ({args, src}) => clear(src, args[0], args[1], args[2]),
+    "close": ({args, range, src}) => close(src, false, args, range),
+    "close!": ({args, range, src}) => close(src, true, args, range),
+    "colorscheme": ({args, src}) => colorscheme(src, ...args),
     "comclear": () => {
         userCommands = {}
     },
     /* eslint-disable-next-line no-use-before-define */
-    "command": ({src, args}) => addCommand(src, false, args),
+    "command": ({args, src}) => addCommand(src, false, args),
     /* eslint-disable-next-line no-use-before-define */
-    "command!": ({src, args}) => addCommand(src, true, args),
+    "command!": ({args, src}) => addCommand(src, true, args),
     "cookies": ({src}) => openSpecialPage(src, "cookies", false),
     "cookies!": ({src}) => openSpecialPage(src, "cookies", true),
     "d": ({src}) => openSpecialPage(src, "downloads", false),
     "d!": ({src}) => openSpecialPage(src, "downloads", true),
     /* eslint-disable-next-line no-use-before-define */
-    "delcommand": ({src, args}) => deleteCommand(src, args),
-    "delmarks": ({src, args}) => delmarks(src, false, args),
-    "delmarks!": ({src, args}) => delmarks(src, true, args),
-    "delpointerpos": ({src, args}) => delpointerpos(src, false, args),
-    "delpointerpos!": ({src, args}) => delpointerpos(src, true, args),
-    "delscrollpos": ({src, args}) => delscrollpos(src, false, args),
-    "delscrollpos!": ({src, args}) => delscrollpos(src, true, args),
-    "devtools": ({src, args}) => openDevTools(src, ...args),
+    "delcommand": ({args, src}) => deleteCommand(src, args),
+    "delmarks": ({args, src}) => delmarks(src, false, args),
+    "delmarks!": ({args, src}) => delmarks(src, true, args),
+    "delpointerpos": ({args, src}) => delpointerpos(src, false, args),
+    "delpointerpos!": ({args, src}) => delpointerpos(src, true, args),
+    "delscrollpos": ({args, src}) => delscrollpos(src, false, args),
+    "delscrollpos!": ({args, src}) => delscrollpos(src, true, args),
+    "devtools": ({args, src}) => openDevTools(src, ...args),
     "downloads": ({src}) => openSpecialPage(src, "downloads", false),
     "downloads!": ({src}) => openSpecialPage(src, "downloads", true),
     "echo": ({args, src}) => notify({
         "fields": [args.join(" ")], "id": "util.untranslated", src
     }),
-    "h": ({src, args}) => help(src, false, ...args),
-    "h!": ({src, args}) => help(src, true, ...args),
-    "hardcopy": ({src, range}) => hardcopy(src, range),
-    "help": ({src, args}) => help(src, false, ...args),
-    "help!": ({src, args}) => help(src, true, ...args),
-    "hide": ({src, args, range}) => hideCommand(src, args, range),
+    "h": ({args, src}) => help(src, false, ...args),
+    "h!": ({args, src}) => help(src, true, ...args),
+    "hardcopy": ({range, src}) => hardcopy(src, range),
+    "help": ({args, src}) => help(src, false, ...args),
+    "help!": ({args, src}) => help(src, true, ...args),
+    "hide": ({args, range, src}) => hideCommand(src, args, range),
     "history": ({src}) => openSpecialPage(src, "history", false),
     "history!": ({src}) => openSpecialPage(src, "history", true),
     "internaldevtools": openInternalDevTools,
     "lclose": ({src}) => lclose(src),
     "lclose!": ({src}) => lclose(src, true),
     "makedefault": ({src}) => makedefault(src),
-    "marks": ({src, args}) => marks(src, args),
-    "mkviebrc": ({src, args}) => mkviebrc(src, ...args),
-    "mute": ({src, args, range}) => mute(src, args, range),
-    "mute!": ({src, args, range}) => setMute(src, args, range),
+    "marks": ({args, src}) => marks(src, args),
+    "mkviebrc": ({args, src}) => mkviebrc(src, ...args),
+    "mute": ({args, range, src}) => mute(src, args, range),
+    "mute!": ({args, range, src}) => setMute(src, args, range),
     "nohlsearch": () => {
         listRealPages().forEach(page => page.stopFindInPage("clearSelection"))
     },
     "notifications": ({src}) => openSpecialPage(src, "notifications", false),
     "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
-    "o": ({src, args}) => open(src, args),
+    "o": ({args, src}) => open(src, args),
     "only": () => {
         const {only} = require("./pagelayout")
         only()
     },
-    "open": ({src, args}) => open(src, args),
-    "pin": ({src, args, range}) => pin(src, args, range),
-    "pin!": ({src, args, range}) => setPin(src, args, range),
-    "pointerpos": ({src, args}) => pointerpos(src, args),
-    "print": ({src, range}) => hardcopy(src, range),
-    "q": ({src, range}) => quit(src, range),
+    "open": ({args, src}) => open(src, args),
+    "pin": ({args, range, src}) => pin(src, args, range),
+    "pin!": ({args, range, src}) => setPin(src, args, range),
+    "pointerpos": ({args, src}) => pointerpos(src, args),
+    "print": ({range, src}) => hardcopy(src, range),
+    "q": ({range, src}) => quit(src, range),
     "qa": quitall,
-    "quit": ({src, range}) => quit(src, range),
+    "quit": ({range, src}) => quit(src, range),
     quitall,
     "rclose": ({src}) => rclose(src),
     "rclose!": ({src}) => rclose(src, true),
     reloadconfig,
     restart,
-    "restoremark": ({src, args}) => restoremark(src, args),
-    "restorepointerpos": ({src, args}) => restorepointerpos(src, args),
-    "restorescrollpos": ({src, args}) => restorescrollpos(src, args),
-    "runjsinpage": ({src, raw, range}) => runjsinpage(src, raw, range),
-    "s": ({src, args}) => setCommand(src, args),
-    "screencopy": ({src, args}) => screencopy(src, args),
-    "screenshot": ({src, args}) => screenshot(src, args),
+    "restoremark": ({args, src}) => restoremark(src, args),
+    "restorepointerpos": ({args, src}) => restorepointerpos(src, args),
+    "restorescrollpos": ({args, src}) => restorescrollpos(src, args),
+    "runjsinpage": ({range, raw, src}) => runjsinpage(src, raw, range),
+    "s": ({args, src}) => setCommand(src, args),
+    "screencopy": ({args, src}) => screencopy(src, args),
+    "screenshot": ({args, src}) => screenshot(src, args),
     "scriptnames": ({args, src}) => {
         if (args?.length) {
             notify({
@@ -2774,50 +2770,54 @@ const commands = {
             })
         }
     },
-    "scrollpos": ({src, args}) => scrollpos(src, args),
-    "set": ({src, args}) => setCommand(src, args),
-    "source": ({src, args}) => source(src, null, args),
-    "split": ({src, args, range}) => addSplit(
+    "scrollpos": ({args, src}) => scrollpos(src, args),
+    "set": ({args, src}) => setCommand(src, args),
+    "Sexplore": ({args, range, src}) => addSplit(
         src, "ver", !getSetting("splitbelow"), args, range),
-    "suspend": ({src, args, range}) => suspend(src, args, range),
-    "tabnew": ({src, raw}) => tabnew(
+    "source": ({args, src}) => source(src, null, args),
+    "split": ({args, range, src}) => addSplit(
+        src, "ver", !getSetting("splitbelow"), args, range),
+    "suspend": ({args, range, src}) => suspend(src, args, range),
+    "tabnew": ({raw, src}) => tabnew(
         src, null, raw.split(" ").slice(1).join(" ")),
-    "tabnewcontainer": ({src, raw}) => tabnew(src, raw.split(" ")[1],
+    "tabnewcontainer": ({raw, src}) => tabnew(src, raw.split(" ")[1],
         raw.split(" ").slice(2).join(" ")),
-    "translatepage": ({src, args}) => translatepage(src, args),
+    "translatepage": ({args, src}) => translatepage(src, args),
     "v": ({src}) => openSpecialPage(src, "version", false),
     "v!": ({src}) => openSpecialPage(src, "version", true),
     "version": ({src}) => openSpecialPage(src, "version", false),
     "version!": ({src}) => openSpecialPage(src, "version", true),
-    "vsplit": ({src, args, range}) => addSplit(
+    "Vexplore": ({args, range, src}) => addSplit(
         src, "hor", !getSetting("splitright"), args, range),
-    "w": ({src, args, range}) => write(src, args, range),
-    "write": ({src, args, range}) => write(src, args, range)
+    "vsplit": ({args, range, src}) => addSplit(
+        src, "hor", !getSetting("splitright"), args, range),
+    "w": ({args, range, src}) => write(src, args, range),
+    "write": ({args, range, src}) => write(src, args, range)
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
-const {mapOrList, unmap, clearmap} = require("./input")
+const {clearmap, mapOrList, unmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
-    commands[`${prefix.trim()}map!`] = ({src, args}) => {
+    commands[`${prefix.trim()}map!`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args, false, true)
     }
-    commands[`${prefix.trim()}noremap!`] = ({src, args}) => {
+    commands[`${prefix.trim()}noremap!`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args, true, true)
     }
     holdUseCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}map`] = ({src, args}) => {
+    commands[`${prefix.trim()}map`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args)
     }
     noEscapeCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}noremap`] = ({src, args}) => {
+    commands[`${prefix.trim()}noremap`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}noremap`)
-    commands[`${prefix.trim()}unmap`] = ({src, args}) => {
+    commands[`${prefix.trim()}unmap`] = ({args, src}) => {
         unmap(src, prefix.trim(), args, false)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap`)
-    commands[`${prefix.trim()}unmap!`] = ({src, args}) => {
+    commands[`${prefix.trim()}unmap!`] = ({args, src}) => {
         unmap(src, prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap!`)
@@ -3020,7 +3020,7 @@ const parseAndValidateArgs = commandStr => {
                 try {
                     JSON.parse(value)
                     return false
-                } catch (e) {
+                } catch(e) {
                     parsingError = String(e)
                     return true
                 }
@@ -3127,7 +3127,7 @@ const execute = (com, opts = {}) => {
     }
     const p = parseAndValidateArgs(commandStr)
     let {command} = p
-    const {range, args, valid, confirm, error} = p
+    const {args, confirm, error, range, valid} = p
     if (!valid) {
         if ("set".startsWith(command)) {
             notify({

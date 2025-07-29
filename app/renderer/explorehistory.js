@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2023 Jelmer van Arnhem
+* Copyright (C) 2021-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 */
 "use strict"
 
+const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
 const {currentMode, getUrl} = require("./common")
-const {joinPath, getSetting, appData, appendFile, readFile} = require("../util")
 
 const exploreFile = joinPath(appData(), "explorehist")
 /** @type {string[]} */

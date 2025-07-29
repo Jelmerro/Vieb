@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2023 Jelmer van Arnhem
+* Copyright (C) 2022-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,14 @@
 
 const {
     appConfig,
-    domainName,
-    listDir,
-    joinPath,
     appData,
+    domainName,
     expandPath,
-    readFile,
+    getSetting,
+    joinPath,
+    listDir,
     pathToSpecialPageName,
-    getSetting
+    readFile
 } = require("../util")
 
 /**
@@ -50,7 +50,7 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         }
         const value = arr.slice(1).join(" ")
         if (obj[key] === undefined) {
-            if (["match", "includes", "excludes"].includes(key)) {
+            if (["excludes", "includes", "match"].includes(key)) {
                 obj[key] = [value]
             } else {
                 obj[key] = value

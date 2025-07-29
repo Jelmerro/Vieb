@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2024 Jelmer van Arnhem
+* Copyright (C) 2021-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,31 +18,31 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {
-    matchesQuery,
-    stringToUrl,
-    urlToString,
-    specialChars,
-    notify,
-    isUrl,
-    propPixels,
-    execCommand,
-    isElement,
-    getSetting,
-    pageContainerPos
-} = require("../util")
 const {translate} = require("../translate")
 const {
-    listTabs,
+    execCommand,
+    getSetting,
+    isElement,
+    isUrl,
+    matchesQuery,
+    notify,
+    pageContainerPos,
+    propPixels,
+    specialChars,
+    stringToUrl,
+    urlToString
+} = require("../util")
+const {
+    currentMode,
     currentPage,
     currentTab,
-    currentMode,
     getMouseConf,
-    tabForPage,
     getUrl,
-    pageForTab,
     listReadyPages,
-    sendToPageOrSubFrame
+    listTabs,
+    pageForTab,
+    sendToPageOrSubFrame,
+    tabForPage
 } = require("./common")
 
 /**
@@ -293,8 +293,8 @@ const commonAction = (src, type, action, options) => {
         return
     }
     const {clipboard} = require("electron")
-    const {addTab} = require("./tabs")
     const {add} = require("./pagelayout")
+    const {addTab} = require("./tabs")
     if (action === "copyimage") {
         clipboard.clear()
         const el = document.createElement("img")
@@ -435,11 +435,11 @@ const viebMenu = (src, options, force = false) => {
     contextMenu.style.left = `${options.x}px`
     const {clipboard} = require("electron")
     const {
-        useEnteredData,
         backInHistory,
         forwardInHistory,
+        openNewTabWithCurrentUrl,
         refreshTab,
-        openNewTabWithCurrentUrl
+        useEnteredData
     } = require("./actions")
     const menuSetting = getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar" || force
@@ -522,8 +522,8 @@ const viebMenu = (src, options, force = false) => {
     }
     const tabMenu = menuSetting === "both" || menuSetting === "tabbar" || force
     if (pathEls.some(el => matchesQuery(el, "#tabs")) && tabMenu) {
-        const {addTab, reopenTab, closeTab} = require("./tabs")
         const {execute} = require("./command")
+        const {addTab, closeTab, reopenTab} = require("./tabs")
         const tab = listTabs().find(t => pathEls.includes(t))
         if (!tab) {
             fixAlignmentNearBorders()

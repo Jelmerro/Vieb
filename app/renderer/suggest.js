@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,32 +18,32 @@
 "use strict"
 
 const {
-    urlToString,
-    isDir,
-    listDir,
-    joinPath,
-    readFile,
-    expandPath,
+    appData,
     basePath,
     dirname,
-    pathExists,
-    isAbsolutePath,
     downloadPath,
-    appData,
-    isUrl,
-    searchword,
+    expandPath,
+    getAppRootDir,
     getSetting,
+    isAbsolutePath,
+    isDir,
+    isUrl,
+    joinPath,
+    listDir,
+    pathExists,
+    readFile,
+    searchword,
     stringToUrl,
-    getAppRootDir
+    urlToString
 } = require("../util")
 const {
-    listTabs,
     currentMode,
+    currentPage,
     getMouseConf,
-    updateScreenshotHighlight,
     getUrl,
+    listTabs,
     pageForTab,
-    currentPage
+    updateScreenshotHighlight
 } = require("./common")
 
 /** @type {string[]} */
@@ -449,7 +449,7 @@ const suggestCommand = searchStr => {
     const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     const {parseAndValidateArgs} = require("./command")
     const {
-        range, valid, confirm, command, args
+        args, command, confirm, range, valid
     } = parseAndValidateArgs(search)
     const urlElement = document.getElementById("url")
     if (urlElement) {
@@ -555,7 +555,7 @@ const suggestCommand = searchStr => {
     }
     updateScreenshotHighlight()
     // Command: set
-    const {suggestionList, settingsWithDefaults} = require("./settings")
+    const {settingsWithDefaults, suggestionList} = require("./settings")
     if ("set".startsWith(command) && !confirm && !range) {
         if (args.length) {
             suggestionList().filter(s => s.startsWith(args[args.length - 1]))
@@ -580,7 +580,7 @@ const suggestCommand = searchStr => {
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 3) {
         let [path = "", type = ""] = args
-        if (!["mhtml", "html"].includes(type)
+        if (!["html", "mhtml"].includes(type)
             && ["mhtml", "html"].some(h => h.startsWith(path))) {
             [type = "", path = ""] = args
         }
@@ -740,7 +740,7 @@ const suggestCommand = searchStr => {
     // Command: help
     if ("help".startsWith(command) && !range) {
         const {
-            listSupportedActions, listMappingsAsCommandList
+            listMappingsAsCommandList, listSupportedActions
         } = require("./input")
         const sections = [
             "intro",

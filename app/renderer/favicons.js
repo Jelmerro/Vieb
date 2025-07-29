@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,22 +18,22 @@
 "use strict"
 
 const {
-    joinPath,
-    appData,
-    isFile,
-    readJSON,
-    deleteFile,
-    modifiedAt,
-    makeDir,
     appConfig,
-    pathToSpecialPageName,
-    stringToUrl,
-    getSetting,
+    appData,
+    deleteFile,
     getAppRootDir,
-    writeJSONAsync,
-    listDirAsync
+    getSetting,
+    isFile,
+    joinPath,
+    listDirAsync,
+    makeDir,
+    modifiedAt,
+    pathToSpecialPageName,
+    readJSON,
+    stringToUrl,
+    writeJSONAsync
 } = require("../util")
-const {tabForPage, listPages, currentPage} = require("./common")
+const {currentPage, listPages, tabForPage} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
@@ -119,7 +119,7 @@ const loading = (webview, empty = false) => {
     const loadingIndicator = getSetting("loadingindicator")
     const tab = tabForPage(webview)
     const status = tab?.querySelector(".status")
-    if (["line", "all"].includes(loadingIndicator)) {
+    if (["all", "line"].includes(loadingIndicator)) {
         if (webview === currentPage()) {
             const loadingProgress = document.getElementById("loading-progress")
             if (loadingProgress) {
@@ -128,7 +128,7 @@ const loading = (webview, empty = false) => {
         }
     }
     if (status instanceof HTMLElement) {
-        if (["spinner", "all"].includes(loadingIndicator)) {
+        if (["all", "spinner"].includes(loadingIndicator)) {
             status.style.display = ""
         } else {
             status.style.display = "none"
@@ -138,7 +138,7 @@ const loading = (webview, empty = false) => {
     if (!(favicon instanceof HTMLImageElement)) {
         return
     }
-    if (["spinner", "all"].includes(loadingIndicator)) {
+    if (["all", "spinner"].includes(loadingIndicator)) {
         favicon.style.display = "none"
     } else {
         favicon.style.display = ""

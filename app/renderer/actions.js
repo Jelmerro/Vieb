@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2024 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,39 +25,39 @@
  * }} ActionParam
  */
 
-const {ipcRenderer, clipboard} = require("electron")
+const {clipboard, ipcRenderer} = require("electron")
 const {
-    urlToString,
-    joinPath,
     appData,
+    domainName,
+    execCommand,
+    getSetting,
+    isDir,
+    isFile,
+    isUrl,
+    joinPath,
     makeDir,
-    writeFile,
-    writeJSON,
     notify,
-    watchFile,
     readFile,
     readJSON,
     searchword,
     stringToUrl,
-    domainName,
-    isFile,
-    isDir,
-    execCommand,
-    getSetting,
-    isUrl
+    urlToString,
+    watchFile,
+    writeFile,
+    writeJSON
 } = require("../util")
 const {
-    listTabs,
-    currentTab,
-    currentPage,
     currentMode,
+    currentPage,
+    currentTab,
     getStored,
-    updateGuiVisibility,
-    setStored,
     getUrl,
-    tabForPage,
     listRealPages,
-    sendToPageOrSubFrame
+    listTabs,
+    sendToPageOrSubFrame,
+    setStored,
+    tabForPage,
+    updateGuiVisibility
 } = require("./common")
 
 let lastSearchFull = false
@@ -540,7 +540,7 @@ const toggleSourceViewer = args => {
  * @param {ActionParam} args
  */
 const toggleSourceViewerNewTab = args => {
-    const {navigateTo, addTab} = require("./tabs")
+    const {addTab, navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
@@ -589,7 +589,7 @@ const toggleReaderView = args => {
  * @param {ActionParam} args
  */
 const toggleReaderViewNewTab = args => {
-    const {navigateTo, addTab} = require("./tabs")
+    const {addTab, navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
@@ -639,7 +639,7 @@ const toggleMarkdownViewer = args => {
  * @param {ActionParam} args
  */
 const toggleMarkdownViewerNewTab = args => {
-    const {navigateTo, addTab} = require("./tabs")
+    const {addTab, navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
@@ -1080,8 +1080,8 @@ const openLinkExternal = args => {
 /** Completely reset any focus issues there could be in the app. */
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
-    const {updateUrl} = require("./tabs")
     const {followFiltering} = require("./follow")
+    const {updateUrl} = require("./tabs")
     const page = currentPage()
     if (page) {
         updateUrl(page)
@@ -1806,20 +1806,20 @@ module.exports = {
     openFromClipboard,
     openLinkExternal,
     openNewTabWithCurrentUrl,
-    pageRSSLinkToClipboard,
     pageRSSLinksList,
+    pageRSSLinkToClipboard,
     pageTitleToClipboard,
     pageToClipboard,
     pageToClipboardEmacs,
     pageToClipboardHTML,
     pageToClipboardMarkdown,
     pageToClipboardRST,
-    prevSuggestion,
-    prevSuggestionSection,
     previousPage,
     previousPageNewTab,
     previousSearchMatch,
     previousTab,
+    prevSuggestion,
+    prevSuggestionSection,
     refreshTab,
     refreshTabWithoutCache,
     reopenTab,
@@ -1862,19 +1862,6 @@ module.exports = {
     toCommandMode,
     toExploreMode,
     toFirstSplitWindow,
-    toInsertMode,
-    toLastSplitWindow,
-    toLeftSplitWindow,
-    toNextSplitWindow,
-    toNormalMode,
-    toParentSubdomain,
-    toParentUrl,
-    toPreviousSplitWindow,
-    toRightSplitWindow,
-    toRootSubdomain,
-    toRootUrl,
-    toSearchMode,
-    toTopSplitWindow,
     toggleAlwaysOnTop,
     toggleFullscreen,
     toggleMarkdownViewer,
@@ -1884,7 +1871,20 @@ module.exports = {
     toggleSourceViewer,
     toggleSourceViewerNewTab,
     toggleTOC,
+    toInsertMode,
+    toLastSplitWindow,
+    toLeftSplitWindow,
+    toNextSplitWindow,
+    toNormalMode,
+    toParentSubdomain,
+    toParentUrl,
     topHalfSplitWindow,
+    toPreviousSplitWindow,
+    toRightSplitWindow,
+    toRootSubdomain,
+    toRootUrl,
+    toSearchMode,
+    toTopSplitWindow,
     useEnteredData,
     zoomIn,
     zoomOut,
