@@ -30,6 +30,11 @@ for (const f of files) {
     translations[f] = contents
 }
 
+/**
+ * Recursively traverse objects and list all keys as dot-separated values.
+ * @param {import("./app/translate").StringOrObject} obj
+ * @param {string} folder
+ */
 const listKeys = (obj, folder = "") => {
     const keys = []
     for (const l of Object.keys(obj)) {
@@ -46,6 +51,11 @@ const listKeys = (obj, folder = "") => {
     return keys
 }
 
+/**
+ * Get a specific transalted value for recursive dot-separated values.
+ * @param {string} lang
+ * @param {string} key
+ */
 const getVal = (lang, key) => {
     const obj = translations[lang]
     const path = key.split(".")
@@ -59,6 +69,11 @@ const getVal = (lang, key) => {
     return translation
 }
 
+/**
+ * Calculate the number of fields for a specific language.
+ * @param {string} lang
+ * @param {string} key
+ */
 const numberOfFields = (lang, key) => {
     const enValue = getVal(lang, key)
     for (let i = 1; i < 100; i++) {
@@ -68,12 +83,14 @@ const numberOfFields = (lang, key) => {
     }
 }
 
+/** Update the key list type file. */
 const types = () => {
     const keyList = listKeys(translations.en).map(k => `    | "${k}"`)
     const output = `export type TranslationKeys =\n${keyList.join("\n")}\n`
     writeFile("types/i18n.d.ts", output)
 }
 
+/** Write all new translations to disk in alphabetic order. */
 const writeTranslations = () => {
     for (const lang of Object.keys(translations)) {
         const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
