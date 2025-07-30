@@ -129,19 +129,6 @@ unless you are really sure that it's a Vieb specific issue by testing it [with t
 Finally, it's worth noting that most blocklists work suboptimal if you block autoplay,
 which is blocked by default in Vieb, though you can change that using `--autoplay-media=always` on startup.
 
-#### Why doesn't screensharing work on some sites such as Google Meet?
-
-Most screensharing will work if you allow permissionmediadevices fully and set permissiondisplaycapture to ask.
-Some sites also require permissionmicrophone and permissioncamera in addition to that.
-You can see the history of blocked and allowed permissions in the notification page (see `:notifications`).
-Google Meet however does not use the open standard of the screenshare API,
-but instead uses their own proprietary hangouts extension to share the screen.
-This means that it will not work if you don't have the extension installed,
-which only Chrome and Firefox have by default.
-In case you are looking for info on this,
-see [StackOverflow](https://stackoverflow.com/questions/63658198/how-does-google-meet-allow-you-to-screen-share-from-another-tab) or the [extension's source code](https://github.com/chromium/chromium/tree/main/chrome/browser/resources/hangout_services).
-Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
-
 #### Can I make Vieb my default browser?
 
 Yes, there is a command for that named `:makedefault`.
