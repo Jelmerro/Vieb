@@ -958,11 +958,6 @@ app.whenReady().then(async() => {
         "title": app.getName(),
         "webPreferences": {
             "contextIsolation": false,
-            // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
-            // https://github.com/electron/electron/issues/22582
-            // https://github.com/electron/electron/issues/28620
-            "nodeIntegrationInSubFrames": true,
-            "nodeIntegrationInWorker": true,
             "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,
             "webviewTag": true
@@ -996,7 +991,7 @@ app.whenReady().then(async() => {
         mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
     })
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
-        prefs.preload = joinPath(__dirname, "preload/index.js")
+        delete prefs.preload
         prefs.sandbox = false
         prefs.contextIsolation = true
     })
@@ -1666,6 +1661,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
+    newSess.registerPreloadScript({
+        "filePath": joinPath(__dirname, "preload/index.js"),
+        "type": "service-worker"
+    })
+    newSess.registerPreloadScript({
+        "filePath": joinPath(__dirname, "preload/index.js"),
+        "type": "frame"
+    })
     newSess.setPermissionRequestHandler(permissionHandler)
     newSess.setPermissionCheckHandler(
         (__, pm, url, details) => permissionHandler(null, pm, null, {

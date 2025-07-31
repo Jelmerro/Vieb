@@ -989,10 +989,7 @@ const unsuspendPage = page => {
     if (appConfig()?.autoplay === "user") {
         prefs += "autoplayPolicy=document-user-activation-required,"
     }
-    // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
-    // https://github.com/electron/electron/issues/22582
-    // https://github.com/electron/electron/issues/28620
-    prefs += "disableDialogs,nodeIntegrationInSubFrames,nodeIntegrationInWorker"
+    prefs += "disableDialogs"
     webview.setAttribute("allowpopups", "true")
     webview.setAttribute("webpreferences", prefs)
     const url = page.getAttribute("src") || ""

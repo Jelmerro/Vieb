@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Preload loading location, so that it also includes service workers without using deprecated Electron options
+
+### Versions
+
+- Electron 37.2.5 (unchanged)
+- Chromium 138.0.7204.168 (unchanged)
+
 ## [12.4.0](https://github.com/Jelmerro/Vieb/compare/12.3.0...12.4.0) - 2025-07-31
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.3.0...12.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.4.0)
