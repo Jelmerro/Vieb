@@ -124,105 +124,138 @@ contextBridge.executeInMainWorld({
     }
 })
 
-/** Override privacy sensitive APIs with empty or simple defaults. */
+/** Run privacy overrides function inside the main window. */
 const privacyOverrides = () => {
-    // Return a static maximum value for memory and thread count
-    Object.defineProperty(window.Navigator.prototype,
-        "hardwareConcurrency", {"get": (() => 8).bind(null)})
-    Object.defineProperty(window.Navigator.prototype,
-        "deviceMemory", {"get": (() => 8).bind(null)})
-    // Hide graphics card information from the canvas API
-    const getParam = window.WebGLRenderingContext.prototype.getParameter
-    /* eslint-disable no-restricted-syntax */
     /**
-     * Override getParameter function to return nothing when asked for GPU info.
-     * @param {number} parameter
+     * Override privacy sensitive APIs with empty or simple defaults.
+     * @param {(Window & typeof globalThis)|null} customScope
      */
-    window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
-        if ([37445, 37446].includes(parameter)) {
-            return ""
+    const privacyOverridesInScope = customScope => {
+        const scope = customScope || window
+        // Return a static maximum value for memory and thread count
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "hardwareConcurrency", {"get": (() => 8).bind(null)})
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "deviceMemory", {"get": (() => 8).bind(null)})
+        // Hide graphics card information from the canvas API
+        const getParam = scope.WebGLRenderingContext.prototype.getParameter
+        /* eslint-disable no-restricted-syntax */
+        /**
+         * Override getParameter function to return nothing instead of GPU info.
+         * @param {number} param
+         */
+        scope.WebGLRenderingContext.prototype.getParameter = function(param) {
+            if ([37445, 37446].includes(param)) {
+                return ""
+            }
+            return getParam.call(this, param)
         }
-        return getParam.call(this, parameter)
-    }
-    const getParam2 = window.WebGL2RenderingContext.prototype.getParameter
-    /**
-     * Override getParameter function to return nothing when asked for GPU info.
-     * @param {number} parameter
-     */
-    window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
-        if ([37445, 37446].includes(parameter)) {
-            return ""
+        const getParam2 = scope.WebGL2RenderingContext.prototype.getParameter
+        /**
+         * Override getParameter function to return nothing instead of GPU info.
+         * @param {number} param
+         */
+        scope.WebGL2RenderingContext.prototype.getParameter = function(param) {
+            if ([37445, 37446].includes(param)) {
+                return ""
+            }
+            return getParam2.call(this, param)
         }
-        return getParam2.call(this, parameter)
-    }
-    /* eslint-enable no-restricted-syntax */
-    // If using a Firefox useragent, also modify Firefox navigator properties
-    if (window.navigator.userAgent.includes("Firefox")) {
-        Object.defineProperty(window.Navigator.prototype,
-            "buildID", {"get": (() => "20181001000000").bind(null)})
-        Object.defineProperty(window.Navigator.prototype,
-            "doNotTrack", {"get": (() => "unspecified").bind(null)})
-        let platform = "Linux x86_64"
-        if (process.platform === "win32") {
-            platform = "Win32"
+        /* eslint-enable no-restricted-syntax */
+        // If using a Firefox useragent, also modify Firefox navigator props
+        if (scope.navigator.userAgent.includes("Firefox")) {
+            scope.Object.defineProperty(scope.Navigator.prototype,
+                "buildID", {"get": (() => "20181001000000").bind(null)})
+            scope.Object.defineProperty(scope.Navigator.prototype,
+                "doNotTrack", {"get": (() => "unspecified").bind(null)})
+            let platform = "Linux x86_64"
+            if (process.platform === "win32") {
+                platform = "Win32"
+            }
+            if (process.platform === "darwin") {
+                platform = "MacIntel"
+            }
+            scope.Object.defineProperty(scope.Navigator.prototype,
+                "oscpu", {"get": (() => platform).bind(null)})
+            scope.Object.defineProperty(scope.Navigator.prototype,
+                "productSub", {"get": (() => "20100101").bind(null)})
+            scope.Object.defineProperty(scope.Navigator.prototype,
+                "vendor", {"get": (() => "").bind(null)})
+            scope.Object.defineProperty(scope, "chrome", {})
         }
-        if (process.platform === "darwin") {
-            platform = "MacIntel"
+        // Don't share the connection information
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "connection", {"get": (() => undefined).bind(null)})
+        try {
+            delete scope.Object.getPrototypeOf(scope.navigator).connection
+        } catch {
+            // No deletion allowed in this context, set to undefined instead
         }
-        Object.defineProperty(window.Navigator.prototype,
-            "oscpu", {"get": (() => platform).bind(null)})
-        Object.defineProperty(window.Navigator.prototype,
-            "productSub", {"get": (() => "20100101").bind(null)})
-        Object.defineProperty(window.Navigator.prototype,
-            "vendor", {"get": (() => "").bind(null)})
-        Object.defineProperty(window, "chrome", {})
+        // Disable the experimental keyboard API, which exposes every mapping
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "keyboard", {"get": (() => undefined).bind(null)})
+        try {
+            delete scope.Object.getPrototypeOf(scope.navigator).keyboard
+        } catch {
+            // No deletion allowed in this context, set to undefined instead
+        }
+        // Disable redundant userAgentData API, which exposes extra version info
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "userAgentData", {"get": (() => undefined).bind(null)})
+        try {
+            delete scope.Object.getPrototypeOf(scope.navigator).userAgentData
+        } catch {
+            // No deletion allowed in this context, set to undefined instead
+        }
+        // HTTPS-only: Always return there is no battery
+        /* eslint-disable jsdoc/require-jsdoc */
+        // @ts-expect-error Not present in HTTP environments nor ts spec
+        if (scope.BatteryManager) {
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "level", {"get": () => 1})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "charging", {"get": () => true})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "chargingTime", {"get": () => 0})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "dischargingTime", {"get": () => Infinity})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "onchargingchange", {"get": () => null})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "onchargingtimechange", {"get": () => null})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "ondischargingtimechange", {"get": () => null})
+            // @ts-expect-error Not present in HTTP environments nor ts spec
+            scope.Object.defineProperty(scope.BatteryManager.prototype,
+                "onlevelchange", {"get": () => null})
+        }
+        /* eslint-enable jsdoc/require-jsdoc */
     }
-    // Don't share the connection information
-    Object.defineProperty(window.Navigator.prototype,
-        "connection", {"get": (() => undefined).bind(null)})
-    try {
-        delete Object.getPrototypeOf(window.navigator).connection
-    } catch {
-        // No deletion allowed in this context, set to undefined instead
-    }
-    // Disable the experimental keyboard API, which exposes every key mapping
-    Object.defineProperty(window.Navigator.prototype,
-        "keyboard", {"get": (() => undefined).bind(null)})
-    try {
-        delete Object.getPrototypeOf(window.navigator).keyboard
-    } catch {
-        // No deletion allowed in this context, set to undefined instead
-    }
-    // HTTPS-only: Always return there is no battery and the state never changes
-    /* eslint-disable jsdoc/require-jsdoc */
-    // @ts-expect-error Not present in HTTP environments nor ts spec
-    if (window.BatteryManager) {
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "level", {"get": () => 1})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "charging", {"get": () => true})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "chargingTime", {"get": () => 0})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "dischargingTime", {"get": () => Infinity})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "onchargingchange", {"get": () => null})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "onchargingtimechange", {"get": () => null})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "ondischargingtimechange", {"get": () => null})
-        // @ts-expect-error Not present in HTTP environments nor ts spec
-        Object.defineProperty(window.BatteryManager.prototype,
-            "onlevelchange", {"get": () => null})
-    }
-    /* eslint-enable jsdoc/require-jsdoc */
+
+    const observer = new MutationObserver(mutations => {
+        const iframes = mutations.map(m => [...m.addedNodes]
+            .filter(n => n.nodeName.toLowerCase() === "iframe")).flat()
+        for (const frame of iframes) {
+            if ("contentWindow" in frame) {
+                // @ts-expect-error contentWindow is not compatible with window
+                privacyOverridesInScope(frame.contentWindow)
+            }
+        }
+    })
+    observer.observe(document, {
+        "attributes": false,
+        "characterData": false,
+        "childList": true,
+        "subtree": true
+    })
+    privacyOverridesInScope(window)
 }
 
 contextBridge.executeInMainWorld({"func": privacyOverrides})

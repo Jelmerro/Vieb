@@ -16,6 +16,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Preload loading location, so that it also includes service workers without using deprecated Electron options
+- Privacy overrides to remove the userAgentData API from pages
+- Privacy overrides now run inside iframes too if allowed
 
 ### Versions
 

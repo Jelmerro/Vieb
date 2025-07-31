@@ -462,11 +462,8 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
 }
 
 // https://github.com/electron/electron/issues/30201
-if (argMediaKeys) {
-    app.commandLine.appendSwitch("disable-features", "UserAgentClientHint")
-} else {
-    app.commandLine.appendSwitch("disable-features",
-        "HardwareMediaKeyHandling,UserAgentClientHint")
+if (!argMediaKeys) {
+    app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
