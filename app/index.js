@@ -632,7 +632,7 @@ let permissions = {}
  * @param {string} pm
  * @param {null|((_: any) => void)} callback
  * @param {{
- *   mediaTypes?: string[],
+ *   mediaType?: "video"|"audio"|"unknown",
  *   externalURL?: string,
  *   requestingUrl?: string
  *   cert?: Electron.Certificate
@@ -650,11 +650,11 @@ const permissionHandler = (_, pm, callback, details) => {
         return DRM
     }
     if (permission === "media") {
-        if (details.mediaTypes?.includes("video")) {
+        if (details.mediaType === "video") {
             permission = "camera"
-        } else if (details.mediaTypes?.includes("audio")) {
+        } else if (details.mediaType === "audio") {
             permission = "microphone"
-        } else if (details.mediaTypes) {
+        } else if (details.mediaType) {
             permission = "displaycapture"
         } else {
             permission = "mediadevices"
@@ -998,7 +998,7 @@ app.whenReady().then(async() => {
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
         prefs.preload = joinPath(__dirname, "preload/index.js")
         prefs.sandbox = false
-        prefs.contextIsolation = false
+        prefs.contextIsolation = true
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
         contents.on("will-prevent-unload", e => e.preventDefault())

@@ -13,6 +13,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Follow mode event listener detection now uses data attributes to work around contextIsolation
+- Privacy overrides to use contextBridge for overriding sensitive APIs, dialogs and enumerateDevices
+
+### Fixed
+
+- Incorrect type detection for video and audio device detection checks
+
+### Security
+
+- Enabled contextIsolation to solve remote code execution via unrusted URLs, see TODO
+
 ### Versions
 
 - Electron 37.2.4 (was 36.2.0)

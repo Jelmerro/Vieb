@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {contextBridge, ipcRenderer} = require("electron")
 const {
     activeElement,
     findClickPosition,
@@ -81,11 +81,26 @@ const otherEvents = [
 ]
 /** @type {Element[]} */
 const previouslyFocussedElements = []
-/** @type {{[type: string]: WeakSet<EventTarget>}} */
-const eventListeners = {}
-;[...clickEvents, ...otherEvents].forEach(e => {
-    eventListeners[e] = new WeakSet()
-})
+
+/**
+ * Check if an element has a listener of a specific kind.
+ * @param {EventTarget} el
+ * @param {typeof clickEvents[number]|typeof otherEvents[number]} type
+ */
+const hasListener = (el, type) => {
+    if (!isElement(el)) {
+        return false
+    }
+    /** @type {{[type: string]: number}} */
+    const listeners = {}
+    const attr = el.getAttribute("data-eventlisteners")
+    for (const l of attr?.split(",") ?? []) {
+        const [name, countStr] = l.split(":")
+        const count = Number(countStr) || 0
+        listeners[name] = count
+    }
+    return listeners[type] && listeners[type] > 0
+}
 
 /**
  * Parse an element to a clickable rect if possible.
@@ -208,12 +223,12 @@ const getAllFollowLinks = (filter = null) => {
         // Elements with some kind of mouse interaction, grouped by click/other
         allEls.filter(el => clickEvents.some(
             e => isHTMLElement(el) && el[`on${e}`]
-            || eventListeners[e].has(el))
+            || hasListener(el, e))
             || el.getAttribute("jsaction")).forEach(
             el => relevantLinks.push({el, "type": "onclick"}))
         allEls.filter(el => otherEvents.some(
             e => isHTMLElement(el) && el[`on${e}`]
-            || eventListeners[e].has(el)))
+            || hasListener(el, e)))
             .forEach(el => relevantLinks.push({el, "type": "other"}))
     }
     if (!filter || filter.includes("media")) {
@@ -321,38 +336,92 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     }
     previouslyFocussedElements.push(focusEl)
 })
-/* eslint-disable no-restricted-syntax */
-const realAdd = EventTarget.prototype.addEventListener
-/**
- * Add the regular event listener while also recording its existence in a set.
- * @param {string} type
- * @param {() => void} listener
- * @param {object} options
- */
-EventTarget.prototype.addEventListener = function(type, listener, options) {
-    try {
-        realAdd.apply(this, [type, listener, options])
-        eventListeners[type]?.add(this)
-    } catch {
-        // This is a bug in the underlying website
+
+/** Track updates to event listeners and write them down as a data attribute. */
+const trackEventListeners = () => {
+    /**
+     * Check if a node is an element, taking subframes into account.
+     * @param {Node|EventTarget|null|undefined} el
+     * @returns {el is Element}
+     */
+    const isElementInMainWorld = el => {
+        if (el instanceof EventTarget && !(el instanceof Element)) {
+            return false
+        }
+        if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+            return false
+        }
+        return el instanceof el.ownerDocument.defaultView.Element
     }
-}
-const realRemove = EventTarget.prototype.removeEventListener
-/**
- * Remove the regular event listener while also removing its storage from a set.
- * @param {string} type
- * @param {() => void} listener
- * @param {object} options
- */
-EventTarget.prototype.removeEventListener = function(type, listener, options) {
-    try {
-        realRemove.apply(this, [type, listener, options])
-        eventListeners[type]?.delete(this)
-    } catch {
-        // This is a bug in the underlying website
+
+    /* eslint-disable no-restricted-syntax */
+    const realAdd = EventTarget.prototype.addEventListener
+    /**
+     * Add the event listener while also recording its existence in a set.
+     * @param {string} type
+     * @param {() => void} listener
+     * @param {object} opts
+     */
+    EventTarget.prototype.addEventListener = function(type, listener, opts) {
+        try {
+            realAdd.apply(this, [type, listener, opts])
+        } catch {
+            // This is a bug in the underlying website
+        }
+        if (isElementInMainWorld(this)) {
+            /** @type {{[type: string]: number}} */
+            const listeners = {}
+            const attr = this.getAttribute("data-eventlisteners")
+            for (const l of attr?.split(",") ?? []) {
+                const [name, countStr] = l.split(":")
+                const count = Number(countStr) || 0
+                listeners[name] = count
+            }
+            listeners[type] = (listeners[type] || 0) + 1
+            const listenersStr = Object.keys(listeners)
+                .map(l => `${l}:${listeners[l]}`).join(",")
+            this.setAttribute?.("data-eventlisteners", listenersStr)
+        }
     }
+    const realRemove = EventTarget.prototype.removeEventListener
+    /**
+     * Remove the event listener while also removing its storage from a set.
+     * @param {string} type
+     * @param {() => void} listener
+     * @param {object} opts
+     */
+    EventTarget.prototype.removeEventListener = function(type, listener, opts) {
+        try {
+            realRemove.apply(this, [type, listener, opts])
+        } catch {
+            // This is a bug in the underlying website
+        }
+        if (isElementInMainWorld(this)) {
+            /** @type {{[type: string]: number}} */
+            const listeners = {}
+            const attr = this.getAttribute("data-eventlisteners")
+            for (const l of attr?.split(",") ?? []) {
+                const [name, countStr] = l.split(":")
+                const count = Number(countStr) || 0
+                listeners[name] = count
+            }
+            listeners[type] = (listeners[type] || 0) - 1
+            if (listeners[type] <= 0) {
+                delete listeners[type]
+            }
+            if (Object.keys(listeners).length) {
+                const listenersStr = Object.keys(listeners)
+                    .map(l => `${l}:${listeners[l]}`).join(",")
+                this.setAttribute?.("data-eventlisteners", listenersStr)
+            } else {
+                this.removeAttribute?.("data-eventlisteners")
+            }
+        }
+    }
+    /* eslint-enable no-restricted-syntax */
 }
-/* eslint-enable no-restricted-syntax */
+
+contextBridge.executeInMainWorld({"func": trackEventListeners})
 
 /**
  * Send mouse click info to renderer via main on click.
@@ -572,10 +641,10 @@ const contextListener = (e, frame = null, extraData = null) => {
             "canEdit": !!text,
             extraData,
             "frame": iframe?.src,
-            "hasElementListener": eventListeners.contextmenu.has(
-                e.composedPath()[0]),
+            "hasElementListener": hasListener(
+                e.composedPath()[0], "contextmenu"),
             "hasGlobalListener": !!e.composedPath().find(
-                el => eventListeners.contextmenu.has(el)),
+                el => hasListener(el, "contextmenu")),
             "img": img?.src?.trim(),
             inputSel,
             inputVal,
