@@ -27,7 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Enabled contextIsolation to solve remote code execution via unrusted URLs, see TODO
+- Enabled contextIsolation to solve remote code execution via untrusted URLs, see [this report](https://github.com/Jelmerro/Vieb/security/advisories/GHSA-h2fq-667q-7gpm)
 
 ### Versions
 
