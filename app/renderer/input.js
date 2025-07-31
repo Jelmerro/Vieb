@@ -844,6 +844,7 @@ const uncountableActions = [
     "pageToClipboardHTML",
     "pageToClipboardMarkdown",
     "pageToClipboardRST",
+    "pasteText",
     "openFromClipboard",
     "openLinkExternal",
     "downloadLink",

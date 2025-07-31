@@ -1414,6 +1414,16 @@ const pageToClipboardEmacs = () => {
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
+/** Paste the contents of the clipboard into the page programmatically. */
+const pasteText = () => {
+    if (currentMode() === "insert") {
+        sendToPageOrSubFrame("action", "paste", clipboard.readText())
+    } else {
+        const {typeCharacterIntoNavbar} = require("./input")
+        typeCharacterIntoNavbar("<C-v>")
+    }
+}
+
 /**
  * Open the link currently in the system clipboard in the current tab.
  * @param {ActionParam} args
@@ -1814,6 +1824,7 @@ module.exports = {
     pageToClipboardHTML,
     pageToClipboardMarkdown,
     pageToClipboardRST,
+    pasteText,
     previousPage,
     previousPageNewTab,
     previousSearchMatch,

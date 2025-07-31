@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Action "pasteText" to programmatically add text in an input using custom mappings
+
 ### Changed
 
 - Preload loading location, so that it also includes service workers without using deprecated Electron options

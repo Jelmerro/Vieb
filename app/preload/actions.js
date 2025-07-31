@@ -758,12 +758,47 @@ const rerenderTOC = (customStyling, fontsize) => {
     }
 }
 
+/**
+ * Paste the provided text programmatically.
+ * @param {string} text
+ */
+const paste = text => {
+    const w = activeElement()?.ownerDocument.defaultView?.window ?? window
+    const selection = w.getSelection()
+    if (!selection) {
+        return
+    }
+    if (selection.focusNode?.nodeName === "#text") {
+        const input = selection.focusNode
+        const value = input.textContent ?? ""
+        const range = selection?.getRangeAt(0)
+        const cur = Number(range?.startOffset)
+        const end = Number(range?.endOffset)
+        input.textContent = value.slice(0, cur) + text + value.slice(end)
+        range?.setStart(input, cur + text.length)
+        range?.setEnd(input, cur + text.length)
+        return
+    }
+    const container = selection.focusNode
+    if (!isHTMLElement(container)) {
+        return
+    }
+    const input = container.querySelector("textarea, input")
+    if (isInputOrTextElement(input)) {
+        const cur = Number(input.selectionStart)
+        const end = Number(input.selectionEnd)
+        input.value = input.value.slice(0, cur) + text + input.value.slice(end)
+        input.setSelectionRange(cur + text.length, cur + text.length)
+    }
+}
+
 const functions = {
     blur,
     exitFullscreen,
     focusTopLeftCorner,
     hideTOC,
     nextPage,
+    paste,
     playbackDown,
     playbackUp,
     previousPage,
