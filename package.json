@@ -31,7 +31,7 @@
     "@electron/asar": "4.0.0",
     "@types/jsdom": "21.1.7",
     "@types/picomatch": "4.0.2",
-    "electron": "37.2.4",
+    "electron": "37.2.5",
     "electron-builder": "26.0.12",
     "eslint-config": "github:Jelmerro/eslint-config",
     "glob": "11.0.3",
