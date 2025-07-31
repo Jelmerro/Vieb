@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Follow mode event listener detection now uses data attributes to work around contextIsolation
+- Follow mode to be slightly faster on pages with lots of elements outside of view
 - Privacy overrides to use contextBridge for overriding sensitive APIs, dialogs and enumerateDevices
 
 ### Fixed

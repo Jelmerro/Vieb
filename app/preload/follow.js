@@ -104,17 +104,17 @@ const hasListener = (el, type) => {
 
 /**
  * Parse an element to a clickable rect if possible.
- * @param {HTMLElement} element
+ * @param {Element} element
  * @param {string|null} type
- * @param {DOMRectReadOnly|null} customBounds
+ * @param {DOMRectReadOnly|null} bounds
  */
-const parseElement = (element, type = null, customBounds = null) => {
+const parseElement = (element, type = null, bounds = null) => {
+    /** @type {Element[]} */
     const excluded = [document.body, document.documentElement]
-    if (excluded.includes(element)) {
+    if (excluded.includes(element) || !bounds) {
         return null
     }
-    const boundingBox = JSON.parse(JSON.stringify(
-        customBounds || element.getBoundingClientRect()))
+    const boundingBox = JSON.parse(JSON.stringify(bounds))
     const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
         boundingBox.left += paddingInfo.x
@@ -244,28 +244,35 @@ const getAllFollowLinks = (filter = null) => {
             .forEach(el => relevantLinks.push({el, "type": "image"}))
     }
     return new Promise(res => {
-        const observer = new IntersectionObserver(entries => {
-            const parsedEls = relevantLinks.map(link => {
-                const entry = entries.find(e => e.target === link.el)
-                if (entry) {
-                    link.bounds = entry.boundingClientRect
-                    link.visible = entry.intersectionRatio > 0.01
-                }
-                return link
-            }).filter(link => link.visible).map(link => {
-                if (isHTMLElement(link.el)) {
-                    return parseElement(link.el, link.type, link.bounds)
-                }
-                return null
-            }).filter(el => el).sort((el1, el2) => {
-                if (!el1 || !el2) {
-                    return 0
-                }
-                if (el1.type === "other") {
-                    return 10000
-                }
-                return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
-            })
+        const observer = new IntersectionObserver(allEntries => {
+            const entries = allEntries.filter(e => e.intersectionRatio > 0
+                && e.boundingClientRect.width > 0
+                && e.boundingClientRect.height > 0)
+            const parsedEls = relevantLinks
+                .filter(link => link.el.checkVisibility({
+                    "opacityProperty": true,
+                    "visibilityProperty": true
+                }) && isHTMLElement(link.el))
+                .map(link => {
+                    const entry = entries.find(e => e.target === link.el)
+                    if (entry) {
+                        link.bounds = entry.boundingClientRect
+                    }
+                    return link
+                })
+                .filter(link => link.bounds)
+                .map(link => parseElement(link.el, link.type, link.bounds))
+                .filter(el => el)
+                .sort((el1, el2) => {
+                    if (!el1 || !el2) {
+                        return 0
+                    }
+                    if (el1.type === "other") {
+                        return 10000
+                    }
+                    return Math.floor(el1.y) - Math.floor(el2.y)
+                        || el1.x - el2.x
+                })
             res(parsedEls)
             observer.disconnect()
         })
