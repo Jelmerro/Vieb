@@ -139,7 +139,7 @@
     {
       "name": "jsonpath.fn",
       "aliases": [],
-      "body": "class JSONPath{static create(t){const e=new JSONPath;e.compile(t);return e}static toJSON(t,e,...s){return(e||JSON.stringify)(t,...s).replace(/\\//g,\"\\\\/\")}get value(){return this.#t&&this.#t.rval}set value(t){if(this.#t===void 0)return;this.#t.rval=t}get valid(){return this.#t!==void 0}compile(t){this.#t=void 0;const e=this.#e(t,0);if(e===void 0)return;if(e.i!==t.length){if(t.startsWith(\"=\",e.i)===false)return;try{e.rval=JSON.parse(t.slice(e.i+1))}catch{return}}this.#t=e}evaluate(t){if(this.valid===false)return[];this.#s=t;const e=this.#i(this.#t.steps,[]);this.#s=null;return e}apply(t){if(this.valid===false)return 0;const{rval:e}=this.#t;this.#s=t;const s=this.#i(this.#t.steps,[]);const i=s.length;let r=i;while(r--){const{obj:t,key:i}=this.#r(s[r]);if(e!==void 0)t[i]=e;else if(Array.isArray(t)&&typeof i===\"number\")t.splice(i,1);else delete t[i]}this.#s=null;return i}dump(){return JSON.stringify(this.#t)}toJSON(t,...e){return JSONPath.toJSON(t,null,...e)}get[Symbol.toStringTag](){return\"JSONPath\"}#n=0;#o=1;#a=2;#h=3;#c=4;#l=/^[A-Za-z_][\\w]*|^\\*/;#u=/^([!=^$*]=|[<>]=?)(.+?)\\]/;#f=/^-?\\d+/;#s;#t;#e(t,e){if(t.length===0)return;const s=[];let i=t.charCodeAt(e);s.push({mv:i===36?this.#o:this.#a});if(i===36||i===64)e+=1;let r=this.#n;for(;;){if(e===t.length)break;i=t.charCodeAt(e);if(i===32){e+=1;continue}if(i===46){if(r!==this.#n)return;if(t.startsWith(\"..\",e)){r=this.#c;e+=2}else{r=this.#h;e+=1}continue}if(i!==91){if(r===this.#n){const i=s.at(-1);if(i===void 0)return;e=this.#p(t,i,e);break}const i=this.#d(t,e);if(i===void 0)return;s.push({mv:r,k:i});e+=i.length;r=this.#n;continue}if(t.startsWith(\"[?\",e)){const i=t.charCodeAt(e+2)===33;const n=e+2+(i?1:0);const o=this.#e(t,n);if(o===void 0)return;if(t.startsWith(\"]\",o.i)===false)return;if(i)o.steps.at(-1).not=true;s.push({mv:r||this.#h,steps:o.steps});e=o.i+1;r=this.#n;continue}if(t.startsWith(\"[*]\",e)){r||=this.#h;s.push({mv:r,k:\"*\"});e+=3;r=this.#n;continue}const n=this.#v(t,e+1);if(n===void 0)return;r||=this.#h;s.push({mv:r,k:n.s});e=n.i+1;r=this.#n}if(s.length<=1)return;return{steps:s,i:e}}#i(t,e){let s=[];if(Array.isArray(t)===false)return s;for(const i of t)switch(i.mv){case this.#o:s=[[]];break;case this.#a:s=[e];break;case this.#h:case this.#c:s=this.#k(s,i);break;default:break}return s}#k(t,e){const s=[];for(const i of t){const{value:t}=this.#r(i);if(e.k===\"*\")this.#m(i,e,t,s);else if(e.k!==void 0)this.#y(i,e,t,s);else if(e.steps)this.#N(i,e,t,s)}return s}#m(t,e,s,i){const r=e.mv===this.#c;for(const{path:e}of this.#E(s,r))i.push([...t,...e])}#y(t,e,s,i){const r=Array.isArray(e.k)?e.k:[e.k];for(const n of r){const r=this.#b(e,s,n);if(r===void 0)continue;i.push([...t,r])}if(e.mv!==this.#c)return;for(const{obj:n,key:o,path:a}of this.#E(s,true))for(const s of r){const r=this.#b(e,n[o],s);if(r===void 0)continue;i.push([...t,...a,r])}}#N(t,e,s,i){const r=e.mv===this.#c;if(Array.isArray(s)===false){const s=this.#i(e.steps,t);if(s.length!==0)i.push(t);if(r!==true)return}for(const{obj:n,key:o,path:a}of this.#E(s,r)){if(Array.isArray(n[o]))continue;const s=[...t,...a];const r=this.#i(e.steps,s);if(r.length===0)continue;i.push(s)}}#g(t,e){if(typeof e===\"number\")if(Array.isArray(t))return e>=0?e:t.length+e;return e}#E(t,e){const s={next(){const t=this.stack.length;if(t===0){this.value=void 0;this.done=true;return this}const s=this.stack[t-1];const i=s.keys.next();if(i.done){this.stack.pop();this.path.pop();return this.next()}this.path[t-1]=i.value;this.value={obj:s.obj,key:i.value,path:this.path.slice()};const r=this.value.obj[this.value.key];if(e)if(Array.isArray(r))this.stack.push({obj:r,keys:r.keys()});else if(typeof r===\"object\"&&r!==null)this.stack.push({obj:r,keys:Object.keys(r).values()});return this},path:[],value:void 0,done:false,stack:[],[Symbol.iterator](){return this}};if(Array.isArray(t))s.stack.push({obj:t,keys:t.keys()});else if(typeof t===\"object\"&&t!==null)s.stack.push({obj:t,keys:Object.keys(t).values()});return s}#v(t,e){const s=[];for(;;){const i=t.charCodeAt(e);if(i===93)break;if(i===44){e+=1;continue}if(i===39){const i=this.#D(t,e+1);if(i===void 0)return;s.push(i.s);e=i.i;continue}if(i===45||i>=48&&i<=57){const i=this.#f.exec(t.slice(e));if(i===null)return;const r=parseInt(t.slice(e),10);s.push(r);e+=i[0].length;continue}const r=this.#d(t,e);if(r===void 0)return;s.push(r);e+=r.length}return{s:s.length===1?s[0]:s,i:e}}#D(t,e){const s=t.length;const i=[];let r=e,n=e;for(;;){if(n===s)return;const e=t.charCodeAt(n);if(e===39){i.push(t.slice(r,n));n+=1;break}if(e===92&&n+1<s){i.push(t.slice(r,n));const e=t.chatCodeAt(n+1);if(e===39||e===92){n+=1;r=n}}n+=1}return{s:i.join(\"\"),i:n}}#d(t,e){const s=this.#l.exec(t.slice(e));if(s===null)return;return s[0]}#p(t,e,s){const i=this.#u.exec(t.slice(s));if(i===null)return s;try{e.rval=JSON.parse(i[2]);e.op=i[1]}catch{}return s+i[1].length+i[2].length}#r(t){if(t.length===0)return{value:this.#s};const e=t.at(-1);let s=this.#s;for(let e=0,i=t.length-1;e<i;e++)s=s[t[e]];return{obj:s,key:e,value:s[e]}}#b(t,e,s){if(e===void 0||e===null)return;if(typeof s===\"number\")if(Array.isArray(e)===false)return;const i=this.#g(e,s);const r=Object.hasOwn(e,i);if(t.op!==void 0&&r===false)return;const n=t.not!==true;const o=e[i];let a=false;switch(t.op){case\"==\":a=o===t.rval===n;break;case\"!=\":a=o!==t.rval===n;break;case\"<\":a=o<t.rval===n;break;case\"<=\":a=o<=t.rval===n;break;case\">\":a=o>t.rval===n;break;case\">=\":a=o>=t.rval===n;break;case\"^=\":a=`${o}`.startsWith(t.rval)===n;break;case\"$=\":a=`${o}`.endsWith(t.rval)===n;break;case\"*=\":a=`${o}`.includes(t.rval)===n;break;default:a=r===n;break}if(a)return i}}",
+      "body": "class JSONPath{static create(t){const e=new JSONPath;e.compile(t);return e}static toJSON(t,e,...s){return(e||JSON.stringify)(t,...s).replace(/\\//g,\"\\\\/\")}get value(){return this.#t&&this.#t.rval}set value(t){if(this.#t===void 0)return;this.#t.rval=t}get valid(){return this.#t!==void 0}compile(t){this.#t=void 0;const e=this.#e(t,0);if(e===void 0)return;if(e.i!==t.length){if(t.startsWith(\"+=\",e.i)){e.modify=\"+\";e.i+=1}if(t.startsWith(\"=\",e.i)===false)return;try{e.rval=JSON.parse(t.slice(e.i+1))}catch{return}}this.#t=e}evaluate(t){if(this.valid===false)return[];this.#s=t;const e=this.#i(this.#t.steps,[]);this.#s=null;return e}apply(t){if(this.valid===false)return 0;const{modify:e,rval:s}=this.#t;this.#s=t;const i=this.#i(this.#t.steps,[]);const r=i.length;let n=r;while(n--){const{obj:t,key:r}=this.#r(i[n]);if(s!==void 0)if(e===\"+\")this.#n(t,r,s);else t[r]=s;else if(Array.isArray(t)&&typeof r===\"number\")t.splice(r,1);else delete t[r]}this.#s=null;return r}dump(){return JSON.stringify(this.#t)}toJSON(t,...e){return JSONPath.toJSON(t,null,...e)}get[Symbol.toStringTag](){return\"JSONPath\"}#o=0;#a=1;#c=2;#h=3;#l=4;#u=/^[A-Za-z_][\\w]*|^\\*/;#f=/^([!=^$*]=|[<>]=?)(.+?)\\]/;#p=/^-?\\d+/;#s;#t;#e(t,e){if(t.length===0)return;const s=[];let i=t.charCodeAt(e);s.push({mv:i===36?this.#a:this.#c});if(i===36||i===64)e+=1;let r=this.#o;for(;;){if(e===t.length)break;i=t.charCodeAt(e);if(i===32){e+=1;continue}if(i===46){if(r!==this.#o)return;if(t.startsWith(\"..\",e)){r=this.#l;e+=2}else{r=this.#h;e+=1}continue}if(i!==91){if(r===this.#o){const i=s.at(-1);if(i===void 0)return;e=this.#d(t,i,e);break}const i=this.#v(t,e);if(i===void 0)return;s.push({mv:r,k:i});e+=i.length;r=this.#o;continue}if(t.startsWith(\"[?\",e)){const i=t.charCodeAt(e+2)===33;const n=e+2+(i?1:0);const o=this.#e(t,n);if(o===void 0)return;if(t.startsWith(\"]\",o.i)===false)return;if(i)o.steps.at(-1).not=true;s.push({mv:r||this.#h,steps:o.steps});e=o.i+1;r=this.#o;continue}if(t.startsWith(\"[*]\",e)){r||=this.#h;s.push({mv:r,k:\"*\"});e+=3;r=this.#o;continue}const n=this.#y(t,e+1);if(n===void 0)return;r||=this.#h;s.push({mv:r,k:n.s});e=n.i+1;r=this.#o}if(s.length<=1)return;return{steps:s,i:e}}#i(t,e){let s=[];if(Array.isArray(t)===false)return s;for(const i of t)switch(i.mv){case this.#a:s=[[]];break;case this.#c:s=[e];break;case this.#h:case this.#l:s=this.#m(s,i);break;default:break}return s}#m(t,e){const s=[];for(const i of t){const{value:t}=this.#r(i);if(e.k===\"*\")this.#k(i,e,t,s);else if(e.k!==void 0)this.#N(i,e,t,s);else if(e.steps)this.#E(i,e,t,s)}return s}#k(t,e,s,i){const r=e.mv===this.#l;for(const{path:e}of this.#b(s,r))i.push([...t,...e])}#N(t,e,s,i){const r=Array.isArray(e.k)?e.k:[e.k];for(const n of r){const r=this.#g(e,s,n);if(r===void 0)continue;i.push([...t,r])}if(e.mv!==this.#l)return;for(const{obj:n,key:o,path:a}of this.#b(s,true))for(const s of r){const r=this.#g(e,n[o],s);if(r===void 0)continue;i.push([...t,...a,r])}}#E(t,e,s,i){const r=e.mv===this.#l;if(Array.isArray(s)===false){const s=this.#i(e.steps,t);if(s.length!==0)i.push(t);if(r!==true)return}for(const{obj:n,key:o,path:a}of this.#b(s,r)){if(Array.isArray(n[o]))continue;const s=[...t,...a];const r=this.#i(e.steps,s);if(r.length===0)continue;i.push(s)}}#D(t,e){if(typeof e===\"number\")if(Array.isArray(t))return e>=0?e:t.length+e;return e}#b(t,e){const s={next(){const t=this.stack.length;if(t===0){this.value=void 0;this.done=true;return this}const s=this.stack[t-1];const i=s.keys.next();if(i.done){this.stack.pop();this.path.pop();return this.next()}this.path[t-1]=i.value;this.value={obj:s.obj,key:i.value,path:this.path.slice()};const r=this.value.obj[this.value.key];if(e)if(Array.isArray(r))this.stack.push({obj:r,keys:r.keys()});else if(typeof r===\"object\"&&r!==null)this.stack.push({obj:r,keys:Object.keys(r).values()});return this},path:[],value:void 0,done:false,stack:[],[Symbol.iterator](){return this}};if(Array.isArray(t))s.stack.push({obj:t,keys:t.keys()});else if(typeof t===\"object\"&&t!==null)s.stack.push({obj:t,keys:Object.keys(t).values()});return s}#y(t,e){const s=[];for(;;){const i=t.charCodeAt(e);if(i===93)break;if(i===44){e+=1;continue}if(i===39){const i=this.#A(t,e+1);if(i===void 0)return;s.push(i.s);e=i.i;continue}if(i===45||i>=48&&i<=57){const i=this.#p.exec(t.slice(e));if(i===null)return;const r=parseInt(t.slice(e),10);s.push(r);e+=i[0].length;continue}const r=this.#v(t,e);if(r===void 0)return;s.push(r);e+=r.length}return{s:s.length===1?s[0]:s,i:e}}#A(t,e){const s=t.length;const i=[];let r=e,n=e;for(;;){if(n===s)return;const e=t.charCodeAt(n);if(e===39){i.push(t.slice(r,n));n+=1;break}if(e===92&&n+1<s){i.push(t.slice(r,n));const e=t.chatCodeAt(n+1);if(e===39||e===92){n+=1;r=n}}n+=1}return{s:i.join(\"\"),i:n}}#v(t,e){const s=this.#u.exec(t.slice(e));if(s===null)return;return s[0]}#d(t,e,s){const i=this.#f.exec(t.slice(s));if(i===null)return s;try{e.rval=JSON.parse(i[2]);e.op=i[1]}catch{}return s+i[1].length+i[2].length}#r(t){if(t.length===0)return{value:this.#s};const e=t.at(-1);let s=this.#s;for(let e=0,i=t.length-1;e<i;e++)s=s[t[e]];return{obj:s,key:e,value:s[e]}}#g(t,e,s){if(e===void 0||e===null)return;if(typeof s===\"number\")if(Array.isArray(e)===false)return;const i=this.#D(e,s);const r=Object.hasOwn(e,i);if(t.op!==void 0&&r===false)return;const n=t.not!==true;const o=e[i];let a=false;switch(t.op){case\"==\":a=o===t.rval===n;break;case\"!=\":a=o!==t.rval===n;break;case\"<\":a=o<t.rval===n;break;case\"<=\":a=o<=t.rval===n;break;case\">\":a=o>t.rval===n;break;case\">=\":a=o>=t.rval===n;break;case\"^=\":a=`${o}`.startsWith(t.rval)===n;break;case\"$=\":a=`${o}`.endsWith(t.rval)===n;break;case\"*=\":a=`${o}`.includes(t.rval)===n;break;default:a=r===n;break}if(a)return i}#n(t,e,s){const i=t[e];if(s instanceof Object===false)return;if(i instanceof Object===false)return;if(Array.isArray(i))return;for(const[t,e]of Object.entries(s))i[t]=e}}",
       "dependencies": []
     },
     {
@@ -149,9 +149,9 @@
       "dependencies": []
     },
     {
-      "name": "json-edit.fn",
+      "name": "edit-outbound-object.fn",
       "aliases": [],
-      "body": "function jsonEditFn(e,t=\"\"){const n=safeSelf();const o=n.makeLogPrefix(`${e?\"trusted-\":\"\"}json-edit`,t);const r=JSONPath.create(t);if(r.valid===false||r.value!==void 0&&e!==true)return n.uboLog(o,\"Bad JSONPath query\");proxyApplyFn(\"JSON.parse\",(function(e){const t=e.reflect();if(r.apply(t)!==0)return t;n.uboLog(o,\"Edited\");if(n.logLevel>1)n.uboLog(o,`After edit:\\n${n.JSON_stringify(t,null,2)}`);return t}))}",
+      "body": "function editOutboundObjectFn(e=false,t=\"\",o=\"\"){if(t===\"\")return;const n=safeSelf();const u=n.makeLogPrefix(`${e?\"trusted-\":\"\"}edit-outbound-object`,t,o);const r=JSONPath.create(o);if(r.valid===false||r.value!==void 0&&e!==true)return n.uboLog(u,\"Bad JSONPath query\");proxyApplyFn(t,(function(e){const t=e.reflect();if(r.apply(t)===0)return t;n.uboLog(u,\"Edited\");if(n.logLevel>1)n.uboLog(u,`After edit:\\n${n.JSON_stringify(t,null,2)}`);return t}))}",
       "dependencies": [
         "jsonpath.fn",
         "proxy-apply.fn",
@@ -159,19 +159,63 @@
       ]
     },
     {
+      "name": "edit-outbound-object.js",
+      "aliases": [],
+      "body": "function editOutboundObject(t=\"\",e=\"\"){editOutboundObjectFn(false,t,e)}",
+      "dependencies": [
+        "edit-outbound-object.fn"
+      ]
+    },
+    {
+      "name": "trusted-edit-outbound-object.js",
+      "aliases": [],
+      "body": "function trustedEditOutboundObject(t=\"\",u=\"\"){editOutboundObjectFn(true,t,u)}",
+      "dependencies": [
+        "edit-outbound-object.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
       "name": "json-edit.js",
       "aliases": [],
-      "body": "function jsonEdit(n=\"\"){jsonEditFn(false,n)}",
+      "body": "function jsonEdit(n=\"\"){editOutboundObjectFn(false,\"JSON.parse\",n)}",
       "dependencies": [
-        "json-edit.fn"
+        "edit-outbound-object.fn"
       ]
     },
     {
       "name": "trusted-json-edit.js",
       "aliases": [],
-      "body": "function trustedJsonEdit(t=\"\"){jsonEditFn(true,t)}",
+      "body": "function trustedJsonEdit(t=\"\"){editOutboundObjectFn(true,\"JSON.parse\",t)}",
       "dependencies": [
-        "json-edit.fn"
+        "edit-outbound-object.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "edit-inbound-object.fn",
+      "aliases": [],
+      "body": "function editInboundObjectFn(t=false,e=\"\",n=\"\",r=\"\"){if(e===\"\")return;const i=safeSelf();const o=i.makeLogPrefix(`${t?\"trusted-\":\"\"}edit-inbound-object`,e,r);const u=JSONPath.create(r);if(u.valid===false||u.value!==void 0&&t!==true)return i.uboLog(o,\"Bad JSONPath query\");const f=parseInt(n,10);if(isNaN(f))return;const s=t=>{if(f>=0){if(t.length<=f)return;return f}if(t.length<-f)return;return t.length+f};const a=t=>{let e;try{e=i.JSON_parse(i.JSON_stringify(t))}catch{}if(typeof e!==\"object\"||e===null)return;if(u.apply(e)===0)return;i.uboLog(o,\"Edited\");if(i.logLevel>1)i.uboLog(o,`After edit:\\n${i.JSON_stringify(e,null,2)}`);return e};proxyApplyFn(e,(function(t){const e=s(t.args);if(e!==void 0){const n=a(t.args[e]);if(n)t.args[e]=n}return t.reflect()}))}",
+      "dependencies": [
+        "jsonpath.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "edit-inbound-object.js",
+      "aliases": [],
+      "body": "function editInboundObject(n=\"\",e=\"\",t=\"\"){editInboundObjectFn(false,n,e,t)}",
+      "dependencies": [
+        "edit-inbound-object.fn"
+      ]
+    },
+    {
+      "name": "trusted-edit-inbound-object.js",
+      "aliases": [],
+      "body": "function trustedEditInboundObject(t=\"\",n=\"\",d=\"\"){editInboundObjectFn(true,t,n,d)}",
+      "dependencies": [
+        "edit-inbound-object.fn"
       ],
       "requiresTrust": true
     },
@@ -200,6 +244,34 @@
       "body": "function trustedJsonEditXhrResponse(n=\"\",...s){jsonEditXhrResponseFn(true,n,...s)}",
       "dependencies": [
         "json-edit-xhr-response.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
+      "name": "json-edit-xhr-request.fn",
+      "aliases": [],
+      "body": "function jsonEditXhrRequestFn(e,t=\"\"){const r=safeSelf();const s=r.makeLogPrefix(`${e?\"trusted-\":\"\"}json-edit-xhr-request`,t);const o=new WeakMap;const n=JSONPath.create(t);if(n.valid===false||n.value!==void 0&&e!==true)return r.uboLog(s,\"Bad JSONPath query\");const i=r.getExtraArgs(Array.from(arguments),2);const a=parsePropertiesToMatchFn(i.propsToMatch,\"url\");self.XMLHttpRequest=class extends self.XMLHttpRequest{open(e,t,...n){const i={method:e,url:t};const c=a.size===0||matchObjectPropertiesFn(a,i);if(c){if(r.logLevel>1&&Array.isArray(c))r.uboLog(s,`Matched \"propsToMatch\":\\n\\t${c.join(\"\\n\\t\")}`);o.set(this,i)}return super.open(e,t,...n)}send(e){const t=o.get(this);if(t)e=this.#e(e)||e;super.send(e)}#e(e){if(typeof e!==\"string\")return;let t;try{t=r.JSON_parse(e)}catch{}if(t instanceof Object===false)return;const o=n.apply(t);if(o===0)return;e=r.JSON_stringify(t);r.uboLog(s,\"Edited\");if(r.logLevel>1)r.uboLog(s,`After edit:\\n${e}`);return e}}}",
+      "dependencies": [
+        "jsonpath.fn",
+        "match-object-properties.fn",
+        "parse-properties-to-match.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-edit-xhr-request.js",
+      "aliases": [],
+      "body": "function jsonEditXhrRequest(e=\"\",...n){jsonEditXhrRequestFn(false,e,...n)}",
+      "dependencies": [
+        "json-edit-xhr-request.fn"
+      ]
+    },
+    {
+      "name": "trusted-json-edit-xhr-request.js",
+      "aliases": [],
+      "body": "function trustedJsonEditXhrRequest(t=\"\",...e){jsonEditXhrRequestFn(true,t,...e)}",
+      "dependencies": [
+        "json-edit-xhr-request.fn"
       ],
       "requiresTrust": true
     },
@@ -233,9 +305,38 @@
       "requiresTrust": true
     },
     {
+      "name": "json-edit-fetch-request.fn",
+      "aliases": [],
+      "body": "function jsonEditFetchRequestFn(t,e=\"\"){const r=safeSelf();const o=r.makeLogPrefix(`${t?\"trusted-\":\"\"}json-edit-fetch-request`,e);const n=JSONPath.create(e);if(n.valid===false||n.value!==void 0&&t!==true)return r.uboLog(o,\"Bad JSONPath query\");const c=r.getExtraArgs(Array.from(arguments),2);const s=parsePropertiesToMatchFn(c.propsToMatch,\"url\");const f=t=>{if(typeof t!==\"string\")return;let e;try{e=r.JSON_parse(t)}catch{}if(e instanceof Object===false)return;const o=n.apply(e);if(o===0)return;return r.JSON_stringify(e)};const i=t=>{const e=t.callArgs;const[n,c]=e;const i=c?.body;if(Boolean(i)===false)return t.reflect();const a=f(i);if(a===void 0||a===i)return t.reflect();if(s.size!==0){const e=[n instanceof Object?n:{url:`${n}`}];if(e[0]instanceof Request)try{e[0]=r.Request_clone.call(e[0])}catch(t){r.uboErr(o,\"Error:\",t)}const c=matchObjectPropertiesFn(s,...e);if(c===void 0)return t.reflect();if(r.logLevel>1)r.uboLog(o,`Matched \"propsToMatch\":\\n\\t${c.join(\"\\n\\t\")}`)}r.uboLog(o,\"Edited\");if(r.logLevel>1)r.uboLog(o,`After edit:\\n${a}`);c.body=a;return t.reflect()};proxyApplyFn(\"fetch\",i);proxyApplyFn(\"Request\",i)}",
+      "dependencies": [
+        "jsonpath.fn",
+        "match-object-properties.fn",
+        "parse-properties-to-match.fn",
+        "proxy-apply.fn",
+        "safe-self.fn"
+      ]
+    },
+    {
+      "name": "json-edit-fetch-request.js",
+      "aliases": [],
+      "body": "function jsonEditFetchRequest(e=\"\",...t){jsonEditFetchRequestFn(false,e,...t)}",
+      "dependencies": [
+        "json-edit-fetch-request.fn"
+      ]
+    },
+    {
+      "name": "trusted-json-edit-fetch-request.js",
+      "aliases": [],
+      "body": "function trustedJsonEditFetchRequest(t=\"\",...e){jsonEditFetchRequestFn(true,t,...e)}",
+      "dependencies": [
+        "json-edit-fetch-request.fn"
+      ],
+      "requiresTrust": true
+    },
+    {
       "name": "jsonl-edit.fn",
       "aliases": [],
-      "body": "function jsonlEditFn(n,t=\"\"){const o=safeSelf();const s=t.split(/\\n+/);const c=[];for(const t of s){let s;try{s=o.JSON_parse(t)}catch{}if(typeof s!==\"object\"||s===null){c.push(t);continue}if(n.apply(s)===0){c.push(t);continue}c.push(JSONPath.toJSON(s,o.JSON_stringify))}return c.join(\"\\n\")}",
+      "body": "function jsonlEditFn(n,t=\"\"){const o=safeSelf();const s=/\\r?\\n/.exec(t)?.[0]||\"\\n\";const c=t.split(\"\\n\");const e=[];for(const t of c){let s;try{s=o.JSON_parse(t)}catch{}if(typeof s!==\"object\"||s===null){e.push(t);continue}if(n.apply(s)===0){e.push(t);continue}const c=o.JSON_stringify(s);e.push(c)}return e.join(s)}",
       "dependencies": [
         "jsonpath.fn",
         "safe-self.fn"
@@ -444,7 +545,7 @@
     {
       "name": "prevent-innerHTML.js",
       "aliases": [],
-      "body": "function preventInnerHTML(e=\"\",t=\"\"){const n=safeSelf();const r=n.makeLogPrefix(\"prevent-innerHTML\",e,t);const i=n.initPattern(t,{canNegate:true});const o=n.Object_getOwnPropertyDescriptor(Element.prototype,\"innerHTML\");if(o===void 0)return;const s=(t,r)=>{if(e!==\"\"){if(typeof t.matches!==\"function\")return false;if(t.matches(e)===false)return false}return n.testPattern(i,r)};Object.defineProperty(Element.prototype,\"innerHTML\",{get:function(){return o.get?o.get.call(this):o.value},set:function(e){if(s(this,e))n.uboLog(r,\"Prevented\");else if(o.set)o.set.call(this,e);if(n.logLevel>1)n.uboLog(r,`Assigned:\\n${e}`);o.value=e}})}",
+      "body": "function preventInnerHTML(e=\"\",t=\"\"){const n=safeSelf();const r=n.makeLogPrefix(\"prevent-innerHTML\",e,t);const i=n.initPattern(t,{canNegate:true});const o=n.Object_getOwnPropertyDescriptor(Element.prototype,\"innerHTML\");if(o===void 0)return;const s=(t,r)=>{if(e!==\"\"){if(typeof t.matches!==\"function\")return false;if(t.matches(e)===false)return false}return n.testPattern(i,`${r}`)};Object.defineProperty(Element.prototype,\"innerHTML\",{get:function(){return o.get?o.get.call(this):o.value},set:function(e){if(s(this,e))n.uboLog(r,\"Prevented\");else if(o.set)o.set.call(this,e);if(n.logLevel>1)n.uboLog(r,`Assigned:\\n${e}`);o.value=e}})}",
       "dependencies": [
         "safe-self.fn"
       ]
@@ -587,7 +688,7 @@
     {
       "name": "set-cookie.fn",
       "aliases": [],
-      "body": "function setCookieFn(e=false,o=\"\",n=\"\",i=\"\",t=\"\",r={}){if(e===false&&/[^!#$%&'*+\\-.0-9A-Z[\\]^_`a-z|~]/.test(o))o=encodeURIComponent(o);if(/[^ -:<-[\\]-~]/.test(n))n=encodeURIComponent(n);const s=getCookieFn(o);if(s!==void 0&&r.dontOverwrite)return;if(s===n&&r.reload)return;const f=[o,\"=\",n];if(i!==\"\")f.push(\"; expires=\",i);if(t===\"\")t=\"/\";else if(t===\"none\")t=\"\";if(t!==\"\"&&t!==\"/\")return;if(t===\"/\")f.push(\"; path=/\");if(e){if(r.domain)f.push(`; domain=${r.domain}`);f.push(\"; Secure\")}else if(/^__(Host|Secure)-/.test(o))f.push(\"; Secure\");try{document.cookie=f.join(\"\")}catch{}const c=getCookieFn(o)===n;if(c&&r.reload)window.location.reload();return c}",
+      "body": "function setCookieFn(e=false,o=\"\",n=\"\",t=\"\",i=\"\",s={}){if(e===false&&/[^!#$%&'*+\\-.0-9A-Z[\\]^_`a-z|~]/.test(o))o=encodeURIComponent(o);if(/[^ -:<-[\\]-~]/.test(n))n=encodeURIComponent(n);const c=getCookieFn(o);if(c!==void 0&&s.dontOverwrite)return;if(c===n&&s.reload)return;const f=[o,\"=\",n];if(t!==\"\")f.push(\"; expires=\",t);if(i===\"\")i=\"/\";else if(i===\"none\")i=\"\";if(i!==\"\"&&i!==\"/\")return;if(i===\"/\")f.push(\"; path=/\");if(e){if(s.domain){let e=s.domain;if(/^\\/.+\\//.test(e)){const o=new URL(document.baseURI);const n=new RegExp(e.slice(1,-1));const t=n.exec(o.hostname);e=t?t[0]:void 0}if(e)f.push(`; domain=${e}`)}f.push(\"; Secure\")}else if(/^__(Host|Secure)-/.test(o))f.push(\"; Secure\");try{document.cookie=f.join(\"\")}catch{}const r=getCookieFn(o)===n;if(r&&s.reload)window.location.reload();return r}",
       "dependencies": [
         "get-cookie.fn"
       ]
@@ -638,7 +739,7 @@
       "aliases": [
         "cookie-remover.js"
       ],
-      "body": "function removeCookie(o=\"\"){if(typeof o!==\"string\")return;const e=safeSelf();const t=e.patternToRegex(o);const n=e.getExtraArgs(Array.from(arguments),1);const i=(o,e=500)=>{if(i.timer!==void 0)return;i.timer=setTimeout((()=>{i.timer=void 0;o()}),e)};const c=()=>{e.String_split.call(document.cookie,\";\").forEach((o=>{const e=o.indexOf(\"=\");if(e===-1)return;const n=o.slice(0,e).trim();if(t.test(n)===false)return;const i=n+\"=\";const c=\"; domain=\"+document.location.hostname;const s=\"; domain=.\"+document.location.hostname;let r,d;const a=document.domain;if(a){if(a!==document.location.hostname)r=\"; domain=.\"+a;if(a.startsWith(\"www.\"))d=\"; domain=\"+a.replace(\"www\",\"\")}const m=\"; path=/\";const u=\"; Max-Age=-1000; expires=Thu, 01 Jan 1970 00:00:00 GMT\";document.cookie=i+u;document.cookie=i+c+u;document.cookie=i+s+u;document.cookie=i+m+u;document.cookie=i+c+m+u;document.cookie=i+s+m+u;if(r!==void 0)document.cookie=i+r+m+u;if(d!==void 0)document.cookie=i+d+m+u}))};c();window.addEventListener(\"beforeunload\",c);if(typeof n.when!==\"string\")return;const s=[\"scroll\",\"keydown\"];const r=e.String_split.call(n.when,/\\s/);for(const o of r){if(s.includes(o)===false)continue;document.addEventListener(o,(()=>{i(c)}),{passive:true})}}",
+      "body": "function removeCookie(o=\"\"){if(typeof o!==\"string\")return;const e=safeSelf();const t=e.patternToRegex(o);const n=e.getExtraArgs(Array.from(arguments),1);const i=(o,e=500)=>{if(i.timer!==void 0)return;i.timer=setTimeout((()=>{i.timer=void 0;o()}),e)};const c=new URL(document.baseURI);let s=n.domain;if(s&&/^\\/.+\\//.test(s)){const o=new RegExp(s.slice(1,-1));const e=o.exec(c.hostname);s=e?e[0]:void 0}const d=()=>{e.String_split.call(document.cookie,\";\").forEach((o=>{const e=o.indexOf(\"=\");if(e===-1)return;const n=o.slice(0,e).trim();if(t.test(n)===false)return;const i=n+\"=\";const d=`; domain=${c.hostname}`;const r=`; domain=.${c.hostname}`;let m,a;if(s){m=`; domain=${s}`;a=`; domain=.${s}`}else if(document.domain){const o=document.domain;if(o!==c.hostname)m=`; domain=.${o}`;if(o.startsWith(\"www.\"))a=`; domain=${o.replace(\"www\",\"\")}`}const f=\"; path=/\";const u=\"; Max-Age=-1000; expires=Thu, 01 Jan 1970 00:00:00 GMT\";document.cookie=i+u;document.cookie=i+d+u;document.cookie=i+r+u;document.cookie=i+f+u;document.cookie=i+d+f+u;document.cookie=i+r+f+u;if(m!==void 0)document.cookie=i+m+f+u;if(a!==void 0)document.cookie=i+a+f+u}))};d();window.addEventListener(\"beforeunload\",d);if(typeof n.when!==\"string\")return;const r=[\"scroll\",\"keydown\"];const m=e.String_split.call(n.when,/\\s/);for(const o of m){if(r.includes(o)===false)continue;document.addEventListener(o,(()=>{i(d)}),{passive:true})}}",
       "dependencies": [
         "safe-self.fn"
       ],
@@ -713,9 +814,9 @@
       "dependencies": []
     },
     {
-      "name": "abort-current-script-core.fn",
+      "name": "abort-current-script.fn",
       "aliases": [],
-      "body": "function abortCurrentScriptCore(e=\"\",t=\"\",r=\"\"){if(typeof e!==\"string\")return;if(e===\"\")return;const n=safeSelf();const c=n.makeLogPrefix(\"abort-current-script\",e,t,r);const o=n.patternToRegex(t);const s=n.patternToRegex(r);const i=n.getExtraArgs(Array.from(arguments),3);const a=document.currentScript;const f=n.String_split.call(e,\".\");let l=window;let u;for(;;){u=f.shift();if(f.length===0)break;if(u in l===false)break;l=l[u];if(l instanceof Object===false)return}let g;let b=Object.getOwnPropertyDescriptor(l,u);if(b instanceof Object===false||b.get instanceof Function===false){g=l[u];b=void 0}const d=shouldDebug(i);const p=getExceptionTokenFn();const h=new WeakMap;const m=e=>{let t=e.textContent;if(t.trim()!==\"\")return t;if(h.has(e))return h.get(e);const[,r,n]=/^data:([^,]*),(.+)$/.exec(e.src.trim())||[\"\",\"\",\"\"];try{switch(true){case r.endsWith(\";base64\"):t=self.atob(n);break;default:t=self.decodeURIComponent(n);break}}catch{}h.set(e,t);return t};const x=()=>{const e=document.currentScript;if(e instanceof HTMLScriptElement===false)return;if(e===a)return;if(r!==\"\"&&s.test(e.src)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1&&r!==\"\")n.uboLog(c,`Matched src\\n${e.src}`);const t=m(e);if(o.test(t)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1)n.uboLog(c,`Matched text\\n${t}`);if(d===\"match\"||d===\"all\")debugger;n.uboLog(c,\"Aborted\");throw new ReferenceError(p)};if(d===\"install\")debugger;try{Object.defineProperty(l,u,{get:function(){x();return b instanceof Object?b.get.call(l):g},set:function(e){x();if(b instanceof Object)b.set.call(l,e);else g=e}})}catch(e){n.uboErr(c,`Error: ${e}`)}}",
+      "body": "function abortCurrentScriptFn(e=\"\",t=\"\",r=\"\"){if(typeof e!==\"string\")return;if(e===\"\")return;const n=safeSelf();const o=n.makeLogPrefix(\"abort-current-script\",e,t,r);const c=n.patternToRegex(t);const s=n.patternToRegex(r);const i=n.getExtraArgs(Array.from(arguments),3);const a=document.currentScript;const f=n.String_split.call(e,\".\");let l=window;let u;for(;;){u=f.shift();if(f.length===0)break;if(u in l===false)break;l=l[u];if(l instanceof Object===false)return}let g;let b=Object.getOwnPropertyDescriptor(l,u);if(b instanceof Object===false||b.get instanceof Function===false){g=l[u];b=void 0}const d=shouldDebug(i);const p=getExceptionTokenFn();const h=new WeakMap;const m=Object.getOwnPropertyDescriptor(Node.prototype,\"textContent\").get;const O=e=>{let t=m.call(e);if(t.trim()!==\"\")return t;if(h.has(e))return h.get(e);const[,r,n]=/^data:([^,]*),(.+)$/.exec(e.src.trim())||[\"\",\"\",\"\"];try{switch(true){case r.endsWith(\";base64\"):t=self.atob(n);break;default:t=self.decodeURIComponent(n);break}}catch{}h.set(e,t);return t};const w=()=>{const e=document.currentScript;if(e instanceof HTMLScriptElement===false)return;if(e===a)return;if(r!==\"\"&&s.test(e.src)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1&&r!==\"\")n.uboLog(o,`Matched src\\n${e.src}`);const t=O(e);if(c.test(t)===false){if(d===\"nomatch\"||d===\"all\")debugger;return}if(n.logLevel>1)n.uboLog(o,`Matched text\\n${t}`);if(d===\"match\"||d===\"all\")debugger;n.uboLog(o,\"Aborted\");throw new ReferenceError(p)};if(d===\"install\")debugger;try{Object.defineProperty(l,u,{get:function(){w();return b instanceof Object?b.get.call(l):g},set:function(e){w();if(b instanceof Object)b.set.call(l,e);else g=e}})}catch(e){n.uboErr(o,`Error: ${e}`)}}",
       "dependencies": [
         "get-exception-token.fn",
         "safe-self.fn",
@@ -760,9 +861,9 @@
         "abort-current-inline-script.js",
         "acis.js"
       ],
-      "body": "function abortCurrentScript(...r){runAtHtmlElementFn((()=>{abortCurrentScriptCore(...r)}))}",
+      "body": "function abortCurrentScript(...t){runAtHtmlElementFn((()=>{abortCurrentScriptFn(...t)}))}",
       "dependencies": [
-        "abort-current-script-core.fn",
+        "abort-current-script.fn",
         "run-at-html-element.fn"
       ]
     },
@@ -1400,6 +1501,108 @@
       ],
       "body": "(function(){\"use strict\";window.COMSCORE={purge:function(){window._comscore=[]},beacon:function(){}}})();",
       "contentType": "application/javascript"
+    },
+    {
+      "name": "MIME_TYPE_STUB.flv",
+      "aliases": [],
+      "body": "RkxWAQEAAAAJAAAAABIAALgAAAAAAAAAAgAKb25NZXRhRGF0YQgAAAAIAAhkdXJhdGlvbgAAAAAAAAAAAAAFd2lkdGgAP/AAAAAAAAAABmhlaWdodAA/8AAAAAAAAAANdmlkZW9kYXRhcmF0ZQBAaGoAAAAAAAAJZnJhbWVyYXRlAEBZAAAAAAAAAAx2aWRlb2NvZGVjaWQAQAAAAAAAAAAAB2VuY29kZXICAA1MYXZmNTcuNDEuMTAwAAhmaWxlc2l6ZQBAaoAAAAAAAAAACQAAAMM=",
+      "contentType": "video/flv;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.gif",
+      "aliases": [],
+      "body": "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+      "contentType": "image/gif;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.html",
+      "aliases": [],
+      "body": "<!DOCTYPE html>",
+      "contentType": "text/html"
+    },
+    {
+      "name": "MIME_TYPE_STUB.ico",
+      "aliases": [],
+      "body": "AAABAAEAAQEAAAEAGAAwAAAAFgAAACgAAAABAAAAAgAAAAEAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAA==",
+      "contentType": "image/vnd.microsoft.icon;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.jpg",
+      "aliases": [],
+      "body": "/9j/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=",
+      "contentType": "image/jpeg;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.js",
+      "aliases": [],
+      "body": "",
+      "contentType": "application/javascript"
+    },
+    {
+      "name": "MIME_TYPE_STUB.json",
+      "aliases": [],
+      "body": "0",
+      "contentType": "application/json"
+    },
+    {
+      "name": "MIME_TYPE_STUB.mp3",
+      "aliases": [],
+      "body": "/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "contentType": "audio/mpeg;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.mp4",
+      "aliases": [],
+      "body": "AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAC721kYXQhEAUgpBv/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA3pwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcCEQBSCkG//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADengAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAAAsJtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAALwABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAB7HRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAALwAAAAAAAAAAAAAAAQEAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAAC8AAAAAAAEAAAAAAWRtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAAKxEAAAIAFXEAAAAAAAtaGRscgAAAAAAAAAAc291bgAAAAAAAAAAAAAAAFNvdW5kSGFuZGxlcgAAAAEPbWluZgAAABBzbWhkAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAADTc3RibAAAAGdzdHNkAAAAAAAAAAEAAABXbXA0YQAAAAAAAAABAAAAAAAAAAAAAgAQAAAAAKxEAAAAAAAzZXNkcwAAAAADgICAIgACAASAgIAUQBUAAAAAAfQAAAHz+QWAgIACEhAGgICAAQIAAAAYc3R0cwAAAAAAAAABAAAAAgAABAAAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAIAAAABAAAAHHN0c3oAAAAAAAAAAAAAAAIAAAFzAAABdAAAABRzdGNvAAAAAAAAAAEAAAAsAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY1Ni40MC4xMDE=",
+      "contentType": "video/mp4;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.pdf",
+      "aliases": [],
+      "body": "JVBERi0xLgoxIDAgb2JqPDwvUGFnZXMgMiAwIFI+PmVuZG9iagoyIDAgb2JqPDwvS2lkc1szIDAgUl0vQ291bnQgMT4+ZW5kb2JqCjMgMCBvYmo8PC9QYXJlbnQgMiAwIFI+PmVuZG9iagp0cmFpbGVyIDw8L1Jvb3QgMSAwIFI+Pg==",
+      "contentType": "application/pdf;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.png",
+      "aliases": [],
+      "body": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+      "contentType": "image/png;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.svg",
+      "aliases": [],
+      "body": "https://raw.githubusercontent.com/mathiasbynens/small/master/svg.svg",
+      "contentType": "image/svg+xml"
+    },
+    {
+      "name": "MIME_TYPE_STUB.txt",
+      "aliases": [],
+      "body": "",
+      "contentType": "text/plain"
+    },
+    {
+      "name": "MIME_TYPE_STUB.wav",
+      "aliases": [],
+      "body": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+      "contentType": "audio/wav;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.webm",
+      "aliases": [],
+      "body": "GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQI0VSalmQCgq17FAAw9CQE2AQAZ3aGFtbXlXQUAGd2hhbW15RIlACECPQAAAAAAAFlSua0AxrkAu14EBY8WBAZyBACK1nEADdW5khkAFVl9WUDglhohAA1ZQOIOBAeBABrCBCLqBCB9DtnVAIueBAKNAHIEAAIAwAQCdASoIAAgAAUAmJaQAA3AA/vz0AAA=",
+      "contentType": "video/webm;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.webp",
+      "aliases": [],
+      "body": "UklGRhIAAABXRUJQVlA4TAYAAAAvQWxvAGs=",
+      "contentType": "image/webp;base64;base64"
+    },
+    {
+      "name": "MIME_TYPE_STUB.wmv",
+      "aliases": [],
+      "body": "MCaydY5mzxGm2QCqAGLObOUBAAAAAAAABQAAAAECodyrjEepzxGO5ADADCBTZWgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABcCAAAAAAAAAIA+1d6xnQEAAAAAAAAAAMAF2QEAAAAAAAAAAAAAAAAcDAAAAAAAAAIAAACADAAAgAwAAEANAwC1A79fLqnPEY7jAMAMIFNlLgAAAAAAAAAR0tOruqnPEY7mAMAMIFNlBgAAAAAAQKTQ0gfj0hGX8ACgyV6oUGQAAAAAAAAAAQAoAFcATQAvAEUAbgBjAG8AZABpAG4AZwBTAGUAdAB0AGkAbgBnAHMAAAAAABwATABhAHYAZgA1ADcALgA0ADEALgAxADAAMAAAAJEH3Le3qc8RjuYAwAwgU2WBAAAAAAAAAMDvGbxNW88RqP0AgF9cRCsAV/sgVVvPEaj9AIBfXEQrAAAAAAAAAAAzAAAAAAAAAAEAAAAAAAEAAAABAAAAAigAKAAAAAEAAAABAAAAAQAYAE1QNDMDAAAAAAAAAAAAAAAAAAAAAAAAAEBS0YYdMdARo6QAoMkDSPZMAAAAAAAAAEFS0YYdMdARo6QAoMkDSPYBAAAAAQAKAG0AcwBtAHAAZQBnADQAdgAzAAAAAAAEAE1QNDM2JrJ1jmbPEabZAKoAYs5sMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQ==",
+      "contentType": "video/wmv;base64;base64"
     }
   ]
 }
