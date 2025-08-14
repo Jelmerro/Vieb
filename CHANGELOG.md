@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Error pages and filebrowser not rendering the styling in the previous release
+- Firefox useragent not overriding the platform correctly which rarely blocks page loads
 
 ### Versions
 

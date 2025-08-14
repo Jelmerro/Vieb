@@ -22,6 +22,14 @@ const {contextBridge, ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {getSetting} = require("../util")
 
+let firefoxPlatformString = "Linux x86_64"
+if (process.platform === "win32") {
+    firefoxPlatformString = "Win32"
+}
+if (process.platform === "darwin") {
+    firefoxPlatformString = "MacIntel"
+}
+
 /**
  * Send a notification to the renderer thread.
  * @param {import("../util").NotificationInfo} opts
@@ -124,8 +132,11 @@ contextBridge.executeInMainWorld({
     }
 })
 
-/** Run privacy overrides function inside the main window. */
-const privacyOverrides = () => {
+/**
+ * Run privacy overrides function inside the main window.
+ * @param {string} platform
+ */
+const privacyOverrides = platform => {
     /**
      * Override privacy sensitive APIs with empty or simple defaults.
      * @param {(Window & typeof globalThis)|null} customScope
@@ -168,13 +179,6 @@ const privacyOverrides = () => {
                 "buildID", {"get": (() => "20181001000000").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "doNotTrack", {"get": (() => "unspecified").bind(null)})
-            let platform = "Linux x86_64"
-            if (process.platform === "win32") {
-                platform = "Win32"
-            }
-            if (process.platform === "darwin") {
-                platform = "MacIntel"
-            }
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "oscpu", {"get": (() => platform).bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
@@ -258,7 +262,10 @@ const privacyOverrides = () => {
     privacyOverridesInScope(window)
 }
 
-contextBridge.executeInMainWorld({"func": privacyOverrides})
+contextBridge.executeInMainWorld({
+    "args": [firefoxPlatformString],
+    "func": privacyOverrides
+})
 
 /** Handle media device permission requests within the enumerateDevices func. */
 const deviceEnumeratePermissionHandler = () => {
