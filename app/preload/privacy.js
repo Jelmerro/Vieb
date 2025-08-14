@@ -378,6 +378,8 @@ contextBridge.executeInMainWorld({
      * @param {() => (() => Promise<MediaDeviceInfo[]>)} deviceEnumerate
      */
     "func": deviceEnumerate => {
-        window.navigator.mediaDevices.enumerateDevices = deviceEnumerate()
+        if (window.navigator.mediaDevices?.enumerateDevices) {
+            window.navigator.mediaDevices.enumerateDevices = deviceEnumerate()
+        }
     }
 })

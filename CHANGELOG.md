@@ -23,6 +23,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Privacy overrides to remove the userAgentData API from pages
 - Privacy overrides now run inside iframes too if allowed
 
+### Fixed
+
+- Error pages and filebrowser not rendering the styling in the previous release
+
 ### Versions
 
 - Electron 37.2.5 (unchanged)
