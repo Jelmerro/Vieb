@@ -22,11 +22,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Preload loading location, so that it also includes service workers without using deprecated Electron options
 - Privacy overrides to remove the userAgentData API from pages
 - Privacy overrides now run inside iframes too if allowed
+- Follow mode to be slightly faster by doing the visibility checks before observing the elements
 
 ### Fixed
 
 - Error pages and filebrowser not rendering the styling in the previous release
 - Firefox useragent not overriding the platform correctly which rarely blocks page loads
+- Follow mode not checking for elements with JavaScript page events set directly via attributes
 
 ### Versions
 

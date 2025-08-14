@@ -91,6 +91,10 @@ const hasListener = (el, type) => {
     if (!isElement(el)) {
         return false
     }
+    // @ts-expect-error props only exist on HTMLElements, but should be checked
+    if (el.hasAttribute(`on${type}`) || el[`on${type}`]) {
+        return true
+    }
     /** @type {{[type: string]: number}} */
     const listeners = {}
     const attr = el.getAttribute("data-eventlisteners")
@@ -221,14 +225,10 @@ const getAllFollowLinks = (filter = null) => {
     }
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
-        allEls.filter(el => clickEvents.some(
-            e => isHTMLElement(el) && el[`on${e}`]
-            || hasListener(el, e))
+        allEls.filter(el => clickEvents.some(e => hasListener(el, e))
             || el.getAttribute("jsaction")).forEach(
             el => relevantLinks.push({el, "type": "onclick"}))
-        allEls.filter(el => otherEvents.some(
-            e => isHTMLElement(el) && el[`on${e}`]
-            || hasListener(el, e)))
+        allEls.filter(el => otherEvents.some(e => hasListener(el, e)))
             .forEach(el => relevantLinks.push({el, "type": "other"}))
     }
     if (!filter || filter.includes("media")) {
@@ -249,10 +249,6 @@ const getAllFollowLinks = (filter = null) => {
                 && e.boundingClientRect.width > 0
                 && e.boundingClientRect.height > 0)
             const parsedEls = relevantLinks
-                .filter(link => link.el.checkVisibility({
-                    "opacityProperty": true,
-                    "visibilityProperty": true
-                }) && isHTMLElement(link.el))
                 .map(link => {
                     const entry = entries.find(e => e.target === link.el)
                     if (entry) {
@@ -277,7 +273,10 @@ const getAllFollowLinks = (filter = null) => {
             observer.disconnect()
         })
         let observingSomething = false
-        relevantLinks.forEach(link => {
+        relevantLinks.filter(link => link.el.checkVisibility({
+            "opacityProperty": true,
+            "visibilityProperty": true
+        }) && isElement(link.el)).forEach(link => {
             try {
                 observer.observe(link.el)
                 observingSomething = true
