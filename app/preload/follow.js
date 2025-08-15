@@ -696,7 +696,7 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
         "isTrusted": true,
         x,
         y
-    }, findFrameInfo(els[0])?.element, request)
+    }, els[0], request)
 })
 ipcRenderer.on("contextmenu", () => {
     const el = activeElement()
@@ -704,7 +704,7 @@ ipcRenderer.on("contextmenu", () => {
         return
     }
     const els = [el]
-    const parsed = parseElement(els[0])
+    const parsed = parseElement(els[0], null, els[0]?.getBoundingClientRect())
     if (!parsed || ["body", "iframe"].includes(els[0].tagName.toLowerCase())) {
         return
     }
@@ -737,7 +737,7 @@ ipcRenderer.on("contextmenu", () => {
         "isTrusted": true,
         x,
         y
-    }, findFrameInfo(els[0])?.element, {"force": true})
+    }, els[0], {"force": true})
 })
 window.addEventListener("contextmenu", contextListener)
 ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
@@ -814,7 +814,7 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
             "isTrusted": true,
             x,
             y
-        }, findFrameInfo(els[0])?.element)
+        }, els[0])
         return
     }
     if (eventType === "mousewheel") {

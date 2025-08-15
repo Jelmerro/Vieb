@@ -63,8 +63,8 @@ let homeDirPath = ""
  * }|null}
  */
 let configSettings = null
-/** @type {{element: Element|ShadowRoot, x: number, y: number}[]} */
-const framePaddingInfo = []
+/** @type {Map<Element|ShadowRoot, {x: number, y: number}>} */
+const framePaddingInfo = new Map()
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
@@ -393,23 +393,14 @@ const formatDate = dateStringOrNumber => {
  * @param {Element|ShadowRoot|null} element
  * @param {{x: number, y: number}} location
  */
-const storeFrameInfo = (element, location) => {
-    if (!element) {
-        return
-    }
-    const info = framePaddingInfo.find(i => i.element === element)
-    if (info) {
-        Object.assign(info, location)
-    } else {
-        framePaddingInfo.push({element, ...location})
-    }
-}
+const storeFrameInfo = (element, location) => element
+    && framePaddingInfo.set(element, location) && null
 
 /**
  * Find the frame info for a given element if available.
  * @param {Element|ShadowRoot|null} el
  */
-const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
+const findFrameInfo = el => el && framePaddingInfo.get(el)
 
 /**
  * Get a CSS decleration property from an element as a number of pixels.
