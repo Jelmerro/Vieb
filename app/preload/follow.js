@@ -703,16 +703,15 @@ ipcRenderer.on("contextmenu", () => {
     if (!isHTMLElement(el)) {
         return
     }
-    const els = [el]
-    const parsed = parseElement(els[0], null, els[0]?.getBoundingClientRect())
-    if (!parsed || ["body", "iframe"].includes(els[0].tagName.toLowerCase())) {
+    const parsed = parseElement(el, null, el?.getBoundingClientRect())
+    if (!parsed || ["body", "iframe"].includes(el.tagName.toLowerCase())) {
         return
     }
     let {x} = parsed
-    if (getComputedStyle(els[0]).font.includes("monospace")) {
-        if (isInputOrTextElement(els[0])) {
-            x = parsed.x + propPixels(els[0], "font-size")
-                * (els[0].selectionStart ?? 0) * 0.60191 - els[0].scrollLeft
+    if (getComputedStyle(el).font.includes("monospace")) {
+        if (isInputOrTextElement(el)) {
+            x = parsed.x + propPixels(el, "font-size")
+                * (el.selectionStart ?? 0) * 0.60191 - el.scrollLeft
         }
     }
     let y = parsed.y + parsed.height
@@ -722,6 +721,7 @@ ipcRenderer.on("contextmenu", () => {
     if (y > window.innerHeight) {
         ({y} = parsed)
     }
+    const els = [el]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
         if (isElement(els[0].parentElement)) {
             els.unshift(els[0].parentElement)

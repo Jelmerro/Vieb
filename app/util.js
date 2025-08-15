@@ -745,8 +745,12 @@ const findClickPosition = (element, rects) => {
 
 /** Find the current active element, also inside shadow dom or subframes. */
 const activeElement = () => {
-    if (document.activeElement?.shadowRoot?.activeElement) {
-        return document.activeElement.shadowRoot.activeElement
+    if (document.activeElement?.shadowRoot) {
+        let el = document.activeElement
+        while (el?.shadowRoot?.activeElement) {
+            el = el.shadowRoot.activeElement
+        }
+        return el
     }
     if (document.activeElement !== document.body) {
         if (!(document.activeElement instanceof HTMLIFrameElement)) {
@@ -761,8 +765,12 @@ const activeElement = () => {
         if (!doc) {
             return null
         }
-        if (doc.activeElement?.shadowRoot?.activeElement) {
-            return doc.activeElement.shadowRoot.activeElement
+        if (doc.activeElement?.shadowRoot) {
+            let el = doc.activeElement
+            while (el?.shadowRoot?.activeElement) {
+                el = el.shadowRoot.activeElement
+            }
+            return el
         }
         if (doc.body !== doc.activeElement) {
             if (!(document.activeElement instanceof HTMLIFrameElement)) {

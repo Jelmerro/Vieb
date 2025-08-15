@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Error pages and filebrowser not rendering the styling in the previous release
 - Firefox useragent not overriding the platform correctly which rarely blocks page loads
 - Follow mode not checking for elements with JavaScript page events set directly via attributes
+- Contextmenu not working in recursive shadow roots
 
 ### Versions
 
