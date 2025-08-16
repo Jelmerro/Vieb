@@ -547,12 +547,12 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
             ipcRenderer.invoke("run-isolated-js-head-check",
                 webview.getWebContentsId()).then(result => {
                 if (result === "") {
-                    const bg = getComputedStyle(document.body)
-                        .getPropertyValue("--bg")
-                    const fg = getComputedStyle(document.body)
-                        .getPropertyValue("--fg")
-                    const linkcolor = getComputedStyle(document.body)
-                        .getPropertyValue("--link-color")
+                    const bg = document.body.computedStyleMap()
+                        .get("--bg")?.toString()
+                    const fg = document.body.computedStyleMap()
+                        .get("--fg")?.toString()
+                    const linkcolor = document.body.computedStyleMap()
+                        .get("--link-color")?.toString()
                     const style = `html {
                         color: ${fg || "#eee"};
                         background: ${bg || "#333"};

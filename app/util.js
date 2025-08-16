@@ -412,7 +412,7 @@ const propPixels = (element, prop) => {
     if (element instanceof CSSStyleDeclaration) {
         value = element.getPropertyValue(prop)
     } else {
-        value = getComputedStyle(element).getPropertyValue(prop)
+        value = element.computedStyleMap().get(prop)?.toString() ?? ""
     }
     if (typeof value === "number") {
         return value
@@ -421,8 +421,8 @@ const propPixels = (element, prop) => {
         return Number(value.replace("px", "")) || 0
     }
     if (value?.endsWith("em")) {
-        const elementFontSize = Number(getComputedStyle(document.body)
-            .fontSize.replace("px", "")) || 0
+        const elementFontSize = Number(document.body.computedStyleMap().get(
+            "font-size")?.toString()?.replace("px", "") || 0)
         return Number(value.replace("em", "")) * elementFontSize || 0
     }
     return Number(value) || 0

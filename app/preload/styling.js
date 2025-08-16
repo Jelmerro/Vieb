@@ -160,10 +160,14 @@ const loadThemes = (loadedFully = false) => {
         return
     }
     if (loadedFully && !specialPage?.name) {
-        const htmlBG = getComputedStyle(html).background
-        const bodyBG = getComputedStyle(document.body).background
-        const htmlBGImg = getComputedStyle(html).backgroundImage
-        const bodyBGImg = getComputedStyle(document.body).backgroundImage
+        const htmlBG = html.computedStyleMap().get(
+            "background")?.toString() ?? "unset"
+        const bodyBG = document.body.computedStyleMap().get(
+            "background")?.toString() ?? "unset"
+        const htmlBGImg = html.computedStyleMap().get(
+            "background-image")?.toString() ?? "none"
+        const bodyBGImg = document.body.computedStyleMap().get(
+            "background-image")?.toString() ?? "none"
         const unset = "rgba(0, 0, 0, 0)"
         const darkPage = document.querySelector(
             "head meta[name='color-scheme'][content~='dark']")

@@ -270,8 +270,8 @@ const updateScreenshotHighlight = (hide = false) => {
         highlight.style.display = "none"
         return
     }
-    const border = Number(getComputedStyle(highlight)
-        .borderWidth.split(/[.px]/g)[0])
+    const border = Number(highlight?.computedStyleMap().get(
+        "border-width")?.toString().split(/[.px]/g)[0])
     const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
     const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
     const rect = {

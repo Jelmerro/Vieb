@@ -1870,10 +1870,10 @@ const updateSettings = () => {
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
     const data = {
-        "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
-        "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
-        "linkcolor": getComputedStyle(document.body)
-            .getPropertyValue("--link-color")
+        "bg": document.body.computedStyleMap().get("--bg")?.toString() ?? "",
+        "fg": document.body.computedStyleMap().get("--fg")?.toString() ?? "",
+        "linkcolor": document.body.computedStyleMap().get(
+            "--link-color")?.toString() ?? ""
     }
     Object.keys(allSettings).forEach(setting => {
         data[setting] = allSettings[setting]

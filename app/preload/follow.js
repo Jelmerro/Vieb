@@ -240,8 +240,9 @@ const getAllFollowLinks = (filter = null) => {
         // Get any images or background images
         allEls.filter(el => matchesQuery(el, "img,svg"))
             .forEach(el => relevantLinks.push({el, "type": "image"}))
-        allEls.filter(el => getComputedStyle(el).backgroundImage !== "none")
-            .forEach(el => relevantLinks.push({el, "type": "image"}))
+        allEls.filter(el => el.computedStyleMap().get(
+            "background-image")?.toString() !== "none").forEach(
+            el => relevantLinks.push({el, "type": "image"}))
     }
     return new Promise(res => {
         const observer = new IntersectionObserver(allEntries => {
@@ -595,8 +596,9 @@ const contextListener = (e, frame = null, extraData = null) => {
         const svg = e.composedPath().find(isSVGElement)
         const backgroundImg = e.composedPath().map(el => {
             if (isElement(el)) {
-                const styling = getComputedStyle(el).backgroundImage
-                const url = styling.match(/url\(.*?\)/g)?.[0]
+                const styling = el.computedStyleMap()
+                    .get("background-image")?.toString()
+                const url = styling?.match(/url\(.*?\)/g)?.[0]
                 if (url) {
                     return url?.slice(5, -2)
                 }
@@ -708,7 +710,7 @@ ipcRenderer.on("contextmenu", () => {
         return
     }
     let {x} = parsed
-    if (getComputedStyle(el).font.includes("monospace")) {
+    if (el.computedStyleMap().get("font")?.toString().includes("monospace")) {
         if (isInputOrTextElement(el)) {
             x = parsed.x + propPixels(el, "font-size")
                 * (el.selectionStart ?? 0) * 0.60191 - el.scrollLeft
@@ -764,8 +766,8 @@ const isVertScrollable = el => {
     if ([scrollEl, scrollEl?.parentElement].includes(el)) {
         return el.scrollHeight > el.clientHeight
     }
-    return el.scrollHeight > el.clientHeight
-        && ["auto", "scroll"].includes(getComputedStyle(el).overflowY)
+    return el.scrollHeight > el.clientHeight && ["auto", "scroll"].includes(
+        el.computedStyleMap().get("overflow-y")?.toString() ?? "")
 }
 
 /**
@@ -777,8 +779,8 @@ const isHorScrollable = el => {
     if ([scrollEl, scrollEl?.parentElement].includes(el)) {
         return el.scrollWidth > el.clientWidth
     }
-    return el.scrollWidth > el.clientWidth
-        && ["auto", "scroll"].includes(getComputedStyle(el).overflowX)
+    return el.scrollWidth > el.clientWidth && ["auto", "scroll"].includes(
+        el.computedStyleMap().get("overflow-x")?.toString() ?? "")
 }
 
 ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {

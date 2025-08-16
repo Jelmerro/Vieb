@@ -600,7 +600,8 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
     const matches = []
     allLinkKeys.forEach(linkKey => {
         if (linkKey.textContent?.toLowerCase().startsWith(code.toLowerCase())) {
-            if (getComputedStyle(linkKey).display !== "none") {
+            if (linkKey.computedStyleMap().get(
+                "display")?.toString() !== "none") {
                 matches.push(linkKey)
             }
             linkKey.textContent = linkKey.textContent.slice(1)
