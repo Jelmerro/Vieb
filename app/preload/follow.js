@@ -180,7 +180,9 @@ const parseElement = (element, type = null, bounds = null) => {
  *  }|null)[]>}
  */
 const getAllFollowLinks = (filter = null) => {
-    const allEls = querySelectorAll("*")
+    const allEls = querySelectorAll("*").filter(el => el.checkVisibility({
+        "opacityProperty": true, "visibilityProperty": true
+    }))
     /** @type {{
      *   el: Element, type: string, bounds?: DOMRectReadOnly, visible?: boolean
      * }[]} */
@@ -274,10 +276,7 @@ const getAllFollowLinks = (filter = null) => {
             observer.disconnect()
         })
         let observingSomething = false
-        relevantLinks.filter(link => link.el.checkVisibility({
-            "opacityProperty": true,
-            "visibilityProperty": true
-        }) && isElement(link.el)).forEach(link => {
+        relevantLinks.forEach(link => {
             try {
                 observer.observe(link.el)
                 observingSomething = true
