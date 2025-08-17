@@ -66,33 +66,44 @@ const textlikeInputs = [
     "textarea",
     "select"
 ].join(",")
-/** @type {("click"|"mousedown"|"mouseup")[]} */
-const clickEvents = ["click", "mousedown", "mouseup"]
-/** @type {(
- *   "mouseenter"|"mouseleave"|"mousemove"|"mouseout"|"mouseover"|"contextmenu"
- * )[]} */
-const otherEvents = [
-    "mouseenter",
-    "mouseleave",
-    "mousemove",
-    "mouseout",
-    "mouseover",
-    "contextmenu"
-]
 /** @type {Element[]} */
 const previouslyFocussedElements = []
 
 /**
- * Check if an element has a listener of a specific kind.
+ * Check if an element has any listeners of a specific kind.
  * @param {EventTarget} el
- * @param {typeof clickEvents[number]|typeof otherEvents[number]} type
+ * @param {"click"|"contextmenu"|"other"} type
  */
-const hasListener = (el, type) => {
+const hasListeners = (el, type) => {
+    let types = ["click", "mousedown", "mouseup"]
+    if (type === "contextmenu") {
+        types = ["contextmenu"]
+    }
+    if (type === "other") {
+        types = [
+            "mouseenter",
+            "mouseleave",
+            "mousemove",
+            "mouseout",
+            "mouseover",
+            "contextmenu"
+        ]
+    }
     if (!isElement(el)) {
         return false
     }
-    // @ts-expect-error props only exist on HTMLElements, but should be checked
-    if (el.hasAttribute(`on${type}`) || el[`on${type}`]) {
+    const hasAttribute = contextBridge.executeInMainWorld({
+        "args": [el, types],
+        /**
+         * Check in the page if an Element has listeners of a specific type.
+         * @param {Element} elInScope
+         * @param {string[]} typesInScope
+         */
+        "func": (elInScope, typesInScope) => typesInScope.some(
+            // @ts-expect-error Only HTMLElements can have them as property.
+            t => elInScope.hasAttribute(`on${t}`) || !!elInScope[`on${t}`])
+    })
+    if (hasAttribute) {
         return true
     }
     /** @type {{[type: string]: number}} */
@@ -227,10 +238,10 @@ const getAllFollowLinks = (filter = null) => {
     }
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
-        allEls.filter(el => clickEvents.some(e => hasListener(el, e))
+        allEls.filter(el => hasListeners(el, "click")
             || el.getAttribute("jsaction")).forEach(
             el => relevantLinks.push({el, "type": "onclick"}))
-        allEls.filter(el => otherEvents.some(e => hasListener(el, e)))
+        allEls.filter(el => hasListeners(el, "other"))
             .forEach(el => relevantLinks.push({el, "type": "other"}))
     }
     if (!filter || filter.includes("media")) {
@@ -648,10 +659,10 @@ const contextListener = (e, frame = null, extraData = null) => {
             "canEdit": !!text,
             extraData,
             "frame": iframe?.src,
-            "hasElementListener": hasListener(
+            "hasElementListener": hasListeners(
                 e.composedPath()[0], "contextmenu"),
             "hasGlobalListener": !!e.composedPath().find(
-                el => hasListener(el, "contextmenu")),
+                el => hasListeners(el, "contextmenu")),
             "img": img?.src?.trim(),
             inputSel,
             inputVal,
