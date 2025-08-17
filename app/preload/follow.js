@@ -158,6 +158,16 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
     }
 })
 
+/** @typedef {{
+ * height: number
+ * text: string
+ * type: string
+ * url: string
+ * width: number
+ * x: number
+ * y: number
+ * }} ParsedElement
+ */
 
 /**
  * Parse an element to a clickable rect if possible.
@@ -222,15 +232,7 @@ const parseElement = (element, type = null, bounds = null) => {
 /**
  * Get all follow links parsed, optionally for a specific type.
  * @param {string[]|null} filter
- * @returns {Promise<({
- *    height: number,
- *    text: string,
- *    type: string,
- *    url: string,
- *    width: number,
- *    x: number,
- *    y: number
- *  }|null)[]>}
+ * @returns {Promise<ParsedElement[]>}
  */
 const getAllFollowLinks = (filter = null) => {
     const allEls = querySelectorAll("*").filter(el => el.checkVisibility({
@@ -301,28 +303,29 @@ const getAllFollowLinks = (filter = null) => {
                 e => e.intersectionRatio > 0
                 && e.boundingClientRect.width > 0
                 && e.boundingClientRect.height > 0).map(e => [e.target, e]))
-            const parsedEls = Array.from(relevantLinks)
-                .map(link => {
-                    const entry = entries.get(link.el)
-                    if (entry) {
-                        link.bounds = entry.boundingClientRect
-                    }
-                    return link
-                })
-                .filter(link => link.bounds)
-                .map(link => parseElement(link.el, link.type, link.bounds))
-                .filter(el => el)
-                .sort((el1, el2) => {
-                    if (!el1 || !el2) {
-                        return 0
-                    }
-                    if (el1.type === "other") {
-                        return 10000
-                    }
-                    return Math.floor(el1.y) - Math.floor(el2.y)
-                        || el1.x - el2.x
-                })
-            res(parsedEls)
+            /** @type {ParsedElement[]} */
+            const parsedEls = []
+            relevantLinks.forEach(link => {
+                const entry = entries.get(link.el)
+                if (!entry) {
+                    return
+                }
+                link.bounds = entry.boundingClientRect
+                const parsed = parseElement(link.el, link.type, link.bounds)
+                if (parsed) {
+                    parsedEls.push(parsed)
+                }
+            })
+            res(parsedEls.sort((el1, el2) => {
+                if (!el1 || !el2) {
+                    return 0
+                }
+                if (el1.type === "other") {
+                    return 10000
+                }
+                return Math.floor(el1.y) - Math.floor(el2.y)
+                    || el1.x - el2.x
+            }))
             observer.disconnect()
         })
         let observingSomething = false
