@@ -70,38 +70,22 @@ const textlikeInputs = [
 const previouslyFocussedElements = []
 
 /**
- * Check if an element has any listeners of a specific kind.
+ * Check if an element has a contextmenu listener on it.
  * @param {EventTarget} el
- * @param {"click"|"contextmenu"|"other"} type
  */
-const hasListeners = (el, type) => {
-    let types = ["click", "mousedown", "mouseup"]
-    if (type === "contextmenu") {
-        types = ["contextmenu"]
-    }
-    if (type === "other") {
-        types = [
-            "mouseenter",
-            "mouseleave",
-            "mousemove",
-            "mouseout",
-            "mouseover",
-            "contextmenu"
-        ]
-    }
+const hasContextMenuListener = el => {
     if (!isElement(el)) {
         return false
     }
     const hasAttribute = contextBridge.executeInMainWorld({
-        "args": [el, types],
+        "args": [el],
         /**
          * Check in the page if an Element has listeners of a specific type.
          * @param {Element} elInScope
-         * @param {string[]} typesInScope
          */
-        "func": (elInScope, typesInScope) => typesInScope.some(
+        "func": elInScope => elInScope.hasAttribute(`oncontextmenu`)
             // @ts-expect-error Only HTMLElements can have them as property.
-            t => elInScope.hasAttribute(`on${t}`) || !!elInScope[`on${t}`])
+            || !!elInScope.oncontextmenu
     })
     if (hasAttribute) {
         return true
@@ -114,8 +98,66 @@ const hasListeners = (el, type) => {
         const count = Number(countStr) || 0
         listeners[name] = count
     }
-    return listeners[type] && listeners[type] > 0
+    return listeners.contextmenu && listeners.contextmenu > 0
 }
+
+/**
+ * Find elements that have mouse listeners of any kind, either click or others.
+ * @param {Element[]} els
+ * @returns {{el: Element, "type": "onclick"|"other"}[]}
+ */
+const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
+    "args": [els],
+    /**
+     * Check in the page if an Element has listeners of a specific type.
+     * @param {Element[]} allElements
+     */
+    "func": allElements => {
+        const clickEvents = ["click", "mousedown", "mouseup"]
+        const otherEvents = [
+            "mouseenter",
+            "mouseleave",
+            "mousemove",
+            "mouseout",
+            "mouseover",
+            "contextmenu"
+        ]
+        return allElements?.reduce((elementsWithListeners, el) => {
+            if (clickEvents.some(t => el.hasAttribute(`on${t}`)
+            // @ts-expect-error Only HTMLElements can have them as property.
+                || !!el[`on${t}`] || el.hasAttribute("jsaction"))) {
+                // @ts-expect-error Reduce types are broken in TS.
+                elementsWithListeners.push({el, "type": "onclick"})
+            }
+            if (otherEvents.some(t => el.hasAttribute(`on${t}`)
+            // @ts-expect-error Only HTMLElements can have them as property.
+                || !!el[`on${t}`])) {
+                // @ts-expect-error Reduce types are broken in TS.
+                elementsWithListeners.push({el, "type": "other"})
+            }
+            /** @type {{[type: string]: number}} */
+            const listeners = {}
+            const attr = el.getAttribute("data-eventlisteners")
+            for (const l of attr?.split(",") ?? []) {
+                const [name, countStr] = l.split(":")
+                const count = Number(countStr) || 0
+                listeners[name] = count
+            }
+            if (clickEvents.some(t => listeners[t] && listeners[t] > 0)) {
+                // @ts-expect-error Reduce types are broken in TS.
+                elementsWithListeners.push({el, "type": "onclick"})
+            }
+            if (otherEvents.some(t => listeners[t] && listeners[t] > 0)) {
+                // @ts-expect-error Reduce types are broken in TS.
+                elementsWithListeners.push({el, "type": "other"})
+            }
+            return elementsWithListeners
+        },
+        /** @type {{el: Element, "type": "onclick"|"other"}[]} */
+        [])
+    }
+})
+
 
 /**
  * Parse an element to a clickable rect if possible.
@@ -129,7 +171,7 @@ const parseElement = (element, type = null, bounds = null) => {
     if (excluded.includes(element) || !bounds) {
         return null
     }
-    const boundingBox = JSON.parse(JSON.stringify(bounds))
+    const boundingBox = bounds.toJSON()
     const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
         boundingBox.left += paddingInfo.x
@@ -194,14 +236,14 @@ const getAllFollowLinks = (filter = null) => {
     const allEls = querySelectorAll("*").filter(el => el.checkVisibility({
         "opacityProperty": true, "visibilityProperty": true
     }))
-    /** @type {{
+    /** @type {Set<{
      *   el: Element, type: string, bounds?: DOMRectReadOnly, visible?: boolean
-     * }[]} */
-    const relevantLinks = []
+     * }>} */
+    const relevantLinks = new Set()
     if (!filter || filter.includes("url")) {
         // A tags with href as the link, can be opened in new tab or current tab
         allEls.filter(el => matchesQuery(el, "a")).forEach(
-            el => relevantLinks.push({el, "type": "url"}))
+            el => relevantLinks.add({el, "type": "url"}))
     }
     if (!filter || filter.some(f => f.startsWith("input"))) {
         // Input tags such as checkboxes, can be clicked but have no text input
@@ -230,41 +272,38 @@ const getAllFollowLinks = (filter = null) => {
                     type = "inputs-insert"
                 }
             }
-            relevantLinks.push({el, type})
+            relevantLinks.add({el, type})
         })
         // Input tags such as email and text, can have text inserted
         allEls.filter(el => matchesQuery(el, textlikeInputs)).forEach(
-            el => relevantLinks.push({el, "type": "inputs-insert"}))
+            el => relevantLinks.add({el, "type": "inputs-insert"}))
     }
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
-        allEls.filter(el => hasListeners(el, "click")
-            || el.getAttribute("jsaction")).forEach(
-            el => relevantLinks.push({el, "type": "onclick"}))
-        allEls.filter(el => hasListeners(el, "other"))
-            .forEach(el => relevantLinks.push({el, "type": "other"}))
+        elementsWithMouseListeners(allEls).forEach(e => relevantLinks.add(e))
     }
     if (!filter || filter.includes("media")) {
         // Get media elements, such as videos or music players
         allEls.filter(el => matchesQuery(el, "video,audio"))
-            .forEach(el => relevantLinks.push({el, "type": "media"}))
+            .forEach(el => relevantLinks.add({el, "type": "media"}))
     }
     if (!filter || filter.includes("image")) {
         // Get any images or background images
         allEls.filter(el => matchesQuery(el, "img,svg"))
-            .forEach(el => relevantLinks.push({el, "type": "image"}))
+            .forEach(el => relevantLinks.add({el, "type": "image"}))
         allEls.filter(el => el.computedStyleMap().get(
             "background-image")?.toString() !== "none").forEach(
-            el => relevantLinks.push({el, "type": "image"}))
+            el => relevantLinks.add({el, "type": "image"}))
     }
     return new Promise(res => {
         const observer = new IntersectionObserver(allEntries => {
-            const entries = allEntries.filter(e => e.intersectionRatio > 0
+            const entries = new Map(allEntries.filter(
+                e => e.intersectionRatio > 0
                 && e.boundingClientRect.width > 0
-                && e.boundingClientRect.height > 0)
-            const parsedEls = relevantLinks
+                && e.boundingClientRect.height > 0).map(e => [e.target, e]))
+            const parsedEls = Array.from(relevantLinks)
                 .map(link => {
-                    const entry = entries.find(e => e.target === link.el)
+                    const entry = entries.get(link.el)
                     if (entry) {
                         link.bounds = entry.boundingClientRect
                     }
@@ -314,7 +353,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         }
     }
     const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
-        .find(e => matchesQuery(e, textlikeInputs)) ?? el
+        .find(e => isElement(e) && matchesQuery(e, textlikeInputs)) ?? el
     if (!isHTMLElement(focusEl)) {
         return
     }
@@ -449,7 +488,7 @@ const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         const paddingInfo = findFrameInfo(frame)
         const inputEl = e.composedPath().find(
-            el => matchesQuery(el, textlikeInputs))
+            el => isElement(el) && matchesQuery(el, textlikeInputs))
         let focusEl = null
         if (isHTMLElement(inputEl)) {
             focusEl = [
@@ -490,7 +529,8 @@ const mouseDownListener = (e, frame = null) => {
         e.preventDefault()
         return
     }
-    if (e.composedPath().some(el => matchesQuery(el, "select, option"))) {
+    if (e.composedPath().some(el => isElement(el)
+        && matchesQuery(el, "select, option"))) {
         clickListener(e, frame)
     }
     const paddingInfo = findFrameInfo(frame)
@@ -538,7 +578,7 @@ const mouseUpListener = (e, frame = null) => {
     ipcRenderer.sendToHost("mouse-up")
     const selection = (frame?.contentWindow || window).getSelection()
     const toinsert = e.composedPath().some(
-        el => matchesQuery(el, textlikeInputs))
+        el => isElement(el) && matchesQuery(el, textlikeInputs))
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
         const text = selection?.toString()
         if (text) {
@@ -560,7 +600,7 @@ window.addEventListener("mouseup", mouseUpListener,
     {"capture": true, "passive": true})
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
-    if (matchesQuery(input, textlikeInputs)) {
+    if (isElement(input) && matchesQuery(input, textlikeInputs)) {
         if (isInputOrTextElement(input)) {
             input.value = value
             if (position < input.value.length) {
@@ -632,7 +672,7 @@ const contextListener = (e, frame = null, extraData = null) => {
         const link = e.composedPath().filter(isHTMLAnchorElement)
             .find(el => el.href?.trim())
         const text = e.composedPath().find(
-            el => matchesQuery(el, textlikeInputs))
+            el => isElement(el) && matchesQuery(el, textlikeInputs))
         const iframe = [...e.composedPath(), frame].find(isHTMLIFrameElement)
         const selection = (iframe?.contentWindow ?? window).getSelection()
         let inputVal = ""
@@ -659,10 +699,9 @@ const contextListener = (e, frame = null, extraData = null) => {
             "canEdit": !!text,
             extraData,
             "frame": iframe?.src,
-            "hasElementListener": hasListeners(
-                e.composedPath()[0], "contextmenu"),
+            "hasElementListener": hasContextMenuListener(e.composedPath()[0]),
             "hasGlobalListener": !!e.composedPath().find(
-                el => hasListeners(el, "contextmenu")),
+                el => hasContextMenuListener(el)),
             "img": img?.src?.trim(),
             inputSel,
             inputVal,

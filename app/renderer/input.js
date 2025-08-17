@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    getSetting, isUrl, matchesQuery, notify, pageOffset, specialChars
+    getSetting, isElement, isUrl, matchesQuery, notify, pageOffset, specialChars
 } = require("../util")
 const ACTIONS = require("./actions")
 const {
@@ -2532,7 +2532,8 @@ const init = () => {
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
         if (currentMode() === "insert" && getMouseConf("leaveinsert")) {
-            if (!e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
+            if (!e.composedPath().some(n => isElement(n)
+                && matchesQuery(n, "#context-menu"))) {
                 ACTIONS.toNormalMode()
             }
         }
@@ -2554,7 +2555,8 @@ const init = () => {
             e.preventDefault()
         }
         const selector = "#screenshot-highlight"
-        if (e.composedPath().some(n => matchesQuery(n, selector))) {
+        if (e.composedPath().some(n => isElement(n)
+            && matchesQuery(n, selector))) {
             if (getMouseConf("screenshotframe")) {
                 if (e.button === 0) {
                     draggingScreenshotFrame = "position"
@@ -2585,7 +2587,8 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("wheel", ev => {
-        if (ev.composedPath().some(e => matchesQuery(e, "#tabs"))) {
+        if (ev.composedPath().some(e => isElement(e)
+            && matchesQuery(e, "#tabs"))) {
             if (getMouseConf("scrolltabs")) {
                 // Make both directions of scrolling move the tabs horizontally
                 document.getElementById("tabs")?.scrollBy(
@@ -2594,7 +2597,8 @@ const init = () => {
         }
         const overPageElements = "#follow, #screenshot-highlight, #pointer, "
             + "#url-hover, #loading-progress"
-        if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
+        if (ev.composedPath().some(e => isElement(e)
+            && matchesQuery(e, overPageElements))) {
             const page = currentPage()
             if (getMouseConf("pageoutsideinsert") && page) {
                 const {left, top} = pageOffset(page)
@@ -2607,7 +2611,8 @@ const init = () => {
                 })
             }
         }
-        if (ev.composedPath().some(e => matchesQuery(e, "#suggest-dropdown"))) {
+        if (ev.composedPath().some(e => isElement(e)
+            && matchesQuery(e, "#suggest-dropdown"))) {
             if (!getMouseConf("scrollsuggest")) {
                 ev.preventDefault()
             }
@@ -2686,7 +2691,8 @@ const init = () => {
     window.addEventListener("copy", copyInput)
     window.addEventListener("paste", pasteInput)
     window.addEventListener("click", e => {
-        if (e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
+        if (e.composedPath().some(n => isElement(n)
+            && matchesQuery(n, "#context-menu"))) {
             return
         }
         if (draggingScreenshotFrame && getMouseConf("screenshotframe")) {
@@ -2708,7 +2714,7 @@ const init = () => {
          * @param {MouseEvent} ev
          */
         const urlOrSuggest = ev => ev.composedPath().find(
-            n => matchesQuery(n, "#url, #suggest-dropdown"))
+            n => isElement(n) && matchesQuery(n, "#url, #suggest-dropdown"))
 
         if (urlOrSuggest(e)) {
             const {followFiltering} = require("./follow")
@@ -2765,8 +2771,9 @@ const init = () => {
              * Find the url box or the suggest dropdown in the list of targets.
              * @param {MouseEvent} ev
              */
-            const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
-                n, "#url, #suggest-dropdown, #screenshot-highlight"))
+            const urlOrSuggest = ev => ev.composedPath().find(
+                n => isElement(n) && matchesQuery(n,
+                    "#url, #suggest-dropdown, #screenshot-highlight"))
 
             if (typing && !urlOrSuggest(e)) {
                 ACTIONS.toNormalMode()

@@ -595,13 +595,10 @@ const isHTMLAudioElement = el => {
 
 /**
  * Call an element matches in a safe wrapper as not all elements work.
- * @param {Element|EventTarget|null|undefined} el
+ * @param {Element|null|undefined} el
  * @param {string} query
  */
 const matchesQuery = (el, query) => {
-    if (!isElement(el)) {
-        return false
-    }
     try {
         return el?.matches(query) ?? false
     } catch {
@@ -683,9 +680,21 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     return elements
 }
 
+/** @typedef {{
+ * bottom: number
+ * height: number
+ * left: number
+ * right: number
+ * top: number
+ * width: number
+ * x: number
+ * y: number
+ * }} DOMRectJSON
+ */
+
 /**
  * Find the center of a rect within the borders of the visible window.
- * @param {DOMRect} rect
+ * @param {DOMRectJSON} rect
  */
 const correctedCenterAndSizeOfRect = rect => {
     let {x, y} = rect
@@ -709,7 +718,7 @@ const correctedCenterAndSizeOfRect = rect => {
 /**
  * Return the most suitable click area given a list of options if available.
  * @param {Element} element
- * @param {DOMRect[]} rects
+ * @param {DOMRectJSON[]} rects
  */
 const findClickPosition = (element, rects) => {
     let dims = {"height": 0, "width": 0, "x": 0, "y": 0}
