@@ -997,7 +997,8 @@ export const unsuspendPage = page => {
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
         ?.split("~")[1] ?? page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
-        getSetting("adblocker"), getSetting("cache") !== "none")
+        getSetting("adblocker"), getSetting("adblockernotifications"),
+        getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
     guiRelatedUpdate("tabbar")
     updateContainerSettings(false)

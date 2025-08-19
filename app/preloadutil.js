@@ -72,13 +72,15 @@ const notificationHistory = []
  *   appdata: string,
  *   autoplay: string,
  *   downloads: string,
+ *   execPath: string,
  *   icon?: string,
  *   name: string,
  *   order: "none"|"user-only"|"datafolder-only"
  *   |"user-first"|"datafolder-first",
  *   override: string,
  *   files: string[],
- *   config: string
+ *   config: string,
+ *   shell: string,
  *   version: string
  * }|null}
  */
@@ -707,13 +709,7 @@ export const setStored = (set, val) => sessionStorage.setItem(
  * ) => void} callback
  */
 export const execCommand = (command, callback) => {
-    let shell = null
-    if (platform() === "win32") {
-        shell = process.env.ComSpec || shell
-    }
-    // TODO replace process.env with argument or appConfig
-    shell = process.env.SHELL || shell
-    shell = getSetting("shell") || shell
+    const shell = getSetting("shell") || appConfig()?.shell
     if (shell) {
         return exec(command, {shell}, callback)
     }

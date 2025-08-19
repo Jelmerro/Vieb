@@ -1819,8 +1819,8 @@ const callAction = (args, src) => {
  * @param {import("../preloadutil.js").RunSource} src
  */
 const makedefault = src => {
-    // TODO replace execPath from process with appConfig field
-    if (process.execPath.endsWith("electron")) {
+    const execPath = appConfig()?.execPath
+    if (execPath?.endsWith("electron")) {
         notify({"id": "commands.makedefault.installed", src, "type": "error"})
         return
     }
@@ -1837,7 +1837,7 @@ const makedefault = src => {
                     })
                 }
             })
-    } else if (platform() === "win32") {
+    } else if (platform() === "win32" && execPath) {
         const scriptContents = readFile(joinPath(
             getAppRootDir(), "defaultapp/windows.bat"))
         const tempFile = joinPath(appData(), "defaultapp.bat")
@@ -1845,7 +1845,7 @@ const makedefault = src => {
             writeFile(tempFile, scriptContents)
         }
         execCommand(`Powershell Start ${tempFile} -ArgumentList `
-            + `"""${process.execPath}""" -Verb Runas`, err => {
+            + `"""${execPath}""" -Verb Runas`, err => {
             if (err?.message) {
                 notify({
                     "fields": [err.message],

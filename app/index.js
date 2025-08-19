@@ -1559,8 +1559,9 @@ const reloadAdblocker = () => {
 /**
  * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
+ * @param {"all"|"done"|"error"|"none"} adblockerNotify
  */
-const enableAdblocker = type => {
+const enableAdblocker = (type, adblockerNotify) => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     const blocklists = readJSON(joinPath(
         __dirname, "blocklists/list.json")) || {}
@@ -1575,7 +1576,6 @@ const enableAdblocker = type => {
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        const adblockerNotify = false && getSetting("adblockernotifications")
         const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
@@ -1629,10 +1629,10 @@ const enableAdblocker = type => {
     }
 }
 
-ipcMain.on("adblock-enable", (_, type) => {
+ipcMain.on("adblock-enable", (_, type, adblockerNotify) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
-        enableAdblocker(type)
+        enableAdblocker(type, adblockerNotify)
     }
 })
 ipcMain.on("adblock-disable", disableAdblocker)
@@ -1649,7 +1649,7 @@ ipcMain.on("update-pdf-option", (_, newPdfValue) => {
         }
     })
 })
-ipcMain.on("create-session", (_, name, adblock, cache) => {
+ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
     if (sessionList.includes(name)) {
         return
     }
@@ -1771,7 +1771,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (blocker) {
             reloadAdblocker()
         } else {
-            enableAdblocker(adblock)
+            enableAdblocker(adblock, adblockerNotify)
         }
     }
     if (pdfbehavior !== "view") {
@@ -2519,14 +2519,21 @@ ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     e.returnValue = null
 })
 ipcMain.on("app-config", e => {
+    let systemShell = null
+    if (platform() === "win32") {
+        systemShell = process.env.ComSpec || systemShell
+    }
+    systemShell = process.env.SHELL || systemShell
     e.returnValue = {
         "appdata": app.getPath("appData"),
         "autoplay": argAutoplayMedia,
         "downloads": app.getPath("downloads"),
+        "execPath": process.execPath,
         "icon": customIcon || undefined,
         "name": app.getName(),
         "order": argConfigOrder,
         "override": argConfigOverride,
+        "shell": systemShell,
         version
     }
 })

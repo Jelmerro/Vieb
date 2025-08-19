@@ -2211,7 +2211,8 @@ export const set = (src, setting, value) => {
             if (value === "off") {
                 ipcRenderer.send("adblock-disable")
             } else {
-                ipcRenderer.send("adblock-enable", allSettings.adblocker)
+                ipcRenderer.send("adblock-enable",
+                    allSettings.adblocker, allSettings.adblockernotifications)
             }
         }
         if (setting === "containercolors" || setting === "containershowname") {
@@ -2538,6 +2539,6 @@ export const init = () => {
         notify(opts)
     })
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
-    ipcRenderer.send("create-session", `persist:main`,
-        allSettings.adblocker, allSettings.cache !== "none")
+    ipcRenderer.send("create-session", `persist:main`, allSettings.adblocker,
+        allSettings.adblockernotifications, allSettings.cache !== "none")
 }
