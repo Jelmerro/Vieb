@@ -31,6 +31,7 @@ import {
 } from "electron"
 import {randomUUID} from "node:crypto"
 import {platform} from "node:os"
+import {fileURLToPath} from "node:url"
 import {translate} from "./translate.js"
 import {
     basePath,
@@ -235,6 +236,11 @@ const urls = []
 /** @type {Electron.Input[]|"pass"|"all"} */
 let blockedInsertMappings = []
 let argDebugMode = false
+// Webpack only supports import.meta.url, not import.meta.dirname nor filename:
+// https://github.com/webpack/webpack/issues/18320
+// eslint-disable-next-line no-underscore-dangle
+const __dirname = import.meta.dirname
+    ?? joinPath(fileURLToPath(import.meta.url), "..")
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
 let argErwic = process.env.VIEB_ERWIC?.trim() || ""
@@ -942,7 +948,7 @@ app.whenReady().then(async() => {
     app.on("open-url", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
-        customIcon = joinPath(import.meta.dirname, "img/vieb.svg")
+        customIcon = joinPath(__dirname, "img/vieb.svg")
     }
     // Init mainWindow
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -954,7 +960,7 @@ app.whenReady().then(async() => {
         "title": app.getName(),
         "webPreferences": {
             "contextIsolation": false,
-            "preload": joinPath(import.meta.dirname, "renderer/index.mjs"),
+            "preload": joinPath(__dirname, "renderer/index.mjs"),
             "sandbox": false,
             "webviewTag": true
         },
@@ -976,7 +982,7 @@ app.whenReady().then(async() => {
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
-    mainWindow.loadURL(`file://${joinPath(import.meta.dirname, "index.html")}`)
+    mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
         mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
         mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
@@ -1046,7 +1052,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "login",
-            "preload": joinPath(import.meta.dirname, "popups/login.mjs"),
+            "preload": joinPath(__dirname, "popups/login.mjs"),
             "sandbox": false
         }
     }
@@ -1054,7 +1060,7 @@ app.whenReady().then(async() => {
         loginWindowData.icon = customIcon
     }
     loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${joinPath(import.meta.dirname, "pages/loginpopup.html")}`
+    const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
@@ -1077,7 +1083,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "notification-window",
-            "preload": joinPath(import.meta.dirname, "popups/notification.mjs"),
+            "preload": joinPath(__dirname, "popups/notification.mjs"),
             "sandbox": false
         }
     }
@@ -1086,7 +1092,7 @@ app.whenReady().then(async() => {
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${joinPath(
-        import.meta.dirname, "pages/notificationpopup.html")}`
+        __dirname, "pages/notificationpopup.html")}`
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
@@ -1109,7 +1115,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "prompt",
-            "preload": joinPath(import.meta.dirname, "popups/prompt.mjs"),
+            "preload": joinPath(__dirname, "popups/prompt.mjs"),
             "sandbox": false
         }
     }
@@ -1117,7 +1123,7 @@ app.whenReady().then(async() => {
         promptWindowData.icon = customIcon
     }
     promptWindow = new BrowserWindow(promptWindowData)
-    const promptPage = `file:///${joinPath(import.meta.dirname, "pages/promptpopup.html")}`
+    const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
     // Show a sync display dialog if requested by any of the pages
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -1131,7 +1137,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "display",
-            "preload": joinPath(import.meta.dirname, "popups/display.mjs"),
+            "preload": joinPath(__dirname, "popups/display.mjs"),
             "sandbox": false
         }
     }
@@ -1139,7 +1145,7 @@ app.whenReady().then(async() => {
         displayWindowData.icon = customIcon
     }
     displayWindow = new BrowserWindow(displayWindowData)
-    const displayPage = `file:///${joinPath(import.meta.dirname, "pages/displaypopup.html")}`
+    const displayPage = `file:///${joinPath(__dirname, "pages/displaypopup.html")}`
     displayWindow.loadURL(displayPage)
 })
 // Handle Basic HTTP login attempts
@@ -1315,9 +1321,9 @@ let resourcesBlocked = []
 let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
-const adblockerPreload = joinPath(import.meta.dirname,
+const adblockerPreload = joinPath(__dirname,
     "../node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs")
-const defaultCSS = readFile(joinPath(import.meta.dirname, `colors/default.css`))
+const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
@@ -1532,7 +1538,7 @@ const reloadAdblocker = () => {
     }
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(
-        import.meta.dirname, `./blocklists/resources`))
+        __dirname, `./blocklists/resources`))
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
     }
@@ -1557,12 +1563,12 @@ const reloadAdblocker = () => {
 const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     const blocklists = readJSON(joinPath(
-        import.meta.dirname, "blocklists/list.json")) || {}
+        __dirname, "blocklists/list.json")) || {}
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
         for (const name of Object.keys(blocklists)) {
-            const list = joinPath(import.meta.dirname, `blocklists/${name}.txt`)
+            const list = joinPath(__dirname, `blocklists/${name}.txt`)
             writeFile(joinPath(blocklistDir, `${name}.txt`),
                 readFile(list) ?? "")
         }
@@ -1652,11 +1658,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
     newSess.registerPreloadScript({
-        "filePath": joinPath(import.meta.dirname, "preload/index.mjs"),
+        "filePath": joinPath(__dirname, "preload/index.mjs"),
         "type": "service-worker"
     })
     newSess.registerPreloadScript({
-        "filePath": joinPath(import.meta.dirname, "preload/index.mjs"),
+        "filePath": joinPath(__dirname, "preload/index.mjs"),
         "type": "frame"
     })
     newSess.setPermissionRequestHandler(permissionHandler)

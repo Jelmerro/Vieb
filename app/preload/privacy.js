@@ -320,8 +320,7 @@ const deviceEnumeratePermissionHandler = () => {
         /** @type {("block"|"allow")[]} */
         const permissionOverrideTypes = ["block", "allow"]
         for (const type of permissionOverrideTypes) {
-            const permList = getSetting(
-                `permissions${type}ed`)
+            const permList = getSetting(`permissions${type}ed`)
             for (const r of permList ?? []) {
                 if (!r.trim() || settingRule) {
                     continue

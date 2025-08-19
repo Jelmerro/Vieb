@@ -35,11 +35,9 @@
     "electron": "37.2.5",
     "electron-builder": "26.0.12",
     "eslint-config": "github:Jelmerro/eslint-config",
-    "glob": "11.0.3",
     "terser-webpack-plugin": "5.3.14",
     "typescript": "5.9.2",
-    "webpack": "5.101.0",
-    "webpack-node-externals": "3.0.0"
+    "webpack": "5.101.0"
   },
   "dependencies": {
     "@ghostery/adblocker-electron": "2.11.3",

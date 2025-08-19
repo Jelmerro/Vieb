@@ -1,18 +1,20 @@
 import {join} from "path"
 import TerserPlugin from "terser-webpack-plugin"
+import webpack from "webpack"
 
 export default [{
     "entry": {
         "main": "./app/index.js",
-        "preload": "./app/preload/index.js",
-        "renderer": "./app/renderer/index.js"
+        "preload": "./app/preload/index.mjs",
+        "renderer": "./app/renderer/index.mjs"
+    },
+    "experiments": {
+        "outputModule": true
     },
     "externals": {
-        "bufferutil": "commonjs bufferutil",
-        "canvas": "{}",
-        "electron": "require('electron')",
-        "utf-8-validate": "commonjs utf-8-validate"
+        "electron": "electron"
     },
+    "externalsType": "module",
     "mode": "production",
     "optimization": {
         "minimize": true,
@@ -29,6 +31,7 @@ export default [{
         "moduleIds": "named"
     },
     "output": {
+        "chunkFormat": "module",
         "clean": true,
         /**
          * Translate the chunk name to the right path (subfolder or not).
@@ -38,9 +41,15 @@ export default [{
             if (data.chunk.name === "main") {
                 return "index.js"
             }
-            return `${data.chunk.name}/index.js`
+            return `${data.chunk.name}/index.mjs`
         },
+        "module": true,
         "path": join(import.meta.dirname, "build")
     },
+    "plugins": [
+        new webpack.optimize.LimitChunkCountPlugin({
+            "maxChunks": 1
+        })
+    ],
     "target": "node"
 }]

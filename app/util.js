@@ -20,6 +20,7 @@ import fs from "node:fs"
 import https from "node:https"
 import {homedir, platform} from "node:os"
 import path from "node:path"
+import {fileURLToPath} from "node:url"
 import {rimrafSync} from "./rimraf.js"
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
@@ -81,14 +82,18 @@ export const pathExists = loc => {
  * Get the root app directory from any location.
  */
 export const getAppRootDir = () => {
+    // https://github.com/webpack/webpack/issues/18320
     let currentDir = import.meta.dirname
+        ?? joinPath(fileURLToPath(import.meta.url), "..")
     let tries = 0
     while (!pathExists(joinPath(currentDir, "package.json")) && tries < 100) {
         currentDir = joinPath(currentDir, "..")
         tries += 1
     }
     if (tries === 100) {
+        // https://github.com/webpack/webpack/issues/18320
         return import.meta.dirname
+            ?? joinPath(fileURLToPath(import.meta.url), "..")
     }
     return joinPath(currentDir, "app")
 }

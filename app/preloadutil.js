@@ -21,6 +21,7 @@ import {exec} from "node:child_process"
 import {appendFileSync} from "node:fs"
 import {platform} from "node:os"
 import {normalize} from "node:path/posix"
+import {fileURLToPath} from "node:url"
 import {translate} from "./translate.js"
 import {
     expandPath,
@@ -143,10 +144,13 @@ export const specialPagePath = (
     if (!isSpecialPage(userPage) && !skipExistCheck) {
         page = "help"
     }
-    let url = joinPath(import.meta.dirname, `./pages/${page}.html`)
+    // https://github.com/webpack/webpack/issues/18320
+    const dirname = import.meta.dirname
+        ?? joinPath(fileURLToPath(import.meta.url), "..")
+    let url = joinPath(dirname, `./pages/${page}.html`)
         .replace(/\\/g, "/").replace(/^\/*/g, "")
-    if (isDir(joinPath(import.meta.dirname, "../pages"))) {
-        url = joinPath(import.meta.dirname, `../pages/${page}.html`)
+    if (isDir(joinPath(dirname, "../pages"))) {
+        url = joinPath(dirname, `../pages/${page}.html`)
             .replace(/\\/g, "/").replace(/^\/*/g, "")
     }
     if (section) {

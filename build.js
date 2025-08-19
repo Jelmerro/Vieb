@@ -16,9 +16,13 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import {createPackage} from "@electron/asar"
 import {execSync} from "child_process"
-import {cpSync, mkdirSync, readdir, readFileSync, rmSync, unlinkSync} from "fs"
+import builder from "electron-builder"
+import {cpSync, globSync, mkdirSync, readFileSync, rmSync} from "fs"
 import {dirname, join} from "path"
+import webpack from "webpack"
+import webpackConfig from "./webpack.config.js"
 
 const defaultConfig = {"config": {
     "appId": "com.github.Jelmerro.vieb",
@@ -136,7 +140,6 @@ const releases = {
         /** Skip Electron builder and only compress an asar file of the app. */
         "postinstall": async() => {
             rmSync("asar-build/", {"force": true, "recursive": true})
-            const {globSync} = require("glob")
             let files = []
             const filePatterns = defaultConfig.config.files
                 .filter(f => typeof f !== "object")
@@ -148,14 +151,13 @@ const releases = {
                 }
             }
             files = [...files, ...globSync("build/*"), "package.json"]
-            const asar = require("@electron/asar")
             for (const file of files) {
                 const dest = join("./asar-build", file.replace(/^build/, "app"))
                 mkdirSync(dirname(dest), {"recursive": true})
                 cpSync(file, dest, {"recursive": true})
             }
             mkdirSync("dist", {"recursive": true})
-            await asar.createPackage("asar-build", "dist/vieb.asar")
+            await createPackage("asar-build", "dist/vieb.asar")
             rmSync("asar-build/", {"force": true, "recursive": true})
         }
     },
@@ -215,39 +217,6 @@ const releases = {
                     {"arch": ["x64"], "target": "zip"}
                 ]
             }
-        }
-    },
-    "lite": {
-        "description": "Build lite releases, which exclude locales & "
-            + "node_modules.\nThese releases are thus lighter and smaller.\n"
-            + "This does mean some features are not included.",
-        "ebuilder": {
-            /**
-             * Remove all locales except English US from the lite release.
-             * @param {import("electron-builder").AfterPackContext} context
-             */
-            "afterPack": context => {
-                defaultConfig.config.afterPack?.(context)
-                const localeDir = `${context.appOutDir}/locales/`
-                readdir(localeDir, (_err, files) => {
-                    files?.filter(f => !f.match(/en-US\.pak/))
-                        .forEach(f => unlinkSync(localeDir + f))
-                })
-            },
-            "extraMetadata": {
-                "name": "vieb-lite",
-                "productName": "Vieb-lite"
-            },
-            "files": defaultConfig.config.files.filter(f => {
-                if (typeof f === "object") {
-                    return true
-                }
-                return !f.includes("blocklists") && !f.includes("@ghostery")
-            }),
-            "productName": "Vieb-lite"
-        },
-        "webpack": {
-            "externals": [require("webpack-node-externals")()]
         }
     },
     "regular": {
@@ -338,7 +307,7 @@ for (const a of process.argv.slice(2)) {
  * @param {import("webpack").Configuration} overrides
  */
 const mergeWPConfig = overrides => {
-    const mergedConfig = require("./webpack.config")
+    const mergedConfig = webpackConfig
     return [{...mergedConfig[0], ...overrides}]
 }
 
@@ -358,9 +327,8 @@ const mergeEBConfig = overrides => {
  * @param {import("webpack").Configuration} overrides
  */
 const webpackBuild = overrides => new Promise((res, rej) => {
-    const webpack = require("webpack")
     webpack(mergeWPConfig(overrides)).run((webpackErr, stats) => {
-        console.info(stats.toString({"colors": true}))
+        console.info(stats?.toString({"colors": true}))
         if (webpackErr || stats.hasErrors()) {
             return rej(webpackErr)
         }
@@ -389,7 +357,6 @@ const fixBuildrootRpmArgumentInFpm = async config => {
     } catch {
         console.warn(">> PATCH failed, running dummy build to fetch fpm")
     }
-    const builder = require("electron-builder")
     try {
         // Running dummy build that will fail due to incorrect outdated args.
         await builder.build(mergeEBConfig({
@@ -422,7 +389,6 @@ const generateBuild = async release => {
     }
     try {
         if (release.ebuilder !== false) {
-            const builder = require("electron-builder")
             const config = mergeEBConfig(release.ebuilder || {})
             await fixBuildrootRpmArgumentInFpm(config)
             const res = await builder.build(config)
