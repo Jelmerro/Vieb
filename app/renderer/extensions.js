@@ -15,19 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {
-    appConfig,
-    appData,
-    domainName,
-    expandPath,
-    getSetting,
-    joinPath,
-    listDir,
-    pathToSpecialPageName,
-    readFile
-} = require("../util")
+import {arch, platform} from "node:os"
+import picomatch from "picomatch"
+import {
+    appConfig, appData, getSetting, pathToSpecialPageName
+} from "../preloadutil.js"
+import {domainName, expandPath, joinPath, listDir, readFile} from "../util.js"
 
 /**
  * Parse the GM userscript header.
@@ -85,8 +79,8 @@ const runGMScript = (webview, rawContents) => {
         }
     }
     const info = parseGM(headerLines.join("\n"))
-    const os = process.platform.replace("32", "").replace("darwin", "mac")
-    const arch = process.arch.replace("arm64", "arm").replace("x64", "x86_64")
+    const os = platform().replace("32", "").replace("darwin", "mac")
+    const archName = arch().replace("arm64", "arm").replace("x64", "x86_64")
     const preload = `const GM = {
         "addElement": (...args) => {
             let parentNode = null
@@ -148,7 +142,7 @@ const runGMScript = (webview, rawContents) => {
         "info": {
             "injectInto": "page",
             "platform": {
-                "arch": "${arch}",
+                "arch": "${archName}",
                 "browserName": "vieb",
                 "browserVersion": "${appConfig()?.version}",
                 "os": "${os}"
@@ -218,13 +212,6 @@ const runGMScript = (webview, rawContents) => {
     const GM_xmlHttpRequest = GM.xmlHttpRequest
     const GM_xmlhttpRequest = GM.xmlHttpRequest
     const unsafeWindow = window\n`
-    /** @type {import("picomatch")|null} */
-    let picomatch = null
-    try {
-        picomatch = require("picomatch")
-    } catch {
-        // No picomatch available, assume scripts should run everywhere
-    }
     if (info?.name && scriptLines.length) {
         if (Array.isArray(info.includes)) {
             if (Array.isArray(info.match)) {
@@ -243,12 +230,8 @@ const runGMScript = (webview, rawContents) => {
         }
         let included = true
         let excluded = false
-        if (picomatch) {
-            included = picomatch.isMatch(
-                webview.src, info.includes, {"bash": true})
-            excluded = picomatch.isMatch(
-                webview.src, info.excludes, {"bash": true})
-        }
+        included = picomatch.isMatch(webview.src, info.includes, {"bash": true})
+        excluded = picomatch.isMatch(webview.src, info.excludes, {"bash": true})
         if (included && !excluded) {
             const start = "(() => {\n"
             const end = ";\n})()"
@@ -262,7 +245,7 @@ const runGMScript = (webview, rawContents) => {
  * Load all userscripts into the page.
  * @param {Electron.WebviewTag} webview
  */
-const loadUserscripts = webview => {
+export const loadUserscripts = webview => {
     let domain = domainName(webview.src)
     let scope = "page"
     const specialPage = pathToSpecialPageName(webview.src)
@@ -304,5 +287,3 @@ const loadUserscripts = webview => {
         }
     }
 }
-
-module.exports = {loadUserscripts}

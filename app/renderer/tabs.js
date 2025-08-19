@@ -15,49 +15,84 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {
+import {ipcRenderer, shell} from "electron"
+import {platform} from "node:os"
+import {
     appConfig,
     appData,
-    deleteFile,
+    currentMode,
+    currentPage,
+    currentTab,
+    getMouseConf,
     getSetting,
+    getUrl,
+    guiRelatedUpdate,
+    listNotificationHistory,
+    listPages,
+    listReadyPages,
+    listTabs,
+    notify,
+    pageForTab,
+    pathToSpecialPageName,
+    sendToPageOrSubFrame,
+    setTopOfPageWithMouse,
+    specialPagePath,
+    stringToUrl,
+    tabForPage,
+    urlToString
+} from "../preloadutil.js"
+import {translate} from "../translate.js"
+import {
+    deleteFile,
     hasProtocol,
     isDir,
     isFile,
     joinPath,
     listDir,
-    listNotificationHistory,
-    notify,
-    pathToSpecialPageName,
     propPixels,
     readFile,
     readJSON,
     sameDomain,
-    specialPagePath,
-    stringToUrl,
-    urlToString,
     userAgentTemplated,
     writeJSON
-} = require("../util")
-const {
-    currentMode,
-    currentPage,
-    currentTab,
-    getMouseConf,
-    getUrl,
-    guiRelatedUpdate,
-    listPages,
-    listReadyPages,
-    listTabs,
-    pageForTab,
-    sendToPageOrSubFrame,
-    setTopOfPageWithMouse,
-    tabForPage
-} = require("./common")
-const {setMode} = require("./modes")
+} from "../util.js"
+import {backInHistory, forwardInHistory, setFocusCorrectly} from "./actions.js"
+import {execute, rangeCompatibleCommands} from "./command.js"
+import {clear, commonAction} from "./contextmenu.js"
+import {loadUserscripts} from "./extensions.js"
+import {forSite, loading, show, update} from "./favicons.js"
+import {emptyHoverLink} from "./follow.js"
+import {
+    addToHist,
+    handleRequest,
+    suggestTopSites,
+    titleForPage,
+    updateTitle
+} from "./history.js"
+import {
+    listMappingsAsCommandList,
+    moveScreenshotFrame,
+    resetScreenshotDrag,
+    uncountableActions
+} from "./input.js"
+import {setMode} from "./modes.js"
+import {
+    applyLayout,
+    getLastTabIds,
+    hide,
+    layoutDivById,
+    resetScrollbarTimer,
+    setLastUsedTab,
+    switchView
+} from "./pagelayout.js"
+import {handleScrollDiffEvent, move} from "./pointer.js"
+import {
+    getCustomStyling,
+    settingsWithDefaults,
+    updateContainerSettings,
+    updateWindowTitle
+} from "./settings.js"
 
 /**
  * @typedef {(
@@ -83,12 +118,11 @@ const sharedAttributes = [
  * @param {Electron.WebviewTag} webview
  * @param {boolean} force
  */
-const updateUrl = (webview, force = false) => {
+export const updateUrl = (webview, force = false) => {
     const url = currentPage()?.src
     if (webview !== currentPage() || typeof url === "undefined") {
         return
     }
-    const {updateWindowTitle} = require("./settings")
     updateWindowTitle()
     if (!force && "secf".includes(currentMode()[0])) {
         return
@@ -107,9 +141,8 @@ const updateUrl = (webview, force = false) => {
  * Reset the tab information for a given page.
  * @param {Electron.WebviewTag} webview
  */
-const resetTabInfo = webview => {
+export const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
-    const {loading} = require("./favicons")
     loading(webview, true)
 }
 
@@ -117,7 +150,7 @@ const resetTabInfo = webview => {
  * Pick a new useragent for the page if multiple are configured.
  * @param {Electron.WebviewTag} webview
  */
-const rerollUserAgent = webview => {
+export const rerollUserAgent = webview => {
     const agents = getSetting("useragent")
     if (agents.length) {
         const agent = userAgentTemplated(
@@ -130,11 +163,11 @@ const rerollUserAgent = webview => {
 
 /**
  * Suspend a tab.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {HTMLSpanElement} tab
  * @param {boolean} force
  */
-const suspendTab = (src, tab, force = false) => {
+export const suspendTab = (src, tab, force = false) => {
     const page = pageForTab(tab)
     if (!page || page instanceof HTMLDivElement) {
         return
@@ -146,7 +179,6 @@ const suspendTab = (src, tab, force = false) => {
     tab.setAttribute("suspended", "suspended")
     tab.classList.remove("crashed")
     tab.removeAttribute("media-playing")
-    const {show} = require("./favicons")
     show(page)
     const placeholder = document.createElement("div")
     placeholder.classList.add("webview")
@@ -169,11 +201,11 @@ const suspendTab = (src, tab, force = false) => {
 
 /**
  * Recreate a webview to in case of new container name or crash reload.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {Electron.WebviewTag} webview
  * @param {string|null} customSrc
  */
-const recreateWebview = (src, webview, customSrc = null) => {
+export const recreateWebview = (src, webview, customSrc = null) => {
     const tab = tabForPage(webview)
     if (tab) {
         suspendTab(src, tab, true)
@@ -190,7 +222,7 @@ const recreateWebview = (src, webview, customSrc = null) => {
 
 /**
  * Check if the contanernames setting is still respected, if not recreate.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {Electron.WebviewTag} webview
  * @param {string} location
  */
@@ -209,11 +241,11 @@ const checkContainerNames = (src, webview, location) => {
 
 /**
  * Navigate the page to a new location, optionally a custom page.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} location
  * @param {Electron.WebviewTag|null} customPage
  */
-const navigateTo = (src, location, customPage = null) => {
+export const navigateTo = (src, location, customPage = null) => {
     try {
         new URL(location)
     } catch {
@@ -247,7 +279,7 @@ const navigateTo = (src, location, customPage = null) => {
 }
 
 /** Save the current and closed tabs to disk if configured to do so. */
-const saveTabs = () => {
+export const saveTabs = () => {
     /** @type {{
      *   closed: {
      *     container: string, muted: boolean, url: string, index?: number
@@ -319,7 +351,7 @@ const saveTabs = () => {
  * Switch to a different tab by element or index.
  * @param {HTMLSpanElement|number} tabOrIndex
  */
-const switchToTab = tabOrIndex => {
+export const switchToTab = tabOrIndex => {
     if (document.body.classList.contains("fullscreen")) {
         currentPage()?.send("action", "exitFullscreen")
     }
@@ -360,7 +392,6 @@ const switchToTab = tabOrIndex => {
         newCurrentPage.id = "current-page"
     }
     tab.scrollIntoView({"block": "center", "inline": "center"})
-    const {setLastUsedTab, switchView} = require("./pagelayout")
     if (newCurrentPage) {
         switchView(oldPage, newCurrentPage)
     }
@@ -380,7 +411,6 @@ const switchToTab = tabOrIndex => {
         hoverEl.style.display = "none"
     }
     guiRelatedUpdate("tabbar")
-    const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
     setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
     const loadingProgress = document.getElementById("loading-progress")
@@ -403,11 +433,11 @@ const switchToTab = tabOrIndex => {
 
 /**
  * Close a tab by index, optionally force close pinned ones.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {number|null} index
  * @param {boolean} force
  */
-const closeTab = (src, index = null, force = false) => {
+export const closeTab = (src, index = null, force = false) => {
     let tab = currentTab()
     if (index !== null) {
         tab = listTabs()[index]
@@ -439,7 +469,6 @@ const closeTab = (src, index = null, force = false) => {
         regularTab.removeAttribute("devtools-id")
     }
     const closedDevtoolsId = tab.getAttribute("devtools-id")
-    const {hide, layoutDivById} = require("./pagelayout")
     const isVisible = layoutDivById(tabLinkId)
     const multiLayout = document.getElementById("pages")
         ?.classList.contains("multiple")
@@ -458,7 +487,6 @@ const closeTab = (src, index = null, force = false) => {
         page.remove()
         if (listTabs().length === 0) {
             if (getSetting("quitonlasttabclose")) {
-                const {execute} = require("./command")
                 execute("quitall")
                 return
             }
@@ -478,7 +506,6 @@ const closeTab = (src, index = null, force = false) => {
                     switchToTab(oldTabIdx)
                 }
             } else if (getSetting("tabclosefocus") === "previous") {
-                const {getLastTabIds} = require("./pagelayout")
                 const tabs = listTabs()
                 const lastTab = getLastTabIds().map(id => {
                     const tb = tabs.find(t => t.getAttribute("link-id") === id)
@@ -527,14 +554,13 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
  * @param {Electron.WebviewTag} webview
  * @param {boolean} force
  */
-const addColorschemeStylingToWebview = (webview, force = false) => {
+export const addColorschemeStylingToWebview = (webview, force = false) => {
     const isSpecialPage = pathToSpecialPageName(webview.src)?.name
     const isLocal = webview.src.startsWith("file:/")
     const isErrorPage = webview.getAttribute("failed-to-load")
     const isCustomView = webview.src.startsWith("sourceviewer:")
         || webview.src.startsWith("readerview:")
         || webview.src.startsWith("markdownviewer:")
-    const {getCustomStyling} = require("./settings")
     const customStyling = getCustomStyling()
     const fontsize = getSetting("guifontsize")
     webview.send("action", "rerenderTOC", customStyling, fontsize)
@@ -642,7 +668,6 @@ const addWebviewListeners = webview => {
         checkContainerNames("other", webview, e.url)
     })
     webview.addEventListener("did-start-loading", () => {
-        const {loading} = require("./favicons")
         loading(webview)
         updateUrl(webview)
     })
@@ -682,7 +707,7 @@ const addWebviewListeners = webview => {
             // Any number of slashes after file is fine
             if (webview.src.startsWith("file:/")) {
                 let local = urlToString(webview.src).replace(/file:\/+/, "/")
-                if (process.platform === "win32") {
+                if (platform() === "win32") {
                     local = urlToString(webview.src).replace(/file:\/+/, "")
                     if (local === "" || local === "C:") {
                         webview.src = "file:///C:/"
@@ -708,7 +733,6 @@ const addWebviewListeners = webview => {
         webview.setAttribute("failed-to-load", "true")
     })
     webview.addEventListener("did-stop-loading", () => {
-        const {show} = require("./favicons")
         show(webview)
         updateUrl(webview)
         window.clearTimeout(timeouts[webview.getAttribute("link-id") ?? ""])
@@ -719,11 +743,6 @@ const addWebviewListeners = webview => {
             || webview.src.startsWith("markdownviewer:")
         addColorschemeStylingToWebview(webview)
         if (specialPageName === "help") {
-            const {rangeCompatibleCommands} = require("./command")
-            const {
-                listMappingsAsCommandList, uncountableActions
-            } = require("./input")
-            const {settingsWithDefaults} = require("./settings")
             webview.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList("other", null, true),
                 uncountableActions,
@@ -735,7 +754,6 @@ const addWebviewListeners = webview => {
         const tocPages = getSetting("tocpages")
         const readableUrl = urlToString(webview.src)
         if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
-            const {getCustomStyling} = require("./settings")
             const fontsize = getSetting("guifontsize")
             setTimeout(() => {
                 sendToPageOrSubFrame("action", "showTOC",
@@ -747,7 +765,6 @@ const addWebviewListeners = webview => {
         if (specialPageName && name) {
             name.textContent = translate(`pages.${specialPageName}.title`)
         }
-        const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existing = titleForPage(webview.src)
         if (name) {
@@ -769,7 +786,6 @@ const addWebviewListeners = webview => {
             }
         }
         if (getSetting("userscript")) {
-            const {loadUserscripts} = require("./extensions")
             loadUserscripts(webview)
         }
     })
@@ -784,12 +800,10 @@ const addWebviewListeners = webview => {
         if (tabTitleEl) {
             tabTitleEl.textContent = e.title
             updateUrl(webview)
-            const {updateTitle} = require("./history")
             updateTitle(webview.src, tabTitleEl.textContent)
         }
     })
     webview.addEventListener("page-favicon-updated", e => {
-        const {update} = require("./favicons")
         const urls = e.favicons.filter(u => u && u !== webview.src)
         const url = urls.find(u => u.startsWith("data:"))
             ?? urls.find(u => u.endsWith(".svg"))
@@ -826,11 +840,9 @@ const addWebviewListeners = webview => {
     webview.addEventListener("leave-html-full-screen", () => {
         document.body.classList.remove("fullscreen")
         setMode("normal")
-        const {applyLayout} = require("./pagelayout")
         applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
-        const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
             notify(e.args[0])
         }
@@ -842,30 +854,23 @@ const addWebviewListeners = webview => {
             currentPage()?.downloadURL(e.args[0])
         }
         if (e.channel === "external") {
-            const {commonAction} = require("./contextmenu")
             commonAction("other", "link", "external", {"link": e.args[0]})
         }
         if (e.channel === "back-button") {
-            const {backInHistory} = require("./actions")
             backInHistory({"src": "user"})
         }
         if (e.channel === "forward-button") {
-            const {forwardInHistory} = require("./actions")
             forwardInHistory({"src": "user"})
         }
         if (e.channel === "mouse-up") {
-            const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
-            const {setFocusCorrectly} = require("./actions")
             setFocusCorrectly()
         }
         if (e.channel === "scroll-height-diff") {
-            const {clear} = require("./contextmenu")
             clear()
             if (justSearched) {
                 justSearched = false
             } else if (e.args[0]) {
-                const {handleScrollDiffEvent} = require("./pointer")
                 handleScrollDiffEvent(e.args[0])
             }
             if (e.args[0]) {
@@ -873,7 +878,6 @@ const addWebviewListeners = webview => {
             }
         }
         if (e.channel === "history-list-request") {
-            const {handleRequest} = require("./history")
             handleRequest(webview, ...e.args)
         }
         if (e.channel === "switch-to-insert") {
@@ -887,8 +891,6 @@ const addWebviewListeners = webview => {
             if (special?.name !== "newtab") {
                 return
             }
-            const {forSite} = require("./favicons")
-            const {suggestTopSites, titleForPage} = require("./history")
             const favoritePages = getSetting("favoritepages").map(u => {
                 let url = u
                 if (!hasProtocol(url)) {
@@ -918,17 +920,14 @@ const addWebviewListeners = webview => {
             const pageTop = propPixels(webview.style, "top")
             const pageLeft = propPixels(webview.style, "left")
             if (currentMode() === "follow") {
-                const {emptyHoverLink} = require("./follow")
                 emptyHoverLink()
             } else if (currentMode() === "command") {
-                const {moveScreenshotFrame} = require("./input")
                 moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
             }
             resetScrollbarTimer("move")
         }
         if (e.channel === "search-element-location") {
             if (currentMode() === "pointer") {
-                const {move} = require("./pointer")
                 move(e.args[0], e.args[1])
             }
         }
@@ -969,7 +968,7 @@ const addWebviewListeners = webview => {
  * Unsuspend a tab.
  * @param {Electron.WebviewTag|HTMLDivElement} page
  */
-const unsuspendPage = page => {
+export const unsuspendPage = page => {
     if (page.tagName?.toLowerCase() === "webview") {
         return
     }
@@ -1001,9 +1000,7 @@ const unsuspendPage = page => {
         getSetting("adblocker"), getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
     guiRelatedUpdate("tabbar")
-    const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
-    const {setLastUsedTab} = require("./pagelayout")
     setLastUsedTab(page?.getAttribute("link-id") ?? null)
     const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
     const isDevtoolsTab = !!currentPageId
@@ -1062,10 +1059,10 @@ const unsuspendPage = page => {
  *   script?: string,
  *   muted?: boolean,
  *   startup?: boolean,
- *   src: import("./common").RunSource
+ *   src: import("../preloadutil.js").RunSource
  * }} opts
  */
-const addTab = opts => {
+export const addTab = opts => {
     // Recognized options for opening a new tab are as follows:
     // url, customIndex, switchTo, pinned, session (override of container)
     // container (suggestion), devtools, lazy, script, muted, startup
@@ -1122,12 +1119,10 @@ const addTab = opts => {
         } else {
             if ((/^https?:\/\//).test(opts.url)) {
                 if (getSetting("externalcommand").trim()) {
-                    const {commonAction} = require("./contextmenu")
                     commonAction(
                         opts.src ?? "user",
                         "link", "external", {"link": opts.url})
                 } else {
-                    const {shell} = require("electron")
                     shell.openExternal(opts.url)
                 }
             }
@@ -1269,9 +1264,7 @@ const addTab = opts => {
         && !opts.switchTo
     tab.setAttribute("suspended", "suspended")
     if (suspend) {
-        const {titleForPage} = require("./history")
         name.textContent = titleForPage(url) || url
-        const {forSite} = require("./favicons")
         favicon.src = forSite(url) || favicon.src
     } else if (!opts.switchTo) {
         unsuspendPage(page)
@@ -1279,16 +1272,15 @@ const addTab = opts => {
     if (opts.switchTo) {
         switchToTab(tab)
     } else {
-        const {applyLayout} = require("./pagelayout")
         applyLayout()
     }
 }
 
 /**
  * Reopen the last closed tab and switch to it.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
-const reopenTab = src => {
+export const reopenTab = src => {
     if (recentlyClosed.length === 0 || listTabs().length === 0) {
         return
     }
@@ -1299,7 +1291,7 @@ const reopenTab = src => {
      *   session?: string
      *   container?: string
      *   customIndex?: number
-     *   src?: import("./common").RunSource
+     *   src?: import("../preloadutil.js").RunSource
      * }|undefined} */
     const restore = recentlyClosed.pop()
     if (!restore) {
@@ -1329,7 +1321,7 @@ const reopenTab = src => {
 }
 
 /** Load the tabs from disk and from startup args. */
-const init = () => {
+export const init = () => {
     window.addEventListener("load", () => {
         if (appConfig()?.icon) {
             document.getElementById("logo")
@@ -1469,7 +1461,7 @@ const init = () => {
 }
 
 /** Move the tab forward in the tab bar. */
-const moveTabForward = () => {
+export const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
     const tab = currentTab()
     if (!tab || !tab.nextElementSibling || !tabs) {
@@ -1486,7 +1478,7 @@ const moveTabForward = () => {
 }
 
 /** Move the tab backward in the tab bar. */
-const moveTabBackward = () => {
+export const moveTabBackward = () => {
     const tabs = document.getElementById("tabs")
     const tab = currentTab()
     if (!tab || !tabs || listTabs().indexOf(tab) <= 0) {
@@ -1500,23 +1492,4 @@ const moveTabBackward = () => {
     tabs.insertBefore(tab, tab.previousElementSibling)
     tab.scrollIntoView({"block": "center", "inline": "center"})
     return true
-}
-
-module.exports = {
-    addColorschemeStylingToWebview,
-    addTab,
-    closeTab,
-    init,
-    moveTabBackward,
-    moveTabForward,
-    navigateTo,
-    recreateWebview,
-    reopenTab,
-    rerollUserAgent,
-    resetTabInfo,
-    saveTabs,
-    suspendTab,
-    switchToTab,
-    unsuspendPage,
-    updateUrl
 }

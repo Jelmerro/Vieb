@@ -15,26 +15,27 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {getSetting, propPixels} = require("../util")
-const {
+import {
     currentPage,
+    getSetting,
     listFakePages,
     listPages,
     listReadyPages,
     listRealPages,
     listTabs,
     tabForPage
-} = require("./common")
+} from "../preloadutil.js"
+import {propPixels} from "../util.js"
+import {rangeToTabIdxs} from "./command.js"
+import {suspendTab, switchToTab} from "./tabs.js"
 
 /**
  * Get a page layout element by id.
  * @param {string|null|undefined} id
  */
-const layoutDivById = id => document.querySelector(
+export const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id ?? "none"}']`)
-
 /** @type {{[id: string]: number}} */
 const timers = {}
 /** @type {string[]} */
@@ -75,7 +76,7 @@ const removeRedundantContainers = () => {
 }
 
 /** Apply all layout changes from the div elements to the actual webviews. */
-const applyLayout = () => {
+export const applyLayout = () => {
     const pagelayout = document.getElementById("pagelayout")
     if (!pagelayout) {
         return
@@ -143,14 +144,12 @@ const applyLayout = () => {
         const index = listTabs().indexOf(tab)
         let shouldSuspend = true
         getSetting("suspendtimeoutignore").forEach(ignore => {
-            const {rangeToTabIdxs} = require("./command")
             if (rangeToTabIdxs("other", ignore).tabs.includes(index)) {
                 shouldSuspend = false
             }
         })
         if (shouldSuspend) {
             delete timers[linkId]
-            const {suspendTab} = require("./tabs")
             suspendTab("other", tab)
         } else {
             timers[linkId] = window.setTimeout(
@@ -200,7 +199,7 @@ const applyLayout = () => {
  * @param {Electron.WebviewTag|HTMLDivElement|null} oldViewOrId
  * @param {Electron.WebviewTag|HTMLDivElement} newView
  */
-const switchView = (oldViewOrId, newView) => {
+export const switchView = (oldViewOrId, newView) => {
     const pagelayoutEl = document.getElementById("pagelayout")
     const oldId = oldViewOrId?.getAttribute("link-id")
     const newId = newView.getAttribute("link-id") ?? "none"
@@ -222,7 +221,7 @@ const switchView = (oldViewOrId, newView) => {
  * @param {Electron.WebviewTag|HTMLDivElement} view
  * @param {boolean} close
  */
-const hide = (view, close = false) => {
+export const hide = (view, close = false) => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -264,7 +263,6 @@ const hide = (view, close = false) => {
             }
             view.remove()
         }
-        const {switchToTab} = require("./tabs")
         if (newTab) {
             switchToTab(newTab)
         }
@@ -289,7 +287,7 @@ const hide = (view, close = false) => {
  * @param {"ver"|"hor"} method
  * @param {boolean} leftOrAbove
  */
-const add = (viewOrId, method, leftOrAbove) => {
+export const add = (viewOrId, method, leftOrAbove) => {
     const pagelayoutEl = document.getElementById("pagelayout")
     if (!pagelayoutEl) {
         return
@@ -345,7 +343,7 @@ const add = (viewOrId, method, leftOrAbove) => {
 }
 
 /** Rotate the current subelement forward in the current split. */
-const rotateForward = () => {
+export const rotateForward = () => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -359,7 +357,7 @@ const rotateForward = () => {
 }
 
 /** Rotate the current subelement backward in the current split. */
-const rotateReverse = () => {
+export const rotateReverse = () => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -373,7 +371,7 @@ const rotateReverse = () => {
 }
 
 /** Exchange the current split position for the next on in the split list. */
-const exchange = () => {
+export const exchange = () => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -399,14 +397,13 @@ const exchange = () => {
     }
     const tab = listTabs().find(t => t.getAttribute("link-id") === newId)
     if (tab) {
-        const {switchToTab} = require("./tabs")
         switchToTab(tab)
     }
     applyLayout()
 }
 
 /** Remove any custom grow CSS rules to reset all custom split sizes. */
-const resetResizing = () => {
+export const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
         if (element instanceof HTMLElement) {
             element.style.flexGrow = ""
@@ -419,7 +416,7 @@ const resetResizing = () => {
  * Move a split to the top of the layout grid.
  * @param {"top"|"left"|"right"|"bottom"} direction
  */
-const toTop = direction => {
+export const toTop = direction => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -460,7 +457,7 @@ const toTop = direction => {
  * Move the focus to a specific direction.
  * @param {"top"|"left"|"right"|"bottom"} direction
  */
-const moveFocus = direction => {
+export const moveFocus = direction => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -496,7 +493,6 @@ const moveFocus = direction => {
             const tab = listTabs().find(
                 t => t.getAttribute("link-id") === newId)
             if (tab) {
-                const {switchToTab} = require("./tabs")
                 switchToTab(tab)
             }
         }
@@ -508,7 +504,7 @@ const moveFocus = direction => {
  * @param {"ver"|"hor"} orientation
  * @param {"grow"|"shrink"} change
  */
-const resize = (orientation, change) => {
+export const resize = (orientation, change) => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -561,9 +557,8 @@ const resize = (orientation, change) => {
 }
 
 /** Go to the first split based on position in the list. */
-const firstSplit = () => {
+export const firstSplit = () => {
     const first = document.querySelector("#pagelayout *[link-id]")
-    const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === first?.getAttribute("link-id"))
     if (tab) {
@@ -572,14 +567,13 @@ const firstSplit = () => {
 }
 
 /** Go to the previous split based on position in the list. */
-const previousSplit = () => {
+export const previousSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const current = layoutDivById(currentPage()?.getAttribute("link-id"))
     if (!current) {
         return
     }
     const next = views[views.indexOf(current) - 1] || views[views.length - 1]
-    const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
     if (tab) {
@@ -588,14 +582,13 @@ const previousSplit = () => {
 }
 
 /** Go to the next split based on position in the list. */
-const nextSplit = () => {
+export const nextSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const current = layoutDivById(currentPage()?.getAttribute("link-id"))
     if (!current) {
         return
     }
     const next = views[views.indexOf(current) + 1] || views[0]
-    const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
     if (tab) {
@@ -604,10 +597,9 @@ const nextSplit = () => {
 }
 
 /** Go to the last split based on position in the list. */
-const lastSplit = () => {
+export const lastSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const last = views[views.length - 1]
-    const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === last.getAttribute("link-id"))
     if (tab) {
@@ -616,7 +608,7 @@ const lastSplit = () => {
 }
 
 /** Make the current split/page the only visible one by hiding all others. */
-const only = () => {
+export const only = () => {
     const linkId = currentPage()?.getAttribute("link-id") ?? ""
     const singleView = document.createElement("div")
     singleView.setAttribute("link-id", linkId)
@@ -632,7 +624,7 @@ const only = () => {
  * Add an id to the last used tab id list.
  * @param {string|null} id
  */
-const setLastUsedTab = id => {
+export const setLastUsedTab = id => {
     if (recentlySwitched || !id) {
         return
     }
@@ -646,7 +638,7 @@ const setLastUsedTab = id => {
 }
 
 /** Restart all suspend timeouts when the setting is changed. */
-const restartSuspendTimeouts = () => {
+export const restartSuspendTimeouts = () => {
     for (const linkId of Object.keys(timers)) {
         window.clearTimeout(timers[linkId])
         delete timers[linkId]
@@ -655,7 +647,7 @@ const restartSuspendTimeouts = () => {
 }
 
 /** Show the scrollbar for all pages. */
-const showScrollbar = () => {
+export const showScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
@@ -663,7 +655,7 @@ const showScrollbar = () => {
 }
 
 /** Hide the scrollbar for all pages. */
-const hideScrollbar = () => {
+export const hideScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
@@ -677,7 +669,7 @@ const hideScrollbar = () => {
  * Reset the scrollbar time based on an event.
  * @param {"none"|"scroll"|"move"} event
  */
-const resetScrollbarTimer = (event = "none") => {
+export const resetScrollbarTimer = (event = "none") => {
     const setting = getSetting("guiscrollbar")
     const timeout = getSetting("guihidetimeout")
     if (setting === "onmove" || setting === "onscroll") {
@@ -697,30 +689,4 @@ const resetScrollbarTimer = (event = "none") => {
 }
 
 /** Return the list of last used tabs based on focus. */
-const getLastTabIds = () => lastTabIds
-
-module.exports = {
-    add,
-    applyLayout,
-    exchange,
-    firstSplit,
-    getLastTabIds,
-    hide,
-    hideScrollbar,
-    lastSplit,
-    layoutDivById,
-    moveFocus,
-    nextSplit,
-    only,
-    previousSplit,
-    resetResizing,
-    resetScrollbarTimer,
-    resize,
-    restartSuspendTimeouts,
-    rotateForward,
-    rotateReverse,
-    setLastUsedTab,
-    showScrollbar,
-    switchView,
-    toTop
-}
+export const getLastTabIds = () => lastTabIds

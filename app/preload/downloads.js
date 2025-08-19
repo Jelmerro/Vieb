@@ -15,13 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {
-    formatDate, formatSize, getAppRootDir, joinPath, urlToString
-} = require("../util")
+import {ipcRenderer} from "electron"
+import {urlToString} from "../preloadutil.js"
+import {translate} from "../translate.js"
+import {formatDate, formatSize, getAppRootDir, joinPath} from "../util.js"
 
 let lastUpdate = new Date()
 
@@ -56,7 +54,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Add a download to the list.
- * @param {import("../index").downloadItem} download
+ * @param {import("../index.js").downloadItem} download
  */
 const addDownload = download => {
     const element = document.createElement("div")
@@ -147,7 +145,7 @@ const addDownload = download => {
 
 /**
  * Update a download element with new data.
- * @param {import("../index").downloadItem} download
+ * @param {import("../index.js").downloadItem} download
  * @param {Element} element
  */
 const updateDownload = (download, element) => {
@@ -253,7 +251,7 @@ const updateDownload = (download, element) => {
  * @param {string} l
  */
 const generateDownloadList = (_, l) => {
-    /** @type {import("../index").downloadItem[]} */
+    /** @type {import("../index.js").downloadItem[]} */
     const list = JSON.parse(l).reverse()
     // List
     if (list.length === 0) {

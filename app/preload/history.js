@@ -15,13 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {
-    formatDate, getAppRootDir, getSetting, joinPath, urlToString
-} = require("../util")
+import {ipcRenderer} from "electron"
+import {getSetting, urlToString} from "../preloadutil.js"
+import {translate} from "../translate.js"
+import {formatDate, getAppRootDir, joinPath} from "../util.js"
 
 let currentlyRemoving = false
 let virtualList = document.createElement("div")
@@ -109,7 +107,7 @@ const updateCurrentView = (user = true) => {
 /**
  * Add a single history entry to the list.
  * @param {(
- *   import("../renderer/history").historyItem
+ *   import("../renderer/history.js").historyItem
  * )} hist
  */
 const addHistToList = hist => {
@@ -143,7 +141,7 @@ const addHistToList = hist => {
 
 /**
  * Show the received history in a list.
- * @param {import("../renderer/history").historyItem[]} history
+ * @param {import("../renderer/history.js").historyItem[]} history
  */
 const receiveHistory = history => {
     const removeAllEl = document.getElementById("remove-all")
@@ -164,7 +162,7 @@ const receiveHistory = history => {
 
     /**
      * Add an item to the history list on a timeout based on previous duration.
-     * @param {import("../renderer/history").historyItem} hist
+     * @param {import("../renderer/history.js").historyItem} hist
      */
     const addHistTimeout = hist => {
         setTimeout(() => {

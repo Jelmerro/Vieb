@@ -15,13 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {execSync} = require("child_process")
-const {
-    cpSync, mkdirSync, readdir, readFileSync, rmSync, unlinkSync
-} = require("fs")
-const {dirname, join} = require("path")
+import {execSync} from "child_process"
+import {cpSync, mkdirSync, readdir, readFileSync, rmSync, unlinkSync} from "fs"
+import {dirname, join} from "path"
+
 const defaultConfig = {"config": {
     "appId": "com.github.Jelmerro.vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "

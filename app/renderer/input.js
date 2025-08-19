@@ -15,27 +15,35 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {ipcRenderer} = require("electron")
-const {
-    getSetting, isElement, isUrl, matchesQuery, notify, pageOffset, specialChars
-} = require("../util")
-const ACTIONS = require("./actions")
-const {
+import {clipboard, ipcRenderer} from "electron"
+import {platform} from "node:os"
+import {
     currentMode,
     currentPage,
     currentTab,
     getMouseConf,
+    getSetting,
     getUrl,
     listReadyPages,
     listTabs,
+    notify,
     sendToPageOrSubFrame,
     setTopOfPageWithMouse,
     updateGuiVisibility,
     updateScreenshotHighlight
-} = require("./common")
-const POINTER = require("./pointer")
+} from "../preloadutil.js"
+import {
+    isElement, isUrl, matchesQuery, pageOffset, specialChars
+} from "../util.js"
+import * as ACTIONS from "./actions.js"
+import {execute} from "./command.js"
+import {active, clear, viebMenu} from "./contextmenu.js"
+import {enterKey, followFiltering} from "./follow.js"
+import {applyLayout} from "./pagelayout.js"
+import * as POINTER from "./pointer.js"
+import {updateHelpPage} from "./settings.js"
+import {suggestCommand, suggestExplore} from "./suggest.js"
+import {addTab, closeTab, switchToTab} from "./tabs.js"
 
 /** @type {{[mode: string]: {
  *   [key: string]: {mapping: string, noremap?: boolean}
@@ -694,7 +702,7 @@ Object.keys(defaultBindings).forEach(mode => {
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
-/** @type {import("./common").RunSource} */
+/** @type {import("../preloadutil.js").RunSource} */
 let keyboardEventSource = "user"
 /** @type {typeof defaultBindings} */
 let bindings = JSON.parse(JSON.stringify(defaultBindings))
@@ -719,7 +727,8 @@ let hadModifier = false
 /** @type {string|null} */
 let recordingName = null
 let recordingString = ""
-const keyNames = [
+
+export const keyNames = [
     {"js": ["<"], "vim": ["lt"]},
     {"js": ["Backspace"], "vim": ["BS"]},
     {
@@ -798,8 +807,9 @@ const keyNames = [
     // Fictional keys with custom implementation
     {"js": ["Any"], "vim": ["Any"]}
 ]
+
 // Single use actions that do not need to be called multiple times if counted
-const uncountableActions = [
+export const uncountableActions = [
     "emptySearch",
     "clickOnSearch",
     "toExploreMode",
@@ -926,7 +936,7 @@ const uncountableActions = [
 ]
 
 /** Reset the screenshot drag state after a small timeout. */
-const resetScreenshotDrag = () => setTimeout(() => {
+export const resetScreenshotDrag = () => setTimeout(() => {
     draggingScreenshotFrame = false
 }, 10)
 
@@ -938,10 +948,8 @@ const updateSuggestions = () => {
     }
     const mode = currentMode()
     if (mode === "explore") {
-        const {suggestExplore} = require("./suggest")
         suggestExplore(url.value)
     } else if (mode === "command") {
-        const {suggestCommand} = require("./suggest")
         suggestCommand(url.value)
     } else if (mode === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch({"src": "other"})
@@ -952,7 +960,7 @@ const updateSuggestions = () => {
  * Request an update to the suggestions with debounce and input history.
  * @param {boolean} updateHistory
  */
-const requestSuggestUpdate = (updateHistory = true) => {
+export const requestSuggestUpdate = (updateHistory = true) => {
     const url = getUrl()
     const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory) {
@@ -980,7 +988,7 @@ const requestSuggestUpdate = (updateHistory = true) => {
  * @param {number} x
  * @param {number} y
  */
-const moveScreenshotFrame = (x, y) => {
+export const moveScreenshotFrame = (x, y) => {
     const deltaX = x - lastScreenshotX
     const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
@@ -1071,13 +1079,12 @@ const updateNavbarScrolling = () => {
  * Execute the cut clipboard action on the url.
  * @param {Event|null} event
  */
-const cutInput = (event = null) => {
+export const cutInput = (event = null) => {
     event?.preventDefault()
     let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
-    const {clipboard} = require("electron")
     clipboard.writeText(selection)
     const url = getUrl()
     if (!url) {
@@ -1095,13 +1102,12 @@ const cutInput = (event = null) => {
  * Execute the copy clipboard action on the url.
  * @param {Event|null} event
  */
-const copyInput = (event = null) => {
+export const copyInput = (event = null) => {
     event?.preventDefault()
     let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
-    const {clipboard} = require("electron")
     clipboard.writeText(selection)
 }
 
@@ -1109,7 +1115,7 @@ const copyInput = (event = null) => {
  * Execute the paste clipboard action on the url.
  * @param {Event|null} event
  */
-const pasteInput = (event = null) => {
+export const pasteInput = (event = null) => {
     event?.preventDefault()
     const url = getUrl()
     if (!url) {
@@ -1117,7 +1123,6 @@ const pasteInput = (event = null) => {
     }
     const cur = Number(url.selectionStart)
     const end = Number(url.selectionEnd)
-    const {clipboard} = require("electron")
     const pastedText = clipboard.readText()
     url.value = url.value.slice(0, cur) + pastedText + url.value.slice(end)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
@@ -1177,7 +1182,7 @@ const toIdentifier = e => {
  * Split the mapstring by key.
  * @param {string} mapStr
  */
-const splitMapString = mapStr => {
+export const splitMapString = mapStr => {
     const maps = []
     let bracketCounter = 0
     let temp = ""
@@ -1300,7 +1305,7 @@ const findMaps = (actionKeys, mode, future = false) => {
 const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
 /** Update the keys listed on screen, mapsuggest, repeater and recordings. */
-const updateKeysOnScreen = () => {
+export const updateKeysOnScreen = () => {
     const repeatCounterEl = document.getElementById("repeat-counter")
     const pressedKeysEl = document.getElementById("pressed-keys")
     const recordNameEl = document.getElementById("record-name")
@@ -1330,7 +1335,6 @@ const updateKeysOnScreen = () => {
     if (mapsuggestElement) {
         mapsuggestElement.style.display = "none"
     }
-    const {active} = require("./contextmenu")
     if (mapsuggestcount > 0 && mapsuggestElement) {
         const mapsuggestPosition = getSetting("mapsuggestposition")
         mapsuggestElement.className = mapsuggestPosition
@@ -1385,7 +1389,6 @@ const updateKeysOnScreen = () => {
  * @param {string} keys
  */
 const actionForKeys = keys => {
-    const {active} = require("./contextmenu")
     const allMenu = findMaps(keys, "menu")
     const menuAction = bindings.m[allMenu[0]]
     if (active() && menuAction) {
@@ -1406,7 +1409,7 @@ const actionForKeys = keys => {
  *   key: string
  * }} options
  * @param {string} mapStr
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
 const sendKeysToWebview = async(options, mapStr, src) => {
     if (recordingName) {
@@ -1432,7 +1435,7 @@ const sendKeysToWebview = async(options, mapStr, src) => {
  * @param {{
  *   givenCount?: number,
  *   key?: string|undefined,
- *   src: import("./common").RunSource
+ *   src: import("../preloadutil.js").RunSource
  * }} opts
  */
 const doAction = async(actionName, opts) => {
@@ -1462,7 +1465,6 @@ const doAction = async(actionName, opts) => {
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
-        const {clear} = require("./contextmenu")
         clear()
     }
     repeatCounter = 0
@@ -1474,10 +1476,10 @@ const doAction = async(actionName, opts) => {
  * @param {boolean} recursive
  * @param {{
  *   initial?: boolean,
- *   src: import("./common").RunSource
+ *   src: import("../preloadutil.js").RunSource
  * }} opts
  */
-const executeMapString = async(mapStr, recursive, opts) => {
+export const executeMapString = async(mapStr, recursive, opts) => {
     const actionCallKey = splitMapString(pressedKeys).maps.at(-1)
     if (opts.initial) {
         keyboardEventSource = opts.src
@@ -1524,7 +1526,6 @@ const executeMapString = async(mapStr, recursive, opts) => {
                 })
                 continue
             } else if (key.startsWith("<:")) {
-                const {execute} = require("./command")
                 execute(key.replace(/^<:|>$/g, ""), {"src": opts.src})
                 lastActionInMapping = null
                 await new Promise(r => {
@@ -1568,9 +1569,9 @@ const executeMapString = async(mapStr, recursive, opts) => {
 
 /**
  * Repeat the last run action.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
-const repeatLastAction = src => {
+export const repeatLastAction = src => {
     if (lastExecutedMapstring) {
         executeMapString(lastExecutedMapstring.mapStr,
             lastExecutedMapstring.recursive, {"initial": true, src})
@@ -1584,10 +1585,10 @@ const repeatLastAction = src => {
  * @param {string} key
  */
 const keyForOs = (regular, mac, key) => regular.includes(key)
-    || process.platform === "darwin" && mac.includes(key)
+    || platform() === "darwin" && mac.includes(key)
 
 /** Reset the input history to the default no history state. */
-const resetInputHistory = () => {
+export const resetInputHistory = () => {
     inputHistoryList = [{"index": 0, "value": ""}]
     inputHistoryIndex = 0
 }
@@ -1597,7 +1598,7 @@ const resetInputHistory = () => {
  * @param {string} character
  * @param {boolean} force
  */
-const typeCharacterIntoNavbar = (character, force = false) => {
+export const typeCharacterIntoNavbar = (character, force = false) => {
     const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
         .replace(/<k([a-zA-Z]+)>/, (_, r) => `<${r}>`)
         .replace(/<k(\d)>/, (_, r) => r)
@@ -1943,11 +1944,11 @@ const isEmptyObject = obj => {
 
 /**
  * Sanitize any mapstring to the shortest valid version.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} mapString
  * @param {boolean} allowSpecials
  */
-const sanitiseMapString = (src, mapString, allowSpecials = false) => {
+export const sanitiseMapString = (src, mapString, allowSpecials = false) => {
     const {leftover, maps, valid} = splitMapString(mapString)
     if (!valid) {
         notify({
@@ -2096,7 +2097,6 @@ const handleKeyboard = async e => {
     const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
     window.clearTimeout(timeoutTimer ?? undefined)
-    const {active, clear} = require("./contextmenu")
     if (getSetting("timeout")) {
         timeoutTimer = window.setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
@@ -2226,7 +2226,6 @@ const handleKeyboard = async e => {
     updateKeysOnScreen()
     if (currentMode() === "follow") {
         if (e instanceof KeyboardEvent && e.type === "keydown") {
-            const {enterKey} = require("./follow")
             let unshiftedName = String(e.key).toLowerCase()
             if (e.key.toUpperCase() === unshiftedName && hadModifier) {
                 const map = await window.navigator.keyboard?.getLayoutMap()
@@ -2240,7 +2239,7 @@ const handleKeyboard = async e => {
 }
 
 /** List all the supported actions. */
-const listSupportedActions = () => supportedActions
+export const listSupportedActions = () => supportedActions
 
 /**
  * Check if mapping has been modified compared to the defaults.
@@ -2265,7 +2264,7 @@ const mappingModified = (mode, mapping) => {
 
 /**
  * List a mapping as if set via a command.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} mode
  * @param {boolean} includeDefault
  * @param {string} rawKey
@@ -2290,12 +2289,12 @@ const listMapping = (src, mode, includeDefault, rawKey) => {
 
 /**
  * List mappings as a list of map commands.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} oneMode
  * @param {boolean} includeDefault
  * @param {string[]|null} customKeys
  */
-const listMappingsAsCommandList = (
+export const listMappingsAsCommandList = (
     src, oneMode = null, includeDefault = false, customKeys = null
 ) => {
     /** @type {string[]} */
@@ -2330,7 +2329,7 @@ const listMappingsAsCommandList = (
 
 /**
  * Map a single key.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
@@ -2348,19 +2347,18 @@ const mapSingle = (src, mode, args, noremap) => {
             bindings[m][mapping] = {"mapping": actions, noremap}
         })
     }
-    const {updateHelpPage} = require("./settings")
     updateHelpPage(src)
 }
 
 /**
  * Handle the map command, so either list a mapping or set it.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
  * @param {boolean} includeDefault
  */
-const mapOrList = (
+export const mapOrList = (
     src, mode, args, noremap = false, includeDefault = false
 ) => {
     if (includeDefault && args.length > 1) {
@@ -2420,12 +2418,12 @@ const mapOrList = (
 
 /**
  * Unmap a specific key.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} anyAsWildcard
  */
-const unmap = (src, mode, args, anyAsWildcard) => {
+export const unmap = (src, mode, args, anyAsWildcard) => {
     if (args.length !== 1) {
         notify({
             "fields": [mode ?? ""],
@@ -2458,17 +2456,16 @@ const unmap = (src, mode, args, anyAsWildcard) => {
             delete bindings[bindMode][mapStr]
         }
     })
-    const {updateHelpPage} = require("./settings")
     updateHelpPage(src)
 }
 
 /**
  * Clear all mappings to default or wipe them completely, optionally per mode.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} mode
  * @param {boolean} removeDefaults
  */
-const clearmap = (src, mode, removeDefaults = false) => {
+export const clearmap = (src, mode, removeDefaults = false) => {
     if (mode) {
         if (removeDefaults) {
             bindings[mode] = {}
@@ -2482,16 +2479,15 @@ const clearmap = (src, mode, removeDefaults = false) => {
     } else {
         bindings = JSON.parse(JSON.stringify(defaultBindings))
     }
-    const {updateHelpPage} = require("./settings")
     updateHelpPage(src)
 }
 
 /**
  * Start a macro recording by key name.
  * @param {string} name
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
-const startRecording = (name, src) => {
+export const startRecording = (name, src) => {
     if (recordingName) {
         notify({"id": "actions.alreadyRecording", src, "type": "warning"})
         return
@@ -2503,7 +2499,7 @@ const startRecording = (name, src) => {
 /**
  * Stop the current macro recording.
  */
-const stopRecording = () => {
+export const stopRecording = () => {
     if (!recordingName) {
         return
     }
@@ -2526,7 +2522,7 @@ const stopRecording = () => {
 }
 
 /** Setup all input listeners for both keyboard and mouse across the app. */
-const init = () => {
+export const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
@@ -2567,7 +2563,6 @@ const init = () => {
             }
         }
         if (e.target === getUrl()) {
-            const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (typing && !getMouseConf("url")) {
                 e.preventDefault()
@@ -2579,7 +2574,6 @@ const init = () => {
     })
     document.getElementById("tabs")?.addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
-            const {addTab} = require("./tabs")
             addTab({"src": "user"})
         } else {
             e.preventDefault()
@@ -2619,7 +2613,6 @@ const init = () => {
         }
     }, {"passive": false})
     window.addEventListener("drop", e => {
-        const {followFiltering} = require("./follow")
         const typing = "sec".includes(currentMode()[0]) || followFiltering()
         if (e.target === getUrl()) {
             if (typing) {
@@ -2648,7 +2641,6 @@ const init = () => {
             e.preventDefault()
             return
         }
-        const {followFiltering} = require("./follow")
         const typing = "sec".includes(currentMode()[0]) || followFiltering()
         if (e.target === getUrl()) {
             if (typing) {
@@ -2679,10 +2671,8 @@ const init = () => {
                 return false
             })
             if (tab instanceof HTMLElement) {
-                const {closeTab} = require("./tabs")
                 closeTab("user", listTabs().indexOf(tab))
             }
-            const {clear} = require("./contextmenu")
             clear()
         }
         ACTIONS.setFocusCorrectly()
@@ -2699,7 +2689,6 @@ const init = () => {
             e.preventDefault()
             return
         }
-        const {clear} = require("./contextmenu")
         clear()
         if (!(e.target instanceof HTMLElement)) {
             return
@@ -2717,7 +2706,6 @@ const init = () => {
             n => isElement(n) && matchesQuery(n, "#url, #suggest-dropdown"))
 
         if (urlOrSuggest(e)) {
-            const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (!typing && getMouseConf("toexplore")) {
                 ACTIONS.toExploreMode()
@@ -2736,7 +2724,6 @@ const init = () => {
             })
             if (tab instanceof HTMLSpanElement) {
                 clear()
-                const {switchToTab} = require("./tabs")
                 switchToTab(tab)
             }
         }
@@ -2753,7 +2740,6 @@ const init = () => {
                     const tab = listTabs().find(t => t.getAttribute(
                         "link-id") === n.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {
-                        const {switchToTab} = require("./tabs")
                         switchToTab(tab)
                     }
                 }
@@ -2764,7 +2750,6 @@ const init = () => {
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
         if (getMouseConf("leaveinput")) {
-            const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
 
             /**
@@ -2780,15 +2765,12 @@ const init = () => {
             }
         }
         if (getMouseConf("menuvieb")) {
-            const {viebMenu} = require("./contextmenu")
             viebMenu("user", e)
         }
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("resize", () => {
-        const {clear} = require("./contextmenu")
         clear()
-        const {applyLayout} = require("./pagelayout")
         applyLayout()
         if (["pointer", "visual"].includes(currentMode())) {
             POINTER.updateElement()
@@ -2855,7 +2837,6 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     ipcRenderer.on("execute-command", (_, command) => {
-        const {execute} = require("./command")
         execute(command, {"src": "execute"})
     })
     ipcRenderer.on("window-update-gui", () => updateGuiVisibility())
@@ -2876,30 +2857,4 @@ const init = () => {
         ...Object.keys(ACTIONS), ...Object.keys(POINTER).map(c => `p.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
     updateKeysOnScreen()
-}
-
-module.exports = {
-    clearmap,
-    copyInput,
-    cutInput,
-    executeMapString,
-    init,
-    keyNames,
-    listMappingsAsCommandList,
-    listSupportedActions,
-    mapOrList,
-    moveScreenshotFrame,
-    pasteInput,
-    repeatLastAction,
-    requestSuggestUpdate,
-    resetInputHistory,
-    resetScreenshotDrag,
-    sanitiseMapString,
-    splitMapString,
-    startRecording,
-    stopRecording,
-    typeCharacterIntoNavbar,
-    uncountableActions,
-    unmap,
-    updateKeysOnScreen
 }

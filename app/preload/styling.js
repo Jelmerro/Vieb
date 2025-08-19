@@ -15,29 +15,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
 // Change the colors to $FG text on $BG background for plain text pages
 // Change the background to white for regular pages with no explicit background
 // Optionally loads darkreader to override the page colors and use a dark theme
-const {ipcRenderer} = require("electron")
-const {
-    appData,
+import {ipcRenderer} from "electron"
+import {appData, getSetting, pathToSpecialPageName} from "../preloadutil.js"
+import {
     domainName,
     expandPath,
     fetchUrl,
     getAppRootDir,
-    getSetting,
     joinPath,
     listDir,
-    pathToSpecialPageName,
     readFile
-} = require("../util")
+} from "../util.js"
 const specialPage = pathToSpecialPageName(window.location.href)
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("../util").NotificationInfo} opts
+ * @param {import("../preloadutil.js").NotificationInfo} opts
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
@@ -145,7 +142,7 @@ const updateScrollbar = () => {
  */
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
-    if (!html) {
+    if (!html || !document.body) {
         return
     }
     if (document.location.ancestorOrigins.length) {

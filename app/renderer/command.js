@@ -15,26 +15,38 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {ipcRenderer} = require("electron")
-const {argsAsHumanList, translate} = require("../translate")
-const {
+import {clipboard, ipcRenderer, nativeImage} from "electron"
+import {platform} from "node:os"
+import {
     appConfig,
     appData,
     clearCache,
     clearCookies,
     clearLocalStorage,
     clearTempContainers,
+    currentPage,
+    currentTab,
+    downloadPath,
+    execCommand,
+    getSetting,
+    listRealPages,
+    listTabs,
+    notify,
+    pageForTab,
+    pathToSpecialPageName,
+    specialPagePath,
+    stringToUrl,
+    tabForPage,
+    urlToString
+} from "../preloadutil.js"
+import {argsAsHumanList, translate} from "../translate.js"
+import {
     deleteFile,
     dirname,
     domainName,
-    downloadPath,
-    execCommand,
     expandPath,
     formatDate,
     getAppRootDir,
-    getSetting,
     intervalValueToDate,
     isAbsolutePath,
     isDir,
@@ -42,36 +54,59 @@ const {
     isUrl,
     isValidIntervalValue,
     joinPath,
-    notify,
-    pathToSpecialPageName,
     propPixels,
     readFile,
     readJSON,
     specialChars,
     specialCharsAllowSpaces,
-    specialPagePath,
-    stringToUrl,
-    urlToString,
     writeFile,
     writeJSON
-} = require("../util")
-const {
-    currentPage,
-    currentTab,
-    listRealPages,
-    listTabs,
-    pageForTab,
-    tabForPage
-} = require("./common")
+} from "../util.js"
+import {
+    getPageUrl, makeMark, restoreMark, restoreScrollPos, storeScrollPos
+} from "./actions.js"
+import {push} from "./commandhistory.js"
+import {updateMappings} from "./favicons.js"
+import {
+    getSimpleName,
+    getSimpleUrl,
+    removeHistoryByPartialUrl,
+    removeOldHistory,
+    removeRecentHistory,
+    writeHistToFile
+} from "./history.js"
+import {
+    clearmap, executeMapString, mapOrList, sanitiseMapString, unmap
+} from "./input.js"
+import {add, getLastTabIds, hide, only} from "./pagelayout.js"
+import {restorePos, storePos} from "./pointer.js"
+import {
+    isArraySetting,
+    isEnumSetting,
+    isExistingSetting,
+    isNumberSetting,
+    isObjectSetting,
+    isStringSetting,
+    listCurrentSettings,
+    loadFromDisk,
+    mouseFeatures,
+    reset,
+    saveToDisk,
+    set,
+    setCustomStyling,
+    validOptions
+} from "./settings.js"
+import {
+    addTab, closeTab, navigateTo, saveTabs, suspendTab, switchToTab
+} from "./tabs.js"
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
- * @param {import("./common").RunSource} src
- * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
+ * @param {import("../preloadutil.js").RunSource} src
+ * @param {keyof typeof import("./settings.js").defaultSettings|"all"} setting
  */
 const listSetting = (src, setting) => {
     if (setting === "all") {
-        const {listCurrentSettings} = require("./settings")
         notify({
             "fields": [listCurrentSettings(true)],
             "id": "commands.settings.optionsList",
@@ -100,12 +135,11 @@ const splitSettingAndValue = (part, separator) => {
 /**
  * Check if a setting name is valid.
  * @param {string} name
- * @returns {name is (keyof typeof import("./settings").defaultSettings|"all")}
+ * @returns {name is (
+ *   keyof typeof import("./settings.js").defaultSettings|"all"
+ * )}
  */
-const isValidSettingName = name => {
-    const {isExistingSetting} = require("./settings")
-    return name === "all" || isExistingSetting(name)
-}
+const isValidSettingName = name => name === "all" || isExistingSetting(name)
 
 /**
  * Check if an unknown or any value is an array of strings.
@@ -137,16 +171,14 @@ const isStringObject = value => typeof value === "object"
 
 /**
  * Modifiy a list or a number.
- * @param {import("./common").RunSource} src
- * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {import("../preloadutil.js").RunSource} src
+ * @param {keyof typeof import("./settings.js").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"|"replace"} method
  */
 const modifyListOrObject = (src, setting, value, method) => {
-    const {isArraySetting, isObjectSetting, set} = require("./settings")
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
-    const {mouseFeatures} = require("./settings")
     /** @type {{[key: string]: string}|string[]|string[][]} */
     let parsed = {}
     try {
@@ -262,21 +294,17 @@ const modifyListOrObject = (src, setting, value, method) => {
 
 /**
  * Modifiy a list or a number.
- * @param {import("./common").RunSource} src
- * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {import("../preloadutil.js").RunSource} src
+ * @param {keyof typeof import("./settings.js").defaultSettings} setting
  * @param {string} rawValue
  * @param {"append"|"remove"|"special"|"replace"} method
  */
 const modifySetting = (src, setting, rawValue, method = "replace") => {
     let value = rawValue
-    const {
-        isArraySetting, isNumberSetting, isObjectSetting, isStringSetting, set
-    } = require("./settings")
     const isNumber = isNumberSetting(setting)
     const isText = isStringSetting(setting)
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
-    const {mouseFeatures} = require("./settings")
     if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
         || value.startsWith("[") && value.endsWith("]"))) {
         modifyListOrObject(src, setting, value, method)
@@ -391,12 +419,11 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
 
 /**
  * Use the set command to list or modify any setting.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const setCommand = (src, args) => {
     if (args.length === 0) {
-        const {listCurrentSettings} = require("./settings")
         const allChanges = listCurrentSettings()
         if (allChanges) {
             notify({
@@ -489,7 +516,6 @@ const setCommand = (src, args) => {
             const setting = part.slice(0, -1)
             if (isValidSettingName(setting) && setting !== "all") {
                 const value = getSetting(setting)
-                const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
                     modifySetting(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
@@ -514,7 +540,6 @@ const setCommand = (src, args) => {
                 })
             }
         } else if (part.endsWith("&")) {
-            const {reset} = require("./settings")
             reset(src, part.slice(0, -1))
         } else if (part.endsWith("?")) {
             const settingName = part.slice(0, -1)
@@ -559,9 +584,6 @@ const setCommand = (src, args) => {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
-                const {
-                    isArraySetting, isNumberSetting, isObjectSetting
-                } = require("./settings")
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, "false")
                 } else if (isArraySetting(settingName)) {
@@ -601,7 +623,7 @@ const sourcedFiles = []
 
 /**
  * Source a specific viebrc file.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} origin
  * @param {string[]} args
  */
@@ -662,7 +684,7 @@ const source = (src, origin, args) => {
 
 /**
  * Translate a search based range to a list of tab idxs.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
@@ -727,7 +749,7 @@ const translateSearchRangeToIdx = (src, range, silent) => {
 
 /**
  * Translate a partial range arg to tab index based on mathematical operations.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {number} start
  * @param {string} rangePart
  * @param {boolean} silent
@@ -787,11 +809,11 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
 
 /**
  * Get the tab indices for a given range.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
-const rangeToTabIdxs = (src, range, silent = false) => {
+export const rangeToTabIdxs = (src, range, silent = false) => {
     if (range === "%") {
         return {"tabs": listTabs().map((_, i) => i), "valid": true}
     }
@@ -867,7 +889,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
  * @param {string[]|[number]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
-const allTabsForBufferArg = (args, filter = null) => {
+export const allTabsForBufferArg = (args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
         if (!isNaN(number)) {
@@ -893,7 +915,6 @@ const allTabsForBufferArg = (args, filter = null) => {
             }]
         }
         if ((args[0] || args) === "#") {
-            const {getLastTabIds} = require("./pagelayout")
             const currentTabIdx = currentTab()?.getAttribute("link-id")
             const tabs = listTabs()
             const lastTab = getLastTabIds().map(id => {
@@ -911,7 +932,7 @@ const allTabsForBufferArg = (args, filter = null) => {
             }]
         }
     }
-    const {getSimpleName, getSimpleUrl} = require("./history")
+
     /**
      * Checks if all words appear somewhere in the simple url.
      * @param {string[]} search
@@ -972,13 +993,10 @@ const quitall = async() => {
     if (clearHistory === "session") {
         deleteFile(joinPath(appData(), "hist"))
     } else if (clearHistory === "none") {
-        const {writeHistToFile} = require("./history")
         writeHistToFile(true)
     } else {
-        const {removeOldHistory} = require("./history")
         await removeOldHistory(intervalValueToDate(clearHistory))
     }
-    const {saveTabs} = require("./tabs")
     saveTabs()
     const pagesContainer = document.getElementById("pages")
     if (pagesContainer) {
@@ -994,18 +1012,16 @@ const quitall = async() => {
     if (getSetting("clearlocalstorageonquit")) {
         clearLocalStorage()
     }
-    const {updateMappings} = require("./favicons")
     await updateMappings({"now": true})
     ipcRenderer.send("destroy-window")
 }
 
 /**
  * Quit the current split, a range of splits or the browser if not using splits.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} range
  */
 const quit = (src, range) => {
-    const {closeTab} = require("./tabs")
     if (range) {
         rangeToTabIdxs(src, range).tabs.forEach(t => closeTab(src, t))
         return
@@ -1021,7 +1037,7 @@ let currentscheme = "default"
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} name
  * @param {string|null} trailingArgs
  */
@@ -1067,7 +1083,6 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
         customStyle.textContent = css
     }
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
-    const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
     currentscheme = name
 }
@@ -1080,7 +1095,7 @@ const restart = () => {
 
 /**
  * Open the development tools.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} userPosition
  * @param {string|null} trailingArgs
  */
@@ -1090,8 +1105,6 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
-    const {add} = require("./pagelayout")
-    const {addTab} = require("./tabs")
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
@@ -1126,12 +1139,14 @@ const openInternalDevTools = () => {
 
 /**
  * Open a special page using commands.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} specialPage
  * @param {boolean} forceNewtab
  * @param {string|null} section
  */
-const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
+export const openSpecialPage = (
+    src, specialPage, forceNewtab, section = null
+) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
@@ -1139,7 +1154,6 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
         || (url?.replace(/\/+$/g, "") ?? "")
         === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
     const replaceSpecial = getSetting("replacespecial")
-    const {addTab, navigateTo} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
         addTab({src, "url": newSpecialUrl})
     } else if (replaceSpecial === "always") {
@@ -1155,7 +1169,7 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
 
 /**
  * Open the help page at a specific section.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} forceNewtab
  * @param {string|null} section
  * @param {boolean} trailingArgs
@@ -1170,13 +1184,12 @@ const help = (src, forceNewtab, section = null, trailingArgs = false) => {
 
 /** Source the startup configs again to reload the config. */
 const reloadconfig = () => {
-    const {loadFromDisk} = require("./settings")
     loadFromDisk(false)
 }
 
 /**
  * Make a hardcopy print of a page, optionally for a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} range
  */
 const hardcopy = (src, range) => {
@@ -1194,7 +1207,7 @@ const hardcopy = (src, range) => {
 
 /**
  * Resolve file arguments to an absolute path with fixed type extension.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} locationArg
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
@@ -1212,7 +1225,7 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
             file = joinPath(downloadPath(), file)
         }
         let pathSep = "/"
-        if (process.platform === "win32") {
+        if (platform() === "win32") {
             pathSep = "\\"
         }
         if (locationArg.endsWith("/") || locationArg.endsWith("\\")) {
@@ -1237,7 +1250,7 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
 
 /**
  * Write the html of a page to disk based on tab index or current.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} customLoc
  * @param {"mhtml"|"html"} extension
  * @param {number|null} tabIdx
@@ -1279,7 +1292,7 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
 
 /**
  * Write the html of a page to disk, optionally a range of pages at custom loc.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1348,7 +1361,7 @@ const translateDimsToRect = dims => {
 
 /**
  * Copy the current page screen to the clipboard, optionally with custom dims.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const screencopy = (src, args) => {
@@ -1366,7 +1379,6 @@ const screencopy = (src, args) => {
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            const {clipboard, nativeImage} = require("electron")
             clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
         })
     }, 20)
@@ -1374,7 +1386,7 @@ const screencopy = (src, args) => {
 
 /**
  * Write the actual page to disk based on dims and location.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} dims
  * @param {string} location
  */
@@ -1408,7 +1420,7 @@ const takeScreenshot = (src, dims, location) => {
 
 /**
  * Write the current page screen a location, optionally with custom dims.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const screenshot = (src, args) => {
@@ -1429,7 +1441,7 @@ const screenshot = (src, args) => {
 
 /**
  * Make a custom viebrc config based on current settings.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} full
  * @param {boolean} trailingArgs
  */
@@ -1452,13 +1464,12 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
             return
         }
     }
-    const {saveToDisk} = require("./settings")
     saveToDisk(src, exportAll)
 }
 
 /**
  * Buffer switch command, switch pages based on arguments.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const buffer = (src, args) => {
@@ -1467,17 +1478,15 @@ const buffer = (src, args) => {
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        const {switchToTab} = require("./tabs")
         switchToTab(tab)
     } else {
-        const {navigateTo} = require("./tabs")
         navigateTo(src, stringToUrl(args.join(" ")))
     }
 }
 
 /**
  * List all the buffers currently opened by tab index.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
 const buffers = src => {
     const output = listTabs().map((tab, index) => {
@@ -1492,20 +1501,19 @@ const buffers = src => {
 
 /**
  * Open command, navigate to a url by argument, mostly useful for mappings.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const open = (src, args) => {
     if (args.length === 0) {
         return
     }
-    const {navigateTo} = require("./tabs")
     navigateTo(src, stringToUrl(args.join(" ")))
 }
 
 /**
  * Suspend a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1529,7 +1537,6 @@ const suspend = (src, args, range = null) => {
         if (tab.classList.contains("visible-tab")) {
             notify({"id": "commands.suspend.visible", src, "type": "warning"})
         } else {
-            const {suspendTab} = require("./tabs")
             suspendTab(src, tab)
         }
     }
@@ -1537,7 +1544,7 @@ const suspend = (src, args, range = null) => {
 
 /**
  * Hide a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1558,7 +1565,6 @@ const hideCommand = (src, args, range = null) => {
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            const {hide} = require("./pagelayout")
             const page = pageForTab(tab)
             if (page) {
                 hide(page)
@@ -1571,7 +1577,7 @@ const hideCommand = (src, args, range = null) => {
 
 /**
  * Mute a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1596,13 +1602,12 @@ const setMute = (src, args, range) => {
             page.setAudioMuted(!!tab?.getAttribute("muted"))
         }
     })
-    const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
 /**
  * Toggle mute for a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1632,13 +1637,12 @@ const mute = (src, args, range = null) => {
     if (page && !(page instanceof HTMLDivElement)) {
         page.setAudioMuted(!!tab.getAttribute("muted"))
     }
-    const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
 /**
  * Set the pin state for a tab or a range of tabs.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1666,13 +1670,12 @@ const setPin = (src, args, range) => {
             tab.classList.remove("pinned")
         }
     })
-    const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
 /**
  * Toggle the pin state for a tab or a range of tabs.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1716,13 +1719,12 @@ const pin = (src, args, range) => {
             tabs.find(t => !t.classList.contains("pinned")) ?? null)
         tab.classList.add("pinned")
     }
-    const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
 /**
  * Add a split to the page layout.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {"hor"|"ver"} method
  * @param {boolean} leftOrAbove
  * @param {string[]} args
@@ -1738,8 +1740,6 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
             t => addSplit(src, method, leftOrAbove, [`${t}`]))
         return
     }
-    const {add} = require("./pagelayout")
-    const {addTab, switchToTab} = require("./tabs")
     const id = currentTab()?.getAttribute("link-id")
     if (!id) {
         return
@@ -1772,7 +1772,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
 
 /**
  * Close a page or a custom one with ranges/arguments.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} force
  * @param {string[]} args
  * @param {string} range
@@ -1782,7 +1782,6 @@ const close = (src, force, args, range) => {
         notify({"id": "commands.close.range", src, "type": "warning"})
         return
     }
-    const {closeTab} = require("./tabs")
     if (range) {
         const tabs = listTabs()
         rangeToTabIdxs(src, range).tabs.map(id => tabs[id]).forEach(target => {
@@ -1805,11 +1804,10 @@ const close = (src, force, args, range) => {
 /**
  * Call command, run any mapstring immediately.
  * @param {string[]} args
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
 const callAction = (args, src) => {
     setTimeout(() => {
-        const {executeMapString, sanitiseMapString} = require("./input")
         executeMapString(sanitiseMapString(src, args.join(" "), true), true, {
             "initial": true, src
         })
@@ -1818,15 +1816,16 @@ const callAction = (args, src) => {
 
 /**
  * Make Vieb the default browser of the operating system if possible.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  */
 const makedefault = src => {
+    // TODO replace execPath from process with appConfig field
     if (process.execPath.endsWith("electron")) {
         notify({"id": "commands.makedefault.installed", src, "type": "error"})
         return
     }
     ipcRenderer.send("make-default-app")
-    if (process.platform === "linux" || process.platform.includes("bsd")) {
+    if (platform() === "linux" || platform().includes("bsd")) {
         execCommand(
             "xdg-settings set default-web-browser vieb.desktop", err => {
                 if (err?.message) {
@@ -1838,7 +1837,7 @@ const makedefault = src => {
                     })
                 }
             })
-    } else if (process.platform === "win32") {
+    } else if (platform() === "win32") {
         const scriptContents = readFile(joinPath(
             getAppRootDir(), "defaultapp/windows.bat"))
         const tempFile = joinPath(appData(), "defaultapp.bat")
@@ -1856,7 +1855,7 @@ const makedefault = src => {
                 })
             }
         })
-    } else if (process.platform === "darwin") {
+    } else if (platform() === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
         notify({"id": "commands.makedefault.other", src, "type": "warning"})
@@ -1865,7 +1864,7 @@ const makedefault = src => {
 
 /**
  * Close all tabs to the left of the current one, optionally including pinned.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} force
  */
 const lclose = (src, force = false) => {
@@ -1878,14 +1877,13 @@ const lclose = (src, force = false) => {
     // without getting stuck trying to close pinned tabs at index 0.
     for (let i = index - 1; i >= 0; i--) {
         index = listTabs().indexOf(tab)
-        const {closeTab} = require("./tabs")
         closeTab(src, index - 1, force)
     }
 }
 
 /**
  * Close all tabs to the right of the current one, optionally including pinned.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} force
  */
 const rclose = (src, force = false) => {
@@ -1899,14 +1897,13 @@ const rclose = (src, force = false) => {
     // without trying to close a potentially pinned tab right of current.
     for (let i = count - 1; i > index; i--) {
         count = listTabs().length
-        const {closeTab} = require("./tabs")
         closeTab(src, count - 1, force)
     }
 }
 
 /**
  * Run custom JS in the page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} raw
  * @param {string} range
  */
@@ -1930,14 +1927,15 @@ const runjsinpage = (src, raw, range) => {
 
 /**
  * Open a new tab optionally with a custom session and url.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string|null} session
  * @param {string|null} url
  */
 const tabnew = (src, session = null, url = null) => {
-    const {addTab} = require("./tabs")
     /** @type {{
-     *   url?: string, session?: string, src: import("./common").RunSource
+     *   url?: string,
+     *   session?: string,
+     *   src: import("../preloadutil.js").RunSource
      * }}
      */
     const options = {src}
@@ -1952,7 +1950,7 @@ const tabnew = (src, session = null, url = null) => {
 
 /**
  * Make or list marks.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const marks = (src, args) => {
@@ -1961,7 +1959,6 @@ const marks = (src, args) => {
         return
     }
     if (args.length === 2) {
-        const {makeMark} = require("./actions")
         if (isUrl(args[1])) {
             makeMark({"key": args[0], src, "url": args[1]})
         } else {
@@ -2015,7 +2012,7 @@ const marks = (src, args) => {
 
 /**
  * Restore a mark.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const restoremark = (src, args) => {
@@ -2027,14 +2024,12 @@ const restoremark = (src, args) => {
         notify({"id": "commands.restoremark.keyname", src, "type": "warning"})
         return
     }
-    const {restoreMark} = require("./actions")
-    const {validOptions} = require("./settings")
     const [key, position] = args
 
     /**
      * Check if a mark position is valid.
      * @param {string} pos
-     * @returns {pos is import("./tabs").tabPosition|undefined}
+     * @returns {pos is import("./tabs.js").tabPosition|undefined}
      */
     const isValidPosition = pos => pos === undefined
         || validOptions.markposition.includes(pos)
@@ -2055,7 +2050,7 @@ const restoremark = (src, args) => {
 
 /**
  * Delete marks.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -2083,7 +2078,7 @@ const delmarks = (src, all, args) => {
 
 /**
  * Set or list scroll positions.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const scrollpos = (src, args) => {
@@ -2092,7 +2087,6 @@ const scrollpos = (src, args) => {
         return
     }
     if (args.length === 2 || args.length === 3) {
-        const {storeScrollPos} = require("./actions")
         const [key, pathOrPixels, pixelsOrPath] = args
         let pixels = Number(pathOrPixels)
         let path = pixelsOrPath
@@ -2178,7 +2172,7 @@ const scrollpos = (src, args) => {
 
 /**
  * Restore a scroll position.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const restorescrollpos = (src, args) => {
@@ -2194,14 +2188,13 @@ const restorescrollpos = (src, args) => {
         })
         return
     }
-    const {restoreScrollPos} = require("./actions")
     const [key, path] = args
     restoreScrollPos({key, path, src})
 }
 
 /**
  * Delete a scroll position.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -2287,7 +2280,7 @@ const delscrollpos = (src, all, args) => {
 
 /**
  * Set or list a pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const pointerpos = (src, args) => {
@@ -2296,7 +2289,6 @@ const pointerpos = (src, args) => {
         return
     }
     if (args.length > 1) {
-        const {storePos} = require("./pointer")
         const [key, x, y, path] = args
         const location = {"x": Number(x), "y": Number(y)}
         if (isNaN(location.x) || isNaN(location.y)) {
@@ -2375,7 +2367,7 @@ const pointerpos = (src, args) => {
 
 /**
  * Restore the pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const restorepointerpos = (src, args) => {
@@ -2391,14 +2383,13 @@ const restorepointerpos = (src, args) => {
         })
         return
     }
-    const {restorePos} = require("./pointer")
     const [key, path] = args
     restorePos({key, path})
 }
 
 /**
  * Delete a pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -2484,7 +2475,7 @@ const delpointerpos = (src, all, args) => {
 
 /**
  * Translate the current page.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const translatepage = (src, args) => {
@@ -2508,7 +2499,6 @@ const translatepage = (src, args) => {
         notify({"id": "commands.translatepage.apiKey", src, "type": "warning"})
         return
     }
-    const {validOptions} = require("./settings")
     let [lang] = args
     if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
         notify({
@@ -2540,7 +2530,7 @@ const translatepage = (src, args) => {
 
 /**
  * Clear history based on an interval.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} type
  * @param {string} interval
  * @param {string|null} trailingArgs
@@ -2563,10 +2553,8 @@ const clear = (src, type, interval, trailingArgs = null) => {
         return
     }
     if (type === "history") {
-        const {removeOldHistory} = require("./history")
         if (isValidIntervalValue(interval, true)) {
             if (interval.startsWith("last")) {
-                const {removeRecentHistory} = require("./history")
                 removeRecentHistory(intervalValueToDate(
                     interval.replace(/^last/g, "")))
             } else {
@@ -2575,7 +2563,6 @@ const clear = (src, type, interval, trailingArgs = null) => {
         } else if (interval === "all") {
             removeOldHistory(new Date())
         } else if (isUrl(interval)) {
-            const {removeHistoryByPartialUrl} = require("./history")
             removeHistoryByPartialUrl(interval)
         } else {
             notify({
@@ -2586,7 +2573,8 @@ const clear = (src, type, interval, trailingArgs = null) => {
 }
 
 const noEscapeCommands = ["command", "delcommand"]
-const rangeCompatibleCommands = [
+
+export const rangeCompatibleCommands = [
     "Sexplore",
     "Vexplore",
     "close",
@@ -2636,7 +2624,7 @@ let userCommands = {}
  *     args: string[],
  *     range: string,
  *     raw: string,
- *     src: import("./common").RunSource
+ *     src: import("../preloadutil.js").RunSource
  *   }) => void
  * }} */
 const commands = {
@@ -2696,7 +2684,6 @@ const commands = {
     "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
     "o": ({args, src}) => open(src, args),
     "only": () => {
-        const {only} = require("./pagelayout")
         only()
     },
     "open": ({args, src}) => open(src, args),
@@ -2796,7 +2783,6 @@ const commands = {
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
-const {clearmap, mapOrList, unmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
     commands[`${prefix.trim()}map!`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args, false, true)
@@ -2833,7 +2819,7 @@ const {clearmap, mapOrList, unmap} = require("./input")
 
 /**
  * Add a new command, or optionally overwrite existing custom commands.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {boolean} overwrite
  * @param {string[]} args
  */
@@ -2900,13 +2886,12 @@ const addCommand = (src, overwrite, args) => {
         })
         return
     }
-    const {sanitiseMapString} = require("./input")
     userCommands[command] = sanitiseMapString(src, params.join(" "), true)
 }
 
 /**
  * Delete a custom command.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string[]} args
  */
 const deleteCommand = (src, args) => {
@@ -2931,7 +2916,7 @@ const deleteCommand = (src, args) => {
  * Parse and validate the string to a command.
  * @param {string} commandStr
  */
-const parseAndValidateArgs = commandStr => {
+export const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
     let [command] = commandStr.split(" ")
     let range = ""
@@ -3047,14 +3032,11 @@ const parseAndValidateArgs = commandStr => {
 }
 
 /** Return the page title or an empty string. */
-const getPageTitle = () => currentTab()?.querySelector("span")
+export const getPageTitle = () => currentTab()?.querySelector("span")
     ?.textContent ?? ""
 
 /** Return the page url as a URL object. */
-const getPageUrlClass = () => {
-    const {getPageUrl} = require("./actions")
-    return new URL(getPageUrl())
-}
+const getPageUrlClass = () => new URL(getPageUrl())
 
 /** Return the current page url origin. */
 const getPageOrigin = () => getPageUrlClass().origin
@@ -3067,10 +3049,10 @@ const getPageDomain = () => getPageUrlClass().host
  * @param {string} com
  * @param {{
  *   settingsFile?: string|null,
- *   src?: import("./common").RunSource
+ *   src?: import("../preloadutil.js").RunSource
  * }} opts
  */
-const execute = (com, opts = {}) => {
+export const execute = (com, opts = {}) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
@@ -3084,14 +3066,12 @@ const execute = (com, opts = {}) => {
     // otherwise they will always use the same value at creation
     if (commandStr.includes("<use")
         && !holdUseCommands.some(command => commandStr.startsWith(command))) {
-        const {getPageUrl} = require("./actions")
         // Replace all occurrences of <useCurrent for their values
         commandStr = commandStr.replace("<useCurrentUrl>", `${getPageUrl()}`)
             .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
             .replace("<useCurrentTitle>", `${getPageTitle()}`)
             .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
-    const {push} = require("./commandhistory")
     push(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
@@ -3186,7 +3166,6 @@ const execute = (com, opts = {}) => {
             commands[command]({args, range, "raw": com, src})
         } else {
             setTimeout(() => {
-                const {executeMapString} = require("./input")
                 executeMapString(userCommands[command], true,
                     {"initial": true, src})
             }, 5)
@@ -3212,7 +3191,7 @@ const execute = (com, opts = {}) => {
  * List all commands.
  * @param {boolean} includeCustom
  */
-const commandList = (includeCustom = true) => {
+export const commandList = (includeCustom = true) => {
     if (includeCustom) {
         return Object.keys(commands).filter(c => c.length > 2)
             .concat(Object.keys(userCommands))
@@ -3224,23 +3203,11 @@ const commandList = (includeCustom = true) => {
  * List all custom commands as viebrc statements.
  * @param {boolean} full
  */
-const customCommandsAsCommandList = (full = false) => {
+export const customCommandsAsCommandList = (full = false) => {
     let commandString = Object.keys(userCommands).map(
         command => `command ${command} ${userCommands[command]}`).join("\n")
     if (full || currentscheme !== "default") {
         commandString += `\ncolorscheme ${currentscheme}`
     }
     return commandString
-}
-
-module.exports = {
-    allTabsForBufferArg,
-    commandList,
-    customCommandsAsCommandList,
-    execute,
-    getPageTitle,
-    openSpecialPage,
-    parseAndValidateArgs,
-    rangeCompatibleCommands,
-    rangeToTabIdxs
 }

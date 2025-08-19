@@ -15,10 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {translate, translateAsHTML} = require("../translate")
-const {appConfig, compareVersions} = require("../util")
+import {appConfig} from "../preloadutil.js"
+import {translate, translateAsHTML} from "../translate.js"
+import {compareVersions} from "../util.js"
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 const {icon, name, version} = appConfig() ?? {}
@@ -83,7 +83,7 @@ window.addEventListener("DOMContentLoaded", () => {
         checkResultEl.textContent = translate("pages.version.notChecked")
     }
     /** @type {{
-     *   src: string, id: import("../../types/i18n").TranslationKeys
+     *   src: string, id: import("../../types/i18n.js").TranslationKeys
      * }[]} */
     const versionLinks = [
         {"id": "pages.version.homepage", "src": "vieb.dev"},

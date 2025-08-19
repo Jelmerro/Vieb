@@ -15,11 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {getAppRootDir, joinPath} = require("../util")
+import {ipcRenderer} from "electron"
+import {translate} from "../translate.js"
+import {getAppRootDir, joinPath} from "../util.js"
 
 /** Filter the cookie list based on the search query in the input box. */
 const filterList = () => {

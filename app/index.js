@@ -15,10 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
-const {randomUUID} = require("crypto")
-const {
+import {ElectronBlocker} from "@ghostery/adblocker-electron"
+import {
     app,
     BrowserWindow,
     desktopCapturer,
@@ -30,9 +28,11 @@ const {
     session,
     shell,
     webContents
-} = require("electron")
-const {translate} = require("./translate")
-const {
+} from "electron"
+import {randomUUID} from "node:crypto"
+import {platform} from "node:os"
+import {translate} from "./translate.js"
+import {
     basePath,
     defaultUseragent,
     deleteFile,
@@ -41,7 +41,6 @@ const {
     expandPath,
     formatDate,
     formatSize,
-    getSetting,
     isAbsolutePath,
     isDir,
     isFile,
@@ -55,7 +54,7 @@ const {
     watchFile,
     writeFile,
     writeJSON
-} = require("./util")
+} from "./util.js"
 
 const version = process.env.npm_package_version || app.getVersion()
 if (!app.getName().toLowerCase().startsWith("vieb")) {
@@ -572,7 +571,7 @@ const currentInputMatches = key => {
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("./util").NotificationInfo} opts
+ * @param {import("./preloadutil.js").NotificationInfo} opts
  */
 const notify = opts => mainWindow?.webContents.send("notify", opts)
 
@@ -594,7 +593,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
         return null
     }
     let fileLocation = expandPath(url.replace(/^file:\/+/g, "/"))
-    if (process.platform === "win32") {
+    if (platform() === "win32") {
         fileLocation = expandPath(url.replace(/^file:\/+/g, ""))
     }
     if (!isAbsolutePath(fileLocation)) {
@@ -943,7 +942,7 @@ app.whenReady().then(async() => {
     app.on("open-url", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
-        customIcon = joinPath(__dirname, "img/vieb.svg")
+        customIcon = joinPath(import.meta.dirname, "img/vieb.svg")
     }
     // Init mainWindow
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -955,7 +954,7 @@ app.whenReady().then(async() => {
         "title": app.getName(),
         "webPreferences": {
             "contextIsolation": false,
-            "preload": joinPath(__dirname, "renderer/index.js"),
+            "preload": joinPath(import.meta.dirname, "renderer/index.mjs"),
             "sandbox": false,
             "webviewTag": true
         },
@@ -977,7 +976,7 @@ app.whenReady().then(async() => {
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
-    mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
+    mainWindow.loadURL(`file://${joinPath(import.meta.dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
         mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
         mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
@@ -1047,7 +1046,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "login",
-            "preload": joinPath(__dirname, "popups/login.js"),
+            "preload": joinPath(import.meta.dirname, "popups/login.mjs"),
             "sandbox": false
         }
     }
@@ -1055,7 +1054,7 @@ app.whenReady().then(async() => {
         loginWindowData.icon = customIcon
     }
     loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
+    const loginPage = `file:///${joinPath(import.meta.dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
@@ -1078,7 +1077,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "popups/notification.js"),
+            "preload": joinPath(import.meta.dirname, "popups/notification.mjs"),
             "sandbox": false
         }
     }
@@ -1087,7 +1086,7 @@ app.whenReady().then(async() => {
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${joinPath(
-        __dirname, "pages/notificationpopup.html")}`
+        import.meta.dirname, "pages/notificationpopup.html")}`
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
@@ -1110,7 +1109,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "prompt",
-            "preload": joinPath(__dirname, "popups/prompt.js"),
+            "preload": joinPath(import.meta.dirname, "popups/prompt.mjs"),
             "sandbox": false
         }
     }
@@ -1118,7 +1117,7 @@ app.whenReady().then(async() => {
         promptWindowData.icon = customIcon
     }
     promptWindow = new BrowserWindow(promptWindowData)
-    const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
+    const promptPage = `file:///${joinPath(import.meta.dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
     // Show a sync display dialog if requested by any of the pages
     /** @type {Electron.BrowserWindowConstructorOptions} */
@@ -1132,7 +1131,7 @@ app.whenReady().then(async() => {
         "show": false,
         "webPreferences": {
             "partition": "display",
-            "preload": joinPath(__dirname, "popups/display.js"),
+            "preload": joinPath(import.meta.dirname, "popups/display.mjs"),
             "sandbox": false
         }
     }
@@ -1140,7 +1139,7 @@ app.whenReady().then(async() => {
         displayWindowData.icon = customIcon
     }
     displayWindow = new BrowserWindow(displayWindowData)
-    const displayPage = `file:///${joinPath(__dirname, "pages/displaypopup.html")}`
+    const displayPage = `file:///${joinPath(import.meta.dirname, "pages/displaypopup.html")}`
     displayWindow.loadURL(displayPage)
 })
 // Handle Basic HTTP login attempts
@@ -1282,7 +1281,7 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
  *   cleardownloadsoncompleted?: boolean,
- *   src?: import("./renderer/common").RunSource
+ *   src?: import("./preloadutil.js").RunSource
  * }} */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
 /** @typedef {{
@@ -1316,9 +1315,9 @@ let resourcesBlocked = []
 let requestHeaders = {}
 /** @type {string[]} */
 const sessionList = []
-const adblockerPreload = joinPath(__dirname,
+const adblockerPreload = joinPath(import.meta.dirname,
     "../node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs")
-const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
+const defaultCSS = readFile(joinPath(import.meta.dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
@@ -1343,7 +1342,7 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
  *   downloadpath: string,
  *   cleardownloadsonquit: boolean,
  *   cleardownloadsoncompleted: boolean,
- *   src: import("./renderer/common").RunSource
+ *   src: import("./preloadutil.js").RunSource
  * }} settings
  */
 const setDownloadSettings = (_, settings) => {
@@ -1523,23 +1522,17 @@ const reloadAdblocker = () => {
             }
         })
     }
-    let ElectronBlocker = null
-    try {
-        ({ElectronBlocker} = require("@ghostery/adblocker-electron"))
-    } catch {
-        // Adblocker module not present, skipping initialization
-    }
-    if (!ElectronBlocker || !isFile(adblockerPreload)) {
+    if (!isFile(adblockerPreload)) {
         notify({
             "id": "adblocker.missing",
-            "silent": getSetting("adblockernotifications") === "none",
             "src": "user",
             "type": "error"
         })
         return
     }
     blocker = ElectronBlocker.parse(filters)
-    const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
+    const resources = readFile(joinPath(
+        import.meta.dirname, `./blocklists/resources`))
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
     }
@@ -1564,19 +1557,19 @@ const reloadAdblocker = () => {
 const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     const blocklists = readJSON(joinPath(
-        __dirname, "blocklists/list.json")) || {}
+        import.meta.dirname, "blocklists/list.json")) || {}
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
         for (const name of Object.keys(blocklists)) {
-            const list = joinPath(__dirname, `blocklists/${name}.txt`)
+            const list = joinPath(import.meta.dirname, `blocklists/${name}.txt`)
             writeFile(joinPath(blocklistDir, `${name}.txt`),
                 readFile(list) ?? "")
         }
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        const adblockerNotify = getSetting("adblockernotifications")
+        const adblockerNotify = false && getSetting("adblockernotifications")
         const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
@@ -1659,11 +1652,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
     newSess.registerPreloadScript({
-        "filePath": joinPath(__dirname, "preload/index.js"),
+        "filePath": joinPath(import.meta.dirname, "preload/index.mjs"),
         "type": "service-worker"
     })
     newSess.registerPreloadScript({
-        "filePath": joinPath(__dirname, "preload/index.js"),
+        "filePath": joinPath(import.meta.dirname, "preload/index.mjs"),
         "type": "frame"
     })
     newSess.setPermissionRequestHandler(permissionHandler)
@@ -1968,7 +1961,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
     newSess.protocol.handle("sourceviewer", req => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         loc = decodeURI(loc)
@@ -2048,7 +2041,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     let markdownFilesUniqueId = ""
     newSess.protocol.handle("markdownfiles", req => {
         let rawUrl = req.url.replace(/^markdownfiles:\/\//, "")
-        if (process.platform === "win32" && rawUrl.search("%3A") === 1) {
+        if (platform() === "win32" && rawUrl.search("%3A") === 1) {
             rawUrl = rawUrl.replace("%3A", ":")
         }
         rawUrl = `file://${rawUrl}`
@@ -2063,7 +2056,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     newSess.protocol.handle("markdownviewer", req => {
         markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         loc = decodeURI(loc)
@@ -2154,7 +2147,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             const {baseUrl} = require("marked-base-url")
             if (url.startsWith("file:")) {
                 let base = url.replace(/^file:\/\//, "")
-                if (base[1] === ":" && process.platform === "win32") {
+                if (base[1] === ":" && platform() === "win32") {
                     base = base.replace(":", "%3A")
                 }
                 markedObj.use(baseUrl(`markdownfiles://${base}`))
@@ -2214,7 +2207,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
     newSess.protocol.handle("readerview", req => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         loc = decodeURI(loc)
@@ -2576,7 +2569,7 @@ const errToMain = exception => {
     return null
 }
 
-/** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
+/** @type {(import("./renderer/follow.js").FollowLink & {frameId: string})[]} */
 let allLinks = []
 /**
  * @typedef {{
@@ -2692,7 +2685,7 @@ ipcMain.on("frame-details", handleFrameDetails)
  * Handle a follow mode response.
  * @param {Electron.IpcMainEvent} e
  * @param {(
- *   import("./renderer/follow").FollowLink & {frameId: string}
+ *   import("./renderer/follow.js").FollowLink & {frameId: string}
  * )[]} rawLinks
  */
 const handleFollowResponse = (e, rawLinks) => {

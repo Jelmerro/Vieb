@@ -15,16 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {contextBridge, ipcRenderer} = require("electron")
-const {
+import {contextBridge, ipcRenderer} from "electron"
+import {getSetting} from "../preloadutil.js"
+import {
     activeElement,
     findClickPosition,
     findElementAtPosition,
     findFrameInfo,
     framePosition,
-    getSetting,
     isElement,
     isHTMLAnchorElement,
     isHTMLAudioElement,
@@ -37,7 +36,7 @@ const {
     matchesQuery,
     propPixels,
     querySelectorAll
-} = require("../util")
+} from "../util.js"
 
 /** @type {string[]|null} */
 let currentFollowStatus = null
@@ -68,6 +67,92 @@ const textlikeInputs = [
 ].join(",")
 /** @type {Element[]} */
 const previouslyFocussedElements = []
+
+/** Track updates to event listeners and write them down as a data attribute. */
+const trackEventListeners = () => {
+    /**
+     * Check if a node is an element, taking subframes into account.
+     * @param {Node|EventTarget|null|undefined} el
+     * @returns {el is Element}
+     */
+    const isElementInMainWorld = el => {
+        if (el instanceof EventTarget && !(el instanceof Element)) {
+            return false
+        }
+        if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+            return false
+        }
+        return el instanceof el.ownerDocument.defaultView.Element
+    }
+
+    /* eslint-disable no-restricted-syntax */
+    const realAdd = EventTarget.prototype.addEventListener
+    /**
+     * Add the event listener while also recording its existence in a set.
+     * @param {string} type
+     * @param {() => void} listener
+     * @param {object} opts
+     */
+    EventTarget.prototype.addEventListener = function(type, listener, opts) {
+        try {
+            realAdd.apply(this, [type, listener, opts])
+        } catch {
+            // This is a bug in the underlying website
+        }
+        if (isElementInMainWorld(this)) {
+            /** @type {{[type: string]: number}} */
+            const listeners = {}
+            const attr = this.getAttribute("data-eventlisteners")
+            for (const l of attr?.split(",") ?? []) {
+                const [name, countStr] = l.split(":")
+                const count = Number(countStr) || 0
+                listeners[name] = count
+            }
+            listeners[type] = (listeners[type] || 0) + 1
+            const listenersStr = Object.keys(listeners)
+                .map(l => `${l}:${listeners[l]}`).join(",")
+            this.setAttribute?.("data-eventlisteners", listenersStr)
+        }
+    }
+    const realRemove = EventTarget.prototype.removeEventListener
+    /**
+     * Remove the event listener while also removing its storage from a set.
+     * @param {string} type
+     * @param {() => void} listener
+     * @param {object} opts
+     */
+    EventTarget.prototype.removeEventListener = function(type, listener, opts) {
+        try {
+            realRemove.apply(this, [type, listener, opts])
+        } catch {
+            // This is a bug in the underlying website
+        }
+        if (isElementInMainWorld(this)) {
+            /** @type {{[type: string]: number}} */
+            const listeners = {}
+            const attr = this.getAttribute("data-eventlisteners")
+            for (const l of attr?.split(",") ?? []) {
+                const [name, countStr] = l.split(":")
+                const count = Number(countStr) || 0
+                listeners[name] = count
+            }
+            listeners[type] = (listeners[type] || 0) - 1
+            if (listeners[type] <= 0) {
+                delete listeners[type]
+            }
+            if (Object.keys(listeners).length) {
+                const listenersStr = Object.keys(listeners)
+                    .map(l => `${l}:${listeners[l]}`).join(",")
+                this.setAttribute?.("data-eventlisteners", listenersStr)
+            } else {
+                this.removeAttribute?.("data-eventlisteners")
+            }
+        }
+    }
+    /* eslint-enable no-restricted-syntax */
+}
+
+contextBridge.executeInMainWorld({"func": trackEventListeners})
 
 /**
  * Check if an element has a contextmenu listener on it.
@@ -397,92 +482,6 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     }
     previouslyFocussedElements.push(focusEl)
 })
-
-/** Track updates to event listeners and write them down as a data attribute. */
-const trackEventListeners = () => {
-    /**
-     * Check if a node is an element, taking subframes into account.
-     * @param {Node|EventTarget|null|undefined} el
-     * @returns {el is Element}
-     */
-    const isElementInMainWorld = el => {
-        if (el instanceof EventTarget && !(el instanceof Element)) {
-            return false
-        }
-        if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-            return false
-        }
-        return el instanceof el.ownerDocument.defaultView.Element
-    }
-
-    /* eslint-disable no-restricted-syntax */
-    const realAdd = EventTarget.prototype.addEventListener
-    /**
-     * Add the event listener while also recording its existence in a set.
-     * @param {string} type
-     * @param {() => void} listener
-     * @param {object} opts
-     */
-    EventTarget.prototype.addEventListener = function(type, listener, opts) {
-        try {
-            realAdd.apply(this, [type, listener, opts])
-        } catch {
-            // This is a bug in the underlying website
-        }
-        if (isElementInMainWorld(this)) {
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = this.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
-            }
-            listeners[type] = (listeners[type] || 0) + 1
-            const listenersStr = Object.keys(listeners)
-                .map(l => `${l}:${listeners[l]}`).join(",")
-            this.setAttribute?.("data-eventlisteners", listenersStr)
-        }
-    }
-    const realRemove = EventTarget.prototype.removeEventListener
-    /**
-     * Remove the event listener while also removing its storage from a set.
-     * @param {string} type
-     * @param {() => void} listener
-     * @param {object} opts
-     */
-    EventTarget.prototype.removeEventListener = function(type, listener, opts) {
-        try {
-            realRemove.apply(this, [type, listener, opts])
-        } catch {
-            // This is a bug in the underlying website
-        }
-        if (isElementInMainWorld(this)) {
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = this.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
-            }
-            listeners[type] = (listeners[type] || 0) - 1
-            if (listeners[type] <= 0) {
-                delete listeners[type]
-            }
-            if (Object.keys(listeners).length) {
-                const listenersStr = Object.keys(listeners)
-                    .map(l => `${l}:${listeners[l]}`).join(",")
-                this.setAttribute?.("data-eventlisteners", listenersStr)
-            } else {
-                this.removeAttribute?.("data-eventlisteners")
-            }
-        }
-    }
-    /* eslint-enable no-restricted-syntax */
-}
-
-contextBridge.executeInMainWorld({"func": trackEventListeners})
 
 /**
  * Send mouse click info to renderer via main on click.
@@ -1059,6 +1058,7 @@ ipcRenderer.on("follow-mode-stop", () => {
     currentFollowStatus = null
 })
 setInterval(mainInfoLoop, 1000)
+window.addEventListener("resize", mainInfoLoop)
 window.addEventListener("DOMContentLoaded", () => {
     mainInfoLoop()
     const pdfbehavior = getSetting("pdfbehavior") ?? "block"
@@ -1079,4 +1079,3 @@ window.addEventListener("DOMContentLoaded", () => {
         })
     }
 })
-window.addEventListener("resize", mainInfoLoop)

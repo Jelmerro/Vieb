@@ -15,10 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
-const {currentMode, getUrl} = require("./common")
+import {appData, currentMode, getSetting, getUrl} from "../preloadutil.js"
+import {appendFile, joinPath, readFile} from "../util.js"
+import {suggestCommand} from "./suggest.js"
 
 const commandsFile = joinPath(appData(), "commandhist")
 /** @type {string[]} */
@@ -28,17 +28,17 @@ let originalCommand = ""
 let storeCommands = false
 
 /** Load the command hist of the previous session if stored. */
-const init = () => {
+export const init = () => {
     previousCommands = readFile(commandsFile)?.split("\n").filter(s => s) || []
 }
 
 /** Pause the collection of commands to the history. */
-const pause = () => {
+export const pause = () => {
     storeCommands = false
 }
 
 /** Resume the collection of new commands into the history. */
-const resume = () => {
+export const resume = () => {
     storeCommands = true
 }
 
@@ -52,12 +52,11 @@ const updateNavWithHistory = () => {
     if (url) {
         url.value = commandText
     }
-    const {suggestCommand} = require("./suggest")
     suggestCommand(commandText)
 }
 
 /** Go to the previous item in the command history. */
-const previous = () => {
+export const previous = () => {
     if (currentMode() !== "command") {
         return
     }
@@ -71,7 +70,7 @@ const previous = () => {
 }
 
 /** Go to the next item in the command history. */
-const next = () => {
+export const next = () => {
     if (currentMode() !== "command" || previousIndex === -1) {
         return
     }
@@ -84,7 +83,7 @@ const next = () => {
 }
 
 /** Reset the position info for the command history. */
-const resetPosition = () => {
+export const resetPosition = () => {
     previousIndex = -1
     originalCommand = ""
 }
@@ -94,7 +93,7 @@ const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-const push = (command, user) => {
+export const push = (command, user) => {
     const setting = getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return
@@ -112,5 +111,3 @@ const push = (command, user) => {
         appendFile(commandsFile, `${command}\n`)
     }
 }
-
-module.exports = {init, next, pause, previous, push, resetPosition, resume}

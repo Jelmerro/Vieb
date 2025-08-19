@@ -15,11 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {basePath, dirname, joinPath} = require("../util")
+import {ipcRenderer} from "electron"
+import {translate} from "../translate.js"
+import {basePath, dirname, joinPath} from "../util.js"
 
 /**
  * Convert a location to a clickable url.

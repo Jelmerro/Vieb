@@ -21,17 +21,25 @@ declare global {
                 get: (code: string) => string|undefined
             }>
         }
+        userAgentData?: {
+            readonly brands: {
+                readonly brand: string
+                readonly version: string
+            }[]
+            readonly mobile: boolean
+            readonly platform: string
+        }
     }
 
     interface Node {
-        cloneNode<T extends Node = Node>(this: T, deep?: boolean): T;
+        cloneNode<T extends Node = Node>(this: T, deep?: boolean): T
     }
 
     type GetKeysOfType<
         Type extends Record<string, any>,
         Obj extends Record<string, any>
     > = keyof {
-        [Key in keyof Obj as Obj[Key] extends Type ? Key : never]: Obj[Key];
+        [Key in keyof Obj as Obj[Key] extends Type ? Key : never]: Obj[Key]
     }
 
      interface Error {

@@ -15,50 +15,84 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
-
 /** @typedef {{
  *   key?: string,
- *   src: import("./common").RunSource,
+ *   src: import("../preloadutil.js").RunSource,
  *   hadModifier?: boolean,
  *   customPage?: Electron.WebviewTag
  * }} ActionParam
  */
 
-const {clipboard, ipcRenderer} = require("electron")
-const {
+import {clipboard, ipcRenderer} from "electron"
+import {platform} from "node:os"
+import {
     appData,
-    domainName,
+    currentMode,
+    currentPage,
+    currentTab,
     execCommand,
     getSetting,
+    getStored,
+    getUrl,
+    listRealPages,
+    listTabs,
+    notify,
+    searchword,
+    sendToPageOrSubFrame,
+    setStored,
+    stringToUrl,
+    tabForPage,
+    updateGuiVisibility,
+    urlToString
+} from "../preloadutil.js"
+import {
+    domainName,
     isDir,
     isFile,
     isUrl,
     joinPath,
     makeDir,
-    notify,
     readFile,
     readJSON,
-    searchword,
-    stringToUrl,
-    urlToString,
     watchFile,
     writeFile,
     writeJSON
-} = require("../util")
-const {
-    currentMode,
-    currentPage,
-    currentTab,
-    getStored,
-    getUrl,
-    listRealPages,
-    listTabs,
-    sendToPageOrSubFrame,
-    setStored,
-    tabForPage,
-    updateGuiVisibility
-} = require("./common")
+} from "../util.js"
+import {execute, getPageTitle} from "./command.js"
+import {commandMenu, commonAction, linkMenu, viebMenu} from "./contextmenu.js"
+import {push} from "./explorehistory.js"
+import {followFiltering, reorderDisplayedLinks, startFollow} from "./follow.js"
+import {
+    executeMapString,
+    requestSuggestUpdate,
+    sanitiseMapString,
+    typeCharacterIntoNavbar
+} from "./input.js"
+import {setMode} from "./modes.js"
+import {
+    exchange,
+    firstSplit,
+    lastSplit,
+    moveFocus,
+    nextSplit,
+    previousSplit,
+    resetResizing,
+    resize,
+    rotateForward,
+    rotateReverse,
+    toTop
+} from "./pagelayout.js"
+import {openMenu} from "./pointer.js"
+import {getCustomStyling} from "./settings.js"
+import {
+    addTab,
+    navigateTo,
+    recreateWebview,
+    rerollUserAgent,
+    resetTabInfo,
+    switchToTab,
+    updateUrl
+} from "./tabs.js"
 
 let lastSearchFull = false
 let currentSearch = ""
@@ -70,7 +104,7 @@ let potentialNewSearchDirection = "forward"
  * Empty the current search by scope.
  * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
  */
-const emptySearch = args => {
+export const emptySearch = args => {
     const scope = args.scope || getSetting("searchemptyscope")
     /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
@@ -97,7 +131,7 @@ const matchCase = search => {
 }
 
 /** Highlight the next search match based on the scope. */
-const nextSearchMatch = () => {
+export const nextSearchMatch = () => {
     const scope = getSetting("searchscope")
     let search = getStored("globalsearch")
     let pages = []
@@ -125,8 +159,7 @@ const nextSearchMatch = () => {
  * Switch to search mode.
  * @param {ActionParam} args
  */
-const toSearchMode = args => {
-    const {setMode} = require("./modes")
+export const toSearchMode = args => {
     setMode("search")
     let search = getStored("globalsearch")
     if (getSetting("searchscope") !== "global") {
@@ -143,13 +176,12 @@ const toSearchMode = args => {
     if (url) {
         url.value = search
         url.select()
-        const {requestSuggestUpdate} = require("./input")
         requestSuggestUpdate()
     }
 }
 
 /** Highlight the previous search match based on the scope. */
-const previousSearchMatch = () => {
+export const previousSearchMatch = () => {
     const scope = getSetting("searchscope")
     let search = getStored("globalsearch")
     let pages = []
@@ -177,7 +209,7 @@ const previousSearchMatch = () => {
  * Reset the incremental search match.
  * @param {ActionParam} args
  */
-const resetIncrementalSearch = args => {
+export const resetIncrementalSearch = args => {
     if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
         emptySearch({"scope": "local", "src": args?.src ?? "other"})
     }
@@ -187,7 +219,7 @@ const resetIncrementalSearch = args => {
  * Search for the string incrementally while typing if enabled, by scope.
  * @param {ActionParam&{value?: string}|null} args
  */
-const incrementalSearch = args => {
+export const incrementalSearch = args => {
     let scope = getSetting("searchscope")
     if (scope === "inclocal") {
         lastSearchFull = Boolean(args?.value)
@@ -226,24 +258,26 @@ const incrementalSearch = args => {
 }
 
 /** Click on the current search match using the electron API. */
-const clickOnSearch = () => currentPage()?.stopFindInPage("activateSelection")
+export const clickOnSearch = () => currentPage()
+    ?.stopFindInPage("activateSelection")
 
 /** Navigate to the next page as defined by the in-page markers. */
-const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
+export const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
 
 /** Navigate to the previous page as defined by the in-page markers. */
-const previousPage = () => sendToPageOrSubFrame("action", "previousPage")
+export const previousPage = () => sendToPageOrSubFrame("action", "previousPage")
 
 /** Open a new tab with the next page as defined by the in-page markers. */
-const nextPageNewTab = () => sendToPageOrSubFrame("action", "nextPage", true)
+export const nextPageNewTab = () => sendToPageOrSubFrame(
+    "action", "nextPage", true)
 
 /** Open a new tab with the previous page as defined by the in-page markers. */
-const previousPageNewTab = () => sendToPageOrSubFrame(
+export const previousPageNewTab = () => sendToPageOrSubFrame(
     "action", "previousPage", true)
 
 /**
  * Modify a url based on a source pattern and a replacement function.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
@@ -251,14 +285,13 @@ const modifyUrl = (src, source, replacement) => {
     const url = currentPage()?.src || ""
     const next = url.replace(RegExp(source), replacement)
     if (next !== url) {
-        const {navigateTo} = require("./tabs")
         navigateTo(src, next)
     }
 }
 
 /**
  * Move the first number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {number} movement
  */
 const moveFirstNumber = (src, movement) => modifyUrl(
@@ -271,7 +304,7 @@ const moveFirstNumber = (src, movement) => modifyUrl(
 
 /**
  * Move the last number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {number} movement
  */
 const moveLastNumber = (src, movement) => modifyUrl(
@@ -284,7 +317,7 @@ const moveLastNumber = (src, movement) => modifyUrl(
 
 /**
  * Move the page number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {number} movement
  */
 const movePageNumber = (src, movement) => modifyUrl(
@@ -299,17 +332,17 @@ const movePageNumber = (src, movement) => modifyUrl(
  * Navigate to the next page as found in the url with `page=` or `p=`.
  * @param {ActionParam} args
  */
-const increasePageNumber = args => movePageNumber(args.src, 1)
+export const increasePageNumber = args => movePageNumber(args.src, 1)
 
 /**
  * Navigate to the previous page as found in the url with `page=` or `p=`.
  * @param {ActionParam} args
  */
-const decreasePageNumber = args => movePageNumber(args.src, -1)
+export const decreasePageNumber = args => movePageNumber(args.src, -1)
 
 /**
  * Move the port number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("../preloadutil.js").RunSource} src
  * @param {number} movement
  */
 const movePortNumber = (src, movement) => {
@@ -345,43 +378,43 @@ const movePortNumber = (src, movement) => {
  * Increase the port number by one based on port standards.
  * @param {ActionParam} args
  */
-const increasePortNumber = args => movePortNumber(args.src, 1)
+export const increasePortNumber = args => movePortNumber(args.src, 1)
 
 /**
  * Decrease the port number by one based on port standards.
  * @param {ActionParam} args
  */
-const decreasePortNumber = args => movePortNumber(args.src, -1)
+export const decreasePortNumber = args => movePortNumber(args.src, -1)
 
 /**
  * Increase to the very first number in the url.
  * @param {ActionParam} args
  */
-const increaseFirstNumber = args => moveFirstNumber(args.src, 1)
+export const increaseFirstNumber = args => moveFirstNumber(args.src, 1)
 
 /**
  * Decrease to the very first number in the url.
  * @param {ActionParam} args
  */
-const decreaseFirstNumber = args => moveFirstNumber(args.src, -1)
+export const decreaseFirstNumber = args => moveFirstNumber(args.src, -1)
 
 /**
  * Increase to the very last number in the url.
  * @param {ActionParam} args
  */
-const increaseLastNumber = args => moveLastNumber(args.src, 1)
+export const increaseLastNumber = args => moveLastNumber(args.src, 1)
 
 /**
  * Decrease to the very last number in the url.
  * @param {ActionParam} args
  */
-const decreaseLastNumber = args => moveLastNumber(args.src, -1)
+export const decreaseLastNumber = args => moveLastNumber(args.src, -1)
 
 /**
  * Go to root domain, by removing most subdomains, repeats to remove www.
  * @param {ActionParam} args
  */
-const toRootSubdomain = args => {
+export const toRootSubdomain = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -405,7 +438,6 @@ const toRootSubdomain = args => {
         urlObj.hostname = domainNames.slice(-2).join(".")
     }
     if (originalUrl !== urlObj.href) {
-        const {navigateTo} = require("./tabs")
         navigateTo(args.src, urlObj.href)
     }
 }
@@ -414,7 +446,7 @@ const toRootSubdomain = args => {
  * Go to the parent domain, by removing 1 subdomain until there are none.
  * @param {ActionParam} args
  */
-const toParentSubdomain = args => {
+export const toParentSubdomain = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -430,7 +462,6 @@ const toParentSubdomain = args => {
     }
     urlObj.hostname = domainNames.slice(1).join(".")
     if (originalUrl !== urlObj.href) {
-        const {navigateTo} = require("./tabs")
         navigateTo(args.src, urlObj.href)
     }
 }
@@ -439,7 +470,7 @@ const toParentSubdomain = args => {
  * Go to the root url by removing the entire path, the search and the hash.
  * @param {ActionParam} args
  */
-const toRootUrl = args => {
+export const toRootUrl = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -449,8 +480,7 @@ const toRootUrl = args => {
     urlObj.pathname = ""
     urlObj.search = ""
     urlObj.hash = ""
-    const {navigateTo} = require("./tabs")
-    if (process.platform === "win32") {
+    if (platform() === "win32") {
         const isRoot = [
             "file://", "file:///", "file:///C:", "file:///C:/"
         ].find(u => u === urlObj.href || u === originalUrl)
@@ -468,7 +498,7 @@ const toRootUrl = args => {
  * Go to the parent url by removing the path part, the search and the hash.
  * @param {ActionParam} args
  */
-const toParentUrl = args => {
+export const toParentUrl = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -479,8 +509,7 @@ const toParentUrl = args => {
         .filter(p => p).slice(0, -1).join("/")
     urlObj.search = ""
     urlObj.hash = ""
-    const {navigateTo} = require("./tabs")
-    if (process.platform === "win32") {
+    if (platform() === "win32") {
         const isRoot = [
             "file://", "file:///", "file:///C:", "file:///C:/"
         ].find(u => u === urlObj.href || u === originalUrl)
@@ -495,8 +524,7 @@ const toParentUrl = args => {
 }
 
 /** Go to the previous tab in the bar, optionally wrapping back to the last. */
-const previousTab = () => {
-    const {switchToTab} = require("./tabs")
+export const previousTab = () => {
     const current = currentTab()
     if (current) {
         switchToTab(listTabs().indexOf(current) - 1)
@@ -504,8 +532,7 @@ const previousTab = () => {
 }
 
 /** Go to the next tab in the bar, optionally wrapping to the first. */
-const nextTab = () => {
-    const {switchToTab} = require("./tabs")
+export const nextTab = () => {
     const current = currentTab()
     if (current) {
         switchToTab(listTabs().indexOf(current) + 1)
@@ -516,13 +543,12 @@ const nextTab = () => {
  * Toggle the sourceviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleSourceViewer = args => {
-    const {navigateTo} = require("./tabs")
+export const toggleSourceViewer = args => {
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
         let loc = String(src)
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
@@ -539,13 +565,12 @@ const toggleSourceViewer = args => {
  * Open the sourceviewer in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleSourceViewerNewTab = args => {
-    const {addTab, navigateTo} = require("./tabs")
+export const toggleSourceViewerNewTab = args => {
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
         let loc = String(src)
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
@@ -565,13 +590,12 @@ const toggleSourceViewerNewTab = args => {
  * Toggle the readerviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleReaderView = args => {
-    const {navigateTo} = require("./tabs")
+export const toggleReaderView = args => {
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
         let loc = String(src)
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
@@ -588,13 +612,12 @@ const toggleReaderView = args => {
  * Open the readerview in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleReaderViewNewTab = args => {
-    const {addTab, navigateTo} = require("./tabs")
+export const toggleReaderViewNewTab = args => {
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
         let loc = String(src)
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
@@ -614,13 +637,12 @@ const toggleReaderViewNewTab = args => {
  * Toggle the markdownviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleMarkdownViewer = args => {
-    const {navigateTo} = require("./tabs")
+export const toggleMarkdownViewer = args => {
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
         let loc = String(src)
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
@@ -638,13 +660,12 @@ const toggleMarkdownViewer = args => {
  * Open the markdownviewer in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleMarkdownViewerNewTab = args => {
-    const {addTab, navigateTo} = require("./tabs")
+export const toggleMarkdownViewerNewTab = args => {
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
         let loc = String(src)
-        if (process.platform !== "win32" && !loc.startsWith("/")) {
+        if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
@@ -661,77 +682,78 @@ const toggleMarkdownViewerNewTab = args => {
 }
 
 /** Go to explore mode using regular mode switching. */
-const toExploreMode = () => {
-    const {setMode} = require("./modes")
+export const toExploreMode = () => {
     setMode("explore")
 }
 
 /** Go to insert mode at the very first visible input element on the page. */
-const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
+export const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
 
 /** Go to insert mode using regular mode switching. */
-const toInsertMode = () => {
-    const {setMode} = require("./modes")
+export const toInsertMode = () => {
     setMode("insert")
 }
 
 /** Scroll to the very top of the page. */
-const scrollTop = () => currentPage()?.send("action", "scrollTop")
+export const scrollTop = () => currentPage()?.send("action", "scrollTop")
 
 /** Scroll to the very bottom of the page. */
-const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
+export const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
 
 /** Scroll to the very right of the page. */
-const scrollRightMax = () => currentPage()?.send("action", "scrollRightMax")
+export const scrollRightMax = () => currentPage()
+    ?.send("action", "scrollRightMax")
 
 /** Scroll to the very left of the page. */
-const scrollLeftMax = () => currentPage()?.send("action", "scrollLeftMax")
+export const scrollLeftMax = () => currentPage()
+    ?.send("action", "scrollLeftMax")
 
 /** Scroll up 100px. */
-const scrollUp = () => currentPage()?.send("action", "scrollUp")
+export const scrollUp = () => currentPage()?.send("action", "scrollUp")
 
 /** Scroll down 100px. */
-const scrollDown = () => currentPage()?.send("action", "scrollDown")
+export const scrollDown = () => currentPage()?.send("action", "scrollDown")
 
 /** Scroll right 100px. */
-const scrollRight = () => currentPage()?.send("action", "scrollRight")
+export const scrollRight = () => currentPage()?.send("action", "scrollRight")
 
 /** Scroll left 100px. */
-const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
+export const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
 
 /** Scroll one page width to the right. */
-const scrollPageRight = () => currentPage()?.send("action", "scrollPageRight")
+export const scrollPageRight = () => currentPage()
+    ?.send("action", "scrollPageRight")
 
 /** Scroll one page width to the left. */
-const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
+export const scrollPageLeft = () => currentPage()
+    ?.send("action", "scrollPageLeft")
 
 /** Scroll one page height up. */
-const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
+export const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
 
 /** Scroll half a page height down. */
-const scrollPageDownHalf = () => currentPage()?.send(
+export const scrollPageDownHalf = () => currentPage()?.send(
     "action", "scrollPageDownHalf")
 
 /** Scroll one page height down. */
-const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
+export const scrollPageDown = () => currentPage()
+    ?.send("action", "scrollPageDown")
 
 /** Scroll half a page height up. */
-const scrollPageUpHalf = () => currentPage()?.send(
+export const scrollPageUpHalf = () => currentPage()?.send(
     "action", "scrollPageUpHalf")
 
 /**
  * Refresh the current page or optionally a custom page.
  * @param {ActionParam} args
  */
-const refreshTab = args => {
+export const refreshTab = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
             recreateWebview(args.src, page)
             return
         }
-        const {rerollUserAgent, resetTabInfo} = require("./tabs")
         rerollUserAgent(page)
         resetTabInfo(page)
         page.reload()
@@ -742,38 +764,32 @@ const refreshTab = args => {
  * Reopen the last closed tab.
  * @param {ActionParam} args
  * */
-const reopenTab = args => {
-    const {"reopenTab": reopen} = require("./tabs")
+export const reopenTab = args => {
     reopen(args.src)
 }
 
 /** Switch to follow mode to copy a link. */
-const startFollowCopyLink = () => {
-    const {startFollow} = require("./follow")
+export const startFollowCopyLink = () => {
     startFollow("copylink")
 }
 
 /** Switch to follow mode to open a horizontal split. */
-const startFollowNewSplit = () => {
-    const {startFollow} = require("./follow")
+export const startFollowNewSplit = () => {
     startFollow("ver")
 }
 
 /** Switch to follow mode to open a vertical split. */
-const startFollowNewVerSplit = () => {
-    const {startFollow} = require("./follow")
+export const startFollowNewVerSplit = () => {
     startFollow("hor")
 }
 
 /** Switch to follow mode to open a new tab. */
-const startFollowNewTab = () => {
-    const {startFollow} = require("./follow")
+export const startFollowNewTab = () => {
     startFollow("newtab")
 }
 
 /** Switch to follow mode to click on links in the current tab. */
-const startFollowCurrentTab = () => {
-    const {startFollow} = require("./follow")
+export const startFollowCurrentTab = () => {
     startFollow("current")
 }
 
@@ -781,11 +797,10 @@ const startFollowCurrentTab = () => {
  * Go back in history for the current page or a custom one.
  * @param {ActionParam} args
  */
-const backInHistory = args => {
+export const backInHistory = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
             recreateWebview(args.src, page)
             return
         }
@@ -794,7 +809,6 @@ const backInHistory = args => {
             if (tabTitleEl) {
                 tabTitleEl.textContent = ""
             }
-            const {rerollUserAgent, resetTabInfo} = require("./tabs")
             rerollUserAgent(page)
             resetTabInfo(page)
             page.goBack()
@@ -806,11 +820,10 @@ const backInHistory = args => {
  * Go forward in history for the current page or a custom one.
  * @param {ActionParam} args
  */
-const forwardInHistory = args => {
+export const forwardInHistory = args => {
     const page = args.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
             recreateWebview(args.src, page)
             return
         }
@@ -819,7 +832,6 @@ const forwardInHistory = args => {
             if (tabTitleEl) {
                 tabTitleEl.textContent = ""
             }
-            const {rerollUserAgent, resetTabInfo} = require("./tabs")
             rerollUserAgent(page)
             resetTabInfo(page)
             page.goForward()
@@ -831,15 +843,13 @@ const forwardInHistory = args => {
  * Refresh the curren tab without using cache.
  * @param {ActionParam} args
  */
-const refreshTabWithoutCache = args => {
+export const refreshTabWithoutCache = args => {
     const page = currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
-            const {recreateWebview} = require("./tabs")
             recreateWebview(args.src, page)
             return
         }
-        const {rerollUserAgent, resetTabInfo} = require("./tabs")
         rerollUserAgent(page)
         resetTabInfo(page)
         page.reloadIgnoringCache()
@@ -851,14 +861,13 @@ const refreshTabWithoutCache = args => {
  * Open a new tab, switch to explore mode and have the current url ready.
  * @param {{
  *   key?: string,
- *   src: import("./common").RunSource,
+ *   src: import("../preloadutil.js").RunSource,
  *   hadModifier?: boolean,
  *   customPage?: Electron.WebviewTag | HTMLDivElement
  * }} args
  */
-const openNewTabWithCurrentUrl = args => {
+export const openNewTabWithCurrentUrl = args => {
     const url = args.customPage?.getAttribute("src") || currentPage()?.src || ""
-    const {addTab} = require("./tabs")
     if (args.customPage) {
         const tab = tabForPage(args.customPage)
         if (!tab) {
@@ -875,7 +884,6 @@ const openNewTabWithCurrentUrl = args => {
         const pinned = currentTab()?.classList.contains("pinned") ?? false
         addTab({pinned, "src": args.src})
     }
-    const {setMode} = require("./modes")
     setMode("explore")
     const urlEl = getUrl()
     if (urlEl) {
@@ -884,29 +892,25 @@ const openNewTabWithCurrentUrl = args => {
 }
 
 /** Go to command mode using regular mode switching. */
-const toCommandMode = () => {
-    const {setMode} = require("./modes")
+export const toCommandMode = () => {
     setMode("command")
 }
 
 /** Stop loading the page for now, might still start new fetch requests. */
-const stopLoadingPage = () => currentPage()?.stop()
+export const stopLoadingPage = () => currentPage()?.stop()
 
 /** Move the current tab one spot to the right/end in the bar. */
-const moveTabForward = () => {
-    const {"moveTabForward": move} = require("./tabs")
+export const moveTabForward = () => {
     move()
 }
 
 /** Move the current tab one spot to the left/beginning in the bar. */
-const moveTabBackward = () => {
-    const {"moveTabBackward": move} = require("./tabs")
+export const moveTabBackward = () => {
     move()
 }
 
 /** Move the current tab all the way to the right/end in the bar. */
-const moveTabEnd = () => {
-    const {"moveTabForward": move} = require("./tabs")
+export const moveTabEnd = () => {
     let didMove = move()
     while (didMove) {
         didMove = move()
@@ -914,8 +918,7 @@ const moveTabEnd = () => {
 }
 
 /** Move the current tab all the way to the left/beginning in the bar. */
-const moveTabStart = () => {
-    const {"moveTabBackward": move} = require("./tabs")
+export const moveTabStart = () => {
     let didMove = move()
     while (didMove) {
         didMove = move()
@@ -923,13 +926,13 @@ const moveTabStart = () => {
 }
 
 /** Reset the zoom level to the 100% default. */
-const zoomReset = () => currentPage()?.setZoomLevel(0)
+export const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 /**
  * Zoom the current page out or do it for a custom page.
  * @param {ActionParam} args
  */
-const zoomOut = args => {
+export const zoomOut = args => {
     const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) - 1
     if (level < -7) {
@@ -942,7 +945,7 @@ const zoomOut = args => {
  * Zoom the current page in or do it for a custom page.
  * @param {ActionParam} args
  */
-const zoomIn = args => {
+export const zoomIn = args => {
     const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) + 1
     if (level > 7) {
@@ -952,14 +955,12 @@ const zoomIn = args => {
 }
 
 /** Go to normal mode using regular mode switching. */
-const toNormalMode = () => {
-    const {setMode} = require("./modes")
+export const toNormalMode = () => {
     setMode("normal")
 }
 
 /** Go to the previous mode used before follow, or back to normal. */
-const stopFollowMode = () => {
-    const {setMode} = require("./modes")
+export const stopFollowMode = () => {
     if (currentMode() === "follow") {
         setMode(getStored("modebeforefollow") || "normal")
     } else {
@@ -971,8 +972,7 @@ const stopFollowMode = () => {
  * Repeat the last used action.
  * @param {ActionParam} args
  * */
-const repeatLastAction = args => {
-    const {"repeatLastAction": repeat} = require("./input")
+export const repeatLastAction = args => {
     repeat(args.src)
 }
 
@@ -980,7 +980,7 @@ const repeatLastAction = args => {
  * Edit the current insert mode input or navbar mode text.
  * @param {ActionParam} args
  */
-const editWithVim = args => {
+export const editWithVim = args => {
     const page = currentPage()
     if (!page) {
         return
@@ -1015,7 +1015,6 @@ const editWithVim = args => {
                 if (url) {
                     url.value = contents
                 }
-                const {requestSuggestUpdate} = require("./input")
                 requestSuggestUpdate()
             }
         } else {
@@ -1061,8 +1060,7 @@ const editWithVim = args => {
  * Download the current page link to disk.
  * @param {ActionParam} args
  */
-const downloadLink = args => {
-    const {commonAction} = require("./contextmenu")
+export const downloadLink = args => {
     commonAction(args.src, "link", "download",
         {"link": currentPage()?.src ?? ""})
 }
@@ -1071,17 +1069,14 @@ const downloadLink = args => {
  * Open the current page link in an external application as per setting.
  * @param {ActionParam} args
  */
-const openLinkExternal = args => {
-    const {commonAction} = require("./contextmenu")
+export const openLinkExternal = args => {
     commonAction(args.src, "link", "external",
         {"link": currentPage()?.src ?? ""})
 }
 
 /** Completely reset any focus issues there could be in the app. */
-const setFocusCorrectly = () => {
+export const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
-    const {followFiltering} = require("./follow")
-    const {updateUrl} = require("./tabs")
     const page = currentPage()
     if (page) {
         updateUrl(page)
@@ -1105,182 +1100,155 @@ const setFocusCorrectly = () => {
 }
 
 /** Go to the next suggestion in the list. */
-const nextSuggestion = () => {
-    const {next} = require("./suggest")
+export const nextSuggestion = () => {
     next()
     setFocusCorrectly()
 }
 
 /** Go to the previous suggestion in the list. */
-const prevSuggestion = () => {
-    const {previous} = require("./suggest")
+export const prevSuggestion = () => {
     previous()
     setFocusCorrectly()
 }
 
 /** Go to the next section in the suggestion list. */
-const nextSuggestionSection = () => {
-    const {nextSection} = require("./suggest")
+export const nextSuggestionSection = () => {
     nextSection()
     setFocusCorrectly()
 }
 
 /** Go to the previous section in the suggestion list. */
-const prevSuggestionSection = () => {
-    const {previousSection} = require("./suggest")
+export const prevSuggestionSection = () => {
     previousSection()
     setFocusCorrectly()
 }
 
 /** Go back in history to previously run commands. */
-const commandHistoryPrevious = () => {
-    const {previous} = require("./commandhistory")
+export const commandHistoryPrevious = () => {
     previous()
 }
 
 /** Go forward in history to previously run commands, or back to current. */
-const commandHistoryNext = () => {
-    const {next} = require("./commandhistory")
+export const commandHistoryNext = () => {
     next()
 }
 
 /** Go back in history to previously navigated sites. */
-const exploreHistoryPrevious = () => {
-    const {previous} = require("./explorehistory")
+export const exploreHistoryPrevious = () => {
     previous()
 }
 
 /** Go forward in history to previously navigated sites, or back to current. */
-const exploreHistoryNext = () => {
-    const {next} = require("./explorehistory")
+export const exploreHistoryNext = () => {
     next()
 }
 
 /** Rotate the current window split forward. */
-const rotateSplitWindowForward = () => {
-    const {rotateForward} = require("./pagelayout")
+export const rotateSplitWindowForward = () => {
     rotateForward()
 }
 
 /** Rotate the current window split backward. */
-const rotateSplitWindowBackward = () => {
-    const {rotateReverse} = require("./pagelayout")
+export const rotateSplitWindowBackward = () => {
     rotateReverse()
 }
 
 /** Make the current window split the entire left side. */
-const leftHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const leftHalfSplitWindow = () => {
     toTop("left")
 }
 
 /** Make the current window split the entire bottom half. */
-const bottomHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const bottomHalfSplitWindow = () => {
     toTop("bottom")
 }
 
 /** Make the current window split the entire top half. */
-const topHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const topHalfSplitWindow = () => {
     toTop("top")
 }
 
 /** Make the current window split the entire right side. */
-const rightHalfSplitWindow = () => {
-    const {toTop} = require("./pagelayout")
+export const rightHalfSplitWindow = () => {
     toTop("right")
 }
 
 /** Move the focus to the split to the left of the current one. */
-const toLeftSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toLeftSplitWindow = () => {
     moveFocus("left")
 }
 
 /** Move the focus to the split to the bottom of the current one. */
-const toBottomSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toBottomSplitWindow = () => {
     moveFocus("bottom")
 }
 
 /** Move the focus to the split to the top of the current one. */
-const toTopSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toTopSplitWindow = () => {
     moveFocus("top")
 }
 
 /** Move the focus to the split to the right of the current one. */
-const toRightSplitWindow = () => {
-    const {moveFocus} = require("./pagelayout")
+export const toRightSplitWindow = () => {
     moveFocus("right")
 }
 
 /** Move the focus back to the previously focused window split. */
-const toLastSplitWindow = () => {
-    const {lastSplit} = require("./pagelayout")
+export const toLastSplitWindow = () => {
     lastSplit()
 }
 
 /** Move the focus to the very first split by appearance. */
-const toFirstSplitWindow = () => {
-    const {firstSplit} = require("./pagelayout")
+export const toFirstSplitWindow = () => {
     firstSplit()
 }
 
 /** Move the focus to the next split by appearance. */
-const toNextSplitWindow = () => {
-    const {nextSplit} = require("./pagelayout")
+export const toNextSplitWindow = () => {
     nextSplit()
 }
 
 /** Move the focus to the previous split by appearance. */
-const toPreviousSplitWindow = () => {
-    const {previousSplit} = require("./pagelayout")
+export const toPreviousSplitWindow = () => {
     previousSplit()
 }
 
 /** Swap the location of the current split and others in the same level. */
-const exchangeSplitWindow = () => {
-    const {exchange} = require("./pagelayout")
+export const exchangeSplitWindow = () => {
     exchange()
 }
 
 /** Increase the height of the current window split within the same level. */
-const increaseHeightSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const increaseHeightSplitWindow = () => {
     resize("ver", "grow")
 }
 
 /** Decrease the height of the current window split within the same level. */
-const decreaseHeightSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const decreaseHeightSplitWindow = () => {
     resize("ver", "shrink")
 }
 
 /** Increase the width of the current window split within the same level. */
-const increaseWidthSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const increaseWidthSplitWindow = () => {
     resize("hor", "grow")
 }
 
 /** Decrease the width of the current window split within the same level. */
-const decreaseWidthSplitWindow = () => {
-    const {resize} = require("./pagelayout")
+export const decreaseWidthSplitWindow = () => {
     resize("hor", "shrink")
 }
 
 /** Distribute the space each window split take equally within each level. */
-const distrubuteSpaceSplitWindow = () => {
-    const {resetResizing} = require("./pagelayout")
+export const distrubuteSpaceSplitWindow = () => {
     resetResizing()
 }
 
 /** Toggle the always on top functionality of the app. */
-const toggleAlwaysOnTop = () => ipcRenderer.invoke("toggle-always-on-top")
+export const toggleAlwaysOnTop = () => ipcRenderer.invoke(
+    "toggle-always-on-top")
 
 /** Toggle the fullscreen functionality of the app, then update the GUI. */
-const toggleFullscreen = () => {
+export const toggleFullscreen = () => {
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
@@ -1288,7 +1256,7 @@ const toggleFullscreen = () => {
  * Get a url with the right chars escaped, either a custom or current url.
  * @param {string} customUrl
  */
-const getPageUrl = (customUrl = "") => {
+export const getPageUrl = (customUrl = "") => {
     let url = customUrl || currentPage()?.src || ""
     if (getSetting("encodeurlcopy") === "spacesonly") {
         url = url.replace(/ /g, "%20")
@@ -1341,7 +1309,7 @@ const getPageRSSLinks = async args => {
  * Notify with the list of RSS links on the current page.
  * @param {ActionParam} args
  */
-const pageRSSLinksList = async args => {
+export const pageRSSLinksList = async args => {
     const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
@@ -1358,7 +1326,7 @@ const pageRSSLinksList = async args => {
 /** Copy an RSS link to the clipboard by index.
  * @param {ActionParam} args
  */
-const pageRSSLinkToClipboard = async args => {
+export const pageRSSLinkToClipboard = async args => {
     const {key} = args
     if (!key) {
         return
@@ -1378,48 +1346,46 @@ const pageRSSLinkToClipboard = async args => {
 }
 
 /** Copy the current page url to the system clipboard. */
-const pageToClipboard = () => clipboard.writeText(getPageUrl())
+export const pageToClipboard = () => clipboard.writeText(getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
-const pageTitleToClipboard = () => {
-    const {getPageTitle} = require("./command")
+export const pageTitleToClipboard = () => {
     clipboard.writeText(getPageTitle())
 }
 
 /** Copy the current page to the system clipboard formatted as HTML. */
-const pageToClipboardHTML = () => {
+export const pageToClipboardHTML = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`<a href="${url}">${title}</a>`)
 }
 
 /** Copy the current page to the system clipboard formatted as Markdown. */
-const pageToClipboardMarkdown = () => {
+export const pageToClipboardMarkdown = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`[${title}](${url})`)
 }
 
 /** Copy the current page to the system clipboard formatted as RST. */
-const pageToClipboardRST = () => {
+export const pageToClipboardRST = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`\`${title} <${url}>\`_`)
 }
 
 /** Copy the current page to the system clipboard formatted as Emacs. */
-const pageToClipboardEmacs = () => {
+export const pageToClipboardEmacs = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
 /** Paste the contents of the clipboard into the page programmatically. */
-const pasteText = () => {
+export const pasteText = () => {
     if (currentMode() === "insert") {
         sendToPageOrSubFrame("action", "paste", clipboard.readText())
     } else {
-        const {typeCharacterIntoNavbar} = require("./input")
         typeCharacterIntoNavbar("<C-v>")
     }
 }
@@ -1428,9 +1394,8 @@ const pasteText = () => {
  * Open the link currently in the system clipboard in the current tab.
  * @param {ActionParam} args
  */
-const openFromClipboard = args => {
+export const openFromClipboard = args => {
     if (clipboard.readText().trim()) {
-        const {navigateTo} = require("./tabs")
         navigateTo(args.src, stringToUrl(clipboard.readText()))
     }
 }
@@ -1439,7 +1404,7 @@ const openFromClipboard = args => {
  * Store a scroll position based on key.
  * @param {ActionParam&{path?: string, pixels?: number}} args
  */
-const storeScrollPos = async args => {
+export const storeScrollPos = async args => {
     const {key} = args
     if (!key) {
         return
@@ -1489,7 +1454,7 @@ const storeScrollPos = async args => {
  * Restore a stored scroll position based on key.
  * @param {ActionParam&{path?: string}} args
  */
-const restoreScrollPos = args => {
+export const restoreScrollPos = args => {
     const {key} = args
     if (!key) {
         return
@@ -1520,7 +1485,7 @@ const restoreScrollPos = args => {
  * Make a new mark based on a key.
  * @param {ActionParam&{url?: string}} args
  */
-const makeMark = args => {
+export const makeMark = args => {
     const {key} = args
     if (!key) {
         return
@@ -1535,15 +1500,14 @@ const makeMark = args => {
 
 /**
  * Restore a stored mark by key to a position.
- * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
+ * @param {ActionParam&{position?: import("./tabs.js").tabPosition}} args
  */
-const restoreMark = args => {
+export const restoreMark = args => {
     const {key} = args
     if (!key) {
         return
     }
     const qm = readJSON(joinPath(appData(), "quickmarks"))
-    const {commonAction} = require("./contextmenu")
     let position = getSetting("markposition")
     const shiftedPosition = getSetting("markpositionshifted")
     if (key === key.toUpperCase() && shiftedPosition !== "default") {
@@ -1557,7 +1521,7 @@ const restoreMark = args => {
  * Run a stored macro recording by key.
  * @param {ActionParam} args
  */
-const runRecording = args => {
+export const runRecording = args => {
     const {key} = args
     if (!key) {
         return
@@ -1565,7 +1529,6 @@ const runRecording = args => {
     const recording = readJSON(joinPath(appData(), "recordings"))?.[key]
     if (recording) {
         setTimeout(() => {
-            const {executeMapString, sanitiseMapString} = require("./input")
             executeMapString(sanitiseMapString(args.src, recording, true),
                 true, {"initial": true, "src": args.src})
         }, 5)
@@ -1575,18 +1538,16 @@ const runRecording = args => {
 /** Start a macro recording by key.
  * @param {ActionParam} args
  */
-const startRecording = args => {
+export const startRecording = args => {
     const {key} = args
     if (!key) {
         return
     }
-    const {"startRecording": start} = require("./input")
     start(key, args.src)
 }
 
 /** Stop the current macro recording if active. */
-const stopRecording = () => {
-    const {"stopRecording": stop} = require("./input")
+export const stopRecording = () => {
     const record = stop()
     if (!record) {
         return
@@ -1597,8 +1558,7 @@ const stopRecording = () => {
 }
 
 /** Change the z-index order of the follow mode elements by type. */
-const reorderFollowLinks = () => {
-    const {reorderDisplayedLinks} = require("./follow")
+export const reorderFollowLinks = () => {
     reorderDisplayedLinks()
 }
 
@@ -1606,8 +1566,7 @@ const reorderFollowLinks = () => {
  * Open the menu, either for system elements or the current insert element.
  * @param {ActionParam} args
  */
-const menuOpen = args => {
-    const {viebMenu} = require("./contextmenu")
+export const menuOpen = args => {
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab?.getBoundingClientRect()
@@ -1625,14 +1584,12 @@ const menuOpen = args => {
         const selected = document.querySelector("#suggest-dropdown .selected")
         let bounds = selected?.getBoundingClientRect()
         if (currentMode() === "command" && selected && bounds) {
-            const {commandMenu} = require("./contextmenu")
             commandMenu(args.src, {
                 "command": selected.querySelector("span")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
         } else if (currentMode() === "explore" && selected && bounds) {
-            const {linkMenu} = require("./contextmenu")
             linkMenu(args.src, {
                 "link": selected.querySelector(".url")?.textContent ?? "",
                 "x": bounds.x,
@@ -1652,72 +1609,61 @@ const menuOpen = args => {
             }
         }
     } else {
-        const {openMenu} = require("./pointer")
         openMenu(args)
     }
 }
 
 /** Go to the top entry in the context menu. */
-const menuTop = () => {
-    const {top} = require("./contextmenu")
+export const menuTop = () => {
     top()
 }
 
 /** Go one section up in the context menu. */
-const menuSectionUp = () => {
-    const {sectionUp} = require("./contextmenu")
+export const menuSectionUp = () => {
     sectionUp()
 }
 
 /** Go one entry up in the context menu. */
-const menuUp = () => {
-    const {up} = require("./contextmenu")
+export const menuUp = () => {
     up()
 }
 
 /** Go one entry down in the context menu. */
-const menuDown = () => {
-    const {down} = require("./contextmenu")
+export const menuDown = () => {
     down()
 }
 
 /** Go one section down in the context menu. */
-const menuSectionDown = () => {
-    const {sectionDown} = require("./contextmenu")
+export const menuSectionDown = () => {
     sectionDown()
 }
 
 /** Go to the bottom entry in the context menu. */
-const menuBottom = () => {
-    const {bottom} = require("./contextmenu")
+export const menuBottom = () => {
     bottom()
 }
 
 /** Execute the currently selected entry of the context menu. */
-const menuSelect = () => {
-    const {select} = require("./contextmenu")
+export const menuSelect = () => {
     select()
 }
 
 /** Close the context menu without side effects. */
-const menuClose = () => {
-    const {clear} = require("./contextmenu")
+export const menuClose = () => {
     clear()
 }
 
 /** Show the table of contents on the current page. */
-const showTOC = () => {
-    const {getCustomStyling} = require("./settings")
+export const showTOC = () => {
     const fontsize = getSetting("guifontsize")
     sendToPageOrSubFrame("action", "showTOC", getCustomStyling(), fontsize)
 }
 
 /** Hide the table of contents. */
-const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
+export const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
 
 /** Toggle the table of contents on the current page. */
-const toggleTOC = () => {
-    const {getCustomStyling} = require("./settings")
+export const toggleTOC = () => {
     const fontsize = getSetting("guifontsize")
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
@@ -1726,8 +1672,7 @@ const toggleTOC = () => {
  * Use the navbar entered data to either navigate, search or run commands.
  * @param {ActionParam} args
  */
-const useEnteredData = args => {
-    const {setMode} = require("./modes")
+export const useEnteredData = args => {
     const url = getUrl()
     if (!url) {
         return
@@ -1735,7 +1680,6 @@ const useEnteredData = args => {
     if (currentMode() === "command") {
         const command = url.value.trim()
         setMode("normal")
-        const {execute} = require("./command")
         execute(command, {"src": "user"})
     }
     if (currentMode() === "search") {
@@ -1748,156 +1692,13 @@ const useEnteredData = args => {
         setMode("normal")
         if (location) {
             const modifiedLoc = searchword(location).url
-            const {push} = require("./explorehistory")
             push(urlToString(modifiedLoc))
-            const {navigateTo} = require("./tabs")
             navigateTo(args.src, stringToUrl(modifiedLoc))
         }
     }
 }
 
 /** This action does nothing, but can be used as the action of a mapping. */
-const nop = () => {
+export const nop = () => {
     // Explicit No-op action: does nothing
-}
-
-module.exports = {
-    backInHistory,
-    bottomHalfSplitWindow,
-    clickOnSearch,
-    commandHistoryNext,
-    commandHistoryPrevious,
-    decreaseFirstNumber,
-    decreaseHeightSplitWindow,
-    decreaseLastNumber,
-    decreasePageNumber,
-    decreasePortNumber,
-    decreaseWidthSplitWindow,
-    distrubuteSpaceSplitWindow,
-    downloadLink,
-    editWithVim,
-    emptySearch,
-    exchangeSplitWindow,
-    exploreHistoryNext,
-    exploreHistoryPrevious,
-    forwardInHistory,
-    getPageUrl,
-    hideTOC,
-    increaseFirstNumber,
-    increaseHeightSplitWindow,
-    increaseLastNumber,
-    increasePageNumber,
-    increasePortNumber,
-    increaseWidthSplitWindow,
-    incrementalSearch,
-    insertAtFirstInput,
-    leftHalfSplitWindow,
-    makeMark,
-    menuBottom,
-    menuClose,
-    menuDown,
-    menuOpen,
-    menuSectionDown,
-    menuSectionUp,
-    menuSelect,
-    menuTop,
-    menuUp,
-    moveTabBackward,
-    moveTabEnd,
-    moveTabForward,
-    moveTabStart,
-    nextPage,
-    nextPageNewTab,
-    nextSearchMatch,
-    nextSuggestion,
-    nextSuggestionSection,
-    nextTab,
-    nop,
-    openFromClipboard,
-    openLinkExternal,
-    openNewTabWithCurrentUrl,
-    pageRSSLinksList,
-    pageRSSLinkToClipboard,
-    pageTitleToClipboard,
-    pageToClipboard,
-    pageToClipboardEmacs,
-    pageToClipboardHTML,
-    pageToClipboardMarkdown,
-    pageToClipboardRST,
-    pasteText,
-    previousPage,
-    previousPageNewTab,
-    previousSearchMatch,
-    previousTab,
-    prevSuggestion,
-    prevSuggestionSection,
-    refreshTab,
-    refreshTabWithoutCache,
-    reopenTab,
-    reorderFollowLinks,
-    repeatLastAction,
-    resetIncrementalSearch,
-    restoreMark,
-    restoreScrollPos,
-    rightHalfSplitWindow,
-    rotateSplitWindowBackward,
-    rotateSplitWindowForward,
-    runRecording,
-    scrollBottom,
-    scrollDown,
-    scrollLeft,
-    scrollLeftMax,
-    scrollPageDown,
-    scrollPageDownHalf,
-    scrollPageLeft,
-    scrollPageRight,
-    scrollPageUp,
-    scrollPageUpHalf,
-    scrollRight,
-    scrollRightMax,
-    scrollTop,
-    scrollUp,
-    setFocusCorrectly,
-    showTOC,
-    startFollowCopyLink,
-    startFollowCurrentTab,
-    startFollowNewSplit,
-    startFollowNewTab,
-    startFollowNewVerSplit,
-    startRecording,
-    stopFollowMode,
-    stopLoadingPage,
-    stopRecording,
-    storeScrollPos,
-    toBottomSplitWindow,
-    toCommandMode,
-    toExploreMode,
-    toFirstSplitWindow,
-    toggleAlwaysOnTop,
-    toggleFullscreen,
-    toggleMarkdownViewer,
-    toggleMarkdownViewerNewTab,
-    toggleReaderView,
-    toggleReaderViewNewTab,
-    toggleSourceViewer,
-    toggleSourceViewerNewTab,
-    toggleTOC,
-    toInsertMode,
-    toLastSplitWindow,
-    toLeftSplitWindow,
-    toNextSplitWindow,
-    toNormalMode,
-    toParentSubdomain,
-    toParentUrl,
-    topHalfSplitWindow,
-    toPreviousSplitWindow,
-    toRightSplitWindow,
-    toRootSubdomain,
-    toRootUrl,
-    toSearchMode,
-    toTopSplitWindow,
-    useEnteredData,
-    zoomIn,
-    zoomOut,
-    zoomReset
 }

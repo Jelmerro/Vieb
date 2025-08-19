@@ -15,10 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
-const {currentMode, getUrl} = require("./common")
+import {appData, currentMode, getSetting, getUrl} from "../preloadutil.js"
+import {appendFile, joinPath, readFile} from "../util.js"
+import {suggestExplore} from "./suggest.js"
 
 const exploreFile = joinPath(appData(), "explorehist")
 /** @type {string[]} */
@@ -27,7 +27,7 @@ let previousIndex = -1
 let originalSite = ""
 
 /** Load the explore hist of the previous session if stored. */
-const init = () => {
+export const init = () => {
     previousSites = readFile(exploreFile)?.split("\n").filter(s => s) || []
 }
 
@@ -41,12 +41,11 @@ const updateNavWithSite = () => {
     if (url) {
         url.value = exploreText
     }
-    const {suggestExplore} = require("./suggest")
     suggestExplore(exploreText)
 }
 
 /** Go to the previous item in the explore history. */
-const previous = () => {
+export const previous = () => {
     if (currentMode() !== "explore") {
         return
     }
@@ -60,7 +59,7 @@ const previous = () => {
 }
 
 /** Go to the next item in the explore history, or back to typed text. */
-const next = () => {
+export const next = () => {
     if (currentMode() !== "explore" || previousIndex === -1) {
         return
     }
@@ -73,7 +72,7 @@ const next = () => {
 }
 
 /** Reset the position info for the explore history. */
-const resetPosition = () => {
+export const resetPosition = () => {
     previousIndex = -1
     originalSite = ""
 }
@@ -82,7 +81,7 @@ const resetPosition = () => {
  * Push a new user navigation to the list.
  * @param {string} explore
  */
-const push = explore => {
+export const push = explore => {
     const setting = getSetting("explorehist")
     if (setting === "none") {
         return
@@ -97,5 +96,3 @@ const push = explore => {
         appendFile(exploreFile, `${explore}\n`)
     }
 }
-
-module.exports = {init, next, previous, push, resetPosition}

@@ -15,25 +15,30 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {
+import {ipcRenderer} from "electron"
+import {
     appConfig,
     appData,
+    currentPage,
+    getSetting,
+    listPages,
+    pathToSpecialPageName,
+    stringToUrl,
+    tabForPage
+} from "../preloadutil.js"
+import {
     deleteFile,
     getAppRootDir,
-    getSetting,
     isFile,
     joinPath,
     listDirAsync,
     makeDir,
     modifiedAt,
-    pathToSpecialPageName,
     readJSON,
-    stringToUrl,
     writeJSONAsync
-} = require("../util")
-const {currentPage, listPages, tabForPage} = require("./common")
+} from "../util.js"
+import {visitCount} from "./history.js"
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
@@ -57,7 +62,7 @@ const urlToPath = url => joinPath(faviconFolder,
  * Update the current mappings and delete unused ones.
  * @param {{currentUrl?: string|null, now?: boolean|null}} arg
  */
-const updateMappings = async({currentUrl = null, now = null} = {}) => {
+export const updateMappings = async({currentUrl = null, now = null} = {}) => {
     // Don't update the mappings before done loading or in rapid succession
     window.clearTimeout(faviconWriteTimeout ?? undefined)
     if (!now || !isParsed) {
@@ -67,7 +72,6 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
         return
     }
     // Delete mappings for urls that aren't present in the history
-    const {visitCount} = require("./history")
     Object.keys(mappings).forEach(m => {
         if (m === "redirects") {
             Object.keys(mappings.redirects ?? {}).forEach(r => {
@@ -115,7 +119,7 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
  * @param {Electron.WebviewTag} webview
  * @param {boolean} empty
  */
-const loading = (webview, empty = false) => {
+export const loading = (webview, empty = false) => {
     const loadingIndicator = getSetting("loadingindicator")
     const tab = tabForPage(webview)
     const status = tab?.querySelector(".status")
@@ -207,7 +211,7 @@ const deleteIfTooOld = loc => {
  * @param {Electron.WebviewTag} webview
  * @param {string} favicon
  */
-const update = (webview, favicon) => {
+export const update = (webview, favicon) => {
     const tab = tabForPage(webview)
     if (viebIcon === favicon) {
         if (!pathToSpecialPageName(webview.src)?.name) {
@@ -242,7 +246,6 @@ const update = (webview, favicon) => {
         return
     }
     makeDir(faviconFolder)
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("download-favicon", {
         "fav": favicon,
         "linkId": webview.getAttribute("link-id"),
@@ -256,13 +259,13 @@ const update = (webview, favicon) => {
  * Get a redirect.
  * @param {string} url
  */
-const getRedirect = url => mappings.redirects?.[url] || url
+export const getRedirect = url => mappings.redirects?.[url] || url
 
 /**
  * Get the url for a given site.
  * @param {string} url
  */
-const forSite = url => {
+export const forSite = url => {
     if (getSetting("favicons") === "disabled") {
         return ""
     }
@@ -291,7 +294,7 @@ const forSite = url => {
  * Show the favicon that was previously set for this site, and stop loading.
  * @param {Electron.WebviewTag} webview
  */
-const show = webview => {
+export const show = webview => {
     const tab = tabForPage(webview)
     if (webview === currentPage()) {
         const loadingProgress = document.getElementById("loading-progress")
@@ -316,13 +319,12 @@ const show = webview => {
 }
 
 /** Initialize/load the favicon cache in memory and register event handlers. */
-const init = () => {
+export const init = () => {
     const parsed = readJSON(mappingFile)
     if (parsed) {
         mappings = parsed
     }
     isParsed = true
-    const {ipcRenderer} = require("electron")
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
         const webview = listPages().find(
             p => p.getAttribute("link-id") === linkId)
@@ -340,8 +342,4 @@ const init = () => {
         mappings.redirects ||= {}
         mappings.redirects[src] = redirect
     })
-}
-
-module.exports = {
-    forSite, getRedirect, init, loading, show, update, updateMappings
 }

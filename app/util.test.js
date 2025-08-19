@@ -16,12 +16,37 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* eslint-disable padding-lines/statements, jsdoc/require-jsdoc */
-"use strict"
 
-const assert = require("assert")
-const {describe, test} = require("node:test")
-const path = require("path")
-const UTIL = require("./util")
+import {strictEqual} from "node:assert"
+import {rmdirSync} from "node:fs"
+import {tmpdir} from "node:os"
+import {basename, dirname, isAbsolute, resolve} from "node:path"
+import {describe, test} from "node:test"
+import {
+    dirname as _dirname,
+    appendFile,
+    basePath,
+    compareVersions,
+    deleteFile,
+    firefoxUseragent,
+    formatDate,
+    formatSize,
+    isAbsolutePath,
+    isDir,
+    isFile,
+    isUrl,
+    joinPath,
+    listDir,
+    makeDir,
+    pathExists,
+    readFile,
+    readJSON,
+    sameDomain,
+    specialPagePath,
+    userAgentPlatform,
+    writeFile,
+    writeJSON
+} from "./util.js"
 
 describe("Check isUrl", () => {
     const urlTests = [
@@ -256,7 +281,7 @@ describe("Check isUrl", () => {
     ]
     urlTests.forEach(urlTest => {
         test(`Testing "${urlTest.url}": ${urlTest.reason}`, () => {
-            assert.strictEqual(UTIL.isUrl(urlTest.url), urlTest.valid)
+            strictEqual(isUrl(urlTest.url), urlTest.valid)
         })
     })
 })
@@ -266,37 +291,37 @@ describe("Special pages", () => {
         {
             "arguments": ["help"],
             "reason": "Expect basic conversion to work",
-            "response": `file://${path.resolve(`${__dirname}/pages/help.html`)}`
+            "response": `file://${resolve(`${import.meta.dirname}/pages/help.html`)}`
         },
         {
             "arguments": ["test", null, false],
             "reason": "Expect to give help page",
-            "response": `file://${path.resolve(`${__dirname}/pages/help.html`)}`
+            "response": `file://${resolve(`${import.meta.dirname}/pages/help.html`)}`
         },
         {
             "arguments": ["downloads", "#list"],
             "reason": "Don't prepend hashes if already provided",
-            "response": `file://${path.resolve(
-                `${__dirname}/pages/downloads.html#list`)}`
+            "response": `file://${resolve(
+                `${import.meta.dirname}/pages/downloads.html#list`)}`
         },
         {
             "arguments": ["nonexistent", "test", true],
             "reason": "Skip page existence checks if requested",
-            "response": `file://${path.resolve(
-                `${__dirname}/pages/nonexistent.html#test`)}`
+            "response": `file://${resolve(
+                `${import.meta.dirname}/pages/nonexistent.html#test`)}`
         },
         {
             "arguments": ["help", "test"],
             "reason": "Expect basic conversion to work",
-            "response": `file://${path.resolve(
-                `${__dirname}/pages/help.html#test`)}`
+            "response": `file://${resolve(
+                `${import.meta.dirname}/pages/help.html#test`)}`
         }
     ]
     specialPagesToFilenames.forEach(specialPageTest => {
         test(`Testing "${specialPageTest.arguments}":
     ${specialPageTest.reason}`, () => {
-            assert.strictEqual(
-                UTIL.specialPagePath(...specialPageTest.arguments),
+            strictEqual(
+                specialPagePath(...specialPageTest.arguments),
                 specialPageTest.response)
         })
     })
@@ -396,7 +421,7 @@ describe("Versions", () => {
     ]
     versions.forEach(v => {
         test(`Testing '${v.ref}' vs '${v.new}': ${v.reason}`, () => {
-            assert.strictEqual(UTIL.compareVersions(v.new, v.ref), v.result)
+            strictEqual(compareVersions(v.new, v.ref), v.result)
         })
     })
 })
@@ -418,117 +443,114 @@ describe("Format sizes work correctly", () => {
     ]
     sizes.forEach(s => {
         test(`Testing that ${s.number} becomes ${s.output}`, () => {
-            assert.strictEqual(UTIL.formatSize(s.number), s.output)
+            strictEqual(formatSize(s.number), s.output)
         })
     })
 })
 
 test("Filesystem helpers should work as expected", () => {
-    const {rmdirSync} = require("fs")
-    const {tmpdir} = require("os")
-    const {basename, dirname, isAbsolute} = require("path")
-    const file = UTIL.joinPath(tmpdir(), "vieb-test")
+    const file = joinPath(tmpdir(), "vieb-test")
     // Clean old test files
-    UTIL.deleteFile(file)
+    deleteFile(file)
     try {
         rmdirSync(file)
     } catch {
         // Probably does not exist
     }
     // Test simple path checks, make a dir and try to make files at the same loc
-    assert.strictEqual(UTIL.pathExists(file), false)
-    assert.strictEqual(UTIL.isFile(file), false)
-    assert.strictEqual(UTIL.isDir(file), false)
-    assert.strictEqual(UTIL.listDir(file), null)
-    assert.strictEqual(UTIL.makeDir(file), true)
-    assert.strictEqual(UTIL.listDir(file).length, 0)
-    assert.strictEqual(UTIL.isFile(file), false)
-    assert.strictEqual(UTIL.isDir(file), true)
-    assert.strictEqual(UTIL.pathExists(file), true)
-    assert.strictEqual(
-        UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), false)
-    assert.strictEqual(UTIL.writeFile(file, "test"), false)
-    assert.strictEqual(UTIL.appendFile(file, "hello"), false)
+    strictEqual(pathExists(file), false)
+    strictEqual(isFile(file), false)
+    strictEqual(isDir(file), false)
+    strictEqual(listDir(file), null)
+    strictEqual(makeDir(file), true)
+    strictEqual(listDir(file).length, 0)
+    strictEqual(isFile(file), false)
+    strictEqual(isDir(file), true)
+    strictEqual(pathExists(file), true)
+    strictEqual(
+        writeJSON(file, {"test": "test"}, {"indent": 4}), false)
+    strictEqual(writeFile(file, "test"), false)
+    strictEqual(appendFile(file, "hello"), false)
     // Remove dir, write file to same location and read it again
     try {
         rmdirSync(file)
     } catch {
         // If this fails, the next expect statement will error out
     }
-    assert.strictEqual(UTIL.isDir(file), false)
-    assert.strictEqual(UTIL.pathExists(file), false)
-    assert.strictEqual(
-        UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), true)
-    const output = UTIL.readJSON(file)
-    assert.strictEqual(Object.keys(output).length, 1)
-    assert.strictEqual(Object.keys(output)[0], "test")
-    assert.strictEqual(output.test, "test")
-    assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}`)
-    assert.strictEqual(UTIL.appendFile(file, "hello"), true)
-    assert.strictEqual(UTIL.readJSON(file), null)
-    assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}hello`)
-    assert.strictEqual(UTIL.writeFile(file, "test"), true)
-    assert.strictEqual(UTIL.readJSON(file), null)
-    assert.strictEqual(UTIL.readFile(file), "test")
-    assert.strictEqual(UTIL.isFile(file), true)
-    assert.strictEqual(UTIL.isDir(file), false)
-    assert.strictEqual(UTIL.pathExists(file), true)
-    assert.strictEqual(UTIL.makeDir(file), false)
+    strictEqual(isDir(file), false)
+    strictEqual(pathExists(file), false)
+    strictEqual(
+        writeJSON(file, {"test": "test"}, {"indent": 4}), true)
+    const output = readJSON(file)
+    strictEqual(Object.keys(output).length, 1)
+    strictEqual(Object.keys(output)[0], "test")
+    strictEqual(output.test, "test")
+    strictEqual(readFile(file), `{\n    "test": "test"\n}`)
+    strictEqual(appendFile(file, "hello"), true)
+    strictEqual(readJSON(file), null)
+    strictEqual(readFile(file), `{\n    "test": "test"\n}hello`)
+    strictEqual(writeFile(file, "test"), true)
+    strictEqual(readJSON(file), null)
+    strictEqual(readFile(file), "test")
+    strictEqual(isFile(file), true)
+    strictEqual(isDir(file), false)
+    strictEqual(pathExists(file), true)
+    strictEqual(makeDir(file), false)
     // Delete file and confirm simple checks succeed
-    UTIL.deleteFile(file)
-    assert.strictEqual(UTIL.isFile(file), false)
-    assert.strictEqual(UTIL.readFile(file), null)
-    assert.strictEqual(UTIL.isDir(file), false)
-    assert.strictEqual(UTIL.pathExists(file), false)
-    let fileList = UTIL.listDir(
-        UTIL.joinPath(__dirname, "./img"), false, true)
-    assert.strictEqual(fileList.length, 1)
-    assert.strictEqual(fileList[0], "icons")
-    fileList = UTIL.listDir(UTIL.joinPath(__dirname, "./img"), true, true)
-    assert.strictEqual(fileList.length, 1)
-    assert.strictEqual(fileList[0], UTIL.joinPath(__dirname, "img", "icons"))
-    assert.strictEqual(UTIL.dirname("/home/test/"), dirname("/home/test/"))
-    assert.strictEqual(UTIL.basePath("/home/test/"), basename("/home/test/"))
-    assert.strictEqual(
-        UTIL.isAbsolutePath("/home/test/"), isAbsolute("/home/test/"))
+    deleteFile(file)
+    strictEqual(isFile(file), false)
+    strictEqual(readFile(file), null)
+    strictEqual(isDir(file), false)
+    strictEqual(pathExists(file), false)
+    let fileList = listDir(
+        joinPath(import.meta.dirname, "./img"), false, true)
+    strictEqual(fileList.length, 1)
+    strictEqual(fileList[0], "icons")
+    fileList = listDir(joinPath(import.meta.dirname, "./img"), true, true)
+    strictEqual(fileList.length, 1)
+    strictEqual(fileList[0], joinPath(import.meta.dirname, "img", "icons"))
+    strictEqual(_dirname("/home/test/"), dirname("/home/test/"))
+    strictEqual(basePath("/home/test/"), basename("/home/test/"))
+    strictEqual(
+        isAbsolutePath("/home/test/"), isAbsolute("/home/test/"))
 })
 
 test("formatDate helper to show dates in proper standard format", () => {
     process.env.TZ = "UTC"
-    assert.strictEqual(new Date().getTimezoneOffset(), 0)
-    assert.strictEqual(UTIL.formatDate("03-03-2021"), "2021-03-03 00:00:00")
-    assert.strictEqual(
-        UTIL.formatDate("12/24/2021 4:15 PM"), "2021-12-24 16:15:00")
-    assert.strictEqual(UTIL.formatDate(0), "1970-01-01 00:00:00")
-    assert.strictEqual(UTIL.formatDate(1630281600), "2021-08-30 00:00:00")
-    assert.strictEqual(
-        UTIL.formatDate(new Date("2021-04-04")), "2021-04-04 00:00:00")
+    strictEqual(new Date().getTimezoneOffset(), 0)
+    strictEqual(formatDate("03-03-2021"), "2021-03-03 00:00:00")
+    strictEqual(
+        formatDate("12/24/2021 4:15 PM"), "2021-12-24 16:15:00")
+    strictEqual(formatDate(0), "1970-01-01 00:00:00")
+    strictEqual(formatDate(1630281600), "2021-08-30 00:00:00")
+    strictEqual(
+        formatDate(new Date("2021-04-04")), "2021-04-04 00:00:00")
 })
 
 test("sameDomain function should match urls that have the same domain", () => {
     // Basics
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://duckduckgo.com", "https://google.com/"), false)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://google.com", "https://google.com/"), true)
-    assert.strictEqual(UTIL.sameDomain(null, null), false)
+    strictEqual(sameDomain(null, null), false)
     // Strip subdomains, path, search, hash and query
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://google.com/test", "http://www.google.com/search"), true)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://www.accounts.google.com/", "http://google.com?q=0"), true)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://new.accounts.google.com/", "http://www.google.com"), true)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://test.test.com/", "http://test.google.com"), false)
     // Localhost and IPs will not be stripped of subdomains
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://localhost/", "http://localhost#extra"), true)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://localhost/", "http://test.localhost"), false)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://localhost:8080/", "http://localhost:3000/test"), true)
-    assert.strictEqual(UTIL.sameDomain(
+    strictEqual(sameDomain(
         "https://127.0.0.1/", "http://10.0.0.1"), false)
 })
 
@@ -536,7 +558,7 @@ test(`Firefox version should increment by date`, () => {
     const firstMockDate = new Date("2023-06-05")
     const secondMockDate = new Date("2023-06-06")
     const thirdMockDate = new Date("2023-07-04")
-    const sys = UTIL.userAgentPlatform()
+    const sys = userAgentPlatform()
     global.Date = class extends Date {
         constructor(...date) {
             if (date?.length) {
@@ -546,7 +568,7 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     let ver = 113
-    assert.strictEqual(UTIL.firefoxUseragent(),
+    strictEqual(firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
         constructor(...date) {
@@ -557,7 +579,7 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     ver = 114
-    assert.strictEqual(UTIL.firefoxUseragent(),
+    strictEqual(firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
         constructor(...date) {
@@ -568,6 +590,6 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     ver = 115
-    assert.strictEqual(UTIL.firefoxUseragent(),
+    strictEqual(firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })

@@ -15,11 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {
+import {ipcRenderer} from "electron"
+import {translate} from "../translate.js"
+import {
     activeElement,
     fetchJSON,
     findElementAtPosition,
@@ -36,11 +35,11 @@ const {
     querySelectorAll,
     readFile,
     writeFile
-} = require("../util")
+} from "../util.js"
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("../util").NotificationInfo} opts
+ * @param {import("../preloadutil.js").NotificationInfo} opts
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 

@@ -1,3 +1,9 @@
-"use strict"
+import eslintConfig from "eslint-config"
 
-module.exports = require("eslint-config")
+export default {
+    ...eslintConfig,
+    "languageOptions": {
+        ...eslintConfig.languageOptions,
+        "sourceType": "module"
+    }
+}

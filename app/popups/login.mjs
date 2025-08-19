@@ -15,9 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
+import {ipcRenderer} from "electron"
 
 window.addEventListener("load", () => {
     const username = document.getElementById("username")

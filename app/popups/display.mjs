@@ -15,9 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
+import {ipcRenderer} from "electron"
 
 const keys = "abcdefghijklmnopqrstuvwxyz0123456789".split("")
 /** @type {{title: string, img: string, icon: string}[]} */

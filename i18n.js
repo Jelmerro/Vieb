@@ -15,18 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 /* eslint-disable max-depth */
+import {joinPath, listDir, readJSON, writeFile, writeJSON} from "./app/util.js"
 
-const {
-    joinPath, listDir, readJSON, writeFile, writeJSON
-} = require("./app/util")
-
-const files = listDir(joinPath(__dirname, "app/translations"))
+const files = listDir(joinPath(import.meta.dirname, "app/translations"))
     .filter(f => f.endsWith(".json")).map(f => f.replace(/\.json$/, "")) ?? []
 const translations = {}
 for (const f of files) {
-    const contents = readJSON(joinPath(__dirname, `app/translations/${f}.json`))
+    const contents = readJSON(joinPath(
+        import.meta.dirname, `app/translations/${f}.json`))
     translations[f] = contents
 }
 
@@ -93,7 +90,8 @@ const types = () => {
 /** Write all new translations to disk in alphabetic order. */
 const writeTranslations = () => {
     for (const lang of Object.keys(translations)) {
-        const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
+        const filePath = joinPath(
+            import.meta.dirname, `app/translations/${lang}.json`)
         writeJSON(filePath, translations[lang], {
             "indent": 4,
             /**
@@ -162,7 +160,8 @@ if (args[0] === "addlang") {
         console.warn("Language already exists.")
         process.exit(1)
     }
-    const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
+    const filePath = joinPath(
+        import.meta.dirname, `app/translations/${lang}.json`)
     writeJSON(filePath, translations.en, {
         "indent": 4,
         /**
@@ -215,7 +214,7 @@ if (args[0] === "removekey") {
         let obj = translations[lang]
         for (const id of key.split(".").slice(0, -1)) {
             if (!obj[id]) {
-                return
+                process.exit(1)
             }
             obj = obj[id]
         }
@@ -234,7 +233,7 @@ if (args[0] === "renamekey") {
         let obj = translations[lang]
         for (const id of oldKey.split(".").slice(0, -1)) {
             if (!obj[id]) {
-                return
+                process.exit(1)
             }
             obj = obj[id]
         }

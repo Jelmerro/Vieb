@@ -15,11 +15,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {appConfig, getAppRootDir, joinPath, readFile} = require("../util")
+import {ipcRenderer} from "electron"
+import {appConfig} from "../preloadutil.js"
+import {translate} from "../translate.js"
+import {getAppRootDir, joinPath, readFile} from "../util.js"
+
 const {icon} = appConfig() ?? {}
 const modes = "nicsefpvm".split("")
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
@@ -320,8 +321,6 @@ window.addEventListener("DOMContentLoaded", () => {
         })
         document.querySelector(".example-buttons")?.append(button)
     }
-})
-window.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.querySelector("img")
     if (icon && mainImg) {
         mainImg.src = icon

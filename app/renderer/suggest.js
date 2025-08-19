@@ -15,36 +15,51 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {
+import {platform} from "node:os"
+import {
     appData,
+    currentMode,
+    currentPage,
+    downloadPath,
+    getMouseConf,
+    getSetting,
+    getUrl,
+    listTabs,
+    pageForTab,
+    searchword,
+    stringToUrl,
+    updateScreenshotHighlight,
+    urlToString
+} from "../preloadutil.js"
+import {
     basePath,
     dirname,
-    downloadPath,
     expandPath,
     getAppRootDir,
-    getSetting,
     isAbsolutePath,
     isDir,
     isUrl,
     joinPath,
     listDir,
     pathExists,
-    readFile,
-    searchword,
-    stringToUrl,
-    urlToString
-} = require("../util")
-const {
-    currentMode,
-    currentPage,
-    getMouseConf,
-    getUrl,
-    listTabs,
-    pageForTab,
-    updateScreenshotHighlight
-} = require("./common")
+    readFile
+} from "../util.js"
+import {
+    allTabsForBufferArg,
+    commandList,
+    customCommandsAsCommandList,
+    execute,
+    parseAndValidateArgs,
+    rangeToTabIdxs
+} from "./command.js"
+import {clear, commandMenu, linkMenu} from "./contextmenu.js"
+import {forSite} from "./favicons.js"
+import {suggestHist} from "./history.js"
+import {listMappingsAsCommandList, listSupportedActions} from "./input.js"
+import {setMode} from "./modes.js"
+import {settingsWithDefaults, suggestionList, validOptions} from "./settings.js"
+import {addTab, navigateTo} from "./tabs.js"
 
 /** @type {string[]} */
 let suggestions = []
@@ -106,7 +121,7 @@ const topOfSection = () => {
 }
 
 /** Select the previous suggestion from the list. */
-const previous = () => {
+export const previous = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -136,7 +151,7 @@ const previous = () => {
 }
 
 /** Go the previous section in the suggestion list. */
-const previousSection = () => {
+export const previousSection = () => {
     previous()
     while (!topOfSection()) {
         previous()
@@ -144,7 +159,7 @@ const previousSection = () => {
 }
 
 /** Select the next suggestion from the list. */
-const next = () => {
+export const next = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -174,7 +189,7 @@ const next = () => {
 }
 
 /** Go the next section in the suggestion list. */
-const nextSection = () => {
+export const nextSection = () => {
     next()
     while (!topOfSection()) {
         next()
@@ -182,7 +197,7 @@ const nextSection = () => {
 }
 
 /** Remove all suggestions and empty the list. */
-const emptySuggestions = () => {
+export const emptySuggestions = () => {
     const suggestDropdown = document.getElementById("suggest-dropdown")
     const url = getUrl()
     if (suggestDropdown && url) {
@@ -220,7 +235,7 @@ const locationToSuggestion = (base, loc) => {
  */
 const suggestFiles = loc => {
     let location = expandPath(loc.replace(/^file:\/+/g, "/"))
-    if (process.platform === "win32") {
+    if (platform() === "win32") {
         location = expandPath(loc.replace(/^file:\/+/g, ""))
     }
     if (isAbsolutePath(location)) {
@@ -249,7 +264,7 @@ const suggestFiles = loc => {
  * Add a suggestion to the explore mode suggestions.
  * @param {{title: string, type?: string, url: string, icon?: string}} explore
  */
-const addExplore = explore => {
+export const addExplore = explore => {
     if (suggestions.includes(explore.url)) {
         return
     }
@@ -260,21 +275,16 @@ const addExplore = explore => {
         if (e.button === 2) {
             if (getMouseConf("suggestselect")) {
                 if (["both", "explore"].includes(getSetting("menusuggest"))) {
-                    const {linkMenu} = require("./contextmenu")
                     linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
                 }
             }
         } else if (getMouseConf("menusuggest")) {
-            const {setMode} = require("./modes")
             setMode("normal")
-            const {clear} = require("./contextmenu")
             clear()
             if (e.button === 0) {
-                const {navigateTo} = require("./tabs")
                 navigateTo("user", explore.url)
             }
             if (e.button === 1) {
-                const {addTab} = require("./tabs")
                 addTab({"src": "user", "url": explore.url})
             }
         }
@@ -283,7 +293,6 @@ const addExplore = explore => {
     if (explore.icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
-        const {forSite} = require("./favicons")
         thumbnail.src = forSite(explore.icon) || explore.icon
         element.append(thumbnail)
     }
@@ -311,13 +320,12 @@ const addExplore = explore => {
  * Suggest urls, files and searchwords based on the current input and settings.
  * @param {string} search
  */
-const suggestExplore = search => {
+export const suggestExplore = search => {
     emptySuggestions()
     updateColors(search)
     if (!search.trim()) {
         return
     }
-    const {suggestHist} = require("./history")
     getSetting("suggestorder").filter(s => s).forEach(suggest => {
         const args = suggest.split("~")
         const type = args.shift()
@@ -395,16 +403,12 @@ const addCommand = (
         if (e.button === 2) {
             if (getMouseConf("suggestselect")) {
                 if (["both", "command"].includes(getSetting("menusuggest"))) {
-                    const {commandMenu} = require("./contextmenu")
                     commandMenu("user", {command, "x": e.x, "y": e.y})
                 }
             }
         } else if (getMouseConf("menusuggest")) {
-            const {setMode} = require("./modes")
             setMode("normal")
-            const {execute} = require("./command")
             execute(command, {"src": "user"})
-            const {clear} = require("./contextmenu")
             clear()
         }
         e.preventDefault()
@@ -412,7 +416,6 @@ const addCommand = (
     if (icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
-        const {forSite} = require("./favicons")
         thumbnail.src = forSite(icon) || icon
         element.append(thumbnail)
     }
@@ -442,12 +445,11 @@ const addCommand = (
  * Suggest a command based on the current input text.
  * @param {string} searchStr
  */
-const suggestCommand = searchStr => {
+export const suggestCommand = searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
     const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    const {parseAndValidateArgs} = require("./command")
     const {
         args, command, confirm, range, valid
     } = parseAndValidateArgs(search)
@@ -468,13 +470,8 @@ const suggestCommand = searchStr => {
         confirmChar = "!"
     }
     // List all commands unconditionally
-    const {
-        commandList, customCommandsAsCommandList, rangeToTabIdxs
-    } = require("./command")
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
-    const {validOptions} = require("./settings")
-    // Command: screenshot and screencopy
     if (command.startsWith("screen")
         && !range && !confirm && args.length < 3) {
         let fullCommand = "screenshot"
@@ -555,7 +552,6 @@ const suggestCommand = searchStr => {
     }
     updateScreenshotHighlight()
     // Command: set
-    const {settingsWithDefaults, suggestionList} = require("./settings")
     if ("set".startsWith(command) && !confirm && !range) {
         if (args.length) {
             suggestionList().filter(s => s.startsWith(args[args.length - 1]))
@@ -739,9 +735,6 @@ const suggestCommand = searchStr => {
     }
     // Command: help
     if ("help".startsWith(command) && !range) {
-        const {
-            listMappingsAsCommandList, listSupportedActions
-        } = require("./input")
         const sections = [
             "intro",
             "commands",
@@ -890,7 +883,6 @@ const suggestCommand = searchStr => {
                 addCommand(`${bufferCommand}${confirmChar} false`)
                 return
             }
-            const {allTabsForBufferArg} = require("./command")
             const tabs = listTabs()
             allTabsForBufferArg(args).map(b => {
                 if (!b?.tab) {
@@ -934,15 +926,4 @@ const suggestCommand = searchStr => {
             }
         }
     }
-}
-
-module.exports = {
-    addExplore,
-    emptySuggestions,
-    next,
-    nextSection,
-    previous,
-    previousSection,
-    suggestCommand,
-    suggestExplore
 }

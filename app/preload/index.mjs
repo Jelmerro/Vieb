@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,27 +15,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-// Always load the misc action functions (such as scrolling before page loads)
-require("./actions")
 // Always load follow mode JavaScript
-require("./follow")
-const {pathToSpecialPageName} = require("../util")
+await import("./follow.js")
+import {pathToSpecialPageName} from "../preloadutil.js"
 const specialPage = pathToSpecialPageName(window.location.href)
 const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
 if (specialPage?.name) {
     // Load the special page specific JavaScript
-    require(`./${specialPage.name}`)
+    await import(`./${specialPage.name}.js`)
 } else if (!skipProtocols.some(p => window.location.href.startsWith(p))) {
-    // Load the failed page information handler for nonspecial pages
-    require("./failedload")
-    // Load the local directory browser for nonspecial pages
-    require("./filebrowser")
     // Load the privacy related fixes for nonspecial pages
-    require("./privacy")
+    await import("./privacy.js")
+    // Load the failed page information handler for nonspecial pages
+    await import("./failedload.js")
+    // Load the local directory browser for nonspecial pages
+    await import("./filebrowser.js")
     // Load optional plugins and extensions
-    require("./extensions")
+    await import("./extensions.js")
 }
+// Always load the misc action functions (such as scrolling before page loads)
+await import("./actions.js")
 // Load the custom styling such as colors, fontsizes and darkreader
-require("./styling")
+await import("./styling.js")

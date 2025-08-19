@@ -15,58 +15,18 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
+
+import fs from "node:fs"
+import https from "node:https"
+import {homedir, platform} from "node:os"
+import path from "node:path"
+import {rimrafSync} from "./rimraf.js"
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/
-/** @typedef {"cookies"|"downloads"|"help"
- * |"history"|"newtab"|"notifications"|"version"} SpecialPage
- */
-/** @type {SpecialPage[]} */
-const specialPages = [
-    "cookies",
-    "downloads",
-    "help",
-    "history",
-    "newtab",
-    "notifications",
-    "version"
-]
-/**
- * @typedef {{
- *   click: {
- *     type: "download-success",
- *     path: string,
- *   }|null
- *   date: Date,
- *   message: string,
- *   type: string
- * }[]} notificationHistory
- */
-/** @type {notificationHistory} */
-const notificationHistory = []
-let appDataPath = ""
 let homeDirPath = ""
-/**
- * @type {{
- *   appdata: string,
- *   autoplay: string,
- *   downloads: string,
- *   icon?: string,
- *   name: string,
- *   order: "none"|"user-only"|"datafolder-only"
- *   |"user-first"|"datafolder-first",
- *   override: string,
- *   files: string[],
- *   config: string
- *   version: string
- * }|null}
- */
-let configSettings = null
 /** @type {Map<Element|ShadowRoot, {x: number, y: number}>} */
 const framePaddingInfo = new Map()
-const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
-const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
     "blob",
     "data",
@@ -81,24 +41,24 @@ const dataUris = [
     "ws"
 ]
 
+export const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
+
+export const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
+
 /**
  * Join multiple path parts into a single resolved path.
  * @param {string[]} paths
  */
-const joinPath = (...paths) => {
-    const {join, resolve} = require("path")
-    return resolve(join(...paths))
-}
+export const joinPath = (...paths) => path.resolve(path.join(...paths))
 
 /**
  * Expand a path that is prefixed with ~ to the user's home folder.
  * @param {string} loc
  */
-const expandPath = loc => {
+export const expandPath = loc => {
     if (loc.startsWith("~")) {
         if (!homeDirPath) {
-            homeDirPath = process.env.HOME || process.env.USERPROFILE
-                || require("os").homedir()
+            homeDirPath = homedir()
         }
         return loc.replace("~", homeDirPath)
     }
@@ -109,10 +69,9 @@ const expandPath = loc => {
  * Check if a path exists.
  * @param {string} loc
  */
-const pathExists = loc => {
+export const pathExists = loc => {
     try {
-        const {existsSync} = require("fs")
-        return existsSync(loc)
+        return fs.existsSync(loc)
     } catch {
         return false
     }
@@ -121,67 +80,17 @@ const pathExists = loc => {
 /**
  * Get the root app directory from any location.
  */
-const getAppRootDir = () => {
-    let currentDir = __dirname
+export const getAppRootDir = () => {
+    let currentDir = import.meta.dirname
     let tries = 0
     while (!pathExists(joinPath(currentDir, "package.json")) && tries < 100) {
         currentDir = joinPath(currentDir, "..")
         tries += 1
     }
     if (tries === 100) {
-        return __dirname
+        return import.meta.dirname
     }
     return joinPath(currentDir, "app")
-}
-
-/**
- * Returns the app configuration settings.
- */
-const appConfig = () => {
-    if (!configSettings) {
-        const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config")
-        if (!configSettings) {
-            return null
-        }
-        let files = [configSettings.override]
-        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
-        const userFirstConfig = expandPath("~/.vieb/viebrc")
-        const userGlobalConfig = expandPath("~/.viebrc")
-        if (!configSettings.override) {
-            if (configSettings.order === "user-only") {
-                files = [userGlobalConfig, userFirstConfig]
-            }
-            if (configSettings.order === "datafolder-only") {
-                files = [datafolderConfig]
-            }
-            if (configSettings.order === "user-first") {
-                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
-            }
-            if (configSettings.order === "datafolder-first") {
-                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
-            }
-        }
-        configSettings.files = files
-        configSettings.config = configSettings.override || datafolderConfig
-    }
-    return configSettings
-}
-
-/**
- * Returns the appdata path (works from both main, renderer and preloads).
- */
-const appData = () => {
-    if (!appDataPath) {
-        try {
-            const {app} = require("electron")
-            return app.getPath("appData")
-        } catch {
-            // Not in main thread
-        }
-        appDataPath = appConfig()?.appdata ?? ""
-    }
-    return appDataPath
 }
 
 /**
@@ -189,45 +98,26 @@ const appData = () => {
  * @param {string} loc
  * @returns {any|null}
  */
-const readJSON = loc => {
+export const readJSON = loc => {
     try {
-        const {readFileSync} = require("fs")
-        return JSON.parse(readFileSync(loc).toString())
+        return JSON.parse(fs.readFileSync(loc).toString())
     } catch {
         return null
     }
 }
 
 /**
- * @typedef {(typeof import("./renderer/settings").defaultSettings & {
- *   "fg": string
- *   "bg": string
- *   "linkcolor": string
- * })} validSetting
- */
-/**
- * Get a setting from the settings file.
- * @template {keyof validSetting} T
- * @param {T} set
- * @returns {validSetting[T]}
- */
-const getSetting = set => {
-    const settings = readJSON(joinPath(appData(), "settings")) ?? {}
-    return settings[set] ?? null
-}
-
-/**
  * Check if any string has a valid protocol or dataUri.
  * @param {string} loc
  */
-const hasProtocol = loc => protocolRegex.test(loc)
+export const hasProtocol = loc => protocolRegex.test(loc)
     || dataUris.some(d => loc.startsWith(`${d}:`))
 
 /**
  * Check if any string is a valid url.
  * @param {string} location
  */
-const isUrl = location => {
+export const isUrl = location => {
     if (hasProtocol(location)) {
         try {
             const url = new URL(location)
@@ -261,68 +151,51 @@ const isUrl = location => {
     return true
 }
 
-/**
- * Match a searchword and return the word and filled url.
- * @param {string} location
- */
-const searchword = location => {
-    const searchwords = getSetting("searchwords")
-    for (const word of Object.keys(searchwords)) {
-        const url = searchwords[word]
-        if (word && url) {
-            const q = location.replace(`${word} `, "")
-            if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
-                const queries = q.split(",")
-                let urlString = url
-                let counter = 1
-                const patternMatches = (urlString.match(/%s/g) || []).length
-                while (urlString.includes("%s") && counter < patternMatches) {
-                    urlString = urlString.replace(/%s/,
-                        encodeURIComponent(queries.shift()?.trim() || ""))
-                    counter += 1
-                }
-                const remainderString = queries.join(",").trim()
-                urlString = urlString.replace(/%s/,
-                    encodeURIComponent(remainderString))
-                return {"url": urlString, word}
-            }
-        }
+/** Return per operating system the result of navigator.platform. */
+export const userAgentPlatform = () => {
+    let platformString = "X11; Linux x86_64"
+    if (platform() === "win32") {
+        platformString = "Window NT 10.0; Win64; x64"
     }
-    return {"url": location, "word": null}
+    if (platform() === "darwin") {
+        platformString = "Macintosh; Intel Mac OS X 10_15_7"
+    }
+    return platformString
 }
 
-/** Return the notification history. */
-const listNotificationHistory = () => notificationHistory
-
-/** Return per operating system the result of navigator.platform. */
-const userAgentPlatform = () => {
-    let platform = "X11; Linux x86_64"
-    if (process.platform === "win32") {
-        platform = "Window NT 10.0; Win64; x64"
+/** Return the current Chromium version, suitable for all process levels. */
+const chromiumVersion = () => {
+    let version = null
+    if (typeof process === "undefined") {
+        // Process is undefined when ESM is on but contextIsolation is off:
+        // https://github.com/electron/electron/issues/46142
+        version = navigator.userAgentData?.brands
+            .find(b => b.brand === "Chromium")?.version
+            ?? /Chrome\/([\d.]+)/.exec(navigator.userAgent)?.[1].split(".")[0]
+            ?? "138"
+    } else {
+        [version] = process.versions.chrome.split(".")
     }
-    if (process.platform === "darwin") {
-        platform = "Macintosh; Intel Mac OS X 10_15_7"
-    }
-    return platform
+    return version
 }
 
 /** Return the default navigator.userAgent. */
-const defaultUseragent = () => {
-    const [version] = process.versions.chrome.split(".")
+export const defaultUseragent = () => {
+    const ver = chromiumVersion()
     const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
-        + `Chrome/${version}.0.0.0 Safari/537.36`
+        + `Chrome/${ver}.0.0.0 Safari/537.36`
 }
 
 /** Calculate the current Firefox version based on date & release schedule. */
-const firefoxVersion = () => {
+export const firefoxVersion = () => {
     const daysSinceBase = (new Date().getTime()
         - new Date(2023, 4, 9).getTime()) / 86400000
     return `${113 + Math.floor(daysSinceBase / 28)}.0`
 }
 
 /** Return the Firefox navigator.userAgent. */
-const firefoxUseragent = () => {
+export const firefoxUseragent = () => {
     const ver = firefoxVersion()
     const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
@@ -332,7 +205,7 @@ const firefoxUseragent = () => {
  * Template a user agent with value with version and browser info.
  * @param {string} agent
  */
-const userAgentTemplated = agent => {
+export const userAgentTemplated = agent => {
     if (!agent) {
         return ""
     }
@@ -350,7 +223,7 @@ const userAgentTemplated = agent => {
  * Return the domain name for the provided url.
  * @param {string} url
  */
-const domainName = url => {
+export const domainName = url => {
     try {
         const {hostname} = new URL(url)
         if (hostname.endsWith("localhost") || hostname.match(/^(\d|\.)+$/)) {
@@ -367,7 +240,7 @@ const domainName = url => {
  * @param {string} url1
  * @param {string} url2
  */
-const sameDomain = (url1, url2) => {
+export const sameDomain = (url1, url2) => {
     const domain1 = domainName(url1)
     const domain2 = domainName(url2)
     return domain1 && domain2 && domain1 === domain2 && true || false
@@ -377,7 +250,7 @@ const sameDomain = (url1, url2) => {
  * Format a provided date, unix time or.
  * @param {string|number|Date|null|undefined} dateStringOrNumber
  */
-const formatDate = dateStringOrNumber => {
+export const formatDate = dateStringOrNumber => {
     let date = new Date(dateStringOrNumber ?? "")
     if (typeof dateStringOrNumber === "number") {
         date = new Date(dateStringOrNumber * 1000)
@@ -400,14 +273,14 @@ const storeFrameInfo = (element, location) => element
  * Find the frame info for a given element if available.
  * @param {Element|ShadowRoot|null} el
  */
-const findFrameInfo = el => el && framePaddingInfo.get(el)
+export const findFrameInfo = el => el && framePaddingInfo.get(el)
 
 /**
  * Get a CSS decleration property from an element as a number of pixels.
  * @param {Element|CSSStyleDeclaration} element
  * @param {string} prop
  */
-const propPixels = (element, prop) => {
+export const propPixels = (element, prop) => {
     let value = ""
     if (element instanceof CSSStyleDeclaration) {
         value = element.getPropertyValue(prop)
@@ -432,7 +305,7 @@ const propPixels = (element, prop) => {
  * Get the position of a given element based on bounding rect plus padding.
  * @param {Element} frame
  */
-const framePosition = frame => ({
+export const framePosition = frame => ({
     "x": frame.getBoundingClientRect().x + propPixels(frame, "padding-left")
         + propPixels(frame, "border-left-width"),
     "y": frame.getBoundingClientRect().y + propPixels(frame, "padding-top")
@@ -444,7 +317,7 @@ const framePosition = frame => ({
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is Element}
  */
-const isElement = el => {
+export const isElement = el => {
     if (el instanceof EventTarget && !(el instanceof Element)) {
         return false
     }
@@ -459,7 +332,7 @@ const isElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLElement}
  */
-const isHTMLElement = el => {
+export const isHTMLElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLElement)) {
         return false
     }
@@ -474,7 +347,7 @@ const isHTMLElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLIFrameElement}
  */
-const isHTMLIFrameElement = el => {
+export const isHTMLIFrameElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLIFrameElement)) {
         return false
     }
@@ -489,7 +362,7 @@ const isHTMLIFrameElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLInputElement|HTMLTextAreaElement}
  */
-const isInputOrTextElement = el => {
+export const isInputOrTextElement = el => {
     if (el instanceof EventTarget && (
         !(el instanceof HTMLInputElement)
         && !(el instanceof HTMLTextAreaElement)
@@ -508,7 +381,7 @@ const isInputOrTextElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLAnchorElement}
  */
-const isHTMLAnchorElement = el => {
+export const isHTMLAnchorElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLAnchorElement)) {
         return false
     }
@@ -523,7 +396,7 @@ const isHTMLAnchorElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLLinkElement}
  */
-const isHTMLLinkElement = el => {
+export const isHTMLLinkElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLLinkElement)) {
         return false
     }
@@ -538,7 +411,7 @@ const isHTMLLinkElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLImageElement}
  */
-const isHTMLImageElement = el => {
+export const isHTMLImageElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLImageElement)) {
         return false
     }
@@ -553,7 +426,7 @@ const isHTMLImageElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is SVGElement}
  */
-const isSVGElement = el => {
+export const isSVGElement = el => {
     if (el instanceof EventTarget && !(el instanceof SVGElement)) {
         return false
     }
@@ -568,7 +441,7 @@ const isSVGElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLVideoElement}
  */
-const isHTMLVideoElement = el => {
+export const isHTMLVideoElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLVideoElement)) {
         return false
     }
@@ -583,7 +456,7 @@ const isHTMLVideoElement = el => {
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLAudioElement}
  */
-const isHTMLAudioElement = el => {
+export const isHTMLAudioElement = el => {
     if (el instanceof EventTarget && !(el instanceof HTMLAudioElement)) {
         return false
     }
@@ -598,7 +471,7 @@ const isHTMLAudioElement = el => {
  * @param {Element|null|undefined} el
  * @param {string} query
  */
-const matchesQuery = (el, query) => {
+export const matchesQuery = (el, query) => {
     try {
         return el?.matches(query) ?? false
     } catch {
@@ -617,7 +490,9 @@ const matchesQuery = (el, query) => {
  * @param {number} py
  * @returns {Element|null}
  */
-const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
+export const findElementAtPosition = (
+    x, y, levels = [document], px = 0, py = 0
+) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
     const elAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
@@ -644,7 +519,9 @@ const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
  * @param {number} paddedX
  * @param {number} paddedY
  */
-const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
+export const querySelectorAll = (
+    sel, base = document, paddedX = 0, paddedY = 0
+) => {
     if (!base) {
         return []
     }
@@ -720,7 +597,7 @@ const correctedCenterAndSizeOfRect = rect => {
  * @param {Element} element
  * @param {DOMRectJSON[]} rects
  */
-const findClickPosition = (element, rects) => {
+export const findClickPosition = (element, rects) => {
     let dims = {"height": 0, "width": 0, "x": 0, "y": 0}
     let clickable = false
     for (const rect of rects) {
@@ -753,7 +630,7 @@ const findClickPosition = (element, rects) => {
 }
 
 /** Find the current active element, also inside shadow dom or subframes. */
-const activeElement = () => {
+export const activeElement = () => {
     if (document.activeElement?.shadowRoot) {
         let el = document.activeElement
         while (el?.shadowRoot?.activeElement) {
@@ -794,7 +671,7 @@ const activeElement = () => {
  * Format any number of bytes to a value with a nice unit.
  * @param {number} size
  */
-const formatSize = size => {
+export const formatSize = size => {
     const exp = Math.min(Math.floor(Math.log(size) / Math.log(1024)), 10)
     const unit = (size / 1024 ** exp || 0).toFixed(2).replace(/\.?0+$/g, "")
     return `${unit} ${" KMGTPEZYRQ"[exp]?.trim() ?? ""}B`
@@ -805,7 +682,7 @@ const formatSize = size => {
  * @param {string} v1Str
  * @param {string} v2Str
  */
-const compareVersions = (v1Str, v2Str) => {
+export const compareVersions = (v1Str, v2Str) => {
     const v1 = v1Str.replace(/^v/g, "").trim()
     const v2 = v2Str.replace(/^v/g, "").trim()
     if (v1 === v2) {
@@ -846,22 +723,19 @@ const compareVersions = (v1Str, v2Str) => {
 }
 
 /**
- * Fetch any url with the Node.JS http and https modules.
+ * Fetch any url with the Node.JS https module.
  * @param {string} url
  * @param {import("https").RequestOptions} opts
  * @param {string|null} body
  */
-const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
-    let requestModule = null
-    if (url.startsWith("https://")) {
-        requestModule = require("https")
-    } else if (url.startsWith("http://")) {
-        requestModule = require("http")
-    } else {
+export const fetchUrl = (
+    url, opts = {}, body = null
+) => new Promise((res, rej) => {
+    if (!url.startsWith("https://")) {
         rej(new Error("invalid protocol"))
         return
     }
-    const request = requestModule.request(url, opts, response => {
+    const request = https.request(url, opts, response => {
         let data = ""
         response.on("data", chunk => {
             data += chunk.toString()
@@ -887,7 +761,9 @@ const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
  * @param {import("https").RequestOptions} opts
  * @param {string|null} body
  */
-const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
+export const fetchJSON = (
+    url, opts = {}, body = null
+) => new Promise((res, rej) => {
     fetchUrl(url, opts, body).then(data => {
         try {
             res(JSON.parse(data))
@@ -898,7 +774,7 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
 })
 
 /** Return the position and dimensions of the page container. */
-const pageContainerPos = () => {
+export const pageContainerPos = () => {
     const pagelayout = document.getElementById("page-container")
     if (!pagelayout) {
         return {"bottom": 0, "left": 0, "right": 0, "top": 0}
@@ -910,7 +786,7 @@ const pageContainerPos = () => {
  * Calculate the offset in pixels for each dimension of an element.
  * @param {HTMLElement} page
  */
-const pageOffset = page => {
+export const pageOffset = page => {
     const border = propPixels(page, "border-width")
     const top = Math.round(propPixels(page.style, "top") + border)
     const left = Math.round(propPixels(page.style, "left") + border)
@@ -920,39 +796,16 @@ const pageOffset = page => {
 }
 
 /**
- * Run any system command in the user's preferred shell.
- * @param {string} command
- * @param {(
- *   error: import("child_process").ExecException|null,
- *   stdout: string|Buffer,
- *   stderr: string|Buffer
- * ) => void} callback
- */
-const execCommand = (command, callback) => {
-    let shell = null
-    if (process.platform === "win32") {
-        shell = process.env.ComSpec || shell
-    }
-    shell = process.env.SHELL || shell
-    shell = getSetting("shell") || shell
-    const {exec} = require("child_process")
-    if (shell) {
-        return exec(command, {shell}, callback)
-    }
-    return exec(command, callback)
-}
-
-/**
  * Check if the given value is a valid interval value.
  * @param {string} value
- * @param {boolean} invertedRangesSupported
+ * @param {boolean} invertedRanges
  */
-const isValidIntervalValue = (value, invertedRangesSupported = false) => {
+export const isValidIntervalValue = (value, invertedRanges = false) => {
     const validUnits = ["second", "minute", "hour", "day", "month", "year"]
     for (const unit of validUnits) {
         if (value.endsWith(unit) || value.endsWith(`${unit}s`)) {
             const number = value.replace(RegExp(`${unit}s?$`), "")
-            if (invertedRangesSupported) {
+            if (invertedRanges) {
                 return !!number.replace(/^last/g, "").match(/^\d+$/g)
             }
             return !!number.match(/^\d+$/g)
@@ -965,7 +818,7 @@ const isValidIntervalValue = (value, invertedRangesSupported = false) => {
  * Convert an interval to a date relative to the current date.
  * @param {string} value
  */
-const intervalValueToDate = value => {
+export const intervalValueToDate = value => {
     const date = new Date()
     if (value.includes("second")) {
         date.setSeconds(date.getSeconds() - Number(value.replace(/[a-z]/g, "")))
@@ -990,146 +843,30 @@ const intervalValueToDate = value => {
 }
 
 /**
- * @typedef {{
- *   id: import("../types/i18n").TranslationKeys,
- *   fields?: string[],
- *   action?: {
- *     type: "download-success",
- *     path: string,
- *     func?: () => void
- *   }|false,
- *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
- *   src: import("./renderer/common").RunSource,
- *   silent?: boolean
- * }} NotificationInfo
- */
-
-/**
- * Show the user a notification bubble and store it in the history.
- * @param {NotificationInfo} opts
- */
-const notify = opts => {
-    const {translate} = require("./translate")
-    const message = translate(opts.id, {"fields": opts.fields ?? []})
-    if (opts.src === "execute") {
-        const {appendFileSync} = require("fs")
-        appendFileSync(
-            joinPath(appData(), ".tmp-execute-output"), `${message}\t\t\t`)
-    }
-    if (getSetting("notificationduration") === 0) {
-        return
-    }
-    const properType = opts.type ?? "info"
-    let clickInfo = null
-    if (opts?.action) {
-        clickInfo = {...opts.action}
-        delete clickInfo.func
-    }
-    const notifyForPerm = getSetting("notificationforpermissions")
-    if (properType === "permission" && notifyForPerm === "none") {
-        return
-    }
-    notificationHistory.push({
-        "click": clickInfo,
-        "date": new Date(),
-        message,
-        "type": properType
-    })
-    if (opts.silent) {
-        return
-    }
-    if (properType === "permission") {
-        if (notifyForPerm === "silent") {
-            return
-        }
-        if (notifyForPerm === "allowed") {
-            if (!message.replace(/'.*?'/g, "").includes("allowed")) {
-                return
-            }
-        }
-        if (notifyForPerm === "blocked") {
-            if (!message.replace(/'.*?'/g, "").includes("blocked")) {
-                return
-            }
-        }
-    }
-    const native = getSetting("nativenotification")
-    const shortLimitNotify = getSetting("notificationlimitsmall")
-    const showLong = message.split("\n").length > shortLimitNotify
-        && properType !== "dialog"
-    const shortAndSmallNative = !showLong && native === "smallonly"
-    const longAndLargeNative = showLong && native === "largeonly"
-    if (native === "always" || shortAndSmallNative || longAndLargeNative) {
-        const n = new Notification(
-            `${appConfig()?.name} ${properType}`, {"body": message})
-        if (opts?.action && opts?.action?.func) {
-            /** Assin the onclick of the notification. */
-            // @ts-expect-error Func type could be undefined according to TS...
-            n.onclick = () => opts?.action?.func?.()
-        }
-        return
-    }
-    if (showLong) {
-        const {ipcRenderer} = require("electron")
-        ipcRenderer.send("show-notification", message, properType)
-        return
-    }
-    const notificationsElement = document.getElementById("notifications")
-    if (!notificationsElement) {
-        return
-    }
-    notificationsElement.className = getSetting("notificationposition")
-    const notification = document.createElement("span")
-    notification.className = properType
-    notification.textContent = message
-    if (opts.action && opts.action.func) {
-        // @ts-expect-error Func type could be undefined according to TS...
-        notification.addEventListener("click", () => opts.action?.func?.())
-    }
-    notificationsElement.append(notification)
-    setTimeout(() => notification.remove(),
-        getSetting("notificationduration"))
-}
-
-/** Return the location of the downloads, either via setting or OS default. */
-const downloadPath = () => expandPath(getSetting("downloadpath")
-    || appConfig()?.downloads || "~/Downloads")
-
-/**
  * Return the last part of the path, usually the filename.
  * @param {string} loc
  */
-const basePath = loc => {
-    const {basename} = require("path")
-    return basename(loc)
-}
+export const basePath = loc => path.basename(loc)
 
 /**
  * Return the directory name of the path.
  * @param {string} loc
  */
-const dirname = loc => {
-    const path = require("path")
-    return path.dirname(loc)
-}
+export const dirname = loc => path.dirname(loc)
 
 /**
  * Check if a path is absolute or not.
  * @param {string} loc
  */
-const isAbsolutePath = loc => {
-    const {isAbsolute} = require("path")
-    return isAbsolute(loc)
-}
+export const isAbsolutePath = loc => path.isAbsolute(loc)
 
 /**
  * Check if a path is a directory.
  * @param {string} loc
  */
-const isDir = loc => {
+export const isDir = loc => {
     try {
-        const {statSync} = require("fs")
-        return statSync(loc).isDirectory()
+        return fs.statSync(loc).isDirectory()
     } catch {
         return false
     }
@@ -1139,10 +876,9 @@ const isDir = loc => {
  * Check if a path is a file.
  * @param {string} loc
  */
-const isFile = loc => {
+export const isFile = loc => {
     try {
-        const {statSync} = require("fs")
-        return statSync(loc).isFile()
+        return fs.statSync(loc).isFile()
     } catch {
         return false
     }
@@ -1153,10 +889,9 @@ const isFile = loc => {
  * @param {string} loc
  * @returns {string|null}
  */
-const readFile = loc => {
+export const readFile = loc => {
     try {
-        const {readFileSync} = require("fs")
-        return readFileSync(loc).toString()
+        return fs.readFileSync(loc).toString()
     } catch {
         return null
     }
@@ -1167,10 +902,9 @@ const readFile = loc => {
  * @param {string} loc
  * @param {string|Buffer} data
  */
-const writeFile = (loc, data) => {
+export const writeFile = (loc, data) => {
     try {
-        const {writeFileSync} = require("fs")
-        writeFileSync(loc, data)
+        fs.writeFileSync(loc, data)
         return true
     } catch {
         // Usually permission errors, return value will be false
@@ -1183,10 +917,9 @@ const writeFile = (loc, data) => {
  * @param {string} loc
  * @param {string|Buffer} data
  */
-const appendFile = (loc, data) => {
+export const appendFile = (loc, data) => {
     try {
-        const {appendFileSync} = require("fs")
-        appendFileSync(loc, data)
+        fs.appendFileSync(loc, data)
         return true
     } catch {
         // Usually permission errors, return value will be false
@@ -1203,10 +936,9 @@ const appendFile = (loc, data) => {
  *   indent?: number|undefined
  * }} opts
  */
-const writeJSON = (loc, data, opts = {"replacer": null}) => {
+export const writeJSON = (loc, data, opts = {"replacer": null}) => {
     try {
-        const {writeFileSync} = require("fs")
-        writeFileSync(loc, JSON.stringify(
+        fs.writeFileSync(loc, JSON.stringify(
             data, opts.replacer ?? undefined, opts.indent))
         return true
     } catch {
@@ -1220,9 +952,8 @@ const writeJSON = (loc, data, opts = {"replacer": null}) => {
  * @param {string} loc
  * @param {any} data
  */
-const writeJSONAsync = (loc, data) => new Promise((res, rej) => {
-    const {"writeFile": write} = require("fs")
-    write(loc, JSON.stringify(data), err => {
+export const writeJSONAsync = (loc, data) => new Promise((res, rej) => {
+    fs.writeFile(loc, JSON.stringify(data), err => {
         if (err) {
             rej(err)
         } else {
@@ -1235,10 +966,9 @@ const writeJSONAsync = (loc, data) => new Promise((res, rej) => {
  * Delete a file at a location, returns success state.
  * @param {string} loc
  */
-const deleteFile = loc => {
+export const deleteFile = loc => {
     try {
-        const {unlinkSync} = require("fs")
-        unlinkSync(loc)
+        fs.unlinkSync(loc)
         return true
     } catch {
         // Usually permission errors, return value will be false
@@ -1250,10 +980,9 @@ const deleteFile = loc => {
  * Make a directory at a location, optionally with feedback notifications.
  * @param {string} loc
  */
-const makeDir = loc => {
+export const makeDir = loc => {
     try {
-        const {mkdirSync} = require("fs")
-        mkdirSync(loc, {"recursive": true})
+        fs.mkdirSync(loc, {"recursive": true})
         return true
     } catch {
         // Usually permission errors, return value will be false
@@ -1267,10 +996,9 @@ const makeDir = loc => {
  * @param {boolean} absolute
  * @param {boolean} dirsOnly
  */
-const listDir = (loc, absolute = false, dirsOnly = false) => {
+export const listDir = (loc, absolute = false, dirsOnly = false) => {
     try {
-        const {readdirSync} = require("fs")
-        let files = readdirSync(loc)
+        let files = fs.readdirSync(loc)
         if (dirsOnly) {
             files = files.filter(f => isDir(joinPath(loc, f)))
         }
@@ -1288,9 +1016,8 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
  * @param {string} loc
  * @returns {Promise<string[]>}
  */
-const listDirAsync = loc => new Promise((res, rej) => {
-    const {readdir} = require("fs")
-    readdir(loc, (err, files) => {
+export const listDirAsync = loc => new Promise((res, rej) => {
+    fs.readdir(loc, (err, files) => {
         if (err) {
             rej(err)
             return
@@ -1304,19 +1031,16 @@ const listDirAsync = loc => new Promise((res, rej) => {
  * @param {string} file
  * @param {(info: import("fs").Stats, oldInfo: import("fs").Stats) => void} call
  */
-const watchFile = (file, call) => {
-    const {"watchFile": watchFileFS} = require("fs")
-    return watchFileFS(file, {"interval": 500}, call)
-}
+export const watchFile = (file, call) => fs.watchFile(
+    file, {"interval": 500}, call)
 
 /**
  * Get the modified date for a file location.
  * @param {string} loc
  */
-const modifiedAt = loc => {
+export const modifiedAt = loc => {
     try {
-        const {statSync} = require("fs")
-        return statSync(loc).mtime
+        return fs.statSync(loc).mtime
     } catch {
         return new Date("1970-01-01")
     }
@@ -1326,326 +1050,10 @@ const modifiedAt = loc => {
  * Remove a location using "rm -rf" rimraf module.
  * @param {string} f
  */
-const rm = f => {
-    const rimraf = require("./rimraf")
+export const rm = f => {
     try {
-        rimraf(f)
+        rimrafSync(f)
     } catch {
         // Windows permission errors
     }
-}
-
-/**
- * Checks if a given page is a special page.
- * @param {any} page
- * @returns {page is SpecialPage}
- */
-const isSpecialPage = page => specialPages.includes(page)
-
-/**
- * Get the url of a special page given a name and an optional section.
- * @param {string} userPage
- * @param {string|null} section
- * @param {boolean} skipExistCheck
- */
-const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
-    let page = userPage
-    if (!isSpecialPage(userPage) && !skipExistCheck) {
-        page = "help"
-    }
-    let url = joinPath(__dirname, `./pages/${page}.html`)
-        .replace(/\\/g, "/").replace(/^\/*/g, "")
-    if (isDir(joinPath(__dirname, "../pages"))) {
-        url = joinPath(__dirname, `../pages/${page}.html`)
-            .replace(/\\/g, "/").replace(/^\/*/g, "")
-    }
-    if (section) {
-        if (section.startsWith("#")) {
-            return `file:///${url}${section}`
-        }
-        return `file:///${url}#${section}`
-    }
-    return `file:///${url}`
-}
-
-/**
- * Convert any url/path to the name and section of a special page if relevant.
- * @param {string} urlPath
- * @returns {{name: SpecialPage, section: string}|null}
- */
-const pathToSpecialPageName = urlPath => {
-    const {normalize} = require("path/posix")
-    if (urlPath?.startsWith?.("vieb://")) {
-        const parts = urlPath.replace("vieb://", "").split("#")
-        const [partName] = parts
-        /** @type {SpecialPage} */
-        let name = "help"
-        if (isSpecialPage(partName)) {
-            name = partName
-        }
-        return {
-            name, "section": decodeURIComponent(parts.slice(1).join("#") || "")
-        }
-    }
-    if (urlPath?.startsWith?.("file://")) {
-        for (const page of specialPages) {
-            const specialPage = specialPagePath(page).replace(/^file:\/+/g, "")
-            const normalizedUrl = normalize(urlPath.replace(/^file:\/+/g, ""))
-            if (normalizedUrl.startsWith(specialPage)) {
-                return {
-                    "name": page,
-                    "section": decodeURIComponent(
-                        urlPath.split("#").slice(1).join("#"))
-                }
-            }
-            try {
-                const decodedPath = decodeURI(urlPath)
-                const decodedNormalizedUrl = normalize(
-                    decodedPath.replace(/^file:\/+/g, ""))
-                if (decodedNormalizedUrl.startsWith(specialPage)) {
-                    return {
-                        "name": page,
-                        "section": decodeURIComponent(
-                            urlPath.split("#").slice(1).join("#"))
-                    }
-                }
-            } catch {
-                // Invalid url
-            }
-        }
-    }
-    if (urlPath === "") {
-        return {"name": "newtab", "section": ""}
-    }
-    const appImagePathPattern = RegExp(
-        "^file:///tmp/[.]mount_Vieb[a-zA-Z0-9-]+"
-        + "/resources/app[.]asar/app/pages/")
-    if (urlPath.match(appImagePathPattern)) {
-        const name = urlPath.replace(appImagePathPattern, "").replace(/\..+/, "")
-        if (isSpecialPage(name)) {
-            return {name, "section": ""}
-        }
-    }
-    return null
-}
-
-/**
- * Translate a string from the explore mode input to a valid url.
- * @param {string} location
- */
-const stringToUrl = location => {
-    let url = String(location)
-    const specialPage = pathToSpecialPageName(url)
-    if (specialPage?.name) {
-        return specialPagePath(specialPage.name, specialPage.section)
-    }
-    let fileName = url.replace(/^file:\/+/, "/")
-    if (process.platform === "win32") {
-        fileName = url.replace(/^file:\/+/, "")
-    }
-    const local = expandPath(fileName)
-    if (isDir(local) || isFile(local)) {
-        const escapedPath = local.replace(/\?/g, "%3F").replace(/#/g, "%23")
-        url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
-    }
-    if (!isUrl(url)) {
-        const engines = getSetting("searchengine")
-        const engine = engines.at(Math.random() * engines.length)
-        if (!engine) {
-            return ""
-        }
-        url = engine.replace(/%s/g, encodeURIComponent(location))
-    }
-    if (!hasProtocol(url)) {
-        url = `https://${url}`
-    }
-    try {
-        return new URL(url).href
-    } catch {
-        // Can't be re-encoded
-    }
-    return encodeURI(url)
-}
-
-/**
- * Translate a valid url to the explore mode input representation.
- * @param {string} url
- */
-const urlToString = url => {
-    const special = pathToSpecialPageName(url)
-    if (special?.name) {
-        let specialUrl = `${appConfig()?.name.toLowerCase()}://${special.name}`
-        if (special.section) {
-            specialUrl += `#${special.section}`
-        }
-        return specialUrl
-    }
-    try {
-        const decoded = decodeURI(url)
-        let fileName = decoded.replace(/^file:\/+/, "/")
-        if (process.platform === "win32") {
-            fileName = decoded.replace(/^file:\/+/, "")
-        }
-        fileName = fileName.replace(/%23/g, "#").replace(/%3F/g, "?")
-        if (isDir(fileName) || isFile(fileName)) {
-            return fileName
-        }
-        return decoded
-    } catch {
-        // Invalid url
-    }
-    return url
-}
-
-/** Clear all temporary containers (those that start with temp) from disk. */
-const clearTempContainers = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
-        .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
-    rm(joinPath(appData(), "erwicmode"))
-}
-
-/** Clear the Chromium and Electron cache dirs plus the Vieb cache files. */
-const clearCache = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
-    /** @type {string[]} */
-    let subNodes = []
-    partitions.forEach(part => subNodes.push(...listDir(part) || []))
-    subNodes = Array.from(new Set(subNodes).values())
-    partitions.forEach(part => rm(joinPath(part, "File System")))
-    partitions.forEach(part => rm(joinPath(part, "MANIFEST")))
-    partitions.forEach(part => rm(joinPath(part, "Service Worker")))
-    partitions.forEach(part => rm(joinPath(part, "VideoDecodeStats")))
-    partitions.forEach(part => rm(joinPath(part, "blob_storage")))
-    partitions.forEach(part => rm(joinPath(part, "databases")))
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.endsWith(".log"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.startsWith(".org.chrom"))) {
-            rm(joinPath(part, node))
-        }
-    }
-    rm(joinPath(appData(), "vimformedits"))
-    rm(joinPath(appData(), "settings"))
-}
-
-/** Claer all cookies, including those inside partition dirs. */
-const clearCookies = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
-    /** @type {string[]} */
-    let subNodes = []
-    partitions.forEach(part => subNodes.push(...listDir(part) || []))
-    subNodes = Array.from(new Set(subNodes).values())
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.startsWith("QuotaManager"))) {
-            rm(joinPath(part, node))
-        }
-    }
-}
-
-/** Claer all localstorage, including that inside partition dirs. */
-const clearLocalStorage = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
-    /** @type {string[]} */
-    let subNodes = []
-    partitions.forEach(part => subNodes.push(...listDir(part) || []))
-    subNodes = Array.from(new Set(subNodes).values())
-    partitions.forEach(part => rm(joinPath(part, "IndexedDB")))
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.endsWith("Storage"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.endsWith(".ldb"))) {
-            rm(joinPath(part, node))
-        }
-    }
-}
-
-module.exports = {
-    activeElement,
-    appConfig,
-    appData,
-    appendFile,
-    basePath,
-    clearCache,
-    clearCookies,
-    clearLocalStorage,
-    clearTempContainers,
-    compareVersions,
-    defaultUseragent,
-    deleteFile,
-    dirname,
-    domainName,
-    downloadPath,
-    execCommand,
-    expandPath,
-    fetchJSON,
-    fetchUrl,
-    findClickPosition,
-    findElementAtPosition,
-    findFrameInfo,
-    firefoxUseragent,
-    firefoxVersion,
-    formatDate,
-    formatSize,
-    framePosition,
-    getAppRootDir,
-    getSetting,
-    hasProtocol,
-    intervalValueToDate,
-    isAbsolutePath,
-    isDir,
-    isElement,
-    isFile,
-    isHTMLAnchorElement,
-    isHTMLAudioElement,
-    isHTMLElement,
-    isHTMLIFrameElement,
-    isHTMLImageElement,
-    isHTMLLinkElement,
-    isHTMLVideoElement,
-    isInputOrTextElement,
-    isSVGElement,
-    isUrl,
-    isValidIntervalValue,
-    joinPath,
-    listDir,
-    listDirAsync,
-    listNotificationHistory,
-    makeDir,
-    matchesQuery,
-    modifiedAt,
-    notify,
-    pageContainerPos,
-    pageOffset,
-    pathExists,
-    pathToSpecialPageName,
-    propPixels,
-    querySelectorAll,
-    readFile,
-    readJSON,
-    rm,
-    sameDomain,
-    searchword,
-    specialChars,
-    specialCharsAllowSpaces,
-    specialPagePath,
-    stringToUrl,
-    urlToString,
-    userAgentPlatform,
-    userAgentTemplated,
-    watchFile,
-    writeFile,
-    writeJSON,
-    writeJSONAsync
 }

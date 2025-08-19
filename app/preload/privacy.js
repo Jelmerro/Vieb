@@ -15,24 +15,23 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 /* eslint-disable no-extra-bind */
 
-const {contextBridge, ipcRenderer} = require("electron")
-const {translate} = require("../translate")
-const {getSetting} = require("../util")
+import {contextBridge, ipcRenderer} from "electron"
+import {platform} from "node:os"
+import {getSetting} from "../preloadutil.js"
+import {translate} from "../translate.js"
 
 let firefoxPlatformString = "Linux x86_64"
-if (process.platform === "win32") {
+if (platform() === "win32") {
     firefoxPlatformString = "Win32"
-}
-if (process.platform === "darwin") {
+} else if (platform() === "darwin") {
     firefoxPlatformString = "MacIntel"
 }
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("../util").NotificationInfo} opts
+ * @param {import("../preloadutil.js").NotificationInfo} opts
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
@@ -134,9 +133,9 @@ contextBridge.executeInMainWorld({
 
 /**
  * Run privacy overrides function inside the main window.
- * @param {string} platform
+ * @param {string} platformName
  */
-const privacyOverrides = platform => {
+const privacyOverrides = platformName => {
     /**
      * Override privacy sensitive APIs with empty or simple defaults.
      * @param {(Window & typeof globalThis)|null} customScope
@@ -180,7 +179,7 @@ const privacyOverrides = platform => {
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "doNotTrack", {"get": (() => "unspecified").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
-                "oscpu", {"get": (() => platform).bind(null)})
+                "oscpu", {"get": (() => platformName).bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "productSub", {"get": (() => "20100101").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,

@@ -15,28 +15,39 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {
+import {
     currentMode,
     currentPage,
     getMouseConf,
     getUrl,
     guiRelatedUpdate,
     updateScreenshotHighlight
-} = require("./common")
+} from "../preloadutil.js"
+import {
+    resetIncrementalSearch, setFocusCorrectly, toSearchMode
+} from "./actions.js"
+import {resetPosition} from "./commandhistory.js"
+import {cancelFollow, startFollow} from "./follow.js"
+import {
+    requestSuggestUpdate, resetInputHistory, resetScreenshotDrag
+} from "./input.js"
+import {releaseKeys, start, startVisualSelect} from "./pointer.js"
+import {emptySuggestions} from "./suggest.js"
+import {updateUrl} from "./tabs.js"
 
 // Sort order determines the appearance in the mode list
 /* eslint-disable perfectionist/sort-objects */
-/** @type {{[K in import("./common").Mode]: {
- *   onLeave?: (newMode: import("./common").Mode) => void, onEnter?: () => void
+/** @type {{[K in import("../preloadutil.js").Mode]: {
+ *   onLeave?: (newMode: import("../preloadutil.js").Mode) => void,
+ *   onEnter?: () => void
  * }}} */
 const modes = {
     "normal": {},
     "insert": {
         /**
          * When leaving insert mode, all page elements should be unfocused.
-         * @param {import("./common").Mode} newMode
+         * @param {import("../preloadutil.js").Mode} newMode
          */
         "onLeave": newMode => {
             if (currentPage()?.getAttribute("dom-ready")) {
@@ -58,19 +69,15 @@ const modes = {
             if (url) {
                 url.value = ""
             }
-            const {resetPosition} = require("./commandhistory")
             resetPosition()
-            const {resetScreenshotDrag, resetInputHistory} = require("./input")
             resetInputHistory()
             resetScreenshotDrag()
         },
         /** Restore url value then hide suggestions, selection and highlight. */
         "onLeave": () => {
             const url = getUrl()
-            const {emptySuggestions} = require("./suggest")
             emptySuggestions()
             updateScreenshotHighlight(true)
-            const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
@@ -79,13 +86,11 @@ const modes = {
     "search": {
         /** Restart the search history. */
         "onEnter": () => {
-            const {resetInputHistory} = require("./input")
             resetInputHistory()
         },
         /** Clear any temporary searches and remove selection. */
         "onLeave": () => {
             const url = getUrl()
-            const {resetIncrementalSearch} = require("./actions")
             resetIncrementalSearch({"src": "user"})
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
@@ -95,14 +100,11 @@ const modes = {
         /** Select the url value and restart explore history. */
         "onEnter": () => {
             const url = getUrl()
-            const {updateUrl} = require("./tabs")
             const page = currentPage()
             if (page) {
                 updateUrl(page, true)
             }
-            const {resetPosition} = require("./explorehistory")
             resetPosition()
-            const {resetInputHistory, requestSuggestUpdate} = require("./input")
             resetInputHistory()
             requestSuggestUpdate()
             if (!document.getSelection()?.toString() && url) {
@@ -112,7 +114,6 @@ const modes = {
         /** Show the current url again and clear suggestions. */
         "onLeave": () => {
             const url = getUrl()
-            const {emptySuggestions} = require("./suggest")
             emptySuggestions()
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
@@ -121,13 +122,11 @@ const modes = {
     "follow": {
         /**
          * Stop running the follow mode parts then release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("../preloadutil.js").Mode} newMode
          */
         "onLeave": newMode => {
-            const {cancelFollow} = require("./follow")
             cancelFollow()
             if (!["pointer", "visual"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
         }
@@ -135,11 +134,10 @@ const modes = {
     "pointer": {
         /**
          * Hide url hover and release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("../preloadutil.js").Mode} newMode
          */
         "onLeave": newMode => {
             if (!["follow", "visual"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
             if (newMode !== "insert" && !getMouseConf("pageoutsideinsert")) {
@@ -153,11 +151,10 @@ const modes = {
     "visual": {
         /**
          * Release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("../preloadutil.js").Mode} newMode
          */
         "onLeave": newMode => {
             if (!["follow", "pointer"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
         }
@@ -167,9 +164,9 @@ const modes = {
 
 /**
  * Set the current mode.
- * @param {import("./common").Mode} mode
+ * @param {import("../preloadutil.js").Mode} mode
  */
-const setMode = mode => {
+export const setMode = mode => {
     const page = currentPage()
     if (!modes[mode] || currentMode() === mode || !page) {
         return
@@ -187,12 +184,11 @@ const setMode = mode => {
     }
     document.body.setAttribute("current-mode", mode)
     guiRelatedUpdate("navbar")
-    const {setFocusCorrectly} = require("./actions")
     setFocusCorrectly()
 }
 
 /** Generate the mode suggestions dropdown with click actions. */
-const init = () => {
+export const init = () => {
     const modeList = document.getElementById("mode-suggestions")
     Object.keys(modes).forEach(mode => {
         const modeEntry = document.createElement("div")
@@ -203,16 +199,12 @@ const init = () => {
                 return
             }
             if (mode === "follow") {
-                const {startFollow} = require("./follow")
                 startFollow("current")
             } else if (mode === "search") {
-                const {toSearchMode} = require("./actions")
                 toSearchMode({"src": "user"})
             } else if (mode === "pointer") {
-                const {start} = require("./pointer")
                 start()
             } else if (mode === "visual") {
-                const {startVisualSelect} = require("./pointer")
                 startVisualSelect()
             } else {
                 setMode(mode)
@@ -222,5 +214,3 @@ const init = () => {
         modeList?.append(modeEntry)
     })
 }
-
-module.exports = {init, setMode}

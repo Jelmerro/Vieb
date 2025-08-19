@@ -15,22 +15,22 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-"use strict"
 
-const {translate} = require("../translate")
-const {
-    appData,
+import {
+    appData, getSetting, pathToSpecialPageName, urlToString
+} from "../preloadutil.js"
+import {translate} from "../translate.js"
+import {
     deleteFile,
-    getSetting,
     hasProtocol,
     isFile,
     joinPath,
-    pathToSpecialPageName,
     readJSON,
     specialChars,
-    urlToString,
     writeJSONAsync
-} = require("../util")
+} from "../util.js"
+import {forSite, getRedirect, updateMappings} from "./favicons.js"
+import {addExplore} from "./suggest.js"
 
 const histFile = joinPath(appData(), "hist")
 /** @type {{[url: string]: string}} */
@@ -43,7 +43,7 @@ let histWriteTimeout = null
 let groupedHistory = {}
 
 /** Load the history file from disk to memory. */
-const init = () => {
+export const init = () => {
     groupedHistory = readJSON(histFile) || {}
 }
 
@@ -51,7 +51,7 @@ const init = () => {
  * Get a simplified url for a given regular url, result is cached for speed.
  * @param {string} url
  */
-const getSimpleUrl = url => {
+export const getSimpleUrl = url => {
     let simpleUrl = simpleUrls[url]
     if (simpleUrl === undefined) {
         simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
@@ -64,7 +64,7 @@ const getSimpleUrl = url => {
  * Get a simplified name for a given regular page title, result is cached.
  * @param {string} name
  */
-const getSimpleName = name => {
+export const getSimpleName = name => {
     let simpleTitle = simpleTitles[name]
     if (simpleTitle === undefined) {
         simpleTitle = name.replace(specialChars, "").toLowerCase()
@@ -86,7 +86,7 @@ const allWordsAnywhere = (search, simpleUrl, name) => search.every(
  * Get the visit count for a given url, will be 0 if not found or never visited.
  * @param {string|null} url
  */
-const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
+export const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
 
 /**
  * Suggest history for a specific url input, an order and a maximum amount.
@@ -94,7 +94,7 @@ const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
  * @param {string} order
  * @param {number} count
  */
-const suggestHist = (searchStr, order, count) => {
+export const suggestHist = (searchStr, order, count) => {
     // Simplify the search to a list of words, or an ordered list of words,
     // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
@@ -147,7 +147,6 @@ const suggestHist = (searchStr, order, count) => {
     if (order === "relevance") {
         entries.sort((a, b) => b.top - a.top)
     }
-    const {addExplore} = require("./suggest")
     entries.slice(0, count).forEach(addExplore)
 }
 
@@ -155,7 +154,7 @@ const suggestHist = (searchStr, order, count) => {
  * Write the history to disk with a debounce mechanism, optionally now instead.
  * @param {boolean} now
  */
-const writeHistToFile = (now = false) => {
+export const writeHistToFile = (now = false) => {
     window.clearTimeout(histWriteTimeout ?? undefined)
     if (!now) {
         histWriteTimeout = window.setTimeout(() => {
@@ -178,7 +177,7 @@ const writeHistToFile = (now = false) => {
  * Add a specific url to the history if not excluded.
  * @param {string} url
  */
-const addToHist = url => {
+export const addToHist = url => {
     if (url.startsWith("devtools://")) {
         return
     }
@@ -218,7 +217,7 @@ const addToHist = url => {
  * Remove old history from before a specific date.
  * @param {Date} date
  */
-const removeOldHistory = date => {
+export const removeOldHistory = date => {
     Object.keys(groupedHistory).forEach(url => {
         groupedHistory[url].visits = groupedHistory[url].visits
             .filter(d => new Date(d) > date)
@@ -230,7 +229,7 @@ const removeOldHistory = date => {
  * Remove history newer than a specific date.
  * @param {Date} date
  */
-const removeRecentHistory = date => {
+export const removeRecentHistory = date => {
     Object.keys(groupedHistory).forEach(url => {
         groupedHistory[url].visits = groupedHistory[url].visits
             .filter(d => new Date(d) < date)
@@ -242,7 +241,7 @@ const removeRecentHistory = date => {
  * Remove history based on a partial url query.
  * @param {string} urlSnippet
  */
-const removeHistoryByPartialUrl = urlSnippet => {
+export const removeHistoryByPartialUrl = urlSnippet => {
     Object.keys(groupedHistory).forEach(url => {
         if (url.includes(urlSnippet)) {
             groupedHistory[url].visits = []
@@ -281,8 +280,7 @@ const removeFromHistory = entries => {
  * @param {"range"|null} action
  * @param {{date: string, url: string}[]} entries
  */
-const handleRequest = async(webview, action = null, entries = []) => {
-    const {updateMappings} = require("./favicons")
+export const handleRequest = async(webview, action = null, entries = []) => {
     if (action) {
         let success = false
         if (action === "range" && entries.length > 0) {
@@ -294,7 +292,6 @@ const handleRequest = async(webview, action = null, entries = []) => {
     }
     /** @type {historyItem[]} */
     let history = []
-    const {forSite} = require("./favicons")
     Object.keys(groupedHistory).forEach(site => {
         groupedHistory[site].visits.forEach(visit => {
             history.push({
@@ -312,23 +309,20 @@ const handleRequest = async(webview, action = null, entries = []) => {
 }
 
 /** Return a list of top sites by visit count, depending on suggesttopsites. */
-const suggestTopSites = () => {
-    const {forSite} = require("./favicons")
-    return Object.keys(groupedHistory).filter(g => groupedHistory[g])
-        .sort((a, b) => visitCount(b) - visitCount(a))
-        .slice(0, getSetting("suggesttopsites")).map(site => ({
-            "icon": forSite(site),
-            "name": groupedHistory[site]?.title,
-            "url": urlToString(site)
-        }))
-}
+export const suggestTopSites = () => Object.keys(groupedHistory)
+    .filter(g => groupedHistory[g])
+    .sort((a, b) => visitCount(b) - visitCount(a))
+    .slice(0, getSetting("suggesttopsites")).map(site => ({
+        "icon": forSite(site),
+        "name": groupedHistory[site]?.title,
+        "url": urlToString(site)
+    }))
 
 /**
  * Get the latest title for a page by url.
  * @param {string} originalUrl
  */
-const titleForPage = originalUrl => {
-    const {getRedirect} = require("./favicons")
+export const titleForPage = originalUrl => {
     const url = getRedirect(originalUrl)
     const specialPage = pathToSpecialPageName(url)
     if (specialPage?.name) {
@@ -342,7 +336,7 @@ const titleForPage = originalUrl => {
  * @param {string} rawUrl
  * @param {string} rawName
  */
-const updateTitle = (rawUrl, rawName) => {
+export const updateTitle = (rawUrl, rawName) => {
     const url = rawUrl.replace(/\t/g, "")
     const name = rawName.replace(/\t/g, "")
     if (!groupedHistory[url]) {
@@ -358,21 +352,4 @@ const updateTitle = (rawUrl, rawName) => {
         groupedHistory[url].title = name
     }
     writeHistToFile()
-}
-
-module.exports = {
-    addToHist,
-    getSimpleName,
-    getSimpleUrl,
-    handleRequest,
-    init,
-    removeHistoryByPartialUrl,
-    removeOldHistory,
-    removeRecentHistory,
-    suggestHist,
-    suggestTopSites,
-    titleForPage,
-    updateTitle,
-    visitCount,
-    writeHistToFile
 }
