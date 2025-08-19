@@ -184,7 +184,9 @@ const parseElement = (element, type = null, bounds = null) => {
     const boundingBox = bounds.toJSON()
     const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
+        boundingBox.x += paddingInfo.x
         boundingBox.left += paddingInfo.x
+        boundingBox.y += paddingInfo.y
         boundingBox.top += paddingInfo.y
     }
     // Find a clickable area and position for the given element and bounds
@@ -989,6 +991,13 @@ const mainInfoLoop = () => {
                  * @param {MouseEvent} e
                  */
                 f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+                /**
+                 * Handle mousemove listener inside the frame, if allowed.
+                 * @param {MouseEvent} e
+                 */
+                f.contentDocument.onmousemove = e => {
+                    ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
+                }
             }
         } catch {
             // Not an issue, will be retried shortly, we also can't do much else
