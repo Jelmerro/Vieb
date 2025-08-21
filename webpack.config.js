@@ -32,6 +32,7 @@ export default [{
     },
     "output": {
         "chunkFormat": "module",
+        "chunkLoading": "import",
         "clean": true,
         /**
          * Translate the chunk name to the right path (subfolder or not).

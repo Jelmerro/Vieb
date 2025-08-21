@@ -937,8 +937,7 @@ app.whenReady().then(async() => {
     }
     try {
         // @ts-expect-error Only present for the Castlabs Widevine project.
-        const {components} = require("electron")
-        await components.whenReady()
+        await (await import("electron")).components.whenReady()
         DRM = true
     } catch {
         // Using regular Electron instead of Castlabs' DRM fork, not a problem.
@@ -1965,7 +1964,7 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
             }
         })
     })
-    newSess.protocol.handle("sourceviewer", req => {
+    newSess.protocol.handle("sourceviewer", async req => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -1980,11 +1979,8 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
                 </body></html>`
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
-        /** @type {import("highlight.js").HLJSApi|null} */
-        let hljs = null
-        try {
-            hljs = require("highlight.js").default
-        } catch {
+        const hljs = await import("highlight.js").catch(() => null)
+        if (!hljs) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
@@ -1994,7 +1990,7 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         if (isFile(loc)) {
-            const hl = hljs.highlightAuto(readFile(loc) ?? "")
+            const hl = hljs.default.highlightAuto(readFile(loc) ?? "")
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
@@ -2023,7 +2019,7 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
                         }}))
                         return
                     }
-                    const hl = hljs.highlightAuto(body)
+                    const hl = hljs.default.highlightAuto(body)
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
                         <style id="default-styling">${defaultCSS}</style>
@@ -2059,7 +2055,7 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
         }
         return net.fetch(url.href)
     })
-    newSess.protocol.handle("markdownviewer", req => {
+    newSess.protocol.handle("markdownviewer", async req => {
         markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (platform() !== "win32" && !loc.startsWith("/")) {
@@ -2076,11 +2072,13 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
                 "content-type": "text/html; charset=utf-8"
             }})
         }
-        /** @type {typeof import("marked").Marked|null} */
-        let Marked = null
-        try {
-            ({Marked} = require("marked"))
-        } catch {
+        const {Marked} = await import("marked").catch(() => null) ?? {}
+        const hljs = await import("highlight.js").catch(() => null)
+        const {markedHighlight} = await import("marked-highlight")
+            .catch(() => null) ?? {}
+        const {baseUrl} = await import("marked-base-url")
+            .catch(() => null) ?? {}
+        if (!Marked || !hljs || !markedHighlight || !baseUrl) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
@@ -2096,8 +2094,6 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
         }
         let markedObj = new Marked()
         try {
-            const hljs = require("highlight.js").default
-            const {markedHighlight} = require("marked-highlight")
             markedObj = new Marked(markedHighlight({
                 /**
                  * Highlight the code using highlight.js in the right language.
@@ -2106,10 +2102,11 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
                  */
                 "highlight": (code, lang) => {
                     let language = lang ?? "plaintext"
-                    if (!hljs.getLanguage(language)) {
+                    if (!hljs.default.getLanguage(language)) {
                         language = "plaintext"
                     }
-                    return hljs.highlight(code, {language}).value || code
+                    return hljs.default.highlight(
+                        code, {language}).value || code
                 },
                 "langPrefix": "hljs language-"
             }))
@@ -2150,7 +2147,6 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
         }
         markedObj.setOptions({"renderer": mdRenderer, "silent": true})
         try {
-            const {baseUrl} = require("marked-base-url")
             if (url.startsWith("file:")) {
                 let base = url.replace(/^file:\/\//, "")
                 if (base[1] === ":" && platform() === "win32") {
@@ -2211,7 +2207,7 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
             request.end()
         })
     })
-    newSess.protocol.handle("readerview", req => {
+    newSess.protocol.handle("readerview", async req => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
         if (platform() !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -2226,14 +2222,10 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
                 </body></html>`
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
-        /** @type {typeof import("@mozilla/readability").Readability|null} */
-        let Readability = null
-        /** @type {typeof import("jsdom").JSDOM|null} */
-        let JSDOM = null
-        try {
-            ({Readability} = require("@mozilla/readability"))
-            ;({JSDOM} = require("jsdom"))
-        } catch {
+        const {Readability} = await import("@mozilla/readability")
+            .catch(() => null) ?? {}
+        const {JSDOM} = await import("jsdom").catch(() => null) ?? {}
+        if (!Readability || !JSDOM) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>

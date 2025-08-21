@@ -49,23 +49,17 @@ const applyThemeStyling = () => {
 }
 
 /** Disable the darkreader custom theme. */
-const disableDarkReader = () => {
-    try {
-        const darkreader = require("darkreader")
-        darkreader.disable()
-        ipcRenderer.sendToHost("custom-style-inject", "darkreader")
-    } catch {
-        // Already disabled or never loaded
-    }
+const disableDarkReader = async() => {
+    const darkreader = await import("darkreader").catch(() => null)
+    darkreader?.disable()
+    ipcRenderer.sendToHost("custom-style-inject", "darkreader")
 }
 
 /** Enable the darkreader custom theme. */
 const enableDarkReader = async() => {
-    disableDarkReader()
-    let darkreader = null
-    try {
-        darkreader = require("darkreader")
-    } catch {
+    await disableDarkReader()
+    const darkreader = await import("darkreader").catch(() => null)
+    if (!darkreader) {
         notify({
             "id": "settings.errors.darkreader.missing",
             "src": "user",
