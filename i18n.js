@@ -16,6 +16,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* eslint-disable max-depth */
+
 import {joinPath, listDir, readJSON, writeFile, writeJSON} from "./app/util.js"
 
 const files = listDir(joinPath(import.meta.dirname, "app/translations"))

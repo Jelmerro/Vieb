@@ -42,7 +42,6 @@ import {
     setStored,
     stringToUrl,
     tabForPage,
-    updateGuiVisibility,
     urlToString
 } from "../preloadutil.js"
 import {
@@ -76,6 +75,7 @@ import {
 } from "./contextmenu.js"
 import {nextNavHist, previousNavHist, pushNavHist} from "./explorehistory.js"
 import {followFiltering, reorderDisplayedLinks, startFollow} from "./follow.js"
+import {updateGuiVisibility} from "./guivisibility.js"
 import {
     executeMapString,
     repeatLastAction as repeatAction,

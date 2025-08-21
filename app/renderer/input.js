@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 import {clipboard, ipcRenderer} from "electron"
 import {platform} from "node:os"
 import {
@@ -28,8 +29,6 @@ import {
     listTabs,
     notify,
     sendToPageOrSubFrame,
-    setTopOfPageWithMouse,
-    updateGuiVisibility,
     updateScreenshotHighlight
 } from "../preloadutil.js"
 import {
@@ -39,6 +38,7 @@ import * as ACTIONS from "./actions.js"
 import {execute} from "./command.js"
 import {contextMenuActive, contextMenuClear, viebMenu} from "./contextmenu.js"
 import {enterKey, followFiltering} from "./follow.js"
+import {setTopOfPageWithMouse, updateGuiVisibility} from "./guivisibility.js"
 import {applyLayout} from "./pagelayout.js"
 import * as POINTER from "./pointer.js"
 import {updateHelpPage} from "./settings.js"

@@ -30,7 +30,6 @@ import {
     pathToSpecialPageName,
     stringToUrl,
     tabForPage,
-    updateGuiVisibility,
     urlToString
 } from "../preloadutil.js"
 import {argsAsHumanList, validLanguages} from "../translate.js"
@@ -55,6 +54,7 @@ import {
     rangeToTabIdxs
 } from "./command.js"
 import {pauseCmdHist, resumeCmdHist} from "./commandhistory.js"
+import {updateGuiVisibility} from "./guivisibility.js"
 import {
     keyNames, listMappingsAsCommandList, splitMapString, uncountableActions
 } from "./input.js"

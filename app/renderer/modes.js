@@ -21,7 +21,6 @@ import {
     currentPage,
     getMouseConf,
     getUrl,
-    guiRelatedUpdate,
     updateScreenshotHighlight
 } from "../preloadutil.js"
 import {
@@ -29,6 +28,7 @@ import {
 } from "./actions.js"
 import {resetPositionCmdHist} from "./commandhistory.js"
 import {cancelFollow, startFollow} from "./follow.js"
+import {guiRelatedUpdate} from "./guivisibility.js"
 import {
     requestSuggestUpdate, resetInputHistory, resetScreenshotDrag
 } from "./input.js"

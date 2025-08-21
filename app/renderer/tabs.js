@@ -27,7 +27,6 @@ import {
     getMouseConf,
     getSetting,
     getUrl,
-    guiRelatedUpdate,
     listNotificationHistory,
     listPages,
     listReadyPages,
@@ -36,7 +35,6 @@ import {
     pageForTab,
     pathToSpecialPageName,
     sendToPageOrSubFrame,
-    setTopOfPageWithMouse,
     specialPagePath,
     stringToUrl,
     tabForPage,
@@ -63,6 +61,7 @@ import {commonAction, contextMenuClear} from "./contextmenu.js"
 import {loadUserscripts} from "./extensions.js"
 import {forSite, loading, show, update} from "./favicons.js"
 import {emptyHoverLink} from "./follow.js"
+import {guiRelatedUpdate, setTopOfPageWithMouse} from "./guivisibility.js"
 import {
     addToHist,
     handleRequest,
