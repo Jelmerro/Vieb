@@ -2224,8 +2224,9 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
         }
         const {Readability} = await import("@mozilla/readability")
             .catch(() => null) ?? {}
-        const {JSDOM} = await import("jsdom").catch(() => null) ?? {}
-        if (!Readability || !JSDOM) {
+        const {parseHTML} = await import("linkedom/worker")
+            .catch(() => null) ?? {}
+        if (!Readability || !parseHTML) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
@@ -2240,7 +2241,7 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
-                    if (!body || !JSDOM || !Readability) {
+                    if (!body || !parseHTML || !Readability) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
                             <style id="default-styling">${defaultCSS}</style>
@@ -2254,9 +2255,14 @@ ipcMain.on("create-session", (_, name, adblock, adblockerNotify, cache) => {
                         }}))
                         return
                     }
-                    const dom = new JSDOM(body, {url})
-                    const out = new Readability(
-                        dom.window.document).parse()?.content ?? ""
+                    const dom = parseHTML(body).document
+                    ;[...dom.getElementsByTagName("img")].forEach(link => {
+                        link.src = new URL(link.src, url).href
+                    })
+                    ;[...dom.getElementsByTagName("a")].forEach(link => {
+                        link.href = new URL(link.href, url).href
+                    })
+                    const out = new Readability(dom).parse()?.content ?? ""
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
                         <style id="default-styling">${defaultCSS}</style>
