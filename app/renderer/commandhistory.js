@@ -33,12 +33,12 @@ export const init = () => {
 }
 
 /** Pause the collection of commands to the history. */
-export const pause = () => {
+export const pauseCmdHist = () => {
     storeCommands = false
 }
 
 /** Resume the collection of new commands into the history. */
-export const resume = () => {
+export const resumeCmdHist = () => {
     storeCommands = true
 }
 
@@ -56,7 +56,7 @@ const updateNavWithHistory = () => {
 }
 
 /** Go to the previous item in the command history. */
-export const previous = () => {
+export const previousCmdHist = () => {
     if (currentMode() !== "command") {
         return
     }
@@ -70,7 +70,7 @@ export const previous = () => {
 }
 
 /** Go to the next item in the command history. */
-export const next = () => {
+export const nextCmdHist = () => {
     if (currentMode() !== "command" || previousIndex === -1) {
         return
     }
@@ -83,7 +83,7 @@ export const next = () => {
 }
 
 /** Reset the position info for the command history. */
-export const resetPosition = () => {
+export const resetPositionCmdHist = () => {
     previousIndex = -1
     originalCommand = ""
 }
@@ -93,7 +93,7 @@ export const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-export const push = (command, user) => {
+export const pushCmdHist = (command, user) => {
     const setting = getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return

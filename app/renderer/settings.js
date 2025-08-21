@@ -54,7 +54,7 @@ import {
     rangeCompatibleCommands,
     rangeToTabIdxs
 } from "./command.js"
-import {pause, resume} from "./commandhistory.js"
+import {pauseCmdHist, resumeCmdHist} from "./commandhistory.js"
 import {
     keyNames, listMappingsAsCommandList, splitMapString, uncountableActions
 } from "./input.js"
@@ -2340,7 +2340,7 @@ export const set = (src, setting, value) => {
  * @param {import("../preloadutil.js").RunSource} src
  */
 export const loadFromDisk = (firstRun, src = "source") => {
-    pause()
+    pauseCmdHist()
     const config = appConfig()
     const files = config?.files ?? []
     if (firstRun) {
@@ -2381,7 +2381,7 @@ export const loadFromDisk = (firstRun, src = "source") => {
     updateNativeTheme()
     updateRequestHeaders()
     updatePdfOption()
-    resume()
+    resumeCmdHist()
 }
 
 /**

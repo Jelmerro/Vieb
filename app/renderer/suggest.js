@@ -53,7 +53,7 @@ import {
     parseAndValidateArgs,
     rangeToTabIdxs
 } from "./command.js"
-import {clear, commandMenu, linkMenu} from "./contextmenu.js"
+import {commandMenu, contextMenuClear, linkMenu} from "./contextmenu.js"
 import {forSite} from "./favicons.js"
 import {suggestHist} from "./history.js"
 import {listMappingsAsCommandList, listSupportedActions} from "./input.js"
@@ -121,7 +121,7 @@ const topOfSection = () => {
 }
 
 /** Select the previous suggestion from the list. */
-export const previous = () => {
+export const previousSuggest = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -152,14 +152,14 @@ export const previous = () => {
 
 /** Go the previous section in the suggestion list. */
 export const previousSection = () => {
-    previous()
+    previousSuggest()
     while (!topOfSection()) {
-        previous()
+        previousSuggest()
     }
 }
 
 /** Select the next suggestion from the list. */
-export const next = () => {
+export const nextSuggest = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -190,9 +190,9 @@ export const next = () => {
 
 /** Go the next section in the suggestion list. */
 export const nextSection = () => {
-    next()
+    nextSuggest()
     while (!topOfSection()) {
-        next()
+        nextSuggest()
     }
 }
 
@@ -280,7 +280,7 @@ export const addExplore = explore => {
             }
         } else if (getMouseConf("menusuggest")) {
             setMode("normal")
-            clear()
+            contextMenuClear()
             if (e.button === 0) {
                 navigateTo("user", explore.url)
             }
@@ -409,7 +409,7 @@ const addCommand = (
         } else if (getMouseConf("menusuggest")) {
             setMode("normal")
             execute(command, {"src": "user"})
-            clear()
+            contextMenuClear()
         }
         e.preventDefault()
     })

@@ -45,7 +45,7 @@ const updateNavWithSite = () => {
 }
 
 /** Go to the previous item in the explore history. */
-export const previous = () => {
+export const previousNavHist = () => {
     if (currentMode() !== "explore") {
         return
     }
@@ -59,7 +59,7 @@ export const previous = () => {
 }
 
 /** Go to the next item in the explore history, or back to typed text. */
-export const next = () => {
+export const nextNavHist = () => {
     if (currentMode() !== "explore" || previousIndex === -1) {
         return
     }
@@ -72,7 +72,7 @@ export const next = () => {
 }
 
 /** Reset the position info for the explore history. */
-export const resetPosition = () => {
+export const resetPositionNavHist = () => {
     previousIndex = -1
     originalSite = ""
 }
@@ -81,7 +81,7 @@ export const resetPosition = () => {
  * Push a new user navigation to the list.
  * @param {string} explore
  */
-export const push = explore => {
+export const pushNavHist = explore => {
     const setting = getSetting("explorehist")
     if (setting === "none") {
         return

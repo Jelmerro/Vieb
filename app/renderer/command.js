@@ -65,7 +65,7 @@ import {
 import {
     getPageUrl, makeMark, restoreMark, restoreScrollPos, storeScrollPos
 } from "./actions.js"
-import {push} from "./commandhistory.js"
+import {pushCmdHist} from "./commandhistory.js"
 import {updateMappings} from "./favicons.js"
 import {
     getSimpleName,
@@ -3072,7 +3072,7 @@ export const execute = (com, opts = {}) => {
             .replace("<useCurrentTitle>", `${getPageTitle()}`)
             .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
-    push(commandStr, src === "user")
+    pushCmdHist(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
             execCommand(commandStr.replace("!", ""), (err, stdout) => {

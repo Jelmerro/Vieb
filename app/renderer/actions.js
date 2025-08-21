@@ -59,13 +59,30 @@ import {
     writeJSON
 } from "../util.js"
 import {execute, getPageTitle} from "./command.js"
-import {commandMenu, commonAction, linkMenu, viebMenu} from "./contextmenu.js"
-import {push} from "./explorehistory.js"
+import {nextCmdHist, previousCmdHist} from "./commandhistory.js"
+import {
+    commandMenu,
+    commonAction,
+    contextMenuBottom,
+    contextMenuClear,
+    contextMenuDown,
+    contextMenuSectionDown,
+    contextMenuSectionUp,
+    contextMenuSelect,
+    contextMenuTop,
+    contextMenuUp,
+    linkMenu,
+    viebMenu
+} from "./contextmenu.js"
+import {nextNavHist, previousNavHist, pushNavHist} from "./explorehistory.js"
 import {followFiltering, reorderDisplayedLinks, startFollow} from "./follow.js"
 import {
     executeMapString,
+    repeatLastAction as repeatAction,
     requestSuggestUpdate,
     sanitiseMapString,
+    startRecordingActions,
+    stopRecordingActions,
     typeCharacterIntoNavbar
 } from "./input.js"
 import {setMode} from "./modes.js"
@@ -85,12 +102,18 @@ import {
 import {openMenu} from "./pointer.js"
 import {getCustomStyling} from "./settings.js"
 import {
+    nextSection, nextSuggest, previousSection, previousSuggest
+} from "./suggest.js"
+import {
     addTab,
     navigateTo,
     recreateWebview,
+    reopenTab as reopen,
     rerollUserAgent,
     resetTabInfo,
     switchToTab,
+    moveTabBackward as tabBackward,
+    moveTabForward as tabForward,
     updateUrl
 } from "./tabs.js"
 
@@ -682,17 +705,13 @@ export const toggleMarkdownViewerNewTab = args => {
 }
 
 /** Go to explore mode using regular mode switching. */
-export const toExploreMode = () => {
-    setMode("explore")
-}
+export const toExploreMode = () => setMode("explore")
 
 /** Go to insert mode at the very first visible input element on the page. */
 export const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
 
 /** Go to insert mode using regular mode switching. */
-export const toInsertMode = () => {
-    setMode("insert")
-}
+export const toInsertMode = () => setMode("insert")
 
 /** Scroll to the very top of the page. */
 export const scrollTop = () => currentPage()?.send("action", "scrollTop")
@@ -764,34 +783,22 @@ export const refreshTab = args => {
  * Reopen the last closed tab.
  * @param {ActionParam} args
  * */
-export const reopenTab = args => {
-    reopen(args.src)
-}
+export const reopenTab = args => reopen(args.src)
 
 /** Switch to follow mode to copy a link. */
-export const startFollowCopyLink = () => {
-    startFollow("copylink")
-}
+export const startFollowCopyLink = () => startFollow("copylink")
 
 /** Switch to follow mode to open a horizontal split. */
-export const startFollowNewSplit = () => {
-    startFollow("ver")
-}
+export const startFollowNewSplit = () => startFollow("ver")
 
 /** Switch to follow mode to open a vertical split. */
-export const startFollowNewVerSplit = () => {
-    startFollow("hor")
-}
+export const startFollowNewVerSplit = () => startFollow("hor")
 
 /** Switch to follow mode to open a new tab. */
-export const startFollowNewTab = () => {
-    startFollow("newtab")
-}
+export const startFollowNewTab = () => startFollow("newtab")
 
 /** Switch to follow mode to click on links in the current tab. */
-export const startFollowCurrentTab = () => {
-    startFollow("current")
-}
+export const startFollowCurrentTab = () => startFollow("current")
 
 /**
  * Go back in history for the current page or a custom one.
@@ -892,36 +899,30 @@ export const openNewTabWithCurrentUrl = args => {
 }
 
 /** Go to command mode using regular mode switching. */
-export const toCommandMode = () => {
-    setMode("command")
-}
+export const toCommandMode = () => setMode("command")
 
 /** Stop loading the page for now, might still start new fetch requests. */
 export const stopLoadingPage = () => currentPage()?.stop()
 
 /** Move the current tab one spot to the right/end in the bar. */
-export const moveTabForward = () => {
-    move()
-}
+export const moveTabForward = () => tabForward()
 
 /** Move the current tab one spot to the left/beginning in the bar. */
-export const moveTabBackward = () => {
-    move()
-}
+export const moveTabBackward = () => tabBackward()
 
 /** Move the current tab all the way to the right/end in the bar. */
 export const moveTabEnd = () => {
-    let didMove = move()
+    let didMove = tabForward()
     while (didMove) {
-        didMove = move()
+        didMove = tabForward()
     }
 }
 
 /** Move the current tab all the way to the left/beginning in the bar. */
 export const moveTabStart = () => {
-    let didMove = move()
+    let didMove = tabBackward()
     while (didMove) {
-        didMove = move()
+        didMove = tabBackward()
     }
 }
 
@@ -955,9 +956,7 @@ export const zoomIn = args => {
 }
 
 /** Go to normal mode using regular mode switching. */
-export const toNormalMode = () => {
-    setMode("normal")
-}
+export const toNormalMode = () => setMode("normal")
 
 /** Go to the previous mode used before follow, or back to normal. */
 export const stopFollowMode = () => {
@@ -972,9 +971,7 @@ export const stopFollowMode = () => {
  * Repeat the last used action.
  * @param {ActionParam} args
  * */
-export const repeatLastAction = args => {
-    repeat(args.src)
-}
+export const repeatLastAction = args => repeatAction(args.src)
 
 /**
  * Edit the current insert mode input or navbar mode text.
@@ -1101,13 +1098,13 @@ export const setFocusCorrectly = () => {
 
 /** Go to the next suggestion in the list. */
 export const nextSuggestion = () => {
-    next()
+    nextSuggest()
     setFocusCorrectly()
 }
 
 /** Go to the previous suggestion in the list. */
 export const prevSuggestion = () => {
-    previous()
+    previousSuggest()
     setFocusCorrectly()
 }
 
@@ -1124,124 +1121,76 @@ export const prevSuggestionSection = () => {
 }
 
 /** Go back in history to previously run commands. */
-export const commandHistoryPrevious = () => {
-    previous()
-}
+export const commandHistoryPrevious = () => previousCmdHist()
 
 /** Go forward in history to previously run commands, or back to current. */
-export const commandHistoryNext = () => {
-    next()
-}
+export const commandHistoryNext = () => nextCmdHist()
 
 /** Go back in history to previously navigated sites. */
-export const exploreHistoryPrevious = () => {
-    previous()
-}
+export const exploreHistoryPrevious = () => previousNavHist()
 
 /** Go forward in history to previously navigated sites, or back to current. */
-export const exploreHistoryNext = () => {
-    next()
-}
+export const exploreHistoryNext = () => nextNavHist()
 
 /** Rotate the current window split forward. */
-export const rotateSplitWindowForward = () => {
-    rotateForward()
-}
+export const rotateSplitWindowForward = () => rotateForward()
 
 /** Rotate the current window split backward. */
-export const rotateSplitWindowBackward = () => {
-    rotateReverse()
-}
+export const rotateSplitWindowBackward = () => rotateReverse()
 
 /** Make the current window split the entire left side. */
-export const leftHalfSplitWindow = () => {
-    toTop("left")
-}
+export const leftHalfSplitWindow = () => toTop("left")
 
 /** Make the current window split the entire bottom half. */
-export const bottomHalfSplitWindow = () => {
-    toTop("bottom")
-}
+export const bottomHalfSplitWindow = () => toTop("bottom")
 
 /** Make the current window split the entire top half. */
-export const topHalfSplitWindow = () => {
-    toTop("top")
-}
+export const topHalfSplitWindow = () => toTop("top")
 
 /** Make the current window split the entire right side. */
-export const rightHalfSplitWindow = () => {
-    toTop("right")
-}
+export const rightHalfSplitWindow = () => toTop("right")
 
 /** Move the focus to the split to the left of the current one. */
-export const toLeftSplitWindow = () => {
-    moveFocus("left")
-}
+export const toLeftSplitWindow = () => moveFocus("left")
 
 /** Move the focus to the split to the bottom of the current one. */
-export const toBottomSplitWindow = () => {
-    moveFocus("bottom")
-}
+export const toBottomSplitWindow = () => moveFocus("bottom")
 
 /** Move the focus to the split to the top of the current one. */
-export const toTopSplitWindow = () => {
-    moveFocus("top")
-}
+export const toTopSplitWindow = () => moveFocus("top")
 
 /** Move the focus to the split to the right of the current one. */
-export const toRightSplitWindow = () => {
-    moveFocus("right")
-}
+export const toRightSplitWindow = () => moveFocus("right")
 
 /** Move the focus back to the previously focused window split. */
-export const toLastSplitWindow = () => {
-    lastSplit()
-}
+export const toLastSplitWindow = () => lastSplit()
 
 /** Move the focus to the very first split by appearance. */
-export const toFirstSplitWindow = () => {
-    firstSplit()
-}
+export const toFirstSplitWindow = () => firstSplit()
 
 /** Move the focus to the next split by appearance. */
-export const toNextSplitWindow = () => {
-    nextSplit()
-}
+export const toNextSplitWindow = () => nextSplit()
 
 /** Move the focus to the previous split by appearance. */
-export const toPreviousSplitWindow = () => {
-    previousSplit()
-}
+export const toPreviousSplitWindow = () => previousSplit()
 
 /** Swap the location of the current split and others in the same level. */
-export const exchangeSplitWindow = () => {
-    exchange()
-}
+export const exchangeSplitWindow = () => exchange()
 
 /** Increase the height of the current window split within the same level. */
-export const increaseHeightSplitWindow = () => {
-    resize("ver", "grow")
-}
+export const increaseHeightSplitWindow = () => resize("ver", "grow")
 
 /** Decrease the height of the current window split within the same level. */
-export const decreaseHeightSplitWindow = () => {
-    resize("ver", "shrink")
-}
+export const decreaseHeightSplitWindow = () => resize("ver", "shrink")
 
 /** Increase the width of the current window split within the same level. */
-export const increaseWidthSplitWindow = () => {
-    resize("hor", "grow")
-}
+export const increaseWidthSplitWindow = () => resize("hor", "grow")
 
 /** Decrease the width of the current window split within the same level. */
-export const decreaseWidthSplitWindow = () => {
-    resize("hor", "shrink")
-}
+export const decreaseWidthSplitWindow = () => resize("hor", "shrink")
 
 /** Distribute the space each window split take equally within each level. */
-export const distrubuteSpaceSplitWindow = () => {
-    resetResizing()
-}
+export const distrubuteSpaceSplitWindow = () => resetResizing()
 
 /** Toggle the always on top functionality of the app. */
 export const toggleAlwaysOnTop = () => ipcRenderer.invoke(
@@ -1349,9 +1298,7 @@ export const pageRSSLinkToClipboard = async args => {
 export const pageToClipboard = () => clipboard.writeText(getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
-export const pageTitleToClipboard = () => {
-    clipboard.writeText(getPageTitle())
-}
+export const pageTitleToClipboard = () => clipboard.writeText(getPageTitle())
 
 /** Copy the current page to the system clipboard formatted as HTML. */
 export const pageToClipboardHTML = () => {
@@ -1543,12 +1490,12 @@ export const startRecording = args => {
     if (!key) {
         return
     }
-    start(key, args.src)
+    startRecordingActions(key, args.src)
 }
 
 /** Stop the current macro recording if active. */
 export const stopRecording = () => {
-    const record = stop()
+    const record = stopRecordingActions()
     if (!record) {
         return
     }
@@ -1558,9 +1505,7 @@ export const stopRecording = () => {
 }
 
 /** Change the z-index order of the follow mode elements by type. */
-export const reorderFollowLinks = () => {
-    reorderDisplayedLinks()
-}
+export const reorderFollowLinks = () => reorderDisplayedLinks()
 
 /**
  * Open the menu, either for system elements or the current insert element.
@@ -1614,44 +1559,28 @@ export const menuOpen = args => {
 }
 
 /** Go to the top entry in the context menu. */
-export const menuTop = () => {
-    top()
-}
+export const menuTop = () => contextMenuTop()
 
 /** Go one section up in the context menu. */
-export const menuSectionUp = () => {
-    sectionUp()
-}
+export const menuSectionUp = () => contextMenuSectionUp()
 
 /** Go one entry up in the context menu. */
-export const menuUp = () => {
-    up()
-}
+export const menuUp = () => contextMenuUp()
 
 /** Go one entry down in the context menu. */
-export const menuDown = () => {
-    down()
-}
+export const menuDown = () => contextMenuDown()
 
 /** Go one section down in the context menu. */
-export const menuSectionDown = () => {
-    sectionDown()
-}
+export const menuSectionDown = () => contextMenuSectionDown()
 
 /** Go to the bottom entry in the context menu. */
-export const menuBottom = () => {
-    bottom()
-}
+export const menuBottom = () => contextMenuBottom()
 
 /** Execute the currently selected entry of the context menu. */
-export const menuSelect = () => {
-    select()
-}
+export const menuSelect = () => contextMenuSelect()
 
 /** Close the context menu without side effects. */
-export const menuClose = () => {
-    clear()
-}
+export const menuClose = () => contextMenuClear()
 
 /** Show the table of contents on the current page. */
 export const showTOC = () => {
@@ -1692,7 +1621,7 @@ export const useEnteredData = args => {
         setMode("normal")
         if (location) {
             const modifiedLoc = searchword(location).url
-            push(urlToString(modifiedLoc))
+            pushNavHist(urlToString(modifiedLoc))
             navigateTo(args.src, stringToUrl(modifiedLoc))
         }
     }

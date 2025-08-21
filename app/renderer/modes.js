@@ -27,7 +27,7 @@ import {
 import {
     resetIncrementalSearch, setFocusCorrectly, toSearchMode
 } from "./actions.js"
-import {resetPosition} from "./commandhistory.js"
+import {resetPositionCmdHist} from "./commandhistory.js"
 import {cancelFollow, startFollow} from "./follow.js"
 import {
     requestSuggestUpdate, resetInputHistory, resetScreenshotDrag
@@ -69,7 +69,7 @@ const modes = {
             if (url) {
                 url.value = ""
             }
-            resetPosition()
+            resetPositionCmdHist()
             resetInputHistory()
             resetScreenshotDrag()
         },
@@ -104,7 +104,7 @@ const modes = {
             if (page) {
                 updateUrl(page, true)
             }
-            resetPosition()
+            resetPositionCmdHist()
             resetInputHistory()
             requestSuggestUpdate()
             if (!document.getSelection()?.toString() && url) {

@@ -59,7 +59,7 @@ import {
 } from "../util.js"
 import {backInHistory, forwardInHistory, setFocusCorrectly} from "./actions.js"
 import {execute, rangeCompatibleCommands} from "./command.js"
-import {clear, commonAction} from "./contextmenu.js"
+import {commonAction, contextMenuClear} from "./contextmenu.js"
 import {loadUserscripts} from "./extensions.js"
 import {forSite, loading, show, update} from "./favicons.js"
 import {emptyHoverLink} from "./follow.js"
@@ -867,7 +867,7 @@ const addWebviewListeners = webview => {
             setFocusCorrectly()
         }
         if (e.channel === "scroll-height-diff") {
-            clear()
+            contextMenuClear()
             if (justSearched) {
                 justSearched = false
             } else if (e.args[0]) {

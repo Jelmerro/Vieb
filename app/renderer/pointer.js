@@ -39,7 +39,7 @@ import {
     writeJSON
 } from "../util.js"
 import {scrollBottom, scrollTop, setFocusCorrectly} from "./actions.js"
-import {clear, storePointerRightClick} from "./contextmenu.js"
+import {contextMenuClear, storePointerRightClick} from "./contextmenu.js"
 import {setMode} from "./modes.js"
 import {switchToTab} from "./tabs.js"
 
@@ -1090,7 +1090,7 @@ export const init = () => {
                 }
             }
         }
-        clear()
+        contextMenuClear()
         if (["pointer", "visual"].includes(currentMode())) {
             if (currentMode() === "pointer") {
                 sendToPageOrSubFrame("action",

@@ -129,7 +129,7 @@ export const storePointerRightClick = () => {
 }
 
 /** Clear/hide the context menu. */
-export const clear = () => {
+export const contextMenuClear = () => {
     if (!contextMenu) {
         return
     }
@@ -194,16 +194,16 @@ const createMenuItem = options => {
     })
     item.addEventListener("click", () => {
         options.action()
-        clear()
+        contextMenuClear()
     })
     contextMenu.append(item)
 }
 
 /** Returns true if the context menu is open/active. */
-export const active = () => !!contextMenu?.textContent?.trim()
+export const contextMenuActive = () => !!contextMenu?.textContent?.trim()
 
 /** Go to the top entry in the menu. */
-export const top = () => {
+export const contextMenuTop = () => {
     if (!contextMenu) {
         return
     }
@@ -225,7 +225,7 @@ const topOfSection = () => {
 }
 
 /** Go one entry up, or go to the last entry via wrapping. */
-export const up = () => {
+export const contextMenuUp = () => {
     if (!contextMenu) {
         return
     }
@@ -235,7 +235,7 @@ export const up = () => {
     if (nodes.indexOf(selected) < 1) {
         nodes.forEach(el => el?.classList.remove("selected"))
         contextMenu.lastElementChild?.classList.add("selected")
-    } else if (active()) {
+    } else if (contextMenuActive()) {
         const newSelected = nodes[nodes.indexOf(selected) - 1]
         nodes.forEach(el => el?.classList.remove("selected"))
         newSelected?.classList.add("selected")
@@ -243,15 +243,15 @@ export const up = () => {
 }
 
 /** Go up until reaching the top of the section above it. */
-export const sectionUp = () => {
-    up()
+export const contextMenuSectionUp = () => {
+    contextMenuUp()
     while (!topOfSection()) {
-        up()
+        contextMenuUp()
     }
 }
 
 /** Go one entry down, or go to the first entry via wrapping. */
-export const down = () => {
+export const contextMenuDown = () => {
     if (!contextMenu) {
         return
     }
@@ -261,7 +261,7 @@ export const down = () => {
     if ([-1, nodes.length - 1].includes(nodes.indexOf(selected))) {
         nodes.forEach(el => el?.classList.remove("selected"))
         contextMenu.firstElementChild?.classList.add("selected")
-    } else if (active()) {
+    } else if (contextMenuActive()) {
         const newSelected = nodes[nodes.indexOf(selected) + 1]
         nodes.forEach(el => el?.classList.remove("selected"))
         newSelected?.classList.add("selected")
@@ -269,15 +269,15 @@ export const down = () => {
 }
 
 /** Go down until reaching the top of the section below it. */
-export const sectionDown = () => {
-    down()
+export const contextMenuSectionDown = () => {
+    contextMenuDown()
     while (!topOfSection()) {
-        down()
+        contextMenuDown()
     }
 }
 
 /** Go to the bottom entry in the menu. */
-export const bottom = () => {
+export const contextMenuBottom = () => {
     if (!contextMenu) {
         return
     }
@@ -287,7 +287,7 @@ export const bottom = () => {
 }
 
 /** Select the current entry in the menu. */
-export const select = () => {
+export const contextMenuSelect = () => {
     const selected = contextMenu?.querySelector(".selected")
     if (selected instanceof HTMLElement) {
         selected.click()
@@ -443,7 +443,7 @@ export const viebMenu = (src, options, force = false) => {
     } else {
         pathEls = options.path
     }
-    clear()
+    contextMenuClear()
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`
     const menuSetting = getSetting("menuvieb")
@@ -661,7 +661,7 @@ export const linkMenu = (src, options) => {
     }
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`
-    clear()
+    contextMenuClear()
     createMenuItem({
         /** Menu item: Navigate to link. */
         "action": () => navigateTo(src, options.link),
@@ -725,7 +725,7 @@ export const commandMenu = (src, options) => {
     }
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`
-    clear()
+    contextMenuClear()
     createMenuItem({
         /** Menu item: Execute the command. */
         "action": () => {
@@ -751,7 +751,7 @@ export const commandMenu = (src, options) => {
  * @param {boolean} force
  */
 const webviewMenu = (src, options, force = false) => {
-    clear()
+    contextMenuClear()
     if (!contextMenu) {
         return
     }

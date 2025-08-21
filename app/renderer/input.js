@@ -37,7 +37,7 @@ import {
 } from "../util.js"
 import * as ACTIONS from "./actions.js"
 import {execute} from "./command.js"
-import {active, clear, viebMenu} from "./contextmenu.js"
+import {contextMenuActive, contextMenuClear, viebMenu} from "./contextmenu.js"
 import {enterKey, followFiltering} from "./follow.js"
 import {applyLayout} from "./pagelayout.js"
 import * as POINTER from "./pointer.js"
@@ -1346,7 +1346,7 @@ export const updateKeysOnScreen = () => {
             alreadyDone.className = "success"
             let futureActions = Object.keys(bindings[mode]).filter(
                 b => b.startsWith(pressedKeys)).slice(0, mapsuggestcount)
-            if (active() && bindings.m[pressedKeys]) {
+            if (contextMenuActive() && bindings.m[pressedKeys]) {
                 futureActions = []
             }
             if (futureActions.length) {
@@ -1375,7 +1375,7 @@ export const updateKeysOnScreen = () => {
         return
     }
     let blockedKeys = Object.keys(bindings.i)
-    if (active()) {
+    if (contextMenuActive()) {
         blockedKeys = Object.keys(bindings.i).concat(
             Object.keys(bindings.m)).concat("0123456789".split(""))
     }
@@ -1391,7 +1391,7 @@ export const updateKeysOnScreen = () => {
 const actionForKeys = keys => {
     const allMenu = findMaps(keys, "menu")
     const menuAction = bindings.m[allMenu[0]]
-    if (active() && menuAction) {
+    if (contextMenuActive() && menuAction) {
         return menuAction
     }
     const allCurrent = findMaps(keys, currentMode())
@@ -1465,7 +1465,7 @@ const doAction = async(actionName, opts) => {
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
-        clear()
+        contextMenuClear()
     }
     repeatCounter = 0
 }
@@ -2115,7 +2115,7 @@ const handleKeyboard = async e => {
                     }
                     return
                 }
-                clear()
+                contextMenuClear()
             }
             if (currentMode() === "insert") {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
@@ -2138,7 +2138,7 @@ const handleKeyboard = async e => {
             updateKeysOnScreen()
         }, getSetting("timeoutlen"))
     }
-    if ("npv".includes(currentMode()[0]) || active()) {
+    if ("npv".includes(currentMode()[0]) || contextMenuActive()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
         const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
@@ -2180,7 +2180,7 @@ const handleKeyboard = async e => {
         pressedKeys += id
     }
     const action = actionForKeys(pressedKeys)
-    const hasMenuAction = active() && action
+    const hasMenuAction = contextMenuActive() && action
     if (!hasFutureActions(pressedKeys) || hasMenuAction) {
         window.clearTimeout(timeoutTimer ?? undefined)
         if (action && (e.isTrusted || e.bubbles)) {
@@ -2195,7 +2195,7 @@ const handleKeyboard = async e => {
             }
             return
         }
-        clear()
+        contextMenuClear()
         let keys = splitMapString(pressedKeys).maps
         pressedKeys = ""
         if (keys.length > 1) {
@@ -2222,7 +2222,7 @@ const handleKeyboard = async e => {
         }
         repeatCounter = 0
     }
-    clear()
+    contextMenuClear()
     updateKeysOnScreen()
     if (currentMode() === "follow") {
         if (e instanceof KeyboardEvent && e.type === "keydown") {
@@ -2487,7 +2487,7 @@ export const clearmap = (src, mode, removeDefaults = false) => {
  * @param {string} name
  * @param {import("../preloadutil.js").RunSource} src
  */
-export const startRecording = (name, src) => {
+export const startRecordingActions = (name, src) => {
     if (recordingName) {
         notify({"id": "actions.alreadyRecording", src, "type": "warning"})
         return
@@ -2499,7 +2499,7 @@ export const startRecording = (name, src) => {
 /**
  * Stop the current macro recording.
  */
-export const stopRecording = () => {
+export const stopRecordingActions = () => {
     if (!recordingName) {
         return
     }
@@ -2673,7 +2673,7 @@ export const init = () => {
             if (tab instanceof HTMLElement) {
                 closeTab("user", listTabs().indexOf(tab))
             }
-            clear()
+            contextMenuClear()
         }
         ACTIONS.setFocusCorrectly()
     })
@@ -2689,7 +2689,7 @@ export const init = () => {
             e.preventDefault()
             return
         }
-        clear()
+        contextMenuClear()
         if (!(e.target instanceof HTMLElement)) {
             return
         }
@@ -2723,7 +2723,7 @@ export const init = () => {
                 return false
             })
             if (tab instanceof HTMLSpanElement) {
-                clear()
+                contextMenuClear()
                 switchToTab(tab)
             }
         }
@@ -2770,7 +2770,7 @@ export const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("resize", () => {
-        clear()
+        contextMenuClear()
         applyLayout()
         if (["pointer", "visual"].includes(currentMode())) {
             POINTER.updateElement()
