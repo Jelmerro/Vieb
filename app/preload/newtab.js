@@ -67,6 +67,10 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
         }
     }
 })
-window.addEventListener("load", () => {
+if (document.readyState === "loading") {
+    window.addEventListener("load", () => {
+        ipcRenderer.sendToHost("new-tab-info-request")
+    })
+} else {
     ipcRenderer.sendToHost("new-tab-info-request")
-})
+}

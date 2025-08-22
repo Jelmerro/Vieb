@@ -32,26 +32,6 @@ const update = (action = null, downloadUuid = null) => {
     ipcRenderer.send("download-list-request", action, downloadUuid)
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    const h1 = document.querySelector("h1")
-    if (h1) {
-        h1.textContent = translate("pages.downloads.title")
-    }
-    const list = document.getElementById("list")
-    if (list) {
-        list.textContent = translate("pages.downloads.loading")
-    }
-    const removeAll = document.createElement("img")
-    removeAll.id = "remove-all"
-    removeAll.style.display = "none"
-    removeAll.src = joinPath(getAppRootDir(), "img/trash.png")
-    removeAll.addEventListener("click", () => update("removeall"))
-    document.body.insertBefore(removeAll, document.body.firstChild)
-    lastUpdate = new Date()
-    setInterval(update, 500)
-    update()
-})
-
 /**
  * Add a download to the list.
  * @param {import("../index.js").downloadItem} download
@@ -293,3 +273,30 @@ const generateDownloadList = (_, l) => {
 }
 
 ipcRenderer.on("download-list", generateDownloadList)
+
+/** Translate, add remove all button and start listening for updates. */
+const init = () => {
+    const h1 = document.querySelector("h1")
+    if (h1) {
+        h1.textContent = translate("pages.downloads.title")
+    }
+    const list = document.getElementById("list")
+    if (list) {
+        list.textContent = translate("pages.downloads.loading")
+    }
+    const removeAll = document.createElement("img")
+    removeAll.id = "remove-all"
+    removeAll.style.display = "none"
+    removeAll.src = joinPath(getAppRootDir(), "img/trash.png")
+    removeAll.addEventListener("click", () => update("removeall"))
+    document.body.insertBefore(removeAll, document.body.firstChild)
+    lastUpdate = new Date()
+    setInterval(update, 500)
+    update()
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

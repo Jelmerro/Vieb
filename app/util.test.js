@@ -22,6 +22,7 @@ import {rmdirSync} from "node:fs"
 import {tmpdir} from "node:os"
 import {basename, dirname, isAbsolute, resolve} from "node:path"
 import {describe, test} from "node:test"
+import {specialPagePath} from "./preloadutil.js"
 import {
     dirname as _dirname,
     appendFile,
@@ -42,7 +43,6 @@ import {
     readFile,
     readJSON,
     sameDomain,
-    specialPagePath,
     userAgentPlatform,
     writeFile,
     writeJSON

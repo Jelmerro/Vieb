@@ -106,4 +106,8 @@ const loadSponsorblock = () => {
     }
 }
 
-window.addEventListener("load", loadSponsorblock)
+if (document.readyState === "loading") {
+    window.addEventListener("load", loadSponsorblock)
+} else {
+    loadSponsorblock()
+}

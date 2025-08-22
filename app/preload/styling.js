@@ -232,6 +232,9 @@ window.addEventListener("load", () => {
     loadThemes(true)
     setTimeout(loadThemes, 1000)
 })
+if (document.readyState !== "loading") {
+    loadThemes(true)
+}
 ipcRenderer.on("reload-basic-theme-styling", () => loadThemes(true))
 ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
     const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)

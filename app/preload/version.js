@@ -68,8 +68,8 @@ const checkForUpdates = () => {
     req.send(null)
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    // Translations
+/** Load translations and add event listener for update button. */
+const init = () => {
     const subtitleEl = document.getElementById("subtitle")
     if (subtitleEl) {
         subtitleEl.textContent = translate("util.catchphrase")
@@ -139,4 +139,10 @@ window.addEventListener("DOMContentLoaded", () => {
     if (buttonEl) {
         buttonEl.addEventListener("click", checkForUpdates)
     }
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

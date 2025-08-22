@@ -1059,7 +1059,9 @@ ipcRenderer.on("follow-mode-stop", () => {
 })
 setInterval(mainInfoLoop, 1000)
 window.addEventListener("resize", mainInfoLoop)
-window.addEventListener("DOMContentLoaded", () => {
+
+/** Run the main info loop directly on load and block pdf if requested. */
+const init = () => {
     mainInfoLoop()
     const pdfbehavior = getSetting("pdfbehavior") ?? "block"
     if (pdfbehavior !== "view") {
@@ -1078,4 +1080,10 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         })
     }
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

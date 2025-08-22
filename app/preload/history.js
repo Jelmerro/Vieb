@@ -231,8 +231,21 @@ const clearHistory = () => {
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    // Translations
+ipcRenderer.on("history-list", (_, h) => receiveHistory(h))
+ipcRenderer.on("history-removal-status", success => {
+    [...virtualList.querySelectorAll(".marked")].forEach(m => {
+        if (success) {
+            m.remove()
+        } else {
+            m.classList.remove("marked")
+        }
+    })
+    currentlyRemoving = false
+    updateCurrentView()
+})
+
+/** Translate, add remove all button and populate the list. */
+const init = () => {
     const h1 = document.querySelector("h1")
     if (h1) {
         h1.textContent = translate("pages.history.title")
@@ -273,16 +286,10 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     })
     ipcRenderer.sendToHost("history-list-request")
-})
-ipcRenderer.on("history-list", (_, h) => receiveHistory(h))
-ipcRenderer.on("history-removal-status", success => {
-    [...virtualList.querySelectorAll(".marked")].forEach(m => {
-        if (success) {
-            m.remove()
-        } else {
-            m.classList.remove("marked")
-        }
-    })
-    currentlyRemoving = false
-    updateCurrentView()
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

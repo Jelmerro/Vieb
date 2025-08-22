@@ -1320,146 +1320,6 @@ export const reopenTab = src => {
     addTab({...restore, src})
 }
 
-/** Load the tabs from disk and from startup args. */
-export const init = () => {
-    window.addEventListener("load", () => {
-        if (appConfig()?.icon) {
-            document.getElementById("logo")
-                ?.setAttribute("src", appConfig()?.icon ?? "")
-        }
-        /** @type {{
-         *   closed?: typeof recentlyClosed,
-         *   pinned?: typeof recentlyClosed,
-         *   tabs?: typeof recentlyClosed,
-         *   id?: number
-         * }} */
-        const parsed = readJSON(tabFile)
-        if (!erwicMode) {
-            if (parsed) {
-                const s = getSetting("suspendonrestore")
-                const restoreTabs = getSetting("restoretabs")
-                const keepRecentlyClosed = getSetting("keeprecentlyclosed")
-                if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
-                    recentlyClosed = parsed.closed
-                }
-                if (Array.isArray(parsed.pinned)) {
-                    if (restoreTabs === "all" || restoreTabs === "pinned") {
-                        parsed.pinned.forEach(t => addTab({
-                            "src": "source",
-                            ...t,
-                            "lazy": s === "all",
-                            "pinned": true,
-                            "switchTo": false
-                        }))
-                    } else if (keepRecentlyClosed) {
-                        recentlyClosed.push(...parsed.pinned)
-                    }
-                }
-                if (Array.isArray(parsed.tabs)) {
-                    if (restoreTabs === "all" || restoreTabs === "regular") {
-                        parsed.tabs.forEach(t => addTab({
-                            "src": "source",
-                            ...t,
-                            "lazy": s === "all" || s === "regular",
-                            "switchTo": false
-                        }))
-                    } else if (keepRecentlyClosed) {
-                        recentlyClosed.push(...parsed.tabs)
-                    }
-                }
-                if (listTabs().length !== 0) {
-                    switchToTab(parsed.id || 0)
-                }
-            }
-            const startup = getSetting("startuppages")
-            for (const tab of startup) {
-                const parts = tab.split("~")
-                const url = parts.shift() ?? ""
-                const container = parts.shift() ?? ""
-                const muted = parts.includes("muted")
-                const pinned = parts.includes("pinned")
-                addTab({
-                    container,
-                    muted,
-                    pinned,
-                    "src": "source",
-                    "startup": true,
-                    url
-                })
-            }
-        }
-        ipcRenderer.on("urls", (_, pages) => {
-            for (const page of pages) {
-                const replaceStartup = getSetting("replacestartup")
-                if (replaceStartup !== "never") {
-                    try {
-                        const url = currentPage()?.src ?? ""
-                        const specialName = pathToSpecialPageName(url)?.name
-                        const isNewtab = specialName === "newtab"
-                            || url.replace(/\/+$/g, "") === stringToUrl(
-                                getSetting("newtaburl")).replace(/\/+$/g, "")
-                        if (isNewtab || replaceStartup === "always") {
-                            navigateTo("source", stringToUrl(page?.url || page))
-                            continue
-                        }
-                    } catch {
-                        // No tabs yet
-                    }
-                }
-                if (typeof page === "string") {
-                    addTab({
-                        "src": "source",
-                        "startup": true,
-                        "url": stringToUrl(page)
-                    })
-                } else if (typeof page === "object" && page.url) {
-                    addTab({
-                        "src": "source",
-                        ...page,
-                        "startup": true,
-                        "url": stringToUrl(page.url)
-                    })
-                }
-            }
-        })
-        ipcRenderer.on("navigate-to", (_, url) => navigateTo(
-            "user", stringToUrl(url)))
-        ipcRenderer.on("unresponsive", (_, id) => {
-            listReadyPages().forEach(webview => {
-                if (webview.getWebContentsId() === id) {
-                    tabForPage(webview)?.classList.add("unresponsive")
-                }
-            })
-        })
-        ipcRenderer.on("responsive", (_, id) => {
-            listReadyPages().forEach(webview => {
-                if (webview.getWebContentsId() === id) {
-                    tabForPage(webview)?.classList.remove("unresponsive")
-                }
-            })
-        })
-        ipcRenderer.on("new-tab", (_, url) => addTab({
-            "src": "user",
-            "switchTo": getSetting("mousenewtabswitch"),
-            "url": stringToUrl(url)
-        }))
-        if (listTabs().length === 0 && !erwicMode) {
-            if (parsed) {
-                addTab({"src": "source"})
-            } else {
-                // The very first startup with this datafolder, show help page
-                addTab({"src": "source", "url": specialPagePath("help")})
-            }
-        }
-        ipcRenderer.send("window-state-init", {
-            "full": getSetting("windowfullscreen"),
-            "max": getSetting("windowmaximize"),
-            "pos": getSetting("windowposition"),
-            "size": getSetting("windowsize")
-        })
-    })
-}
-
 /** Move the tab forward in the tab bar. */
 export const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
@@ -1492,4 +1352,151 @@ export const moveTabBackward = () => {
     tabs.insertBefore(tab, tab.previousElementSibling)
     tab.scrollIntoView({"block": "center", "inline": "center"})
     return true
+}
+
+/** Load the tabs from disk and from startup args. */
+const pageLoadedInit = () => {
+    if (appConfig()?.icon) {
+        document.getElementById("logo")
+            ?.setAttribute("src", appConfig()?.icon ?? "")
+    }
+    /** @type {{
+     *   closed?: typeof recentlyClosed,
+     *   pinned?: typeof recentlyClosed,
+     *   tabs?: typeof recentlyClosed,
+     *   id?: number
+     * }} */
+    const parsed = readJSON(tabFile)
+    if (!erwicMode) {
+        if (parsed) {
+            const s = getSetting("suspendonrestore")
+            const restoreTabs = getSetting("restoretabs")
+            const keepRecentlyClosed = getSetting("keeprecentlyclosed")
+            if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
+                recentlyClosed = parsed.closed
+            }
+            if (Array.isArray(parsed.pinned)) {
+                if (restoreTabs === "all" || restoreTabs === "pinned") {
+                    parsed.pinned.forEach(t => addTab({
+                        "src": "source",
+                        ...t,
+                        "lazy": s === "all",
+                        "pinned": true,
+                        "switchTo": false
+                    }))
+                } else if (keepRecentlyClosed) {
+                    recentlyClosed.push(...parsed.pinned)
+                }
+            }
+            if (Array.isArray(parsed.tabs)) {
+                if (restoreTabs === "all" || restoreTabs === "regular") {
+                    parsed.tabs.forEach(t => addTab({
+                        "src": "source",
+                        ...t,
+                        "lazy": s === "all" || s === "regular",
+                        "switchTo": false
+                    }))
+                } else if (keepRecentlyClosed) {
+                    recentlyClosed.push(...parsed.tabs)
+                }
+            }
+            if (listTabs().length !== 0) {
+                switchToTab(parsed.id || 0)
+            }
+        }
+        const startup = getSetting("startuppages")
+        for (const tab of startup) {
+            const parts = tab.split("~")
+            const url = parts.shift() ?? ""
+            const container = parts.shift() ?? ""
+            const muted = parts.includes("muted")
+            const pinned = parts.includes("pinned")
+            addTab({
+                container,
+                muted,
+                pinned,
+                "src": "source",
+                "startup": true,
+                url
+            })
+        }
+    }
+    ipcRenderer.on("urls", (_, pages) => {
+        for (const page of pages) {
+            const replaceStartup = getSetting("replacestartup")
+            if (replaceStartup !== "never") {
+                try {
+                    const url = currentPage()?.src ?? ""
+                    const specialName = pathToSpecialPageName(url)?.name
+                    const isNewtab = specialName === "newtab"
+                        || url.replace(/\/+$/g, "") === stringToUrl(
+                            getSetting("newtaburl")).replace(/\/+$/g, "")
+                    if (isNewtab || replaceStartup === "always") {
+                        navigateTo("source", stringToUrl(page?.url || page))
+                        continue
+                    }
+                } catch {
+                    // No tabs yet
+                }
+            }
+            if (typeof page === "string") {
+                addTab({
+                    "src": "source",
+                    "startup": true,
+                    "url": stringToUrl(page)
+                })
+            } else if (typeof page === "object" && page.url) {
+                addTab({
+                    "src": "source",
+                    ...page,
+                    "startup": true,
+                    "url": stringToUrl(page.url)
+                })
+            }
+        }
+    })
+    ipcRenderer.on("navigate-to", (_, url) => navigateTo(
+        "user", stringToUrl(url)))
+    ipcRenderer.on("unresponsive", (_, id) => {
+        listReadyPages().forEach(webview => {
+            if (webview.getWebContentsId() === id) {
+                tabForPage(webview)?.classList.add("unresponsive")
+            }
+        })
+    })
+    ipcRenderer.on("responsive", (_, id) => {
+        listReadyPages().forEach(webview => {
+            if (webview.getWebContentsId() === id) {
+                tabForPage(webview)?.classList.remove("unresponsive")
+            }
+        })
+    })
+    ipcRenderer.on("new-tab", (_, url) => addTab({
+        "src": "user",
+        "switchTo": getSetting("mousenewtabswitch"),
+        "url": stringToUrl(url)
+    }))
+    if (listTabs().length === 0 && !erwicMode) {
+        if (parsed) {
+            addTab({"src": "source"})
+        } else {
+            // The very first startup with this datafolder, show help page
+            addTab({"src": "source", "url": specialPagePath("help")})
+        }
+    }
+    ipcRenderer.send("window-state-init", {
+        "full": getSetting("windowfullscreen"),
+        "max": getSetting("windowmaximize"),
+        "pos": getSetting("windowposition"),
+        "size": getSetting("windowsize")
+    })
+}
+
+/** Call the init if the page is loaded. */
+export const init = () => {
+    if (document.readyState === "loading") {
+        window.addEventListener("load", pageLoadedInit)
+    } else {
+        pageLoadedInit()
+    }
 }

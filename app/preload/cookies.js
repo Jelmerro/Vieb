@@ -136,7 +136,8 @@ const removeAllCookies = () => {
     refreshList()
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+/** Translate, add remove all button and populate the list. */
+const init = () => {
     const h1 = document.querySelector("h1")
     if (h1) {
         h1.textContent = translate("pages.cookies.title")
@@ -156,4 +157,10 @@ window.addEventListener("DOMContentLoaded", () => {
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter")?.addEventListener("input", filterList)
     refreshList()
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

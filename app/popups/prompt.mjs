@@ -18,7 +18,8 @@
 
 import {ipcRenderer} from "electron"
 
-window.addEventListener("load", () => {
+/** Simulate a prompt using a native dialog based on info from main event. */
+const init = () => {
     const input = document.querySelector("input")
     if (!input) {
         return
@@ -72,4 +73,10 @@ window.addEventListener("load", () => {
             input.click()
         }
     })
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("load", init)
+} else {
+    init()
+}

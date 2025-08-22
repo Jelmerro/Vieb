@@ -287,7 +287,9 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
 
 ipcRenderer.on("settings", updateSettingsList)
 window.addEventListener("hashchange", processHash)
-window.addEventListener("DOMContentLoaded", () => {
+
+/** Create example buttons, create reference links and jump to right section. */
+const init = () => {
     /** @type {(
      *   "chromium"|"firefox"|"vivaldi"|"qutebrowser"|"vimium"|"tridactyl"|
      *   "pentadactyl"|"surfingkeys"|"sakakey"|"vimvixen"
@@ -354,4 +356,10 @@ window.addEventListener("DOMContentLoaded", () => {
     sections.forEach(section => createIdLabel(section))
     // Set focus to correct part of the page after it's done loading
     setTimeout(processHash, 200)
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

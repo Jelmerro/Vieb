@@ -28,7 +28,8 @@ import {init as pointerInit} from "./pointer.js"
 import {init as settingsInit} from "./settings.js"
 import {init as tabsInit} from "./tabs.js"
 
-window.addEventListener("DOMContentLoaded", () => {
+/** Load all modules and run their respective init functions. */
+const init = () => {
     inputInit()
     settingsInit()
     historyInit()
@@ -40,4 +41,10 @@ window.addEventListener("DOMContentLoaded", () => {
     followInit()
     contextmenuInit()
     pointerInit()
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

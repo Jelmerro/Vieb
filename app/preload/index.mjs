@@ -17,24 +17,24 @@
 */
 
 // Always load follow mode JavaScript
-await import("./follow.js")
+import("./follow.js")
 import {pathToSpecialPageName} from "../preloadutil.js"
 const specialPage = pathToSpecialPageName(window.location.href)
 const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
 if (specialPage?.name) {
     // Load the special page specific JavaScript
-    await import(`./${specialPage.name}.js`)
+    import(`./${specialPage.name}.js`)
 } else if (!skipProtocols.some(p => window.location.href.startsWith(p))) {
     // Load the privacy related fixes for nonspecial pages
-    await import("./privacy.js")
+    import("./privacy.js")
     // Load the failed page information handler for nonspecial pages
-    await import("./failedload.js")
+    import("./failedload.js")
     // Load the local directory browser for nonspecial pages
-    await import("./filebrowser.js")
+    import("./filebrowser.js")
     // Load optional plugins and extensions
-    await import("./extensions.js")
+    import("./extensions.js")
 }
 // Always load the misc action functions (such as scrolling before page loads)
-await import("./actions.js")
+import("./actions.js")
 // Load the custom styling such as colors, fontsizes and darkreader
-await import("./styling.js")
+import("./styling.js")

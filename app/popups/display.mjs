@@ -21,7 +21,9 @@ import {ipcRenderer} from "electron"
 const keys = "abcdefghijklmnopqrstuvwxyz0123456789".split("")
 /** @type {{title: string, img: string, icon: string}[]} */
 let sources = []
-window.addEventListener("load", () => {
+
+/** Ask for display information via dialog with images and keyboard mappings. */
+const init = () => {
     const screensContainer = document.getElementById("screens")
     const audioEnabledBox = document.getElementById("audio-enabled")
     const echoEnabledBox = document.getElementById("echo-enabled")
@@ -148,4 +150,10 @@ window.addEventListener("load", () => {
             }
         }
     })
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("load", init)
+} else {
+    init()
+}

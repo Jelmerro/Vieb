@@ -20,7 +20,8 @@ import {ipcRenderer} from "electron"
 import {translate} from "../translate.js"
 import {formatDate} from "../util.js"
 
-window.addEventListener("DOMContentLoaded", () => {
+/** Translate page and listener for notification info to populate the list. */
+const init = () => {
     const h1 = document.querySelector("h1")
     if (h1) {
         h1.textContent = translate("pages.notifications.title")
@@ -64,4 +65,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     ipcRenderer.on("notification-history", showNofitications)
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init)
+} else {
+    init()
+}

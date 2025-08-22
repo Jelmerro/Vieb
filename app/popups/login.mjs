@@ -18,7 +18,8 @@
 
 import {ipcRenderer} from "electron"
 
-window.addEventListener("load", () => {
+/** Respond to username and password inputs, such as send on enter. */
+const init = () => {
     const username = document.getElementById("username")
     const password = document.getElementById("password")
     if (!(username instanceof HTMLInputElement)) {
@@ -87,4 +88,10 @@ window.addEventListener("load", () => {
             }
         })
     })
-})
+}
+
+if (document.readyState === "loading") {
+    window.addEventListener("load", init)
+} else {
+    init()
+}
