@@ -144,14 +144,14 @@ const runGMScript = (webview, rawContents) => {
             "platform": {
                 "arch": "${archName}",
                 "browserName": "vieb",
-                "browserVersion": "${appConfig()?.version}",
+                "browserVersion": "${appConfig()?.versions.app}",
                 "os": "${os}"
             },
             "script": ${JSON.stringify(info)},
             "scriptHandler": "Vieb",
             "scriptMetaStr": ${JSON.stringify(headerLines.join("\n"))},
             "uuid": "${Math.random}",
-            "version": "${appConfig()?.version}"
+            "version": "${appConfig()?.versions.app}"
         },
         "listValues": () => new Promise(res => {
             const list = []

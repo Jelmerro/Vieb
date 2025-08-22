@@ -2533,7 +2533,11 @@ ipcMain.on("app-config", e => {
         "order": argConfigOrder,
         "override": argConfigOverride,
         "shell": systemShell,
-        version
+        "versions": {
+            "app": version,
+            "chrome": process.versions.chrome,
+            "electron": process.versions.electron
+        }
     }
 })
 ipcMain.on("is-fullscreen", e => {

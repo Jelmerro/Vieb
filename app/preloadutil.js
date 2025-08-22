@@ -66,17 +66,21 @@ const notificationHistory = []
  * @type {{
  *   appdata: string,
  *   autoplay: string,
+ *   config: string,
  *   downloads: string,
  *   execPath: string,
+ *   files: string[],
  *   icon?: string,
  *   name: string,
  *   order: "none"|"user-only"|"datafolder-only"
  *   |"user-first"|"datafolder-first",
  *   override: string,
- *   files: string[],
- *   config: string,
  *   shell: string,
- *   version: string
+ *   versions: {
+ *       app: string,
+ *       chrome: string,
+ *       electron: string,
+ *   }
  * }|null}
  */
 let configSettings = null

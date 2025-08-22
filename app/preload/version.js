@@ -21,13 +21,13 @@ import {translate, translateAsHTML} from "../translate.js"
 import {compareVersions} from "../util.js"
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const {icon, name, version} = appConfig() ?? {}
+const {icon, name, versions} = appConfig() ?? {}
 
 /** Check for updates to Vieb on button click via Github. */
 const checkForUpdates = () => {
     const versionCheck = document.getElementById("version-check")
     const button = document.querySelector("button")
-    if (!versionCheck || !button || !version) {
+    if (!versionCheck || !button || !versions?.app) {
         return
     }
     versionCheck.textContent = translate("pages.version.loading")
@@ -39,7 +39,7 @@ const checkForUpdates = () => {
             if (req.status === 200) {
                 try {
                     const release = JSON.parse(req.responseText)
-                    const diff = compareVersions(version, release.tag_name)
+                    const diff = compareVersions(versions.app, release.tag_name)
                     if (diff === "older") {
                         versionCheck.textContent = translate(
                             "pages.version.newerFound",
@@ -121,7 +121,7 @@ const init = () => {
     const descriptionEl = document.getElementById("description")
     if (descriptionEl) {
         descriptionEl.append(...translateAsHTML("pages.version.description",
-            {"fields": [process.versions.electron, process.versions.chrome]}))
+            {"fields": [versions?.electron ?? "", versions?.chrome ?? ""]}))
     }
     // Regular init
     const nameEl = document.getElementById("name")
@@ -134,7 +134,7 @@ const init = () => {
     }
     const versionEl = document.getElementById("version")
     if (versionEl) {
-        versionEl.textContent = version ?? ""
+        versionEl.textContent = versions?.app ?? ""
     }
     if (buttonEl) {
         buttonEl.addEventListener("click", checkForUpdates)

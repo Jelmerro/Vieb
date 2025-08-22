@@ -214,11 +214,13 @@ export const userAgentTemplated = agent => {
     if (!agent) {
         return ""
     }
-    const version = `${process.versions.chrome.split(".")[0]}.0.0.0`
+    const version = `${chromiumVersion()}.0.0.0`
     return agent
         .replace(/%sys/g, userAgentPlatform())
         .replace(/%firefoxversion/g, firefoxVersion())
-        .replace(/%fullversion/g, process.versions.chrome)
+        // Not possible with: https://github.com/electron/electron/issues/46142
+        // .replace(/%fullversion/g, process.versions.chrome)
+        .replace(/%fullversion/g, version)
         .replace(/%version/g, version)
         .replace(/%firefox/g, firefoxUseragent())
         .replace(/%default/g, defaultUseragent())

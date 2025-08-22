@@ -1994,15 +1994,13 @@ export const suggestionList = () => {
 
 /** Update the window title using the windowtitle setting and app config. */
 export const updateWindowTitle = () => {
-    const config = appConfig()
-    const name = config?.name ?? ""
-    const version = config?.version ?? ""
+    const {name, versions} = appConfig() ?? {}
     const title = tabForPage(currentPage())
         ?.querySelector("span")?.textContent || ""
     const url = urlToString(currentPage()?.src || "")
     ipcRenderer.send("set-window-title", allSettings.windowtitle
-        .replace(/%app/g, name).replace(/%title/g, title)
-        .replace(/%url/g, url).replace(/%version/g, version))
+        .replace(/%app/g, name ?? "").replace(/%title/g, title)
+        .replace(/%url/g, url).replace(/%version/g, versions?.app ?? ""))
 }
 
 /** Get the custom styling CSS lines. */
