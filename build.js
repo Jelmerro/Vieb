@@ -64,7 +64,7 @@ const defaultConfig = {"config": {
         "app/examples/*",
         "app/img/*.*",
         "!app/img/cheatsheet.svg",
-        "app/popups/*.js",
+        "app/popups/*.mjs",
         "app/translations/*.json",
         {"from": "build/", "to": "app/"},
         {"from": "app/index.html", "to": "app/index.html"},

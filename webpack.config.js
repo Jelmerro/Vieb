@@ -1,6 +1,5 @@
 import {join} from "path"
 import TerserPlugin from "terser-webpack-plugin"
-import webpack from "webpack"
 
 export default [{
     "entry": {
@@ -16,6 +15,13 @@ export default [{
     },
     "externalsType": "module",
     "mode": "production",
+    "module": {
+        "parser": {
+            "javascript": {
+                "dynamicImportMode": "eager"
+            }
+        }
+    },
     "optimization": {
         "minimize": true,
         "minimizer": [
@@ -27,8 +33,7 @@ export default [{
                     }
                 }
             })
-        ],
-        "moduleIds": "named"
+        ]
     },
     "output": {
         "chunkFormat": "module",
@@ -47,10 +52,5 @@ export default [{
         "module": true,
         "path": join(import.meta.dirname, "build")
     },
-    "plugins": [
-        new webpack.optimize.LimitChunkCountPlugin({
-            "maxChunks": 1
-        })
-    ],
     "target": "node"
 }]
