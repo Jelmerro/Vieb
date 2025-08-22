@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow mode click detection not working well with events set directly on elements as properties since last release
 - Elements in nested same-domain iframes not being aligned correctly in follow in some cases
 - Mouse movements not being registered in same-domain iframes correctly
+- Permission check for media devices being mixed up with microphone and video types in some cases since last release
 
 ### Versions
 

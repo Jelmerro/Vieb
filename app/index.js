@@ -629,6 +629,7 @@ let permissions = {}
  * @param {string} pm
  * @param {null|((_: any) => void)} callback
  * @param {{
+ *   mediaTypes?: ("video"|"audio"|"unknown")[],
  *   mediaType?: "video"|"audio"|"unknown",
  *   externalURL?: string,
  *   requestingUrl?: string
@@ -647,11 +648,11 @@ const permissionHandler = (_, pm, callback, details) => {
         return DRM
     }
     if (permission === "media") {
-        if (details.mediaType === "video") {
+        if (details.mediaTypes?.includes("video")) {
             permission = "camera"
-        } else if (details.mediaType === "audio") {
+        } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
-        } else if (details.mediaType) {
+        } else if (details.mediaTypes) {
             permission = "displaycapture"
         } else {
             permission = "mediadevices"
