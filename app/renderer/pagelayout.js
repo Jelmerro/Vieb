@@ -81,6 +81,11 @@ export const applyLayout = () => {
     if (!pagelayout) {
         return
     }
+    const containerPos = pagelayout.getBoundingClientRect()
+    if (containerPos.height === 0) {
+        setTimeout(applyLayout, 10)
+        return
+    }
     pagelayout.querySelectorAll("*[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
         const page = document.querySelector(`#pages .webview[link-id='${id}']`)
@@ -102,7 +107,6 @@ export const applyLayout = () => {
     const visiblePages = []
     /** @type {HTMLSpanElement[]} */
     const visibleTabs = []
-    const containerPos = pagelayout.getBoundingClientRect()
     pagelayout.querySelectorAll("*[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
         const page = listPages().find(p => p.getAttribute("link-id") === id)
