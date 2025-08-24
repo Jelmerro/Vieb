@@ -16,7 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Action "pasteText" to programmatically add text in an input using custom mappings
-- New theme/colorscheme for having vertical tabs on the right of the screen
+- New themes: verticaltabsright, catppuccin, light-catppuccin
 
 ### Changed
 
