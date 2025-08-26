@@ -63,8 +63,15 @@ const {setMode} = require("./modes")
  * @typedef {(
  *   "open"|"newtab"|"copy"|"download"|"split"|"vsplit"|"external"|"search"
  * )} tabPosition
- *
-/** @type {{container: string, muted: boolean, url: string, index: number}[]} */
+ */
+/** @typedef {{
+ *   container: string,
+ *   muted: boolean,
+ *   url: string,
+ *   index?: number,
+ * }} TabInfo
+ */
+/** @type {TabInfo[]} */
 let recentlyClosed = []
 let linkId = 0
 /** @type {{[id: string]: number}} */
@@ -249,11 +256,9 @@ const navigateTo = (src, location, customPage = null) => {
 /** Save the current and closed tabs to disk if configured to do so. */
 const saveTabs = () => {
     /** @type {{
-     *   closed: {
-     *     container: string, muted: boolean, url: string, index?: number
-     *   }[]
-     *   pinned: {container: string, muted: boolean, url: string}[]
-     *   tabs: {container: string, muted: boolean, url: string}[]
+     *   closed: TabInfo[]
+     *   pinned: TabInfo[]
+     *   tabs: TabInfo[]
      *   id: number
      * }} */
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
@@ -276,24 +281,18 @@ const saveTabs = () => {
         }
         const container = pageForTab(tab)?.getAttribute("container") ?? ""
         const isPinned = tab.classList.contains("pinned")
+        /** @type {TabInfo} */
+        const tabInfo = {
+            container,
+            "muted": !!tab.getAttribute("muted"),
+            "url": urlToString(url)
+        }
         if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
-            data.pinned.push({
-                container,
-                "muted": !!tab.getAttribute("muted"),
-                "url": urlToString(url)
-            })
+            data.pinned.push(tabInfo)
         } else if (!isPinned && ["all", "regular"].includes(restoreTabs)) {
-            data.tabs.push({
-                container,
-                "muted": !!tab.getAttribute("muted"),
-                "url": urlToString(url)
-            })
+            data.tabs.push(tabInfo)
         } else if (keepRecentlyClosed) {
-            data.closed.push({
-                container,
-                "muted": !!tab.getAttribute("muted"),
-                "url": urlToString(url)
-            })
+            data.closed.push(tabInfo)
             if (index <= data.id) {
                 data.id -= 1
             }
@@ -1295,7 +1294,7 @@ const reopenTab = src => {
     /** @type {{
      *   muted: boolean,
      *   url: string,
-     *   index: number
+     *   index?: number
      *   session?: string
      *   container?: string
      *   customIndex?: number
@@ -1311,7 +1310,9 @@ const reopenTab = src => {
     } else {
         delete restore.container
     }
-    restore.customIndex = restore.index
+    if (restore.index) {
+        restore.customIndex = restore.index
+    }
     const tab = currentTab()
     if (!tab) {
         return
