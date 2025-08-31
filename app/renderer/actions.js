@@ -998,7 +998,12 @@ const editWithVim = args => {
     }
     const fileFolder = joinPath(appData(), "vimformedits")
     makeDir(fileFolder)
-    const tempFile = joinPath(fileFolder, String(Number(new Date())))
+    let tempFile = joinPath(fileFolder, String(Number(new Date())))
+    const domain = domainName(urlToString(page.src)) || domainName(page.src)
+    if (domain && typeOfEdit === "input") {
+        tempFile = `${tempFile}_${domain}`
+    }
+    tempFile += ".txt"
     /** @type {import("child_process").ChildProcess|null} */
     let command = null
     watchFile(tempFile, () => {
