@@ -292,7 +292,13 @@
             <li><kbd>&lt;C-M-A-S-Up&gt;</kbd> - Press the up arrow key, while holding all modifiers (keep in mind that it is system and keyboard dependent if these keys are actually registered and passed to Vieb)</li>
             <li><kbd>&lt;C-&gt;&gt;j&lt;S-Del&gt;</kbd> - Press &gt; while holding Ctrl, then press j without holding modifiers, finally press Delete while holding Shift</li>
         </ul>
-        Finally, <a href="#modifiers">modifiers</a> such as Shift or Ctrl are not registered on their own, but they do change the character that is pressed when holding them.
+        Also, <a href="#modifiers">modifiers</a> such as Shift or Ctrl are not registered on their own, but they do change the character that is pressed when holding them. The &lt;&gt;-notation is the only way to write down mappings which include a modifier of any kind, the full list of modifiers is:
+        <ul>
+            <li><kbd>C</kbd> short for Ctrl, for example Ctrl with a would be <kbd>&lt;C-a&gt;</kbd></li>
+            <li><kbd>M</kbd> short for Meta, for example Meta with d would be <kbd>&lt;M-d&gt;</kbd></li>
+            <li><kbd>A</kbd> short for Alt, for example Alt with q would be <kbd>&lt;A-q&gt;</kbd></li>
+            <li><kbd>S</kbd> short for Shift, for example Shift with down would be <kbd>&lt;S-Down&gt;</kbd>, for most single characters, this notation is not needed, for example shift a would be simple <kbd>A</kbd> without &lt;&gt;</li>
+        </ul>
         <h4>Named characters</h4>
         Similar tot the &lt;&gt;-notation, there are also keys that cannot be represented in a single character, one of which is &lt;, which is of course already part of the &lt;&gt;-notation syntax. These type of characters can be represented like so:
         <ul>
