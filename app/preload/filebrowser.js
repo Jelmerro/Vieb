@@ -34,7 +34,7 @@ const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
  * @param {string|null} customTitle
  */
 const createElement = (type, loc, customTitle = null) => {
-    const element = document.createElement("div")
+    const element = document.createElement("button")
     element.className = type
     element.textContent = customTitle || basePath(loc)
     if (type !== "file") {
