@@ -721,6 +721,7 @@ let recordingName = null
 let recordingString = ""
 const keyNames = [
     {"js": ["<"], "vim": ["lt"]},
+    {"js": [">"], "vim": [">", "gt"]},
     {"js": ["Backspace"], "vim": ["BS"]},
     {
         "electron": "Return",
@@ -1896,30 +1897,25 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     const cur = Number(url.selectionStart)
     const text = String(url.value)
-    if (id.length === 1
-        && url.selectionStart !== null && url.selectionEnd !== null) {
-        url.value = `${url.value.substring(0, url.selectionStart)}${id}${
-            url.value.substring(url.selectionEnd)}`
-    }
-    if (id === "<lt>"
-        && url.selectionStart !== null && url.selectionEnd !== null) {
-        url.value = `${url.value.substring(0, url.selectionStart)}<${
-            url.value.substring(url.selectionEnd)}`
-    }
-    if (id === "<Bar>"
-        && url.selectionStart !== null && url.selectionEnd !== null) {
-        url.value = `${url.value.substring(0, url.selectionStart)}|${
-            url.value.substring(url.selectionEnd)}`
-    }
-    if (id === "<Bslash>"
-        && url.selectionStart !== null && url.selectionEnd !== null) {
-        url.value = `${url.value.substring(0, url.selectionStart)}\\${
-            url.value.substring(url.selectionEnd)}`
-    }
-    if ((id === "<Space>" || id === "<S-Space>")
-        && url.selectionStart !== null && url.selectionEnd !== null) {
-        url.value = `${url.value.substring(0, url.selectionStart)} ${
-            url.value.substring(url.selectionEnd)}`
+    if (url.selectionStart !== null && url.selectionEnd !== null) {
+        /** @type {{[key: string]: string}} */
+        const charMap = {
+            "<Bar>": "|",
+            "<Bslash>": "\\",
+            "<gt>": ">",
+            "<lt>": "<",
+            "<S-gt>": ">",
+            "<S-Space>": " ",
+            "<Space>": " "
+        }
+        let char = charMap[id] ?? null
+        if (id.length === 1) {
+            char = id
+        }
+        if (char) {
+            url.value = `${url.value.substring(0, url.selectionStart)}${char}${
+                url.value.substring(url.selectionEnd)}`
+        }
     }
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)

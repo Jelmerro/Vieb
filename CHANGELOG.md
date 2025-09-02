@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Action "pasteText" to programmatically add text in an input using custom mappings
 - New themes: verticaltabsright, catppuccin, light-catppuccin
+- Key `<gt>` as an optional alternative to just `>` for more readable commands if preferred
 
 ### Changed
 
@@ -160,7 +161,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Startup urls not opening in existing instance if the protocol was missing
 - String settings not accepting double quote escaping properly in 11.0.0
 - Markdown local images not loading properly on Windows due to Windows file paths being weird
-- File explorer not working on Windows since 10.4.0 due to Windows file paths being weirrd
+- File explorer not working on Windows since 10.4.0 due to Windows file paths being weird
 - Root url actions breaking the file explorer on Windows by navigating above the root
 
 ### Versions
