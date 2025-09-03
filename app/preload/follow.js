@@ -252,7 +252,7 @@ const getAllFollowLinks = (filter = null) => {
     if (!filter || filter.some(f => f.startsWith("input"))) {
         // Input tags such as checkboxes, can be clicked but have no text input
         const inputs = allEls.filter(el => matchesQuery(el, clickInputs))
-        inputs.push(...allEls.filter(el => matchesQuery(el, "input"))
+        inputs.push(...allEls.filter(el => matchesQuery(el, "input,label"))
             .map(e => e.closest("label")).flatMap(e => {
                 if (e && !inputs.includes(e)) {
                     return e
