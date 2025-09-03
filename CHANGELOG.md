@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "pasteText" to programmatically add text in an input using custom mappings
 - New themes: verticaltabsright, catppuccin, light-catppuccin
 - Key `<gt>` as an optional alternative to just `>` for more readable commands if preferred
+- Setting "insertleavetimeout" to automatically leave insert mode after not interacting for a set amount of time
 
 ### Changed
 

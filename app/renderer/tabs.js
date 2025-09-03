@@ -869,6 +869,8 @@ const addWebviewListeners = webview => {
             }
             if (e.args[0]) {
                 resetScrollbarTimer("scroll")
+                const {resetInsertLeaveTimeout} = require("./input")
+                resetInsertLeaveTimeout()
             }
         }
         if (e.channel === "history-list-request") {

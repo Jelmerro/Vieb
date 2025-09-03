@@ -1077,6 +1077,8 @@ const restorePos = args => {
 const init = () => {
     const {setMode} = require("./modes")
     ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
+        const {resetInsertLeaveTimeout} = require("./input")
+        resetInsertLeaveTimeout()
         if ("ces".includes(currentMode()[0]) && getMouseConf("leaveinput")) {
             setMode("normal")
         }
@@ -1111,6 +1113,8 @@ const init = () => {
         setFocusCorrectly()
     })
     ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
+        const {resetInsertLeaveTimeout} = require("./input")
+        resetInsertLeaveTimeout()
         if (skipNextClick) {
             skipNextClick = false
             return

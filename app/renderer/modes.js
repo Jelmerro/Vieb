@@ -34,6 +34,11 @@ const {
 const modes = {
     "normal": {},
     "insert": {
+        /** When entering or leaving insert mode, reset the leave timeout. */
+        "onEnter": () => {
+            const {resetInsertLeaveTimeout} = require("./input")
+            resetInsertLeaveTimeout()
+        },
         /**
          * When leaving insert mode, all page elements should be unfocused.
          * @param {import("./common").Mode} newMode
@@ -49,6 +54,8 @@ const modes = {
                     hoverEl.style.display = "none"
                 }
             }
+            const {resetInsertLeaveTimeout} = require("./input")
+            resetInsertLeaveTimeout()
         }
     },
     "command": {

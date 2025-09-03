@@ -189,6 +189,7 @@ const defaultSettings = {
     "incsearch": true,
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
+    "insertleavetimeout": 0,
     "keeprecentlyclosed": true,
     "lang": "en",
     /** @type {"none"|"spinner"|"line"|"all"} */
@@ -620,6 +621,7 @@ const numberRanges = {
     "guifontsize": [1, 300],
     "guihidetimeout": [0, 9000000000000000],
     "historyperpage": [1, 9000000000000000],
+    "insertleavetimeout": [0, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
     "mintabwidth": [0, 9000000000000000],

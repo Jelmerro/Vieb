@@ -702,6 +702,8 @@ let bindings = JSON.parse(JSON.stringify(defaultBindings))
 let supportedActions = []
 /** @type {number|null} */
 let timeoutTimer = null
+/** @type {number|null} */
+let insertleavetimeoutTimer = null
 let blockNextInsertKey = false
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
@@ -2033,6 +2035,23 @@ const sanitiseMapString = (src, mapString, allowSpecials = false) => {
     }).join("")
 }
 
+/** Restart or clear the insert mode leave timeout timer. */
+const resetInsertLeaveTimeout = () => {
+    window.clearTimeout(insertleavetimeoutTimer ?? undefined)
+    if (currentMode() !== "insert") {
+        return
+    }
+    const timeout = getSetting("insertleavetimeout")
+    if (!timeout) {
+        return
+    }
+    insertleavetimeoutTimer = window.setTimeout(() => {
+        if (currentMode() === "insert") {
+            ACTIONS.toNormalMode()
+        }
+    }, timeout)
+}
+
 /**
  * Handle all keyboard input.
  * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
@@ -2092,6 +2111,7 @@ const handleKeyboard = async e => {
     const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
     window.clearTimeout(timeoutTimer ?? undefined)
+    resetInsertLeaveTimeout()
     const {active, clear} = require("./contextmenu")
     if (getSetting("timeout")) {
         timeoutTimer = window.setTimeout(async() => {
@@ -2889,6 +2909,7 @@ module.exports = {
     repeatLastAction,
     requestSuggestUpdate,
     resetInputHistory,
+    resetInsertLeaveTimeout,
     resetScreenshotDrag,
     sanitiseMapString,
     splitMapString,
