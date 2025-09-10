@@ -398,89 +398,47 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     previouslyFocussedElements.push(focusEl)
 })
 
-/** Track updates to event listeners and write them down as a data attribute. */
+/** Track updates to event listeners and store them in a WeakMap instead of DOM attributes */
 const trackEventListeners = () => {
-    /**
-     * Check if a node is an element, taking subframes into account.
-     * @param {Node|EventTarget|null|undefined} el
-     * @returns {el is Element}
-     */
-    const isElementInMainWorld = el => {
-        if (el instanceof EventTarget && !(el instanceof Element)) {
-            return false
-        }
-        if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
-            return false
-        }
-        return el instanceof el.ownerDocument.defaultView.Element
-    }
+    const listenerCounts = new WeakMap();
 
-    /* eslint-disable no-restricted-syntax */
-    const realAdd = EventTarget.prototype.addEventListener
-    /**
-     * Add the event listener while also recording its existence in a set.
-     * @param {string} type
-     * @param {() => void} listener
-     * @param {object} opts
-     */
+    const isElementInMainWorld = el => {
+        if (el instanceof EventTarget && !(el instanceof Element)) return false;
+        if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) return false;
+        return el instanceof el.ownerDocument.defaultView.Element;
+    };
+
+    const realAdd = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function(type, listener, opts) {
         try {
-            realAdd.apply(this, [type, listener, opts])
-        } catch {
-            // This is a bug in the underlying website
-        }
+            realAdd.call(this, type, listener, opts);
+        } catch {}
+
         if (isElementInMainWorld(this)) {
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = this.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
+            let counts = listenerCounts.get(this);
+            if (!counts) {
+                counts = {};
+                listenerCounts.set(this, counts);
             }
-            listeners[type] = (listeners[type] || 0) + 1
-            const listenersStr = Object.keys(listeners)
-                .map(l => `${l}:${listeners[l]}`).join(",")
-            this.setAttribute?.("data-eventlisteners", listenersStr)
+            counts[type] = (counts[type] || 0) + 1;
         }
-    }
-    const realRemove = EventTarget.prototype.removeEventListener
-    /**
-     * Remove the event listener while also removing its storage from a set.
-     * @param {string} type
-     * @param {() => void} listener
-     * @param {object} opts
-     */
+    };
+
+    const realRemove = EventTarget.prototype.removeEventListener;
     EventTarget.prototype.removeEventListener = function(type, listener, opts) {
         try {
-            realRemove.apply(this, [type, listener, opts])
-        } catch {
-            // This is a bug in the underlying website
-        }
+            realRemove.call(this, type, listener, opts);
+        } catch {}
+
         if (isElementInMainWorld(this)) {
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = this.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
-            }
-            listeners[type] = (listeners[type] || 0) - 1
-            if (listeners[type] <= 0) {
-                delete listeners[type]
-            }
-            if (Object.keys(listeners).length) {
-                const listenersStr = Object.keys(listeners)
-                    .map(l => `${l}:${listeners[l]}`).join(",")
-                this.setAttribute?.("data-eventlisteners", listenersStr)
-            } else {
-                this.removeAttribute?.("data-eventlisteners")
+            const counts = listenerCounts.get(this);
+            if (counts && counts[type]) {
+                counts[type]--;
+                if (counts[type] <= 0) delete counts[type];
             }
         }
-    }
-    /* eslint-enable no-restricted-syntax */
-}
+    };
+};
 
 contextBridge.executeInMainWorld({"func": trackEventListeners})
 
