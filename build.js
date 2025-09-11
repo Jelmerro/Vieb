@@ -71,7 +71,6 @@ const defaultConfig = {"config": {
     ],
     "linux": {
         "category": "Network;WebBrowser;",
-        "executableArgs": ["--ozone-platform-hint=auto"],
         "executableName": "vieb",
         "icon": "app/img/icons",
         "maintainer": "Jelmer van Arnhem",
