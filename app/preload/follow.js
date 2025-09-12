@@ -90,15 +90,8 @@ const hasContextMenuListener = el => {
     if (hasAttribute) {
         return true
     }
-    /** @type {{[type: string]: number}} */
-    const listeners = {}
-    const attr = el.getAttribute("data-eventlisteners")
-    for (const l of attr?.split(",") ?? []) {
-        const [name, countStr] = l.split(":")
-        const count = Number(countStr) || 0
-        listeners[name] = count
-    }
-    return listeners.contextmenu && listeners.contextmenu > 0
+    const counts = window.getEventListenerCount?.(el) || {};
+    return counts?.contextmenu && counts.contextmenu > 0
 }
 
 /**
@@ -135,19 +128,12 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "other"})
             }
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = el.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
-            }
-            if (clickEvents.some(t => listeners[t] && listeners[t] > 0)) {
+            const counts = window.getEventListenerCount?.(el) || {};
+            if (clickEvents.some(t => counts[t] && counts[t] > 0)) {
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "onclick"})
             }
-            if (otherEvents.some(t => listeners[t] && listeners[t] > 0)) {
+            if (otherEvents.some(t => counts[t] && counts[t] > 0)) {
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "other"})
             }
@@ -438,6 +424,8 @@ const trackEventListeners = () => {
             }
         }
     };
+
+    window.getEventListenerCount = el => listenerCounts.get(el) || {};
 };
 
 contextBridge.executeInMainWorld({"func": trackEventListeners})
