@@ -68,6 +68,8 @@ const textlikeInputs = [
 ].join(",")
 /** @type {Element[]} */
 const previouslyFocussedElements = []
+/** @type {((ev: EventTarget) => {[key: string]: number})|null} */
+let getListenCounts = null
 
 /**
  * Check if an element has a contextmenu listener on it.
@@ -90,15 +92,7 @@ const hasContextMenuListener = el => {
     if (hasAttribute) {
         return true
     }
-    /** @type {{[type: string]: number}} */
-    const listeners = {}
-    const attr = el.getAttribute("data-eventlisteners")
-    for (const l of attr?.split(",") ?? []) {
-        const [name, countStr] = l.split(":")
-        const count = Number(countStr) || 0
-        listeners[name] = count
-    }
-    return listeners.contextmenu && listeners.contextmenu > 0
+    return (getListenCounts?.(el)?.contextmenu ?? 0) > 0
 }
 
 /**
@@ -107,12 +101,15 @@ const hasContextMenuListener = el => {
  * @returns {{el: Element, "type": "onclick"|"other"}[]}
  */
 const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
-    "args": [els],
+    "args": [els, getListenCounts],
     /**
      * Check in the page if an Element has listeners of a specific type.
      * @param {Element[]} allElements
+     * @param {(
+     *   (ev: EventTarget) => {[key: string]: number}
+     * )|null} mainGetListenCounts
      */
-    "func": allElements => {
+    "func": (allElements, mainGetListenCounts) => {
         const clickEvents = ["click", "mousedown", "mouseup"]
         const otherEvents = [
             "mouseenter",
@@ -135,19 +132,12 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "other"})
             }
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = el.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
-            }
-            if (clickEvents.some(t => listeners[t] && listeners[t] > 0)) {
+            const listeners = mainGetListenCounts?.(el) ?? {}
+            if (clickEvents.some(t => (listeners[t] ?? 0) > 0)) {
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "onclick"})
             }
-            if (otherEvents.some(t => listeners[t] && listeners[t] > 0)) {
+            if (otherEvents.some(t => (listeners[t] ?? 0) > 0)) {
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "other"})
             }
@@ -400,6 +390,8 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
 
 /** Track updates to event listeners and write them down as a data attribute. */
 const trackEventListeners = () => {
+    const mainWorldListenCounts = new Map()
+
     /**
      * Check if a node is an element, taking subframes into account.
      * @param {Node|EventTarget|null|undefined} el
@@ -430,18 +422,12 @@ const trackEventListeners = () => {
             // This is a bug in the underlying website
         }
         if (isElementInMainWorld(this)) {
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = this.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
+            let counts = mainWorldListenCounts.get(this)
+            if (!counts) {
+                counts = {}
+                mainWorldListenCounts.set(this, counts)
             }
-            listeners[type] = (listeners[type] || 0) + 1
-            const listenersStr = Object.keys(listeners)
-                .map(l => `${l}:${listeners[l]}`).join(",")
-            this.setAttribute?.("data-eventlisteners", listenersStr)
+            counts[type] = (counts[type] || 0) + 1
         }
     }
     const realRemove = EventTarget.prototype.removeEventListener
@@ -458,31 +444,25 @@ const trackEventListeners = () => {
             // This is a bug in the underlying website
         }
         if (isElementInMainWorld(this)) {
-            /** @type {{[type: string]: number}} */
-            const listeners = {}
-            const attr = this.getAttribute("data-eventlisteners")
-            for (const l of attr?.split(",") ?? []) {
-                const [name, countStr] = l.split(":")
-                const count = Number(countStr) || 0
-                listeners[name] = count
-            }
-            listeners[type] = (listeners[type] || 0) - 1
-            if (listeners[type] <= 0) {
-                delete listeners[type]
-            }
-            if (Object.keys(listeners).length) {
-                const listenersStr = Object.keys(listeners)
-                    .map(l => `${l}:${listeners[l]}`).join(",")
-                this.setAttribute?.("data-eventlisteners", listenersStr)
-            } else {
-                this.removeAttribute?.("data-eventlisteners")
+            const counts = mainWorldListenCounts.get(this)
+            if (counts?.[type]) {
+                counts[type] -= 1
+                if (counts[type] <= 0) {
+                    delete counts[type]
+                }
             }
         }
     }
     /* eslint-enable no-restricted-syntax */
+    /** Get listen counts from the map inside the main page.
+     * @param {EventTarget} el
+     */
+    return el => mainWorldListenCounts.get(el)
 }
 
-contextBridge.executeInMainWorld({"func": trackEventListeners})
+getListenCounts = contextBridge.executeInMainWorld({
+    "args": [], "func": trackEventListeners
+})
 
 /**
  * Send mouse click info to renderer via main on click.

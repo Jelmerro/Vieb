@@ -13,9 +13,18 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Follow mode event listener detection to pass data as a Map via contextBridge instead of via DOM attributes
+
 ### Removed
 
 - Redundant ozone-platform-hint=auto flag from builds now that it has become a Chromium default
+
+### Versions
+
+- Electron 38.0.0 (unchanged)
+- Chromium 140.0.7339.41 (unchanged)
 
 ## [12.5.0](https://github.com/Jelmerro/Vieb/compare/12.4.0...12.5.0) - 2025-09-03
 
