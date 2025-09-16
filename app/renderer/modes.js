@@ -187,12 +187,12 @@ const setMode = mode => {
         }
     }
     modes[currentMode()].onLeave?.(mode)
-    modes[mode]?.onEnter?.()
     const modeEl = document.getElementById("mode")
     if (modeEl) {
         modeEl.textContent = mode
     }
     document.body.setAttribute("current-mode", mode)
+    modes[mode]?.onEnter?.()
     guiRelatedUpdate("navbar")
     const {setFocusCorrectly} = require("./actions")
     setFocusCorrectly()

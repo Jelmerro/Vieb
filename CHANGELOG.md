@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Follow mode event listener detection to pass data as a Map via contextBridge instead of via DOM attributes
 
+### Fixed
+
+- Setting "insertleavetimeout" not triggering when switching to insert mode manually
+
 ### Removed
 
 - Redundant ozone-platform-hint=auto flag from builds now that it has become a Chromium default
