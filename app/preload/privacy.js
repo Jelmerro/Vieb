@@ -282,7 +282,14 @@ const deviceEnumeratePermissionHandler = () => {
         }
         const devices = await enumerate.call(window.navigator.mediaDevices)
         if (action === "allowfull") {
-            return devices
+            return devices.map(({deviceId, groupId, kind, label}) => ({
+                deviceId,
+                groupId,
+                kind,
+                label,
+                /** Add the toJSON method of the MediaDeviceInfo. */
+                "toJSON": () => ({deviceId, groupId, kind, label})
+            }))
         }
         if (action === "allowkind") {
             return devices.map(({kind}) => ({
@@ -302,9 +309,7 @@ const deviceEnumeratePermissionHandler = () => {
             kind,
             "label": "",
             /** Add the toJSON method of the MediaDeviceInfo. */
-            "toJSON": () => ({
-                deviceId, groupId, kind, "label": ""
-            })
+            "toJSON": () => ({deviceId, groupId, kind, "label": ""})
         }))
     }
 
