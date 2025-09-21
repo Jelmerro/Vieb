@@ -30,6 +30,17 @@
         "updated": "Lijst $1 met succes bijgewerkt en herladen",
         "updating": "Lijst $1 aan het bijwerken"
     },
+    "bookmarks": {
+        "added": "Bladwijzer toegevoegd: $1: $2",
+        "deleted": "$1 bladwijzers verwijderd die overeenkwamen met de zoekopdracht.",
+        "exists": "Een bladwijzer met de naam: $1 bestaat al.",
+        "invalid": {
+            "options": "Geen geldige opties: $1."
+        },
+        "loaded": "$1 bladwijzers geladen die overeenkwamen met de zoekopdracht.",
+        "noname": "Geen naam opgegeven voor de bladwijzer",
+        "notfound": "Kon bladwijzer niet vinden."
+    },
     "commands": {
         "arguments": {
             "folderMissing": "Map '$1' bestaat niet!"
@@ -302,6 +313,9 @@
         "noMappingsForKey": "Geen mappings gevonden voor toetscombinatie: $1"
     },
     "pages": {
+        "bookmarks": {
+            "title": "Bladwijzers"
+        },
         "cookies": {
             "empty": "Er zijn nog geen cookies opgeslagen",
             "filterEmpty": "Geen cookies gevonden voor huidige filter",

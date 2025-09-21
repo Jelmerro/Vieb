@@ -2641,6 +2641,22 @@ let userCommands = {}
  * }} */
 const commands = {
     "b": ({args, src}) => buffer(src, args),
+    "bm": ({src}) => openSpecialPage(src, "bookmarks", false),
+    "bm!": ({src}) => openSpecialPage(src, "bookmarks", true),
+    "bmadd": ({args}) => {
+        const {addBookmark} = require("./bookmarks")
+        addBookmark(args)
+    },
+    "bmdel": ({args}) => {
+        const {deleteBookmark} = require("./bookmarks")
+        deleteBookmark(args)
+    },
+    "bmload": ({args}) => {
+        const {loadBookmark} = require("./bookmarks")
+        loadBookmark(args)
+    },
+    "bookmarks": ({src}) => openSpecialPage(src, "bookmarks", false),
+    "bookmarks!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "buffer": ({args, src}) => buffer(src, args),
     "buffers": ({src}) => buffers(src),
     "call": ({args, src}) => callAction(args, src),

@@ -30,6 +30,17 @@
         "updated": "Updated and reloaded the latest $1 successfully",
         "updating": "Updating $1 to the latest version"
     },
+    "bookmarks": {
+        "added": "Bookmark added: $1: $2",
+        "deleted": "Deleted $1 bookmarks that matched the query.",
+        "exists": "A bookmark with name: $1 already exists.",
+        "invalid": {
+            "options": "Not valid options: $1."
+        },
+        "loaded": "Loaded $1 bookmarks that matched the query.",
+        "noname": "No name provided for the bookmark",
+        "notfound": "Could not find bookmark."
+    },
     "commands": {
         "arguments": {
             "folderMissing": "Folder '$1' does not exist!"
@@ -302,6 +313,9 @@
         "noMappingsForKey": "No mapping found for key: $1"
     },
     "pages": {
+        "bookmarks": {
+            "title": "Bookmarks"
+        },
         "cookies": {
             "empty": "There are no cookies stored yet",
             "filterEmpty": "No results for current filter",

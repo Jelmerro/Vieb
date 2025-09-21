@@ -934,6 +934,104 @@ const suggestCommand = searchStr => {
             }
         }
     }
+    ["bmload", "bmdel"].forEach(
+        bmCommand => {
+            if (bmCommand.startsWith(command) && !confirm) {
+                const {
+                    getBookmarkData, validBookmarkOptions
+                } = require("./bookmarks")
+                const bmData = getBookmarkData()
+                // Specific option mode
+                if (validBookmarkOptions.some(opt => args.join()
+                    .includes(`${opt}=`))) {
+                    const currentOptions = args.join().split("~")
+                    const [suggestingOption] = currentOptions.slice(-1)
+                    const [key, value] = suggestingOption.split("=")
+                    const completeCommand = `${bmCommand} ${args.join().
+                        split("=").slice(0, -1).join()}=`
+                    if (key === "tag") {
+                        const enteredTags = value.split(",")
+                        const suggestingTag = enteredTags.pop()
+                        let bang = ""
+                        if (suggestingTag?.startsWith("!")) {
+                            bang = "!"
+                        }
+                        bmData.tags.forEach(t => {
+                            if (t.id.startsWith(suggestingTag
+                                .replace("!", ""))) {
+                                let tagString = ""
+                                if (enteredTags.length > 0) {
+                                    enteredTags.forEach(e => {
+                                        tagString = tagString.concat(`${e},`)
+                                    })
+                                }
+                                if (!enteredTags.includes(t.id)) {
+                                    addCommand(
+                                        completeCommand + tagString
+                                            + bang + t.id)
+                                }
+                            }
+                        })
+                    } else if (key === "path") {
+                        bmData.folders.forEach(f => {
+                            if (f.path.startsWith(value)) {
+                                addCommand(completeCommand + f.path)
+                            }
+                        })
+                    } else if (key === "keywords") {
+                        const enteredKeywords = value.split(",")
+                        const suggestingKeyword = enteredKeywords.pop()
+                        bmData.bookmarks.forEach(b => {
+                            if (b.keywords.join().includes(suggestingKeyword)) {
+                                b.keywords.forEach(k => {
+                                    let keywordString = ""
+                                    if (enteredKeywords.length > 0) {
+                                        enteredKeywords.forEach(e => {
+                                            keywordString = keywordString
+                                                .concat(`${e},`)
+                                        })
+                                    }
+                                    if (!enteredKeywords.includes(k)
+                                        && enteredKeywords
+                                            .every(kw => b.keywords
+                                                .includes(kw))
+                                        && k.startsWith(suggestingKeyword)) {
+                                        addCommand(
+                                            completeCommand + keywordString + k)
+                                    }
+                                })
+                            }
+                        })
+                    } else {
+                        bmData.bookmarks.forEach(b => {
+                            if (b[key].startsWith(value)) {
+                                addCommand(
+                                    `${completeCommand} ${b[key]}`)
+                            }
+                        })
+                    }
+                } else {
+                    // Select by name, url or title.
+                    const {specialChars} = require("../util")
+                    const simpleSearch = args.join("")
+                        .replace(specialChars, "").toLowerCase()
+                    bmData.bookmarks.map(bmd => ({
+                        "command": `${bmCommand} ${bmd.name}`,
+                        "subtext": `${bmd.title} ${bmd.url}`
+                    })).filter(b => {
+                        const test = b.command.replace(specialChars, "")
+                            .toLowerCase()
+                        const bmTitle = b.subtext.replace(specialChars, "")
+                            .toLowerCase()
+                        if (test.includes(simpleSearch)) {
+                            return true
+                        }
+                        return bmTitle.includes(simpleSearch)
+                    }).forEach(e => addCommand(e.command, e.subtext))
+                }
+            }
+        }
+    )
 }
 
 module.exports = {
