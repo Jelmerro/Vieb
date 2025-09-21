@@ -60,7 +60,8 @@ const {
  *  tag: string[],
  *  keywords: string[],
  *  bg?: string,
- *  fg?: string
+ *  fg?: string,
+ *  [key: string]: any
  * }} Bookmark
  */
 
@@ -163,9 +164,10 @@ const fixBookmarkData = (option, value) => {
 /**
  * Prepare bookmark's object.
  * @param {string[]} input - The input to parse.
- * @returns {Partial<Bookmark>}
+ * @returns {Bookmark}
  */
 const bookmarkObject = input => {
+    /** @type {Bookmark} */
     const newbookmark = {}
     newbookmark.id = bookmarkData.lastId
     // If there's "=" or "~" we parse the input.
@@ -205,7 +207,9 @@ const isBookmarkValid = bookmark => {
     if (!bookmark.name?.trim()) {
         isValid = false
         notify({
-            "id": "bookmarks.noname"
+            "id": "bookmarks.noname",
+            "src": "user",
+            "type": "dialog"
         })
     }
     // Remove invalid options
@@ -220,7 +224,9 @@ const isBookmarkValid = bookmark => {
         isValid = false
         notify({
             "fields": [bookmark.name],
-            "id": "bookmarks.exists"
+            "id": "bookmarks.exists",
+            "src": "user",
+            "type": "dialog"
         })
     }
     addTags(bookmark.tag)
@@ -232,7 +238,9 @@ const isBookmarkValid = bookmark => {
     if (badOptions.length) {
         notify({
             "fields": [badOptions.join(", ")],
-            "id": "bookmarks.invalid.options"
+            "id": "bookmarks.invalid.options",
+            "src": "user",
+            "type": "dialog"
         })
     }
     return isValid
@@ -243,18 +251,21 @@ const isBookmarkValid = bookmark => {
  * @param {string[]} input - The input to parse.
  */
 const addBookmark = input => {
+    /** @type {Bookmark} */
     const newbookmark = bookmarkObject(input)
     // Fill missing essential data from relevant sources
     // If the url is not custom-set with url=
-    if (newbookmark.url === currentPage().src || !newbookmark.url?.trim()) {
+    if (newbookmark.url === currentPage()?.src || !newbookmark.url?.trim()) {
         if (!newbookmark.name?.trim()) {
-            newbookmark.name = currentTab().querySelector("span").textContent
+            newbookmark.name = currentTab()?.querySelector("span")?.textContent
+                || ""
         }
         if (!newbookmark.title?.trim()) {
-            newbookmark.title = currentTab().querySelector("span").textContent
+            newbookmark.title = currentTab()?.querySelector("span")?.textContent
+                || ""
         }
         if (!newbookmark.url?.trim()) {
-            newbookmark.url = currentPage().src
+            newbookmark.url = currentPage()?.src || ""
         }
     }
     if (!newbookmark.path?.trim()) {
@@ -275,7 +286,9 @@ const addBookmark = input => {
                 newbookmark.name.substring(0, 20),
                 newbookmark.url.substring(0, 40)
             ],
-            "id": "bookmarks.added"
+            "id": "bookmarks.added",
+            "src": "user",
+            "type": "dialog"
         })
     }
 }
@@ -347,8 +360,8 @@ const matchBookmarksToInput = input => {
         })
     } else {
         const individualBookmark = storedBookmarkData.filter(
-            e => e.name.replace(specialChars) === input.join(" ")
-                .replace(specialChars))
+            e => e.name.replace(specialChars, "") === input.join(" ")
+                .replace(specialChars, ""))
         const bookmarksSelectedByTag = storedBookmarkData.filter(
             e => e.tag.find(t => t === input.join(" ")))
         const bookmarksSelectedByKeyword = storedBookmarkData.filter(
@@ -369,16 +382,21 @@ const loadBookmark = input => {
     const {addTab, navigateTo} = require("./tabs")
     if (selectedBookmarks.length === 0) {
         notify({
-            "id": "bookmarks.notfound"
+            "id": "bookmarks.notfound",
+            "src": "user",
+            "type": "dialog"
         })
     } else if (selectedBookmarks.length === 1) {
         navigateTo("user", selectedBookmarks[0].url)
     } else {
         notify({
-            "fields": [selectedBookmarks.length],
-            "id": "bookmarks.loaded"
+            "fields": [String(selectedBookmarks.length)],
+            "id": "bookmarks.loaded",
+            "src": "user",
+            "type": "dialog"
         })
         selectedBookmarks.forEach(e => addTab({
+            "src": "user",
             "url": e.url
         }))
     }
@@ -391,13 +409,15 @@ const loadBookmark = input => {
 const deleteBookmark = input => {
     let selectedBookmarks = []
     if (input.join() === "") {
-        selectedBookmarks = matchBookmarksToInput([`url=${currentPage().src}`])
+        selectedBookmarks = matchBookmarksToInput([`url=${currentPage()?.src}`])
     } else {
         selectedBookmarks = matchBookmarksToInput(input)
     }
     notify({
-        "fields": [selectedBookmarks.length],
-        "id": "bookmarks.deleted"
+        "fields": [String(selectedBookmarks.length)],
+        "id": "bookmarks.deleted",
+        "src": "user",
+        "type": "dialog"
     })
     selectedBookmarks.forEach(sb => {
         for (let x = 0; x < bookmarkData.bookmarks.length; x++) {
