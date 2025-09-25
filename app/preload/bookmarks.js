@@ -146,13 +146,15 @@ const createFolderHtml = (folderName, parentPath) => {
     const folderElement = document.createElement("li")
     const folderDetails = document.createElement("details")
     const folderSummary = document.createElement("summary")
+    const folderDiv = document.createElement("a")
     const folderContent = document.createElement("ul")
     const removeButton = document.createElement("button")
     removeButton.innerText = "Remove"
     removeButton.onclick = deleteFolderClick
     folderElement.className = "folder"
-    folderSummary.textContent = folderName
-    folderSummary.appendChild(removeButton)
+    folderSummary.appendChild(folderDiv)
+    folderDiv.textContent = folderName
+    folderDiv.appendChild(removeButton)
     let path = ""
     if (parentPath === "/") {
         path = `/${folderName}`
