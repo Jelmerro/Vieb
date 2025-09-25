@@ -39,7 +39,10 @@
         },
         "loaded": "Loaded $1 bookmarks that matched the query.",
         "noname": "No name provided for the bookmark",
-        "notfound": "Could not find bookmark."
+        "notfound": "Could not find bookmark.",
+        "folder": {
+            "deleted": "Deleted folder that matched the query."
+        }
     },
     "commands": {
         "arguments": {

@@ -419,6 +419,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #historypage .hist-entry img {height: 1em;margin: .1em;}
 #historypage .hist-entry .favicon {float: none;margin: 0 .3em .1em 0;cursor: auto;}
 #historypage .hist-entry.marked {background: var(--special-page-element-border);}
+/* bookmarks */
+#bookmarks .folder summary, #bookmarks .bookmark {width: 100%; display: flex; justify-content: space-between;}
 /* newtab */
 #newtabpage {display: none;flex-direction: column;height: 100vh;}
 #newtabpage main {margin: auto;max-width: 80vw;}

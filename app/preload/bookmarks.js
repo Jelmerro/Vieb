@@ -62,6 +62,18 @@ const tree = {
  */
 const update = () => ipcRenderer.sendToHost("bookmark-data-request")
 
+/**
+ * Trigger bookmark's folder delete.
+ * @param {PointerEvent} e - HTML onclick event.
+ */
+const deleteFolderClick = e => {
+    e.stopPropagation()
+    // @ts-ignore
+    const path = e?.target?.dataset?.path
+    ipcRenderer.sendToHost("delete-folder", path)
+    window.location.reload()
+}
+
 window.addEventListener("load", () => {
     // Set up the tree structure.
     const treeRootElement = document.createElement("ul")
@@ -88,6 +100,7 @@ window.addEventListener("load", () => {
  */
 const addBookmarkToPage = bookmark => {
     const bookmarkElement = document.createElement("li")
+    bookmarkElement.className = "bookmark"
     const bookmarkDiv = document.createElement("div")
     const bookmarkLink = document.createElement("a")
     bookmarkLink.href = bookmark.url
@@ -97,8 +110,11 @@ const addBookmarkToPage = bookmark => {
         bookmarkLink.textContent
             = `${bookmark.name} - ${bookmark.title}`
     }
+    const removeButton = document.createElement("button")
+    removeButton.innerText = "Remove"
     bookmarkDiv.appendChild(bookmarkLink)
     bookmarkElement.appendChild(bookmarkDiv)
+    bookmarkElement.appendChild(removeButton)
     document.getElementById(bookmark.path)
         ?.appendChild(bookmarkElement)
 }
@@ -114,13 +130,19 @@ const createFolderHtml = (folderName, parentPath) => {
     const folderDetails = document.createElement("details")
     const folderSummary = document.createElement("summary")
     const folderContent = document.createElement("ul")
+    const removeButton = document.createElement("button")
+    removeButton.innerText = "Remove"
+    removeButton.onclick = deleteFolderClick
+    folderElement.className = "folder"
     folderSummary.textContent = folderName
+    folderSummary.appendChild(removeButton)
     let path = ""
     if (parentPath === "/") {
         path = `/${folderName}`
     } else {
         path = `${parentPath}/${folderName}`
     }
+    removeButton.setAttribute("data-path", path)
     folderContent.id = path
     folderDetails.appendChild(folderSummary)
     folderDetails.appendChild(folderContent)

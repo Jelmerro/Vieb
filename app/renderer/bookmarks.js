@@ -82,6 +82,11 @@ let bookmarkData = {
     "tags": []
 }
 let bookmarksFile = ""
+const validFoldersOptions = [
+    "keywords",
+    "name",
+    "path"
+]
 const validBookmarkOptions = [
     "bg",
     "fg",
@@ -374,6 +379,24 @@ const matchBookmarksToInput = input => {
 }
 
 /**
+ * Filter folders based on input.
+ * @param {string[]} input - The input to parse.
+ */
+const matchFoldersToInput = input => {
+    const storedFoldersData = bookmarkData.folders
+    /** @type {Folder} */
+    let selectedFolder = null
+    if (validFoldersOptions.some(option => input[0]
+        .includes(`${option}=`))) {
+        const [key, value] = input[0].split("=")
+        if (key === "path") {
+            selectedFolder = bookmarkData.folders.find(f => f.path === value)
+        }
+    }
+    return selectedFolder
+}
+
+/**
  * Load bookmark based on the input.
  * @param {string[]} input - The input to parse.
  */
@@ -400,6 +423,27 @@ const loadBookmark = input => {
             "url": e.url
         }))
     }
+}
+
+/**
+ * Delete folder based on the input.
+ * @param {string[]} input - The input to parse.
+ */
+const deleteFolder = input => {
+    const selectedFolder = matchFoldersToInput(input)
+    bookmarkData.folders
+            = bookmarkData.folders.filter(f => selectedFolder.path !== f.path)
+    bookmarkData.bookmarks.forEach(b => {
+        if (selectedFolder.path === b.path) {
+            b.path = "/"
+        }
+    })
+    writeBookmarksToFile()
+    notify({
+        "id": "bookmarks.folder.deleted",
+        "src": "user",
+        "type": "dialog"
+    })
 }
 
 /**
@@ -432,6 +476,7 @@ const deleteBookmark = input => {
 module.exports = {
     addBookmark,
     deleteBookmark,
+    deleteFolder,
     getBookmarkData,
     loadBookmark,
     setBookmarkSettings,
