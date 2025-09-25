@@ -381,12 +381,12 @@ const matchBookmarksToInput = input => {
 /**
  * Filter folders based on input.
  * @param {string[]} input - The input to parse.
+ * @returns {Folder | null | undefined}
  */
 const matchFoldersToInput = input => {
-    const storedFoldersData = bookmarkData.folders
-    /** @type {Folder} */
+    /** @type {Folder | null | undefined} */
     let selectedFolder = null
-    if (validFoldersOptions.some(option => input[0]
+    if (input[0] && validFoldersOptions.some(option => input[0]
         .includes(`${option}=`))) {
         const [key, value] = input[0].split("=")
         if (key === "path") {
@@ -431,28 +431,35 @@ const loadBookmark = input => {
  */
 const deleteFolder = input => {
     const selectedFolder = matchFoldersToInput(input)
-    bookmarkData.folders
+    if (selectedFolder) {
+        bookmarkData.folders
             = bookmarkData.folders.filter(f => selectedFolder.path !== f.path)
-    bookmarkData.bookmarks.forEach(b => {
-        if (selectedFolder.path === b.path) {
-            b.path = "/"
-        }
-    })
-    writeBookmarksToFile()
-    notify({
-        "id": "bookmarks.folder.deleted",
-        "src": "user",
-        "type": "dialog"
-    })
+        bookmarkData.bookmarks.forEach(b => {
+            if (selectedFolder.path === b.path) {
+                b.path = "/"
+            }
+        })
+        writeBookmarksToFile()
+        notify({
+            "id": "bookmarks.folder.deleted",
+            "src": "user",
+            "type": "dialog"
+        })
+    }
 }
 
 /**
  * Delete bookmark based on the input.
  * @param {string[]} input - The input to parse.
+ * @param {Bookmark | undefined} bookmark - The bookmark object.
  */
-const deleteBookmark = input => {
+const deleteBookmark = (input, bookmark) => {
     let selectedBookmarks = []
-    if (input.join() === "") {
+    if (bookmark) {
+        selectedBookmarks = bookmarkData.bookmarks.filter(b => b.url
+            === bookmark.url && b.name === bookmark.name
+        && b.path === bookmark.path)
+    } else if (input.join() === "") {
         selectedBookmarks = matchBookmarksToInput([`url=${currentPage()?.src}`])
     } else {
         selectedBookmarks = matchBookmarksToInput(input)

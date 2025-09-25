@@ -914,8 +914,12 @@ const addWebviewListeners = webview => {
             webview.send("bookmark-data-response", bmdata)
         }
         if (e.channel === "delete-folder") {
-            const {deleteFolder, getBookmarkData} = require("./bookmarks")
+            const {deleteFolder} = require("./bookmarks")
             deleteFolder([`path=${e.args[0]}`])
+        }
+        if (e.channel === "delete-bookmark") {
+            const {deleteBookmark} = require("./bookmarks")
+            deleteBookmark([], e.args[0])
         }
         if (e.channel === "mousemove") {
             setTopOfPageWithMouse(getMouseConf("guiontop") && !e.args[1])

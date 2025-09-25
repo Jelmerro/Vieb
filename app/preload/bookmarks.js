@@ -74,6 +74,21 @@ const deleteFolderClick = e => {
     window.location.reload()
 }
 
+/**
+ * Trigger bookmark's folder delete.
+ * @param {PointerEvent} e - HTML onclick event.
+ */
+const deleteBookmarkClick = e => {
+    e.stopPropagation()
+    // @ts-ignore
+    // @ts-ignore
+    const bookmark = e?.target?.dataset?.bookmark
+    // @ts-ignore
+        && JSON.parse(e.target.dataset.bookmark)
+    ipcRenderer.sendToHost("delete-bookmark", bookmark)
+    window.location.reload()
+}
+
 window.addEventListener("load", () => {
     // Set up the tree structure.
     const treeRootElement = document.createElement("ul")
@@ -112,6 +127,8 @@ const addBookmarkToPage = bookmark => {
     }
     const removeButton = document.createElement("button")
     removeButton.innerText = "Remove"
+    removeButton.setAttribute("data-bookmark", JSON.stringify(bookmark))
+    removeButton.onclick = deleteBookmarkClick
     bookmarkDiv.appendChild(bookmarkLink)
     bookmarkElement.appendChild(bookmarkDiv)
     bookmarkElement.appendChild(removeButton)
