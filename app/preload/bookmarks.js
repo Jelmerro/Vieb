@@ -130,8 +130,8 @@ const addBookmarkToPage = bookmark => {
     removeButton.setAttribute("data-bookmark", JSON.stringify(bookmark))
     removeButton.onclick = deleteBookmarkClick
     bookmarkDiv.appendChild(bookmarkLink)
+    bookmarkDiv.appendChild(removeButton)
     bookmarkElement.appendChild(bookmarkDiv)
-    bookmarkElement.appendChild(removeButton)
     document.getElementById(bookmark.path)
         ?.appendChild(bookmarkElement)
 }

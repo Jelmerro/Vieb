@@ -934,6 +934,95 @@ const suggestCommand = searchStr => {
             }
         }
     }
+    if ("bmadd".startsWith(command) && !confirm) {
+        const {
+            getBookmarkData, validBookmarkOptions
+        } = require("./bookmarks")
+        const bmData = getBookmarkData()
+        const optionsStr = args.join(" ")
+        const options = optionsStr.split("~")
+        const lastOption = options[options.length - 1]
+        if (lastOption.includes("=")) {
+            const otherOptions = options.slice(0, -1).filter(o => o)
+            let baseCmd = "bmadd"
+            if (otherOptions.length > 0) {
+                baseCmd += ` ${otherOptions.join("~")}`
+            }
+            const [key, value = ""] = lastOption.split("=")
+            const prefix = otherOptions.length > 0 ? "~"
+: " "
+            const completeCommand = `${baseCmd}${prefix}${key}=`
+            if (key === "tag") {
+                const enteredTags = value.split(",")
+                const suggestingTag = enteredTags.pop() || ""
+                const baseTags = enteredTags.filter(t => t)
+                bmData.tags.forEach(t => {
+                    if (t.id.startsWith(suggestingTag)
+                        && !baseTags.includes(t.id)) {
+                        const newTags = [...baseTags, t.id]
+                        addCommand(`${completeCommand}${newTags.join(",")}`)
+                    }
+                })
+            } else if (key === "path") {
+                bmData.folders.forEach(f => {
+                    if (f.path.startsWith(value)) {
+                        addCommand(`${completeCommand}${f.path}`)
+                    }
+                })
+            } else if (key === "keywords") {
+                const enteredKeywords = value.split(",")
+                const suggestingKeyword = enteredKeywords.pop() || ""
+                const baseKeywords = enteredKeywords.filter(k => k)
+                const allKeywords = new Set()
+                bmData.bookmarks.forEach(
+                    b => b.keywords.forEach(k => allKeywords.add(k)))
+                allKeywords.forEach(k => {
+                    if (k.startsWith(suggestingKeyword)
+                        && !baseKeywords.includes(k)) {
+                        const newKeywords = [...baseKeywords, k]
+                        addCommand(
+                            `${completeCommand}${newKeywords.join(",")}`)
+                    }
+                })
+            } else if (key === "url") {
+                const page = pageForTab(currentPage())
+                const pageUrl = page?.getAttribute("src") ?? ""
+                if (pageUrl && pageUrl.startsWith(value)) {
+                    addCommand(`${completeCommand}${pageUrl}`)
+                }
+            } else if (key === "name" || key === "title") {
+                const page = pageForTab(currentPage())
+                const pageTitle = page?.getAttribute("data-title") ?? ""
+                if (pageTitle && pageTitle.startsWith(value)) {
+                    addCommand(`${completeCommand}${pageTitle}`)
+                }
+            }
+        } else {
+            const otherOptions = options.slice(0, -1).filter(o => o)
+            let baseCmd = "bmadd"
+            if (otherOptions.length > 0) {
+                baseCmd += ` ${otherOptions.join("~")}`
+            }
+            const prefix = otherOptions.length > 0
+                ? "~" : " "
+            validBookmarkOptions.forEach(opt => {
+                if (opt.startsWith(lastOption)) {
+                    if (!options.some(o => o.startsWith(`${opt}=`))) {
+                        addCommand(`${baseCmd}${prefix}${opt}=`)
+                    }
+                }
+            })
+            if (!optionsStr) {
+                const page = pageForTab(currentPage())
+                const pageUrl = page?.getAttribute("src") ?? ""
+                const pageTitle = page?.getAttribute("data-title") ?? ""
+                if (pageUrl) {
+                    addCommand(`bmadd url=${pageUrl}~title=${pageTitle}`)
+                    addCommand(`bmadd url=${pageUrl}`)
+                }
+            }
+        }
+    }
     ["bmload", "bmdel"].forEach(
         bmCommand => {
             if (bmCommand.startsWith(command) && !confirm) {
