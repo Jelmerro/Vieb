@@ -20,6 +20,7 @@ export type TranslationKeys =
     | "bookmarks.noname"
     | "bookmarks.notfound"
     | "bookmarks.exists"
+    | "bookmarks.hex.invalid"
     | "bookmarks.loaded"
     | "bookmarks.invalid.options"
     | "bookmarks.folder.deleted"

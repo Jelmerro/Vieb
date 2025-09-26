@@ -125,6 +125,12 @@ const addBookmarkToPage = bookmark => {
         bookmarkLink.textContent
             = `${bookmark.name} - ${bookmark.title}`
     }
+    if (bookmark.bg) {
+        bookmarkElement.style.background = bookmark.bg
+    }
+    if (bookmark.fg) {
+        bookmarkLink.style.color = bookmark.fg
+    }
     const removeButton = document.createElement("button")
     removeButton.innerText = "Remove"
     removeButton.setAttribute("data-bookmark", JSON.stringify(bookmark))

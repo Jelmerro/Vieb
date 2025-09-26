@@ -40,6 +40,9 @@
         "loaded": "$1 bladwijzers geladen die overeenkwamen met de zoekopdracht.",
         "noname": "Geen naam opgegeven voor de bladwijzer",
         "notfound": "Kon bladwijzer niet vinden.",
+        "hex": {
+            "invalid": "Ongeldige kleurhexadecimale code $1"
+        },
         "folder": {
             "deleted": "Verwijderde map die overeenkomt met de zoekopdracht."
         }

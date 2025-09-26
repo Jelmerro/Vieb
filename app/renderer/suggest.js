@@ -949,8 +949,10 @@ const suggestCommand = searchStr => {
                 baseCmd += ` ${otherOptions.join("~")}`
             }
             const [key, value = ""] = lastOption.split("=")
-            const prefix = otherOptions.length > 0 ? "~"
-: " "
+            let prefix = " "
+            if (otherOptions.length > 0) {
+                prefix = "~"
+            }
             const completeCommand = `${baseCmd}${prefix}${key}=`
             if (key === "tag") {
                 const enteredTags = value.split(",")
@@ -996,6 +998,37 @@ const suggestCommand = searchStr => {
                 if (pageTitle && pageTitle.startsWith(value)) {
                     addCommand(`${completeCommand}${pageTitle}`)
                 }
+            } else if (key === "bg" || key === "fg") {
+                const colors = [
+                    "#000",
+                    "#fff",
+                    "#f00",
+                    "#0f0",
+                    "#00f",
+                    "#ff0",
+                    "#0ff",
+                    "#f0f",
+                    "#000000",
+                    "#333333",
+                    "#666666",
+                    "#999999",
+                    "#cccccc",
+                    "#ffffff",
+                    "#ff0000",
+                    "#00ff00",
+                    "#0000ff",
+                    "#ffff00",
+                    "#00ffff",
+                    "#ff00ff"
+                ]
+                colors.forEach(color => {
+                    if (color.startsWith(value)) {
+                        addCommand(`${completeCommand}${color}`)
+                    }
+                })
+                if (value.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/i)) {
+                    addCommand(`${completeCommand}${value}`)
+                }
             }
         } else {
             const otherOptions = options.slice(0, -1).filter(o => o)
@@ -1003,8 +1036,10 @@ const suggestCommand = searchStr => {
             if (otherOptions.length > 0) {
                 baseCmd += ` ${otherOptions.join("~")}`
             }
-            const prefix = otherOptions.length > 0
-                ? "~" : " "
+            let prefix = " "
+            if (otherOptions.length > 0) {
+                prefix = "~"
+            }
             validBookmarkOptions.forEach(opt => {
                 if (opt.startsWith(lastOption)) {
                     if (!options.some(o => o.startsWith(`${opt}=`))) {

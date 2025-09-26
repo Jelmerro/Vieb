@@ -421,7 +421,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #historypage .hist-entry.marked {background: var(--special-page-element-border);}
 /* bookmarks */
 #bookmarks button{float: right;}
-#bookmarks .bookmark{margin-top: 5px;}
+#bookmarks .bookmark,.folder{margin-top: 5px; padding: 5px 0 5px 5px;}
 /* newtab */
 #newtabpage {display: none;flex-direction: column;height: 100vh;}
 #newtabpage main {margin: auto;max-width: 80vw;}

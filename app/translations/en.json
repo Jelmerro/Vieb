@@ -40,6 +40,9 @@
         "loaded": "Loaded $1 bookmarks that matched the query.",
         "noname": "No name provided for the bookmark",
         "notfound": "Could not find bookmark.",
+        "hex": {
+            "invalid": "Ivalid color hex $1"
+        },
         "folder": {
             "deleted": "Deleted folder that matched the query."
         }

@@ -234,10 +234,29 @@ const isBookmarkValid = bookmark => {
             "type": "dialog"
         })
     }
+    // Color check for hex values
+    const hexReg = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+    if (bookmark?.bg && bookmark.bg !== "" && !hexReg.test(bookmark.bg)) {
+        isValid = false
+        notify({
+            "fields": [bookmark?.bg || ""],
+            "id": "bookmarks.hex.invalid",
+            "src": "user",
+            "type": "dialog"
+        })
+    }
+    if (bookmark?.fg && bookmark.fg !== "" && !hexReg.test(bookmark.fg)) {
+        isValid = false
+        notify({
+            "fields": [bookmark?.fg || ""],
+            "id": "bookmarks.hex.invalid",
+            "src": "user",
+            "type": "dialog"
+        })
+    }
     addTags(bookmark.tag)
     addFolder(bookmark.path)
     // Check path format
-    // Check color hex values
     // Check keywords and tags.
     // Single words?
     if (badOptions.length) {
