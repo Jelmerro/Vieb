@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     appData,
     getSetting,
@@ -498,6 +499,10 @@ const deleteBookmark = (input, bookmark) => {
     })
     writeBookmarksToFile()
 }
+
+ipcRenderer.on("bookmarks-updated", (_, newBookmarkData) => {
+    bookmarkData = newBookmarkData
+})
 
 module.exports = {
     addBookmark,

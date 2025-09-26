@@ -34,18 +34,22 @@
         "added": "Bookmark added: $1: $2",
         "deleted": "Deleted $1 bookmarks that matched the query.",
         "exists": "A bookmark with name: $1 already exists.",
+        "folder": {
+            "deleted": "Deleted folder that matched the query."
+        },
+        "hex": {
+            "invalid": "Ivalid color hex $1"
+        },
+        "import": {
+            "failed": "Failed to import bookmarks.",
+            "success": "Successfully imported $1 new bookmarks."
+        },
         "invalid": {
             "options": "Not valid options: $1."
         },
         "loaded": "Loaded $1 bookmarks that matched the query.",
         "noname": "No name provided for the bookmark",
-        "notfound": "Could not find bookmark.",
-        "hex": {
-            "invalid": "Ivalid color hex $1"
-        },
-        "folder": {
-            "deleted": "Deleted folder that matched the query."
-        }
+        "notfound": "Could not find bookmark."
     },
     "commands": {
         "arguments": {

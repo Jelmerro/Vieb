@@ -89,6 +89,10 @@ const deleteBookmarkClick = e => {
     window.location.reload()
 }
 
+const importBookmarks = () => {
+    ipcRenderer.send("import-bookmarks")
+}
+
 window.addEventListener("load", () => {
     // Set up the tree structure.
     const treeRootElement = document.createElement("ul")
@@ -105,6 +109,7 @@ window.addEventListener("load", () => {
     treeRootList.appendChild(treeRootDetails)
     treeRootElement.appendChild(treeRootList)
     document.getElementById("bookmarks")?.appendChild(treeRootElement)
+    document.getElementById("import-bookmarks-button").onclick = importBookmarks
     update()
 })
 
