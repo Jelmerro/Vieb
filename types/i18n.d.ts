@@ -23,6 +23,7 @@ export type TranslationKeys =
     | "bookmarks.hex.invalid"
     | "bookmarks.loaded"
     | "bookmarks.invalid.options"
+    | "bookmarks.import.failed"
     | "bookmarks.folder.deleted"
     | "bookmarks.added"
     | "commands.arguments.folderMissing"

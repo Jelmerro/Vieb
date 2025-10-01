@@ -2442,7 +2442,7 @@ ipcMain.on("import-bookmarks", event => {
                 if (child.tagName === "DT") {
                     const a = child.querySelector("A")
                     const h3 = child.querySelector("H3")
-                    if (a) {
+                    if (a && !h3) {
                         const url = a.getAttribute("href") || ""
                         const name = a.textContent || ""
                         if (url && name) {
@@ -2455,14 +2455,17 @@ ipcMain.on("import-bookmarks", event => {
                                 url
                             })
                         }
-                    } else if (h3) {
+                    }
+                    if (h3
+                          && !h3.hasAttribute("PERSONAL_TOOLBAR_FOLDER")) {
                         const folderName = h3.textContent.trim()
                         let newPath = `${path}/${folderName}`
                         if (path === "/") {
                             newPath = `/${folderName}`
                         }
                         folders.add(newPath)
-                        const nextDl = children[i + 1]
+                        const nextDl = h3.parentElement
+                            ?.querySelector("DL")
                         if (nextDl && nextDl.tagName === "DL") {
                             parseBookmarks(nextDl, newPath)
                         }
