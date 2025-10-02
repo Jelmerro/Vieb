@@ -1085,7 +1085,7 @@ const suggestCommand = searchStr => {
                             bang = "!"
                         }
                         bmData.tags.forEach(t => {
-                            if (t.id.startsWith(suggestingTag
+                            if (suggestingTag && t.id.startsWith(suggestingTag
                                 .replace("!", ""))) {
                                 let tagString = ""
                                 if (enteredTags.length > 0) {
@@ -1110,7 +1110,8 @@ const suggestCommand = searchStr => {
                         const enteredKeywords = value.split(",")
                         const suggestingKeyword = enteredKeywords.pop()
                         bmData.bookmarks.forEach(b => {
-                            if (b.keywords.join().includes(suggestingKeyword)) {
+                            if (suggestingKeyword && b.keywords.join()
+                                .includes(suggestingKeyword)) {
                                 b.keywords.forEach(k => {
                                     let keywordString = ""
                                     if (enteredKeywords.length > 0) {
