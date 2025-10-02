@@ -987,16 +987,20 @@ const suggestCommand = searchStr => {
                     }
                 })
             } else if (key === "url") {
-                const page = pageForTab(currentPage())
+                const page = currentPage()
                 const pageUrl = page?.getAttribute("src") ?? ""
                 if (pageUrl && pageUrl.startsWith(value)) {
                     addCommand(`${completeCommand}${pageUrl}`)
                 }
             } else if (key === "name" || key === "title") {
-                const page = pageForTab(currentPage())
-                const pageTitle = page?.getAttribute("data-title") ?? ""
-                if (pageTitle && pageTitle.startsWith(value)) {
-                    addCommand(`${completeCommand}${pageTitle}`)
+                const page = currentPage()
+                const pageId = page?.getAttribute("link-id") ?? ""
+                const tabs = listTabs()
+                const currentTab = tabs
+                    .find(t => t.getAttribute("link-id") === pageId)
+                const tabTitle = currentTab?.querySelector("span")?.innerText
+                if (tabTitle) {
+                    addCommand(`${completeCommand}${tabTitle}`)
                 }
             } else if (key === "bg" || key === "fg") {
                 const colors = [
@@ -1048,7 +1052,7 @@ const suggestCommand = searchStr => {
                 }
             })
             if (!optionsStr) {
-                const page = pageForTab(currentPage())
+                const page = currentPage()
                 const pageUrl = page?.getAttribute("src") ?? ""
                 const pageTitle = page?.getAttribute("data-title") ?? ""
                 if (pageUrl) {
