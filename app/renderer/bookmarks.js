@@ -184,7 +184,8 @@ const bookmarkObject = input => {
             // Get key and value: [0,1]
             const [key, value] = options[i].split("=")
             if (key === "keywords" || key === "tag") {
-                const tagsOrKeywordList = value.split(",")
+                const tagsOrKeywordList = value.split(",").map(
+                    item => item.trim()).filter(Boolean)
                 newbookmark[key] = tagsOrKeywordList
             } else {
                 const allValue = options[i].split("=").slice(1).join("")
@@ -255,11 +256,50 @@ const isBookmarkValid = bookmark => {
             "type": "dialog"
         })
     }
-    addTags(bookmark.tag)
-    addFolder(bookmark.path)
-    // Check path format
-    // Check keywords and tags.
-    // Single words?
+    // Path validation: should be slash-separate,
+    // no special chars, no empty segments.
+    const pathRegex = /^\/([a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*)?$/
+    if (bookmark.path && bookmark.path !== "/"
+        && !pathRegex.test(bookmark.path)) {
+        isValid = false
+        notify({
+            "fields": [bookmark.path],
+            "id": "bookmarks.path.invalid",
+            "src": "user",
+            "type": "dialog"
+        })
+    }
+    // Keyword validation: should be single words.
+    if (isValid && bookmark.keywords) {
+        const multiWordKeywords = bookmark.keywords.filter(
+            k => k.trim().includes(" "))
+        if (multiWordKeywords.length > 0) {
+            isValid = false
+            notify({
+                "fields": [multiWordKeywords.join(", ")],
+                "id": "bookmarks.keywords.multiword",
+                "src": "user",
+                "type": "dialog"
+            })
+        }
+    }
+    // If all checks passed so far, sanitize and add tags/folders
+    if (isValid) {
+        if (bookmark.tag) {
+            // Sanitize tags: remove special chars and filter empty ones
+            bookmark.tag = bookmark.tag.map(
+                t => t.trim().replace(specialCharsAllowSpaces, "")).
+                filter(Boolean)
+        }
+        if (bookmark.keywords) {
+            // Sanitize keywords: remove special chars and filter empty ones
+            bookmark.keywords = bookmark.keywords.map(
+                k => k.trim().replace(specialChars, "")).
+                filter(k => k && !k.includes(" "))
+        }
+        addTags(bookmark.tag || [])
+        addFolder(bookmark.path)
+    }
     if (badOptions.length) {
         notify({
             "fields": [badOptions.join(", ")],

@@ -19,6 +19,8 @@ export type TranslationKeys =
     | "bookmarks.deleted"
     | "bookmarks.noname"
     | "bookmarks.notfound"
+    | "bookmarks.keywords.multiword"
+    | "bookmarks.path.invalid"
     | "bookmarks.exists"
     | "bookmarks.hex.invalid"
     | "bookmarks.loaded"

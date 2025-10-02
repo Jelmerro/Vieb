@@ -47,6 +47,12 @@
         "invalid": {
             "options": "Not valid options: $1."
         },
+        "keywords": {
+            "multiword": "Keywords must be single words. Invalid multi-word keywords: $1"
+        },
+        "path": {
+            "invalid": "Invalid path: $1. Paths should only contain alphanumeric characters, hyphens and underscores"
+        },
         "loaded": "Loaded $1 bookmarks that matched the query.",
         "noname": "No name provided for the bookmark",
         "notfound": "Could not find bookmark."

@@ -47,6 +47,13 @@
         "invalid": {
             "options": "Geen geldige opties: $1."
         },
+        "keywords": {
+            "multiword": "Zoekwoorden moeten uit één woord bestaan. Ongeldige zoekwoorden bestaande uit meerdere woorden: $1"
+        },
+        "path": {
+            "invalid": "Ongeldig pad: $1. Paden mogen alleen bestaan uit alfanumerieke tekens, koppeltekens en onderstrepingstekens."
+        },
+
         "loaded": "$1 bladwijzers geladen die overeenkwamen met de zoekopdracht.",
         "noname": "Geen naam opgegeven voor de bladwijzer",
         "notfound": "Kon bladwijzer niet vinden."
