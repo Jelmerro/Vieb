@@ -664,7 +664,40 @@
             <li><span class="command-block">:delpointerpos! global</span> - Delete all global pointer positions</li>
         </ul>
         With this command you can delete any previously stored <a class="pointer" href="#pointer">pointer</a> positions by key, domain or url. Whether it uses the domain or the url is controlled by <a href="#pointerposlocalid">pointerposlocalid</a>. Without a confirm override "!", it will always require a key to delete, which is by default only for the local ones at the current domain/url or the global ones. If you pass a domain/url, you can delete the key for a different domain/url, where "*" will match all of them including global ones. If you do supply the "!" confirm override, you can delete any key in one go, by default for the current domain/url, but you can also supply one. In case you supply "*", "local" or "global", it will delete ALL, local or global positions respectively.
-        <h2>Tab close commands</h2>
+        <h2 id="bookmarks">Bookmarks</h2>
+        With Bookmarks, you can quickly store page urls for later use. Besides commands, there are also settings to control the way they are stored and loaded.
+        <h3 id=":bm">:bm</h3>
+        <ul>
+            <li><span class="command-block">:bm</span> - Open the bookmarks page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:bm!</span> - Open the bookmarks page in a new tab regardless of settings</li>
+        </ul>
+        This command will open the bookmarks page, located at "vieb://bookmarks". On this page, you will find a list of all your bookmarks, and a button to import bookmarks from a Chrome bookmarks HTML file.
+        <h3 id=":bmadd">:bmadd</h3>
+        <ul>
+            <li><span class="command-block">:bmadd</span> - Add a bookmark for the current page</li>
+            <li><span class="command-block">:bmadd My favorite page</span> - Add a bookmark for the current page with the name "My favorite page"</li>
+            <li><span class="command-block">:bmadd name=Vieb~url=https://vieb.dev</span> - Add a bookmark with the name "Vieb" and the url "https://vieb.dev"</li>
+            <li><span class="command-block">:bmadd name=Vieb~url=https://vieb.dev~keywords=vim,browser</span> - Add a bookmark with keywords</li>
+            <li><span class="command-block">:bmadd name=Vieb~url=https://vieb.dev~path=/browsers/vim</span> - Add a bookmark to a specific folder</li>
+            <li><span class="command-block">:bmadd name=Vieb~url=https://vieb.dev~bg=#ff0000~fg=#ffffff</span> - Add a bookmark with custom colors</li>
+        </ul>
+        The bmadd command is used to add a new bookmark. If no arguments are provided, it will add a bookmark for the current page with the page title as the name. You can also provide a name for the bookmark as an argument. To add a bookmark with more details, you can use the key-value format, where each key-value pair is separated by a "~". The supported keys are: "name", "url", "title", "path", "keywords", "bg" and "fg". The "path" is used to organize bookmarks into folders. The "keywords" are a comma-separated list of words that can be used to find the bookmark. The "bg" and "fg" are hex color codes for the background and foreground of the bookmark on the bookmarks page.
+        <h3 id=":bmdel">:bmdel</h3>
+        <ul>
+            <li><span class="command-block">:bmdel</span> - Delete the bookmark for the current page</li>
+            <li><span class="command-block">:bmdel Vieb</span> - Delete the bookmark with the name "Vieb"</li>
+            <li><span class="command-block">:bmdel url=https://vieb.dev</span> - Delete the bookmark with the url "https://vieb.dev"</li>
+        </ul>
+        The bmdel command is used to delete a bookmark. If no arguments are provided, it will delete the bookmark for the current page. You can also provide a name or a url to delete a specific bookmark.
+        <h3 id=":bmload">:bmload</h3>
+        <ul>
+            <li><span class="command-block">:bmload Vieb</span> - Load the bookmark with the name "Vieb"</li>
+            <li><span class="command-block">:bmload keywords=vim</span> - Load first bookmark with the keyword "vim"</li>
+        </ul>
+        The bmload command is used to load a bookmark. You can load a bookmark by its name or by its keywords. If a single bookmark is found, it will be opened in the current tab. If multiple bookmarks are found, they will be opened in new tabs.
+        <h3 id="bookmarksfile">bookmarksfile</h3>
+        This setting determines the location of the bookmarks file. By default, it is stored in the <a href="#datafolder">datafolder</a> as "bookmarks". You can change this to any absolute path or a path relative to the datafolder.
+        <h2 id="tab-close-commands">Tab close commands</h2>
         These are commands that can be used to close tabs. The regular close command without arguments is used to close the current tab.
         <h3 id=":close">:close</h3>
         <ul>
@@ -838,6 +871,8 @@
         Vieb has an integrated adblocker, which will block advertisements and trackers based on blocklists. These blocklists are by default set to easylist, easyprivacy and ublock filters, but this can be extended. This setting is used to enable or disable the adblocker, but also to configure the update mechanism. The "static" value will use the static integrated blocklists and will not check for updates. These integrated lists are only updated when a new Vieb release is made. You can still add extra lists to use by adding ".txt" filter files to the "blocklists" folder inside your <a href="#datafolder">datafolder</a>. To enable automatic updates of these lists without waiting for a new Vieb release, you can change this setting to "update". Keep in mind that this will periodically connect to the blocklist websites to download the latest version, which is also why this setting is set to "static" by default. Setting it to "update", also allows you to create a "list.json" file inside the "blocklists" folder, which should look similar to <a href="https://github.com/Jelmerro/Vieb/blob/master/app/blocklists/list.json">the default list.json</a>, that allows you to add extra lists that should be updated when starting Vieb or updating this setting. The JSON file has a user-defined name as the key, and the values should be URLs that point directly to the blocklist filtering file on the web. The "update" value is the most powerful and useful option of the adblocker, and is recommended if you do not mind the extra web requests. Finally there is the "custom" option that allows you to implement your own external blocklist management and also stops copying any of the built-in lists on startup. Adding other lists can already be done without using the "custom" option, by adding lists to the "blocklists" folder inside Vieb's <a href="#datafolder">datafolder</a>, the custom option is most useful for people who do not want the default lists, nor the update feature, but do want to use other blocklists. You can also add lists that you want to load for all instances to the "~/.vieb/blockists/" folder. As long as the value of the adblocker setting is not "off", it will read all ".txt" files in both the global and the local blocklists folder and enable all filtering blocklists found. The "static", "update" and "custom" values merely control if you want the default lists or not ("static" vs "custom"), and if you want auto updating or not ("update" or "custom"). With "update" you always get the default lists, but you can overwrite the url for "easylist", and if desired, the url can also be empty, in which case the list will not be fetched.
         <h3 id="adblockernotifications">adblockernotifications</h3>
         Using this setting you can configure which adblocker notifications should be shown directly. By default, all notifications are shown as a regular notification and then added to the <a href="#:notifications">notifications</a> page. The setting accepts a few options that control which type of notifications should be shown. Notifications not shown to the user  can still be found on the <a href="#:notifications">notifications</a> page later. To only show the notifications for lists being loaded successfully or giving errors, use "done". This means you will not be notified when updating starts, but only when it is done or gave an error. Similarly, you can choose to only show errors with "error", and not be notified when updating starts nor when it was successfully applied. In case you do not want to see any such notifications directly you can use "none", but it is recommended to at least keep the error messages to know when a list was not successfully updated. For lite releases, this setting can also be useful to set to "none" as there is no adblocker module present.
+        <h3 id="bookmarksfile">bookmarksfile</h3>
+        This setting determines the location of the bookmarks file. By default, it is stored in the <a href="#datafolder">datafolder</a> as "bookmarks". You can change this to any absolute path or a path relative to the datafolder.
         <h3 id="cache">cache</h3>
         This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large with extended periods of use.
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
