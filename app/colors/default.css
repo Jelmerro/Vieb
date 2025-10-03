@@ -422,6 +422,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /* bookmarks */
 #bookmarks button{float: right;}
 #bookmarks .bookmark,.folder{margin-top: 5px; padding: 5px 0 5px 5px;}
+#bookmarks .keywords{margin-top:  7px; padding: 5px; font-size: 10px; font-style: italic; text-transform: lowercase;}
 /* newtab */
 #newtabpage {display: none;flex-direction: column;height: 100vh;}
 #newtabpage main {margin: auto;max-width: 80vw;}

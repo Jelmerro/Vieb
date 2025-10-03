@@ -143,6 +143,12 @@ const addBookmarkToPage = bookmark => {
     bookmarkDiv.appendChild(bookmarkLink)
     bookmarkDiv.appendChild(removeButton)
     bookmarkElement.appendChild(bookmarkDiv)
+    if (bookmark?.keywords?.length) {
+        const bookmarkKeywords = document.createElement("div")
+        bookmarkKeywords.className = "keywords"
+        bookmarkKeywords.innerText = bookmark.keywords.join(", ")
+        bookmarkElement.appendChild(bookmarkKeywords)
+    }
     document.getElementById(bookmark.path)
         ?.appendChild(bookmarkElement)
 }
