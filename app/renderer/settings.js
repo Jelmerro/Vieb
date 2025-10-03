@@ -367,7 +367,6 @@ const defaultSettings = {
     /** @type {string[]} */
     "startuppages": [],
     "storenewvisits": ["pages"],
-    "suggestbookmarks": "",
     "suggestbouncedelay": 100,
     "suggestcommands": 9000000000000000,
     "suggestorder": ["history", "searchword", "file"],
