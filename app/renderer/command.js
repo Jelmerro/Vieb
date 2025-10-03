@@ -2649,7 +2649,7 @@ const commands = {
     },
     "bmdel": ({args}) => {
         const {deleteBookmark} = require("./bookmarks")
-        deleteBookmark(args)
+        deleteBookmark(args, undefined)
     },
     "bmload": ({args}) => {
         const {loadBookmark} = require("./bookmarks")

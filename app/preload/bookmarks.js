@@ -89,6 +89,9 @@ const deleteBookmarkClick = e => {
     window.location.reload()
 }
 
+/**
+ * Trigger bookmark's import process.
+ */
 const importBookmarks = () => {
     ipcRenderer.send("import-bookmarks")
 }
@@ -109,7 +112,11 @@ window.addEventListener("load", () => {
     treeRootList.appendChild(treeRootDetails)
     treeRootElement.appendChild(treeRootList)
     document.getElementById("bookmarks")?.appendChild(treeRootElement)
-    document.getElementById("import-bookmarks-button").onclick = importBookmarks
+    const importBookmarksButton
+        = document.getElementById("import-bookmarks-button")
+    if (importBookmarksButton) {
+        importBookmarksButton.onclick = importBookmarks
+    }
     update()
 })
 

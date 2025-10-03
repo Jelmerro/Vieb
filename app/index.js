@@ -2398,6 +2398,7 @@ ipcMain.on("import-bookmarks", event => {
             {"extensions": ["html", "htm"], "name": "HTML"}
         ],
         "properties": ["openFile"]
+    // @ts-ignore
     }).then(result => {
         if (result.canceled) {
             return
@@ -2420,7 +2421,6 @@ ipcMain.on("import-bookmarks", event => {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
-                <title>${decodeURI(event.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
@@ -2489,6 +2489,7 @@ ipcMain.on("import-bookmarks", event => {
         let newBookmarksCount = 0
         bookmarks.forEach(bookmark => {
             if (!existingBookmarks.has(`${bookmark.name}::${bookmark.url}`)) {
+                // @ts-ignore
                 bookmarkData.bookmarks.push({
                     ...bookmark,
                     "id": bookmarkData.lastId += 1

@@ -26,6 +26,7 @@ export type TranslationKeys =
     | "bookmarks.loaded"
     | "bookmarks.invalid.options"
     | "bookmarks.import.failed"
+    | "bookmarks.import.success"
     | "bookmarks.folder.deleted"
     | "bookmarks.added"
     | "commands.arguments.folderMissing"
