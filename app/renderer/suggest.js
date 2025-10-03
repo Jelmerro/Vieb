@@ -954,18 +954,7 @@ const suggestCommand = searchStr => {
                 prefix = "~"
             }
             const completeCommand = `${baseCmd}${prefix}${key}=`
-            if (key === "tag") {
-                const enteredTags = value.split(",")
-                const suggestingTag = enteredTags.pop() || ""
-                const baseTags = enteredTags.filter(t => t)
-                bmData.tags.forEach(t => {
-                    if (t.id.startsWith(suggestingTag)
-                        && !baseTags.includes(t.id)) {
-                        const newTags = [...baseTags, t.id]
-                        addCommand(`${completeCommand}${newTags.join(",")}`)
-                    }
-                })
-            } else if (key === "path") {
+            if (key === "path") {
                 bmData.folders.forEach(f => {
                     if (f.path.startsWith(value)) {
                         addCommand(`${completeCommand}${f.path}`)
@@ -1076,7 +1065,7 @@ const suggestCommand = searchStr => {
                 bmData.bookmarks.map(bmd => ({
                     "command": `${bmCommand} ${bmd.name}`,
                     "subtext": `${bmd.title} ${bmd.url}
-                        ${bmd.tag?.join(" ")} ${bmd.keywords?.join(" ")}`
+                        ${bmd.keywords?.join(" ")}`
                 })).filter(b => {
                     const test = b.command.replace(specialChars, "")
                         .toLowerCase()

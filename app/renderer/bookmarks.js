@@ -37,14 +37,6 @@ const {
 
 /**
  * @typedef {{
- *  id: string,
- *  keywords: string[],
- *  name: string
- * }} Tag
- */
-
-/**
- * @typedef {{
  *  keywords: string[],
  *  name: string,
  *  path: string
@@ -58,7 +50,6 @@ const {
  *  title: string,
  *  url: string,
  *  path: string,
- *  tag: string[],
  *  keywords: string[],
  *  bg?: string,
  *  fg?: string,
@@ -71,7 +62,6 @@ const {
  *   bookmarks: Bookmark[],
  *   folders: Folder[],
  *   lastId: number,
- *   tags: Tag[]
  * }} BookmarkData
  */
 
@@ -79,8 +69,7 @@ const {
 let bookmarkData = {
     "bookmarks": [],
     "folders": [],
-    "lastId": 0,
-    "tags": []
+    "lastId": 0
 }
 let bookmarksFile = ""
 const validFoldersOptions = [
@@ -95,7 +84,6 @@ const validBookmarkOptions = [
     "keywords",
     "name",
     "path",
-    "tag",
     "title",
     "url"
 ]
@@ -105,19 +93,6 @@ const validBookmarkOptions = [
  * @returns {BookmarkData}
  */
 const getBookmarkData = () => bookmarkData
-
-/**
- * Adds tag to the bookmarkData for the given path.
- * @param {string[]} tags - The tags to add.
- */
-const addTags = tags => {
-    const currentTagIds = bookmarkData.tags.map(tag => tag.id)
-    tags.forEach(t => {
-        if (!currentTagIds.includes(t)) {
-            bookmarkData.tags.push({"id": t, "keywords": [], "name": ""})
-        }
-    })
-}
 
 /**
  * Adds folder to the bookmarkData for the given path.
@@ -153,9 +128,6 @@ const fixBookmarkData = (option, value) => {
             correctFormat = `/${value}`
         }
         correctFormat = correctFormat.replace(/\s/g, "-").replace(/[/]$/, "")
-    } else if (option === "tag") {
-        correctFormat = value.split("").map(
-            t => t.replace(specialCharsAllowSpaces, "")).join("")
     } else if (option === "keywords") {
         correctFormat = value.split("").map(k => k.replace(specialChars, "")).
             join("")
@@ -183,10 +155,10 @@ const bookmarkObject = input => {
         for (let i = 0; i < options.length; i++) {
             // Get key and value: [0,1]
             const [key, value] = options[i].split("=")
-            if (key === "keywords" || key === "tag") {
-                const tagsOrKeywordList = value.split(",").map(
+            if (key === "keywords") {
+                const keywordList = value.split(",").map(
                     item => item.trim()).filter(Boolean)
-                newbookmark[key] = tagsOrKeywordList
+                newbookmark[key] = keywordList
             } else {
                 const allValue = options[i].split("=").slice(1).join("")
                 if (allValue?.trim()) {
@@ -283,21 +255,14 @@ const isBookmarkValid = bookmark => {
             })
         }
     }
-    // If all checks passed so far, sanitize and add tags/folders
+    // If all checks passed so far, sanitize and add folders
     if (isValid) {
-        if (bookmark.tag) {
-            // Sanitize tags: remove special chars and filter empty ones
-            bookmark.tag = bookmark.tag.map(
-                t => t.trim().replace(specialCharsAllowSpaces, "")).
-                filter(Boolean)
-        }
         if (bookmark.keywords) {
             // Sanitize keywords: remove special chars and filter empty ones
             bookmark.keywords = bookmark.keywords.map(
                 k => k.trim().replace(specialChars, "")).
                 filter(k => k && !k.includes(" "))
         }
-        addTags(bookmark.tag || [])
         addFolder(bookmark.path)
     }
     if (badOptions.length) {
@@ -336,9 +301,6 @@ const addBookmark = input => {
     if (!newbookmark.path?.trim()) {
         newbookmark.path = "/"
     }
-    if (typeof newbookmark.tag === "undefined") {
-        newbookmark.tag = []
-    }
     if (typeof newbookmark.keywords === "undefined") {
         newbookmark.keywords = []
     }
@@ -373,14 +335,12 @@ const setBookmarkSettings = () => {
     if (!isFile(bookmarksFile)) {
         writeJSON(bookmarksFile, {"bookmarks": [],
             "folders": [],
-            "lastId": 0,
-            "tags": []})
+            "lastId": 0})
     }
     bookmarkData = readJSON(bookmarksFile) || {
         "bookmarks": [],
         "folders": [],
-        "lastId": 0,
-        "tags": []
+        "lastId": 0
     }
 }
 
@@ -398,7 +358,7 @@ const matchBookmarksToInput = input => {
             let matchedOptions = 0
             eachOption.forEach(e => {
                 const [key, value] = e.split("=")
-                if (key === "tag" || key === "keywords") {
+                if (key === "keywords") {
                     const eachValue = value.split(",")
                     let matchedValues = 0
                     eachValue.forEach(v => {
@@ -427,13 +387,10 @@ const matchBookmarksToInput = input => {
         const individualBookmark = storedBookmarkData.filter(
             e => e.name.replace(specialChars, "") === input.join(" ")
                 .replace(specialChars, ""))
-        const bookmarksSelectedByTag = storedBookmarkData.filter(
-            e => e.tag.find(t => t === input.join(" ")))
         const bookmarksSelectedByKeyword = storedBookmarkData.filter(
             e => e.keywords.find(k => k === input.join("")))
         selectedBookmarks
-            = individualBookmark.concat(bookmarksSelectedByTag)
-                .concat(bookmarksSelectedByKeyword)
+            = individualBookmark.concat(bookmarksSelectedByKeyword)
     }
     return selectedBookmarks
 }
