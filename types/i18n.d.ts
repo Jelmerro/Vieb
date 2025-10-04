@@ -11,6 +11,7 @@ export type TranslationKeys =
     | "actions.translations.errors.deepl"
     | "actions.translations.errors.general"
     | "actions.translations.errors.libretranslate"
+    | "actions.noSearchResults"
     | "adblocker.aborted"
     | "adblocker.failed"
     | "adblocker.missing"

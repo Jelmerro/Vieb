@@ -378,6 +378,16 @@ const switchToTab = tabOrIndex => {
         hoverEl.textContent = ""
         hoverEl.style.display = "none"
     }
+    const searchResultsEl = document.getElementById("search-results")
+    const searchResults = tab.getAttribute("search-results")
+    if (searchResultsEl) {
+        if (searchResults && getSetting("showsearchresults")) {
+            searchResultsEl.style.display = "flex"
+        } else {
+            searchResultsEl.style.display = "none"
+        }
+        searchResultsEl.textContent = searchResults || ""
+    }
     guiRelatedUpdate("tabbar")
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
@@ -938,7 +948,25 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("found-in-page", e => {
-        webview.send("search-element-location", e.result.selectionArea)
+        const current = e.result.activeMatchOrdinal
+        const total = e.result.matches
+        const location = e.result.selectionArea
+        let text = `${current}/${total}`
+        if (total === 0) {
+            webview.stopFindInPage("clearSelection")
+            text = translate("actions.noSearchResults")
+        }
+        webview.send("search-element-location", location)
+        tabForPage(webview)?.setAttribute("search-results", text)
+        const searchResultsEl = document.getElementById("search-results")
+        if (webview === currentPage() && searchResultsEl) {
+            if (getSetting("showsearchresults")) {
+                searchResultsEl.style.display = "flex"
+            } else {
+                searchResultsEl.style.display = "none"
+            }
+            searchResultsEl.textContent = text
+        }
         justSearched = true
         setTimeout(() => {
             justSearched = false

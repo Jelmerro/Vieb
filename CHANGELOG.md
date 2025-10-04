@@ -13,6 +13,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Settings "searchreach", "searchreachinc" and "searchreachtraverse" to control which pages should be searched
+- Setting "showsearchresults" to control if search results should be shown
+
 ### Changed
 
 - Follow mode event listener detection to pass data as a Map via contextBridge instead of via DOM attributes

@@ -6,6 +6,7 @@
             "success": "Commando geslaagd!",
             "successWithOutput": "Commando geslaagd:\n$1"
         },
+        "noSearchResults": "Geen resultaten",
         "rss": {
             "clipboard": "RSS-feed '$1' gekopieerd naar klembord",
             "header": "--- RSS-feeds op de pagina ---\n$1",

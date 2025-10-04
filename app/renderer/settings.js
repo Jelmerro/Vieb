@@ -342,12 +342,19 @@ const defaultSettings = {
     "searchengine": ["https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web"],
     /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
+    /** @type {"all"|"visible"|"current"} */
+    "searchreach": "visible",
+    /** @type {"all"|"visible"|"current"|"same"} */
+    "searchreachinc": "same",
+    /** @type {"all"|"visible"|"current"|"same"} */
+    "searchreachtraverse": "same",
     /** @type {"global"|"local"|"inclocal"} */
     "searchscope": "global",
     /** @type {{[key: string]: string}} */
     "searchwords": {},
     "shell": "",
     "showcmd": true,
+    "showsearchresults": true,
     "smartcase": true,
     "spell": true,
     "spelllang": ["system"],
@@ -557,6 +564,9 @@ const validOptions = {
     "scrollpostype": ["casing", "local", "global"],
     "searchemptyscope": ["global", "local", "both"],
     "searchpointeralignment": ["left", "center", "right"],
+    "searchreach": ["all", "visible", "current"],
+    "searchreachinc": ["all", "visible", "current", "same"],
+    "searchreachtraverse": ["all", "visible", "current", "same"],
     "searchscope": ["global", "local", "inclocal"],
     "suspendonrestore": ["all", "regular", "none"],
     "tabclosefocus": ["left", "right", "previous"],
@@ -2249,6 +2259,18 @@ const set = (src, setting, value) => {
         }
         if (setting === "pdfbehavior") {
             updatePdfOption()
+        }
+        if (setting === "showsearchresults") {
+            const searchResultsEl = document.getElementById("search-results")
+            const searchResults = currentTab()?.getAttribute("search-results")
+            if (searchResultsEl) {
+                if (searchResults && allSettings.showsearchresults) {
+                    searchResultsEl.style.display = "flex"
+                } else {
+                    searchResultsEl.style.display = "none"
+                }
+                searchResultsEl.textContent = searchResults || ""
+            }
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {
