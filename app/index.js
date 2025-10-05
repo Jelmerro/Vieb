@@ -1338,7 +1338,7 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
 
 /**
  * Update download settings.
- * @param {Electron.IpcMainEvent} _
+ * @param {Electron.IpcMainInvokeEvent} _
  * @param {{
  *   downloadmethod: string,
  *   downloadpath: string,
@@ -1393,7 +1393,7 @@ const writeDownloadsToFile = () => {
     }
 }
 
-ipcMain.on("set-download-settings", setDownloadSettings)
+ipcMain.handle("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadUuid) => {
     const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
@@ -1843,7 +1843,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return callback({"cancel": false, "requestHeaders": headers})
     })
     newSess.on("will-download", (e, item) => {
-        if (downloadSettings.downloadmethod === "block" || !mainWindow) {
+        if (!mainWindow) {
+            e.preventDefault()
+            return
+        }
+        const downloadSrc = downloadSettings.src ?? "other"
+        downloadSettings.src = "other"
+        if (downloadSettings.downloadmethod === "block"
+            && downloadSrc === "other") {
             e.preventDefault()
             return
         }
@@ -1913,10 +1920,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "uuid": randomUUID()
         }
         downloads.push(info)
-        const downloadSrc = downloadSettings.src ?? "user"
-        if (downloadSrc === "execute") {
-            downloadSettings.src = "user"
-        }
         notify({
             "fields": [info.name],
             "id": "downloads.started",

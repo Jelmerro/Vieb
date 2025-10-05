@@ -1859,21 +1859,17 @@ const updateContainerSettings = (full = true) => {
 
 /**
  * Update download related settings in the main thread on change.
- * @param {boolean} fromExecute
+ * @param {import("./common").RunSource} src
  */
-const updateDownloadSettings = (fromExecute = false) => {
+const updateDownloadSettings = async(src = "other") => {
     /** @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
     })
-    if (fromExecute) {
-        downloads.src = "execute"
-    } else {
-        downloads.src = "user"
-    }
-    ipcRenderer.send("set-download-settings", downloads)
+    downloads.src = src
+    await ipcRenderer.invoke("set-download-settings", downloads)
 }
 
 /** Update the settings in the file so they are updated in main/preload. */

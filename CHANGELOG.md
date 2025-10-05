@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting "insertleavetimeout" not triggering when switching to insert mode manually
 - Media devices attempted to be returned with full labels not including any device info since 12.4.0
+- Manual downloads not starting when "downloadmethod" is set to "block"
 
 ### Removed
 
