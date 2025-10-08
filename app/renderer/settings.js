@@ -228,7 +228,7 @@ const defaultSettings = {
     "mousevisualmode": "onswitch",
     /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
-    /** @type {"dark"|"light"} */
+    /** @type {"dark"|"light"|"system"} */
     "nativetheme": "dark",
     "newtaburl": "",
     "notificationduration": 6000,
@@ -522,7 +522,7 @@ const validOptions = {
     "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "largeonly", "smallonly", "never"],
-    "nativetheme": ["dark", "light"],
+    "nativetheme": ["dark", "light", "system"],
     "notificationforpermissions": [
         "all", "allowed", "blocked", "silent", "none"
     ],

@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Settings "searchreach", "searchreachinc" and "searchreachtraverse" to control which pages should be searched
 - Setting "showsearchresults" to control if search results should be shown
+- The "system" value for "nativetheme" as an option
 
 ### Changed
 
