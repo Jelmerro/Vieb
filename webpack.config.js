@@ -10,10 +10,8 @@ module.exports = [{
         "renderer": "./app/renderer/index.js"
     },
     "externals": {
-        "bufferutil": "commonjs bufferutil",
         "canvas": "commonjs canvas",
-        "electron": "require('electron')",
-        "utf-8-validate": "commonjs utf-8-validate"
+        "electron": "require('electron')"
     },
     "mode": "production",
     "node": {

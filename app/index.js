@@ -2233,11 +2233,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         /** @type {typeof import("@mozilla/readability").Readability|null} */
         let Readability = null
-        /** @type {typeof import("jsdom").JSDOM|null} */
-        let JSDOM = null
+        /** @type {typeof import("linkedom").parseHTML|null} */
+        let parseHTML = null
         try {
             ({Readability} = require("@mozilla/readability"))
-            ;({JSDOM} = require("jsdom"))
+            const linkedom = require("linkedom")
+            ;({parseHTML} = linkedom)
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2253,7 +2254,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
-                    if (!body || !JSDOM || !Readability) {
+                    if (!body || !parseHTML || !Readability) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
                             <style id="default-styling">${defaultCSS}</style>
@@ -2267,9 +2268,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         }}))
                         return
                     }
-                    const dom = new JSDOM(body, {url})
-                    const out = new Readability(
-                        dom.window.document).parse()?.content ?? ""
+                    const dom = parseHTML(body).document
+                    ;[...dom.getElementsByTagName("img")].forEach(link => {
+                        link.src = new URL(link.src, url).href
+                    })
+                    ;[...dom.getElementsByTagName("a")].forEach(link => {
+                        link.href = new URL(link.href, url).href
+                    })
+                    const out = new Readability(dom).parse()?.content ?? ""
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
                         <style id="default-styling">${defaultCSS}</style>

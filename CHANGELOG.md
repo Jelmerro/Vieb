@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Follow mode event listener detection to pass data as a Map via contextBridge instead of via DOM attributes
+- Readerview HTML parser from JSDOM to Linkedom for faster and less error-prone parsing
 
 ### Fixed
 
