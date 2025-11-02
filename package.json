@@ -30,18 +30,18 @@
   "devDependencies": {
     "@electron/asar": "4.0.1",
     "@types/picomatch": "4.0.2",
-    "electron": "38.0.0",
+    "electron": "39.0.0",
     "electron-builder": "26.0.12",
     "eslint-config": "github:Jelmerro/eslint-config",
     "glob": "11.0.3",
     "terser-webpack-plugin": "5.3.14",
-    "typescript": "5.9.2",
-    "webpack": "5.101.3",
+    "typescript": "5.9.3",
+    "webpack": "5.102.1",
     "webpack-node-externals": "3.0.0"
   },
   "dependencies": {
-    "@ghostery/adblocker-electron": "2.11.6",
-    "@ghostery/adblocker-electron-preload": "2.11.6",
+    "@ghostery/adblocker-electron": "2.12.5",
+    "@ghostery/adblocker-electron-preload": "2.12.5",
     "@mozilla/readability": "0.6.0",
     "darkreader": "4.9.96",
     "highlight.js": "11.11.1",
