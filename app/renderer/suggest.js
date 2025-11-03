@@ -934,6 +934,151 @@ const suggestCommand = searchStr => {
             }
         }
     }
+    if ("bmadd".startsWith(command) && !confirm) {
+        const {
+            getBookmarkData, validBookmarkOptions
+        } = require("./bookmarks")
+        const bmData = getBookmarkData()
+        const optionsStr = args.join(" ")
+        const options = optionsStr.split("~")
+        const lastOption = options[options.length - 1]
+        if (lastOption.includes("=")) {
+            const otherOptions = options.slice(0, -1).filter(o => o)
+            let baseCmd = "bmadd"
+            if (otherOptions.length > 0) {
+                baseCmd += ` ${otherOptions.join("~")}`
+            }
+            const [key, value = ""] = lastOption.split("=")
+            let prefix = " "
+            if (otherOptions.length > 0) {
+                prefix = "~"
+            }
+            const completeCommand = `${baseCmd}${prefix}${key}=`
+            if (key === "path") {
+                bmData.folders.forEach(f => {
+                    if (f.path.startsWith(value)) {
+                        addCommand(`${completeCommand}${f.path}`)
+                    }
+                })
+            } else if (key === "keywords") {
+                const enteredKeywords = value.split(",")
+                const suggestingKeyword = enteredKeywords.pop() || ""
+                const baseKeywords = enteredKeywords.filter(k => k)
+                const allKeywords = new Set()
+                bmData.bookmarks.forEach(
+                    b => b.keywords.forEach(k => allKeywords.add(k)))
+                allKeywords.forEach(k => {
+                    if (k.startsWith(suggestingKeyword)
+                        && !baseKeywords.includes(k)) {
+                        const newKeywords = [...baseKeywords, k]
+                        addCommand(
+                            `${completeCommand}${newKeywords.join(",")}`)
+                    }
+                })
+            } else if (key === "url") {
+                const page = currentPage()
+                const pageUrl = page?.getAttribute("src") ?? ""
+                if (pageUrl && pageUrl.startsWith(value)) {
+                    addCommand(`${completeCommand}${pageUrl}`)
+                }
+            } else if (key === "name" || key === "title") {
+                const page = currentPage()
+                const pageId = page?.getAttribute("link-id") ?? ""
+                const tabs = listTabs()
+                const currentTab = tabs
+                    .find(t => t.getAttribute("link-id") === pageId)
+                const tabTitle = currentTab?.querySelector("span")?.innerText
+                if (tabTitle) {
+                    addCommand(`${completeCommand}${tabTitle}`)
+                }
+            } else if (key === "bg" || key === "fg") {
+                const colors = [
+                    "#000",
+                    "#fff",
+                    "#f00",
+                    "#0f0",
+                    "#00f",
+                    "#ff0",
+                    "#0ff",
+                    "#f0f",
+                    "#000000",
+                    "#333333",
+                    "#666666",
+                    "#999999",
+                    "#cccccc",
+                    "#ffffff",
+                    "#ff0000",
+                    "#00ff00",
+                    "#0000ff",
+                    "#ffff00",
+                    "#00ffff",
+                    "#ff00ff"
+                ]
+                colors.forEach(color => {
+                    if (color.startsWith(value)) {
+                        addCommand(`${completeCommand}${color}`)
+                    }
+                })
+                if (value.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/i)) {
+                    addCommand(`${completeCommand}${value}`)
+                }
+            }
+        } else {
+            const otherOptions = options.slice(0, -1).filter(o => o)
+            let baseCmd = "bmadd"
+            if (otherOptions.length > 0) {
+                baseCmd += ` ${otherOptions.join("~")}`
+            }
+            let prefix = " "
+            if (otherOptions.length > 0) {
+                prefix = "~"
+            }
+            validBookmarkOptions.forEach(opt => {
+                if (opt.startsWith(lastOption)) {
+                    if (!options.some(o => o.startsWith(`${opt}=`))) {
+                        addCommand(`${baseCmd}${prefix}${opt}=`)
+                    }
+                }
+            })
+            if (!optionsStr) {
+                const page = currentPage()
+                const pageUrl = page?.getAttribute("src") ?? ""
+                const pageTitle = page?.getAttribute("data-title") ?? ""
+                if (pageUrl) {
+                    addCommand(`bmadd url=${pageUrl}~title=${pageTitle}`)
+                    addCommand(`bmadd url=${pageUrl}`)
+                }
+            }
+        }
+    }
+    ["bmload", "bmdel"].forEach(
+        bmCommand => {
+            if (bmCommand.startsWith(command) && !confirm) {
+                const {
+                    getBookmarkData
+                } = require("./bookmarks")
+                const bmData = getBookmarkData()
+                // Select by name, url or title.
+                const {specialChars} = require("../util")
+                const simpleSearch = args.join("").replace(specialChars, "")
+                    .toLowerCase()
+                bmData.bookmarks.map(bmd => ({
+                    "command": `${bmCommand} ${bmd.name}`,
+                    "subtext": `${bmd.title} ${bmd.url}
+                        ${bmd.keywords?.join(" ")}`
+                })).filter(b => {
+                    const test = b.command.replace(specialChars, "")
+                        .toLowerCase()
+                    const bmTitle = b.subtext.replace(specialChars, "")
+                        .toLowerCase()
+                    if (test.includes(simpleSearch)) {
+                        return true
+                    }
+                    return bmTitle.includes(simpleSearch)
+                }).forEach(e => addCommand(e.command, e.subtext))
+            }
+        }
+    )
 }
 
 module.exports = {

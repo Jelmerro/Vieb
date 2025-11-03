@@ -81,6 +81,7 @@ const defaultSettings = {
     "adblocker": "static",
     /** @type {"all"|"done"|"error"|"none"} */
     "adblockernotifications": "all",
+    "bookmarksfile": "bookmarks",
     /** @type {"none"|"clearonquit"|"full"} */
     "cache": "clearonquit",
     "clearcookiesonquit": false,
@@ -429,6 +430,7 @@ const defaultErwicSettings = {
     "permissionnotifications": "allow"
 }
 const freeText = [
+    "bookmarksfile",
     "downloadpath",
     "externalcommand",
     "shell",
@@ -1815,6 +1817,11 @@ const updatePdfOption = () => {
     ipcRenderer.send("update-pdf-option", allSettings.pdfbehavior)
 }
 
+const updateBookmarkSettings = () => {
+    const {setBookmarkSettings} = require("./bookmarks")
+    setBookmarkSettings()
+}
+
 /**
  * Update container related settings on change and update labels/colors.
  * @param {boolean} full
@@ -2341,6 +2348,9 @@ const set = (src, setting, value) => {
         if (setting === "windowtitle") {
             updateWindowTitle()
         }
+        if (setting === "bookmarksfile") {
+            updateBookmarkSettings()
+        }
         updateHelpPage(src)
         return true
     }
@@ -2388,6 +2398,7 @@ const loadFromDisk = (firstRun, src = "source") => {
             }
         }
     }
+    updateBookmarkSettings()
     updateContainerSettings()
     updateDownloadSettings()
     updatePermissionSettings()
