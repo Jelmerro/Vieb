@@ -284,7 +284,7 @@ const addExplore = explore => {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(explore.icon) || explore.icon
+        thumbnail.src = forSite(explore.icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const title = document.createElement("span")
@@ -413,7 +413,7 @@ const addCommand = (
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(icon) || icon
+        thumbnail.src = forSite(icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const commandElement = document.createElement("span")
