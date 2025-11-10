@@ -129,6 +129,7 @@ const defaultConfig = {"config": {
  *   webpack?: import("webpack").Configuration,
  *   postinstall?: Promise<void>
  * }} ReleaseConfig
+ */
 /** @type {{[key: string]: ReleaseConfig}} */
 const releases = {
     "asar": {
