@@ -441,8 +441,8 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
     // Undock main process devtools to prevent window size issues
     if (undock) {
-        preferences.electron.devtools.preferences.
-            currentDockState = `"undocked"`
+        preferences.electron.devtools.preferences
+            .currentDockState = `"undocked"`
     }
     // Disable release notes, most are not relevant for Vieb
     preferences.electron.devtools.preferences[
@@ -476,11 +476,13 @@ app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
     argErwic = expandPath(argErwic)
-    /** @type {{
+    /**
+     * @type {{
      *   name?: unknown, icon?: unknown, apps: {
      *     container?: unknown, script?: unknown, url?: unknown
      *   }[]
-     * }} */
+     * }}
+     */
     const config = readJSON(argErwic)
     if (!config) {
         console.warn("Erwic config file could not be read\n")
@@ -614,13 +616,15 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
-/** @type {{
+/**
+ * @type {{
  *   [permission: string]: "allow"|"block"|"ask"|"allowkind"|"allowfull"
  * } & {
  *   permissionsallowed?: string[],
  *   permissionsasked?: string[],
  *   permissionsblocked?: string[]
- * }} */
+ * }}
+ */
 let permissions = {}
 
 /**
@@ -1278,21 +1282,24 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
 })
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
-/** @type {{
+/**
+ * @type {{
  *   downloadmethod?: string,
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
  *   cleardownloadsoncompleted?: boolean,
  *   src?: import("./renderer/common").RunSource
- * }} */
+ * }}
+ */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
-/** @typedef {{
+/**
+ * @typedef {{
  *   current: number,
  *   date: Date,
  *   file: string,
  *   name: string,
  *   item: Electron.DownloadItem
- *   state: "waiting_to_start"|"cancelled"
+ *   state: "waitingToStart"|"cancelled"
  *     |"downloading"|"paused"|"removed"|"completed",
  *   total: number,
  *   url: string
@@ -1381,7 +1388,7 @@ const writeDownloadsToFile = () => {
         try {
             d.item.getFilename()
         } catch {
-            if (d.state === "waiting_to_start") {
+            if (d.state === "waitingToStart") {
                 d.state = "completed"
             }
         }
@@ -1914,7 +1921,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "file": item.getSavePath(),
             item,
             "name": filename,
-            "state": "waiting_to_start",
+            "state": "waitingToStart",
             "total": item.getTotalBytes(),
             "url": item.getURL(),
             "uuid": randomUUID()

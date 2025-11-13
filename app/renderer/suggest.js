@@ -224,9 +224,11 @@ const suggestFiles = loc => {
         location = expandPath(loc.replace(/^file:\/+/g, ""))
     }
     if (isAbsolutePath(location)) {
-        /** @type {{
+        /**
+         * @type {{
          *   path: string, title: string, type: "file", url: string
-         * }[]} */
+         * }[]}
+         */
         let matching = []
         if (dirname(location) !== location) {
             matching = listDir(dirname(location))?.map(

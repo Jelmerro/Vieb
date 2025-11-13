@@ -420,13 +420,15 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        /** @type {{[alignment: string]: {
+        /**
+         * @type {{[alignment: string]: {
          *   left?: number,
          *   right?: number,
          *   top?: number,
          *   bottom?: number,
          *   transform?: string
-         * }}} */
+         * }}}
+         */
         const alignmentDict = {
             "center": {
                 "left": x + width / 2,

@@ -320,7 +320,7 @@
                 "downloading": "ダウンロード中",
                 "paused": "一時停止中",
                 "removed": "削除されました",
-                "waiting_to_start": "開始を待っています"
+                "waitingToStart": "開始を待っています"
             },
             "title": "ダウンロード"
         },

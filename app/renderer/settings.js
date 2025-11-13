@@ -119,9 +119,11 @@ const defaultSettings = {
     "devtoolsposition": "window",
     /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogalert": "notifyblock",
-    /** @type {(
+    /**
+     * @type {(
      *   "show"|"notifyshow"|"block"|"notifyblock"|"allow"|"notifyallow"
-     * )} */
+     * )}
+     */
     "dialogconfirm": "notifyallow",
     /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogprompt": "notifyblock",
@@ -135,9 +137,11 @@ const defaultSettings = {
     /** @type {"persist"|"session"|"none"} */
     "explorehist": "persist",
     "externalcommand": "",
-    /** @type {(
+    /**
+     * @type {(
      *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"
-     * )} */
+     * )}
+     */
     "favicons": "session",
     /** @type {string[]} */
     "favoritepages": [],
@@ -162,7 +166,8 @@ const defaultSettings = {
     ],
     /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
-    /** @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
+    /**
+     * @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
      * "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
      * "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
      * "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
@@ -170,7 +175,8 @@ const defaultSettings = {
      * "outsidelefttop"|"insidetopleft"|"insidetopcenter"|"insidetopright"|
      * "insiderightcenter"|"insidebottomright"|"insidebottomcenter"|
      * "insidebottomleft"|"insideleftcenter"
-     * )} */
+     * )}
+     */
     "followlabelposition": "outsiderighttop",
     "follownewtabswitch": true,
     "guifontsize": 14,
@@ -1862,8 +1868,10 @@ const updateContainerSettings = (full = true) => {
  * @param {import("./common").RunSource} src
  */
 const updateDownloadSettings = async(src = "other") => {
-    /** @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}} */
+    /**
+     * @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}}
+     */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
@@ -1875,8 +1883,10 @@ const updateDownloadSettings = async(src = "other") => {
 /** Update the settings in the file so they are updated in main/preload. */
 const updateSettings = () => {
     const settingsFile = joinPath(appData(), "settings")
-    /** @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}} */
+    /**
+     * @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}}
+     */
     const data = {
         "bg": document.body.computedStyleMap().get("--bg")?.toString() ?? "",
         "fg": document.body.computedStyleMap().get("--fg")?.toString() ?? "",
@@ -1891,8 +1901,10 @@ const updateSettings = () => {
 
 /** Update the permissions in the main thread on change. */
 const updatePermissionSettings = () => {
-    /** @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}} */
+    /**
+     * @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}}
+     */
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {

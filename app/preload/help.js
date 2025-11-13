@@ -287,10 +287,12 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
 ipcRenderer.on("settings", updateSettingsList)
 window.addEventListener("hashchange", processHash)
 window.addEventListener("DOMContentLoaded", () => {
-    /** @type {(
+    /**
+     * @type {(
      *   "chromium"|"firefox"|"vivaldi"|"qutebrowser"|"vimium"|"tridactyl"|
      *   "pentadactyl"|"surfingkeys"|"sakakey"|"vimvixen"
-     * )[]} */
+     * )[]}
+     */
     const examples = [
         "chromium",
         "firefox",

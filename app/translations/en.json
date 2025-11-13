@@ -320,7 +320,7 @@
                 "downloading": "Downloading",
                 "paused": "Paused",
                 "removed": "Removed",
-                "waiting_to_start": "Waiting to start"
+                "waitingToStart": "Waiting to start"
             },
             "title": "Downloads"
         },

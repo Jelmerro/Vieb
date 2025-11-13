@@ -28,9 +28,11 @@ const {
 
 // Sort order determines the appearance in the mode list
 /* eslint-disable perfectionist/sort-objects */
-/** @type {{[K in import("./common").Mode]: {
+/**
+ * @type {{[K in import("./common").Mode]: {
  *   onLeave?: (newMode: import("./common").Mode) => void, onEnter?: () => void
- * }}} */
+ * }}}
+ */
 const modes = {
     "normal": {},
     "insert": {

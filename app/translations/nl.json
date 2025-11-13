@@ -320,7 +320,7 @@
                 "downloading": "Aan het downloaden",
                 "paused": "Gepauzeerd",
                 "removed": "Verwijderd",
-                "waiting_to_start": "Wachten om te beginnen"
+                "waitingToStart": "Wachten om te beginnen"
             },
             "title": "Downloads"
         },

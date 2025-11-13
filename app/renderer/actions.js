@@ -17,7 +17,8 @@
 */
 "use strict"
 
-/** @typedef {{
+/**
+ * @typedef {{
  *   key?: string,
  *   src: import("./common").RunSource,
  *   hadModifier?: boolean,
@@ -802,7 +803,7 @@ const refreshTab = args => {
 /**
  * Reopen the last closed tab.
  * @param {ActionParam} args
- * */
+ */
 const reopenTab = args => {
     const {"reopenTab": reopen} = require("./tabs")
     reopen(args.src)
@@ -1027,7 +1028,7 @@ const stopFollowMode = () => {
 /**
  * Repeat the last used action.
  * @param {ActionParam} args
- * */
+ */
 const repeatLastAction = args => {
     const {"repeatLastAction": repeat} = require("./input")
     repeat(args.src)
@@ -1364,7 +1365,8 @@ const getPageUrl = (customUrl = "") => {
     return url
 }
 
-/** Get the list of RSS links on the page.
+/**
+ * Get the list of RSS links on the page.
  * @param {ActionParam} args
  * @returns {Promise<string[]|null>}
  */
@@ -1417,7 +1419,8 @@ const pageRSSLinksList = async args => {
     })
 }
 
-/** Copy an RSS link to the clipboard by index.
+/**
+ * Copy an RSS link to the clipboard by index.
  * @param {ActionParam} args
  */
 const pageRSSLinkToClipboard = async args => {
@@ -1634,7 +1637,8 @@ const runRecording = args => {
     }
 }
 
-/** Start a macro recording by key.
+/**
+ * Start a macro recording by key.
  * @param {ActionParam} args
  */
 const startRecording = args => {

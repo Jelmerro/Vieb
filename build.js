@@ -123,7 +123,8 @@ const defaultConfig = {"config": {
         ]
     }
 }}
-/** @typedef {{
+/**
+ * @typedef {{
  *   description: string,
  *   ebuilder?: import("electron-builder").CliOptions,
  *   webpack?: import("webpack").Configuration,

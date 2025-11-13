@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2024 Jelmer van Arnhem
+* Copyright (C) 2024-2025 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -133,9 +133,11 @@ window.addEventListener("load", () => {
         } else if (!e.ctrlKey && keys.includes(e.key.toLowerCase())) {
             const index = keys.indexOf(e.key.toLowerCase())
             const source = sources[index]
-            /** @type {{
+            /**
+             * @type {{
              *   index: number|"frame", audio: boolean, echo: boolean
-             * }} */
+             * }}
+             */
             const response = {
                 "audio": audioEnabledBox.checked,
                 "echo": echoEnabledBox.checked,

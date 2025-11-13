@@ -64,7 +64,8 @@ const {setMode} = require("./modes")
  *   "open"|"newtab"|"copy"|"download"|"split"|"vsplit"|"external"|"search"
  * )} tabPosition
  */
-/** @typedef {{
+/**
+ * @typedef {{
  *   container: string,
  *   muted: boolean,
  *   url: string,
@@ -255,12 +256,14 @@ const navigateTo = (src, location, customPage = null) => {
 
 /** Save the current and closed tabs to disk if configured to do so. */
 const saveTabs = () => {
-    /** @type {{
+    /**
+     * @type {{
      *   closed: TabInfo[]
      *   pinned: TabInfo[]
      *   tabs: TabInfo[]
      *   id: number
-     * }} */
+     * }}
+     */
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
     const restoreTabs = getSetting("restoretabs")
     const keepRecentlyClosed = getSetting("keeprecentlyclosed")
@@ -1321,7 +1324,8 @@ const reopenTab = src => {
     if (recentlyClosed.length === 0 || listTabs().length === 0) {
         return
     }
-    /** @type {{
+    /**
+     * @type {{
      *   muted: boolean,
      *   url: string,
      *   index?: number
@@ -1329,7 +1333,8 @@ const reopenTab = src => {
      *   container?: string
      *   customIndex?: number
      *   src?: import("./common").RunSource
-     * }|undefined} */
+     * }|undefined}
+     */
     const restore = recentlyClosed.pop()
     if (!restore) {
         return
@@ -1366,12 +1371,14 @@ const init = () => {
             document.getElementById("logo")
                 ?.setAttribute("src", appConfig()?.icon ?? "")
         }
-        /** @type {{
+        /**
+         * @type {{
          *   closed?: typeof recentlyClosed,
          *   pinned?: typeof recentlyClosed,
          *   tabs?: typeof recentlyClosed,
          *   id?: number
-         * }} */
+         * }}
+         */
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
             if (parsed) {
