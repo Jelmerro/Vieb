@@ -487,8 +487,8 @@ const selectionRequest = (startX, startY, endX, endY) => {
  */
 const translatepage = async(api, url, lang, apiKey) => {
     [...document.querySelectorAll("rt")].forEach(r => r.remove())
-    ;[...document.querySelectorAll("ruby")].forEach(r => r?.parentNode
-        ?.replaceChild(document.createTextNode(r?.textContent ?? ""), r))
+    ;[...document.querySelectorAll("ruby")].forEach(
+        r => r.replaceWith(document.createTextNode(r?.textContent ?? "")))
     const tree = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
     let textNodes = []
     /** @type {TreeWalker|{currentNode: null}} */

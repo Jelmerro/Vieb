@@ -25,7 +25,7 @@
 
 #### Please see [vieb.dev](https://vieb.dev) for [features](https://vieb.dev/features), more [screenshots](https://vieb.dev/screenshots) and the [cheatsheet](https://vieb.dev/cheatsheet)
 
-# Download
+## Install
 
 These are the main sources to download Vieb.
 For startup help, see the [frequently asked questions](FAQ.md).
@@ -39,22 +39,14 @@ The official Vieb website, where you can download the latest stable release for 
 The same releases that are offered on [vieb.dev](https://vieb.dev/download),
 but with release notes and previous versions listed.
 
-### Fedora
+### [Fedora](https://jelmerro.nl/fedora)
 
-I host a custom DNF repository that you can use for Vieb instead of downloading from [vieb.dev](https://vieb.dev/download) or Github.
+I host a custom Fedora repository that you can use for automatic updates.
 
 ```bash
 sudo dnf config-manager addrepo --from-repofile=https://jelmerro.nl/fedora/jelmerro.repo
 sudo dnf install vieb
 ```
-
-### Third-party
-
-These releases are made by users just like you for their favorite system.
-Third-party releases might be outdated (in red) or customized compared to official builds,
-but they are probably the simplest way to get started if your system is listed.
-
-[![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=12.6.0&exclude_unsupported=1)](https://repology.org/project/vieb/versions)
 
 ### Erwic
 
@@ -64,37 +56,19 @@ It can also replace other Electron-based desktop apps such as Slack or Discord.
 These instances of Vieb can run separately from your existing Vieb.
 See [Erwic.md](Erwic.md) for usage and details.
 
-# Contribute
+## Contribute
 
 You can support my work on [ko-fi](https://ko-fi.com/Jelmerro) or [Github sponsors](https://github.com/sponsors/Jelmerro).
-Donating is completely optional because Vieb will always be free and open source.
-Another way to help is to report issues or suggest new features,
-either via [Github discussions](https://github.com/Jelmerro/Vieb/discussions) or [Github issues](https://github.com/Jelmerro/Vieb/issues).
-If you know how to write Electron applications, you can also help by writing code.
-Check the ['help wanted' issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+label%3A"help+wanted") for suggestions on what to work on.
+Another way to help is to report issues or suggest new features.
 Please try to follow the linter styling when developing, see `npm run lint`.
 For an example vimrc that can auto-format based on the included linters,
 you can check out my personal [vimrc](https://github.com/Jelmerro/vimrc).
 
-# Building
+## Building
 
-To create your own builds or run Vieb from source, you need to install [Node.js](https://nodejs.org).
-The next step is to clone the repository or download the source code,
-which can be done with the green "Code" button at the top of the page.
-After downloading, make sure you are in the cloned/extracted Vieb folder,
-then run `npm ci` to install the dependencies, you only need to do so once.
-You can now run Vieb from this folder from source with `npm start`.
+To create your own builds or run from source, you need to install [Node.js](https://nodejs.org).
+Please clone or download this repo and run `npm ci` then `npm start`.
 If you want to use a local datafolder to run Vieb, use `npm run dev`.
-You can do `git pull` and then another `npm ci` to update if you cloned the repo,
-or you can repeat these steps in a new folder if you downloaded a zip.
-Finally, you can generate builds for your platform with `node build`,
-or execute `node build --help` to see the full list of options.
-The selected builds will be created inside of the `dist` folder.
-
-# License
-
-Vieb is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and [contributors](https://github.com/Jelmerro/Vieb/graphs/contributors).
-See the source files for individual authors.
-
-You can copy or modify the code/program under the terms of the GPL3.0 or later versions.
-For more information and legal terms, see the LICENSE file.
+You can make your own executable builds using `node build`.
+See `node build --help` for other options, the builds will be stored in `dist`.
+If you plan to contribute, please follow the included linter, see `npm run lint`.

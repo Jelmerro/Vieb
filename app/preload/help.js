@@ -349,7 +349,7 @@ window.addEventListener("DOMContentLoaded", () => {
         label.textContent = `#${element.id}`
         label.setAttribute("href", `#${element.id}`)
         section.append(label)
-        document.querySelector("main")?.replaceChild(section, element)
+        element.replaceWith(section)
     }
 
     // After loading, this will display the section id as a link
