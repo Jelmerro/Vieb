@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2025 Jelmer van Arnhem
+* Copyright (C) 2025-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -132,6 +132,133 @@
     --follow-other-bg: #cdd6f4;
     --follow-other-border: #cdd6f466;
     --follow-other-hover: #cdd6f466;
+}
+
+/* light-catppuccin.css */
+@media (prefers-color-scheme: light) {
+    /* colors */
+    :root {
+        /* general */
+        --bg: #e6e9ef;
+        --fg: #4c4f69;
+        --tab-background: #dce0e8;
+        --tab-suspended: #ccd0da;
+        --visible-tab: #eff1f5;
+        --tab-split: #1e66f5;
+        --tab-audio: #179299;
+        --tab-muted: #6c6f85;
+        --tab-muted-playing: #ea76cb;
+        --tab-crashed: #d20f39;
+        --tab-scrollbar: #acb0be;
+        --mode-normal-fg: var(--fg);
+        --mode-normal-bg: var(--bg);
+        --mode-command-fg: var(--bg);
+        --mode-command-bg: #209fb5;
+        --mode-insert-fg: var(--bg);
+        --mode-insert-bg: #e64553;
+        --mode-follow-fg: var(--bg);
+        --mode-follow-bg: #df8e1d;
+        --mode-explore-fg: var(--bg);
+        --mode-explore-bg: #179299;
+        --mode-search-fg: var(--bg);
+        --mode-search-bg: #8839ef;
+        --mode-pointer-fg: var(--bg);
+        --mode-pointer-bg: #dc8a78;
+        --mode-visual-fg: var(--bg);
+        --mode-visual-bg: #40a02b;
+        --url-default: #179299;
+        --url-search: #179299;
+        --url-searchwords: #179299;
+        --url-url: #179299;
+        --url-suggest: #179299;
+        --url-file: #179299;
+        --url-invalid: #179299;
+        --suggestions-border: #e6e9ef;
+        --suggestions-bg: #e6e9ef;
+        --suggestions-selected: #ccd0da;
+        --suggestions-searchwords: #df8e1d;
+        --suggestions-url: #6c6f85;
+        --suggestions-file: #6c6f85;
+        --notification-border: var(--bg);
+        --notification-date: #6c6f85;
+        --notification-permission: #6c6f85;
+        --notification-error: #d20f39;
+        --notification-warning: #df8e1d;
+        --notification-info: #04a5e5;
+        --notification-success: #40a02b;
+        --url-hover-fg: #5c5f77;
+        --url-hover-bg: #ccd0da;
+        --screenshot-highlight: #ea76cb;
+        --screenshot-highlight-background: #ea76cb;
+        /* special pages */
+        --link-color: #8839ef;
+        --link-underline: none;
+        --scrollbar-bg: #ccd0da;
+        --scrollbar-thumb: #bcc0cc;
+        --button-disabled: #bcc0cc;
+        --code-fg: #dc8a78;
+        --code-bg: #e6e9ef;
+        --code-command: #dd7878;
+        --placeholder-text: #6c6f85;
+        --special-page-element-bg: #ccd0da;
+        --special-page-element-border: #ccd0da;
+        --input-unfocused: #ccd0da;
+        --input-focused: #acb0be;
+        --download-progress-fg: #acb0be;
+        --download-progress-bg: #ccd0da;
+        --helppage-h1: var(--fg);
+        --helppage-h2: var(--fg);
+        --helppage-h3: var(--fg);
+        --helppage-countable: #df8e1d;
+        --helppage-range-compat: #df8e1d;
+        --helppage-nativetheme-fg-light: #5c5f77;
+        --helppage-nativetheme-bg-light: #eff1f5;
+        --helppage-nativetheme-fg-dark: #5c5f77;
+        --helppage-nativetheme-bg-dark: #eff1f5;
+        /* sourceviewer */
+        --syntax-keyword: #d20f39;
+        --syntax-entity: #40a02b;
+        --syntax-constant: #179299;
+        --syntax-string: #04a5e5;
+        --syntax-variable: #e64553;
+        --syntax-comment: #6c6f85;
+        --syntax-entity-tag: #8839ef;
+        --syntax-markup-heading: #40a02b;
+        --syntax-markup-list: #ea76cb;
+        --syntax-markup-emphasis: #179299;
+        --syntax-markup-addition-fg: #8839ef;
+        --syntax-markup-addition-bg: #e6e9ef;
+        --syntax-markup-deletion-fg: #dd7878;
+        --syntax-markup-deletion-bg: #d20f39;
+        /* follow links */
+        --follow-text: var(--bg);
+        --follow-url-bg: #fe640b;
+        --follow-url-border: #fe640b66;
+        --follow-url-hover: #fe640b66;
+        --follow-click-bg: #04a5e5;
+        --follow-click-border: #04a5e566;
+        --follow-click-hover: #04a5e566;
+        --follow-insert-bg: #e64553;
+        --follow-insert-border: #e6455366;
+        --follow-insert-hover: #e6455366;
+        --follow-onclick-bg: #8839ef;
+        --follow-onclick-border:#8839ef66;
+        --follow-onclick-hover: #8839ef66;
+        --follow-media-bg: #40a02b;
+        --follow-media-border: #40a02b66;
+        --follow-media-hover: #40a02b66;
+        --follow-image-bg: #df8e1d;
+        --follow-image-border: #df8e1d66;
+        --follow-image-hover: #df8e1d66;
+        --follow-other-bg: #4c4f69;
+        --follow-other-border: #4c4f6966;
+        --follow-other-hover: #4c4f6966;
+    }
+    /* special pages */
+    #app #pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
+    .specialpage a::after {filter: invert(1);}
+    #helppage .cheatsheet {filter: none;}
+    #historypage img.favicon {filter: none;}
 }
 
 /* navbar & tabs */
