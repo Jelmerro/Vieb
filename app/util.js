@@ -1000,7 +1000,7 @@ const intervalValueToDate = value => {
  *     path: string,
  *     func?: () => void
  *   }|false,
- *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
+ *   type?: "permission"|"success"|"warning"|"error"|"dialog",
  *   src: import("./renderer/common").RunSource,
  *   silent?: boolean
  * }} NotificationInfo
