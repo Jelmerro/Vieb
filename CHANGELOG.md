@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Default markdownviewer colors to highlight code blocks better
+
 ### Fixed
 
 - URLs being requested for suggestions if the favicon url is not set for a page

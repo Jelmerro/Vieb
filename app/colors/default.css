@@ -492,6 +492,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #markdownviewer {margin: auto;max-width: 65em;padding: 2vw;}
 #markdownviewer img {max-width: 100%;}
 #markdownviewer a {color: var(--link-color);}
+#markdownviewer code {background: var(--code-bg);}
+#markdownviewer pre code {display: inline-block;padding: .5em;}
 
 
 /*
