@@ -1032,10 +1032,12 @@ app.whenReady().then(async() => {
             })
         })
         contents.setWindowOpenHandler(e => {
-            if (e.disposition === "foreground-tab") {
-                mainWindow?.webContents.send("navigate-to", e.url)
-            } else {
-                mainWindow?.webContents.send("new-tab", e.url)
+            if (!["", "about:blank"].includes(e.url.trim())) {
+                if (e.disposition === "foreground-tab") {
+                    mainWindow?.webContents.send("navigate-to", e.url)
+                } else {
+                    mainWindow?.webContents.send("new-tab", e.url)
+                }
             }
             return {"action": "deny"}
         })
