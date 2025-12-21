@@ -187,7 +187,7 @@ const isBookmarkValid = bookmark => {
     if (!bookmark.name?.trim()) {
         isValid = false
         notify({
-            "id": "bookmarks.noname",
+            "id": "commands.bookmarks.noname",
             "src": "user",
             "type": "dialog"
         })
@@ -204,7 +204,7 @@ const isBookmarkValid = bookmark => {
         isValid = false
         notify({
             "fields": [bookmark.name],
-            "id": "bookmarks.exists",
+            "id": "actions.bookmarks.exists",
             "src": "user",
             "type": "dialog"
         })
@@ -215,7 +215,7 @@ const isBookmarkValid = bookmark => {
         isValid = false
         notify({
             "fields": [bookmark?.bg || ""],
-            "id": "bookmarks.hex.invalid",
+            "id": "commands.bookmarks.hex.invalid",
             "src": "user",
             "type": "dialog"
         })
@@ -224,7 +224,7 @@ const isBookmarkValid = bookmark => {
         isValid = false
         notify({
             "fields": [bookmark?.fg || ""],
-            "id": "bookmarks.hex.invalid",
+            "id": "commands.bookmarks.hex.invalid",
             "src": "user",
             "type": "dialog"
         })
@@ -237,7 +237,7 @@ const isBookmarkValid = bookmark => {
         isValid = false
         notify({
             "fields": [bookmark.path],
-            "id": "bookmarks.path.invalid",
+            "id": "commands.bookmarks.path.invalid",
             "src": "user",
             "type": "dialog"
         })
@@ -250,7 +250,7 @@ const isBookmarkValid = bookmark => {
             isValid = false
             notify({
                 "fields": [multiWordKeywords.join(", ")],
-                "id": "bookmarks.keywords.multiword",
+                "id": "commands.bookmarks.keywords.multiword",
                 "src": "user",
                 "type": "dialog"
             })
@@ -269,7 +269,7 @@ const isBookmarkValid = bookmark => {
     if (badOptions.length) {
         notify({
             "fields": [badOptions.join(", ")],
-            "id": "bookmarks.invalid.options",
+            "id": "commands.bookmarks.invalid.options",
             "src": "user",
             "type": "dialog"
         })
@@ -314,7 +314,7 @@ const addBookmark = input => {
                 newbookmark.name.substring(0, 20),
                 newbookmark.url.substring(0, 40)
             ],
-            "id": "bookmarks.added",
+            "id": "actions.bookmarks.added",
             "src": "user",
             "type": "dialog"
         })
@@ -423,7 +423,7 @@ const loadBookmark = input => {
     const {addTab, navigateTo} = require("./tabs")
     if (selectedBookmarks.length === 0) {
         notify({
-            "id": "bookmarks.notfound",
+            "id": "actions.bookmarks.notfound",
             "src": "user",
             "type": "dialog"
         })
@@ -432,7 +432,7 @@ const loadBookmark = input => {
     } else {
         notify({
             "fields": [String(selectedBookmarks.length)],
-            "id": "bookmarks.loaded",
+            "id": "actions.bookmarks.loaded",
             "src": "user",
             "type": "dialog"
         })
@@ -459,7 +459,7 @@ const deleteFolder = input => {
         })
         writeBookmarksToFile()
         notify({
-            "id": "bookmarks.folder.deleted",
+            "id": "actions.bookmarks.folder.deleted",
             "src": "user",
             "type": "dialog"
         })
@@ -484,7 +484,7 @@ const deleteBookmark = (input, bookmark) => {
     }
     notify({
         "fields": [String(selectedBookmarks.length)],
-        "id": "bookmarks.deleted",
+        "id": "actions.bookmarks.deleted",
         "src": "user",
         "type": "dialog"
     })
@@ -551,7 +551,7 @@ const parseBookmarks = (element, path, bookmarks, folders) => {
 const processBookmark = fileContent => {
     if (!fileContent) {
         notify({
-            "id": "bookmarks.import.failed",
+            "id": "actions.bookmarks.import.failed",
             "src": "user",
             "type": "error"
         })
@@ -589,7 +589,7 @@ const processBookmark = fileContent => {
     writeBookmarksToFile()
     notify({
         "fields": [String(newBookmarksCount)],
-        "id": "bookmarks.import.success",
+        "id": "actions.bookmarks.import.success",
         "src": "user",
         "type": "success"
     })
