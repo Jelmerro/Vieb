@@ -477,7 +477,7 @@ const deleteBookmark = (input, bookmark) => {
         selectedBookmarks = bookmarkData.bookmarks.filter(b => b.url
             === bookmark.url && b.name === bookmark.name
         && b.path === bookmark.path)
-    } else if (input.join() === "") {
+    } else if (input.join("") === "") {
         selectedBookmarks = matchBookmarksToInput([`url=${currentPage()?.src}`])
     } else {
         selectedBookmarks = matchBookmarksToInput(input)
