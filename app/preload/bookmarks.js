@@ -142,9 +142,11 @@ const addBookmarkToPage = bookmark => {
     bookmarkLink.href = bookmark.url
     if (bookmark.title === bookmark.name) {
         bookmarkLink.textContent = bookmark.name
-    } else {
+    } else if (bookmark.title) {
         bookmarkLink.textContent
             = `${bookmark.name} - ${bookmark.title}`
+    } else {
+        bookmarkLink.textContent = bookmark.name
     }
     if (bookmark.bg) {
         bookmarkElement.style.background = bookmark.bg
