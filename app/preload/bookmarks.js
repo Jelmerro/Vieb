@@ -29,8 +29,7 @@
 /**
  * @typedef {{
  *  children: FolderNode[],
- *  folderName: string,
- *  fullpath: string
+ *  folderName: string
  * }} FolderNode
  */
 
@@ -53,8 +52,18 @@ const {ipcRenderer} = require("electron")
 /** @type {FolderNode} */
 const tree = {
     "children": [],
-    "folderName": "/",
-    "fullpath": "/"
+    "folderName": "/"
+}
+
+/**
+ * Build a path from parent path and folder name.
+ * @param {string} parentPath
+ * @param {string} folderName
+ * @returns {string}
+ */
+const buildPath = (parentPath, folderName) => {
+    const parts = parentPath.split("/").filter(Boolean)
+    return ["", ...parts, folderName].join("/")
 }
 
 /**
@@ -163,10 +172,10 @@ const addBookmarkToPage = bookmark => {
 /**
  * Create the HTML for a folder.
  * @param {string} folderName
- * @param {string} parentPath
- * @returns {{element: HTMLLIElement, path: string}} - The folder element.
+ * @param {string} path
+ * @returns {HTMLLIElement} - The folder element.
  */
-const createFolderHtml = (folderName, parentPath) => {
+const createFolderHtml = (folderName, path) => {
     const folderElement = document.createElement("li")
     const folderDetails = document.createElement("details")
     const folderSummary = document.createElement("summary")
@@ -179,45 +188,36 @@ const createFolderHtml = (folderName, parentPath) => {
     folderSummary.appendChild(folderDiv)
     folderDiv.textContent = folderName
     folderDiv.appendChild(removeButton)
-    let path = ""
-    if (parentPath === "/") {
-        path = `/${folderName}`
-    } else {
-        path = `${parentPath}/${folderName}`
-    }
     removeButton.setAttribute("data-path", path)
     folderContent.id = path
     folderDetails.appendChild(folderSummary)
     folderDetails.appendChild(folderContent)
     folderElement.appendChild(folderDetails)
-    return {"element": folderElement, path}
+    return folderElement
 }
 
 /**
  * Find or create a folder in the tree.
  * @param {string} folderName
  * @param {FolderNode} parentFolder
- * @returns {FolderNode} - The folder object.
+ * @param {string} parentPath
+ * @returns {{folder: FolderNode, path: string}} - The folder object
+ * and its path.
  */
-const findOrCreateFolder = (folderName, parentFolder) => {
-    // Check if folder already exists in tree structure
+const findOrCreateFolder = (folderName, parentFolder, parentPath) => {
+    const path = buildPath(parentPath, folderName)
     let existingFolder = parentFolder.children.
         find(c => c.folderName === folderName)
     if (!existingFolder) {
-        // Create HTML structure for the folder
-        const {element, path}
-            = createFolderHtml(folderName, parentFolder.fullpath)
-        // Append folder to the correct place in HTML
-        document.getElementById(parentFolder.fullpath)?.appendChild(element)
-        // Create new folder object and add to tree structure
+        const element = createFolderHtml(folderName, path)
+        document.getElementById(parentPath)?.appendChild(element)
         existingFolder = {
             "children": [],
-            folderName,
-            "fullpath": path
+            folderName
         }
         parentFolder.children.push(existingFolder)
     }
-    return existingFolder
+    return {"folder": existingFolder, path}
 }
 
 /**
@@ -225,11 +225,16 @@ const findOrCreateFolder = (folderName, parentFolder) => {
  * @param {string} folderPath
  */
 const processFolderPath = folderPath => {
-    const folderElements = folderPath.split("/").filter(e => e)
+    const folderNames = folderPath.split("/").filter(Boolean)
     let currentFolder = tree
-    folderElements.forEach(folderName => {
-        currentFolder = findOrCreateFolder(folderName, currentFolder)
-    })
+    let currentPath = "/"
+    for (const folderName of folderNames) {
+        const result = findOrCreateFolder(
+            folderName, currentFolder, currentPath
+        )
+        currentFolder = result.folder
+        currentPath = result.path
+    }
 }
 
 /**
