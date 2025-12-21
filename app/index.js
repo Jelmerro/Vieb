@@ -2371,25 +2371,7 @@ const saveWindowState = (statesOnly = false) => {
     }
 }
 
-/**
- * Returns bookmarks file path.
- */
-const getBookmarksFilePath = () => {
-    const setFile = getSetting("bookmarksfile")
-    if (setFile === "bookmarks" || setFile.trim() === "") {
-        return joinPath(app.getPath("appData"), "bookmarks")
-    }
-    if (isAbsolutePath(setFile)) {
-        return setFile
-    }
-    return joinPath(app.getPath("appData"), setFile)
-}
-
-ipcMain.on("import-bookmarks", event => {
-    /**
-     * @typedef {import('./renderer/bookmarks').Bookmark} Bookmark
-     * @typedef {import('./renderer/bookmarks').BookmarkData} BookmarkData
-     */
+ipcMain.on("import-bookmarks", () => {
     if (!mainWindow) {
         return
     }
@@ -2397,129 +2379,14 @@ ipcMain.on("import-bookmarks", event => {
         "filters": [
             {"extensions": ["html", "htm"], "name": "HTML"}
         ],
-        "properties": ["openFile"]
-    // @ts-ignore
+        "properties": ["openFile", "multiSelections"]
     }).then(result => {
-        if (result.canceled) {
-            return
+        if (!result.canceled && result.filePaths.length > 0) {
+            mainWindow?.webContents.send(
+                "import-bookmarks-files", result.filePaths)
         }
-        const [filePath] = result.filePaths
-        const fileContent = readFile(filePath)
-        if (!fileContent) {
-            notify({
-                "id": "bookmarks.import.failed",
-                "src": "user",
-                "type": "error"
-            })
-            return
-        }
-        /** @type {typeof import("jsdom").JSDOM|null} */
-        let JSDOM = null
-        try {
-            ({JSDOM} = require("jsdom"))
-        } catch {
-            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style id="default-styling">${defaultCSS}</style>
-                <style id="custom-styling">${customCSS}</style>
-                </head><body>Reader view module not present, can't do readerview
-                </body></html>`
-            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
-        }
-        const dom = new JSDOM(fileContent)
-        /** @type {Partial<Bookmark>[]} bookmarks - bookmarks array */
-        const bookmarks = []
-        const folders = new Set()
-
-        /**
-         * Parse bookmarks based on DOM element and path.
-         * @param {Element} element
-         * @param {string} path
-         */
-        const parseBookmarks = (element, path) => {
-            const children = Array.from(element.children)
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i]
-                if (child.tagName === "DT") {
-                    const a = child.querySelector("A")
-                    const h3 = child.querySelector("H3")
-                    if (a && !h3) {
-                        const url = a.getAttribute("href") || ""
-                        const name = a.textContent || ""
-                        if (url && name) {
-                            bookmarks.push({
-                                "keywords": [],
-                                name,
-                                path,
-                                "tag": [],
-                                "title": name,
-                                url
-                            })
-                        }
-                    }
-                    if (h3
-                          && !h3.hasAttribute("PERSONAL_TOOLBAR_FOLDER")) {
-                        const folderName = h3.textContent.trim()
-                        let newPath = `${path}/${folderName}`
-                        if (path === "/") {
-                            newPath = `/${folderName}`
-                        }
-                        folders.add(newPath)
-                        const nextDl = h3.parentElement
-                            ?.querySelector("DL")
-                        if (nextDl && nextDl.tagName === "DL") {
-                            parseBookmarks(nextDl, newPath)
-                        }
-                    }
-                }
-            }
-        }
-
-        const {body} = dom.window.document
-        const firstDl = body.querySelector("DL")
-        if (firstDl) {
-            parseBookmarks(firstDl, "/")
-        }
-        const bookmarksFile = getBookmarksFilePath()
-        /** @type {BookmarkData} */
-        const bookmarkData = readJSON(bookmarksFile) || {
-            "bookmarks": [], "folders": [], "lastId": 0, "tags": []
-        }
-        const existingBookmarks = new Set(bookmarkData.bookmarks
-            .map(b => `${b.name}::${b.url}`))
-        let newBookmarksCount = 0
-        bookmarks.forEach(bookmark => {
-            if (!existingBookmarks.has(`${bookmark.name}::${bookmark.url}`)) {
-                // @ts-ignore
-                bookmarkData.bookmarks.push({
-                    ...bookmark,
-                    "id": bookmarkData.lastId += 1
-                })
-                newBookmarksCount += 1
-            }
-        })
-        folders.forEach(folder => {
-            if (!bookmarkData.folders.some(f => f.path === folder)) {
-                bookmarkData.folders.push({
-                    "keywords": [], "name": "", "path": folder
-                })
-            }
-        })
-        writeJSON(bookmarksFile, bookmarkData)
-        notify({
-            "fields": [String(newBookmarksCount)],
-            "id": "bookmarks.import.success",
-            "src": "user",
-            "type": "success"
-        })
-        mainWindow?.webContents.send("bookmarks-updated", bookmarkData)
-        event.sender.send("bookmark-data-response", bookmarkData)
     }).catch(err => {
         console.error(err)
-        notify({
-            "id": "bookmarks.import.failed",
-            "src": "user",
-            "type": "error"
-        })
     })
 })
 ipcMain.on("window-state-init", (_, restore) => {

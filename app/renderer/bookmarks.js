@@ -25,6 +25,7 @@ const {
     isFile,
     joinPath,
     notify,
+    readFile,
     readJSON,
     specialChars,
     specialCharsAllowSpaces,
@@ -497,15 +498,147 @@ const deleteBookmark = (input, bookmark) => {
     writeBookmarksToFile()
 }
 
-ipcRenderer.on("bookmarks-updated", (_, newBookmarkData) => {
-    bookmarkData = newBookmarkData
-})
+/**
+ * Parse bookmarks based on DOM element and path.
+ * @param {Element} element
+ * @param {string} path
+ * @param {Partial<Bookmark>[]} bookmarks
+ * @param {Set<string>} folders
+ */
+const parseBookmarks = (element, path, bookmarks, folders) => {
+    const children = Array.from(element.children)
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        if (child.tagName === "DT") {
+            const a = child.querySelector("A")
+            const h3 = child.querySelector("H3")
+            if (a && !h3) {
+                const url = a.getAttribute("href") || ""
+                const name = a.textContent || ""
+                if (url && name) {
+                    bookmarks.push({
+                        "keywords": [],
+                        name,
+                        path,
+                        "tag": [],
+                        "title": name,
+                        url
+                    })
+                }
+            }
+            if (h3
+                && !h3.hasAttribute("PERSONAL_TOOLBAR_FOLDER")) {
+                const folderName = h3.textContent.trim()
+                let newPath = `${path}/${folderName}`
+                if (path === "/") {
+                    newPath = `/${folderName}`
+                }
+                folders.add(newPath)
+                const nextDl = h3.parentElement
+                    ?.querySelector("DL")
+                if (nextDl && nextDl.tagName === "DL") {
+                    parseBookmarks(nextDl, newPath, bookmarks, folders)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Process Bookmark logic.
+ * @param {string | null} fileContent
+ */
+const processBookmark = fileContent => {
+    if (!fileContent) {
+        notify({
+            "id": "bookmarks.import.failed",
+            "src": "user",
+            "type": "error"
+        })
+        return
+    }
+    const parser = new DOMParser()
+    const dom = parser.parseFromString(fileContent, "text/html")
+    /** @type {Partial<Bookmark>[]} bookmarks - bookmarks array */
+    const bookmarks = []
+    const folders = new Set()
+    const firstDl = dom.body.querySelector("DL")
+    if (firstDl) {
+        parseBookmarks(firstDl, "/", bookmarks, folders)
+    }
+    const existingBookmarks = new Set(bookmarkData.bookmarks
+        .map(b => `${b.name}::${b.url}`))
+    let newBookmarksCount = 0
+    bookmarks.forEach(bookmark => {
+        if (!existingBookmarks.has(`${bookmark.name}::${bookmark.url}`)) {
+            // @ts-ignore
+            bookmarkData.bookmarks.push({
+                ...bookmark,
+                "id": bookmarkData.lastId += 1
+            })
+            newBookmarksCount += 1
+        }
+    })
+    folders.forEach(folder => {
+        if (!bookmarkData.folders.some(f => f.path === folder)) {
+            bookmarkData.folders.push({
+                "keywords": [], "name": "", "path": folder
+            })
+        }
+    })
+    writeBookmarksToFile()
+    notify({
+        "fields": [String(newBookmarksCount)],
+        "id": "bookmarks.import.success",
+        "src": "user",
+        "type": "success"
+    })
+}
+
+
+if (ipcRenderer) {
+    ipcRenderer.on("bookmarks-updated", (_, newBookmarkData) => {
+        if (newBookmarkData) {
+            bookmarkData = newBookmarkData
+        }
+    })
+    ipcRenderer.on("import-bookmarks-files",
+        /**
+         * Process import for every file.
+         * @param {import("electron").IpcRendererEvent} _
+         * @param {string[]} filePaths
+         */
+        (_, filePaths) => {
+            filePaths.forEach(
+                filePath => {
+                    const fileContent = readFile(filePath)
+                    processBookmark(fileContent)
+                })
+            currentPage()?.reload()
+        })
+}
+
+
+/**
+ * Import Bookmarks logic.
+ * @param {Electron.OpenDialogReturnValue} result
+ */
+const importBookmarks = result => {
+    if (result.canceled) {
+        return
+    }
+    result.filePaths.forEach(filePath => {
+        const fileContent = readFile(filePath)
+        processBookmark(fileContent)
+    })
+}
 
 module.exports = {
     addBookmark,
     deleteBookmark,
     deleteFolder,
     getBookmarkData,
+    importBookmarks,
     loadBookmark,
     setBookmarkSettings,
     validBookmarkOptions
