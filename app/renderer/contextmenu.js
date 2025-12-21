@@ -331,15 +331,10 @@ const commonAction = (src, type, action, options) => {
         }
         clipboard.writeText(urlData)
     } else if (action === "download") {
-        if (src === "execute") {
-            const {updateDownloadSettings} = require("./settings")
-            updateDownloadSettings(true)
-            setTimeout(() => {
-                currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
-            }, 100)
-        } else {
-            currentPage()?.downloadURL(stringToUrl(relevantData))
-        }
+        const {updateDownloadSettings} = require("./settings")
+        updateDownloadSettings(src).then(() => {
+            currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
+        })
     } else if (action === "split") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
@@ -691,15 +686,10 @@ const linkMenu = (src, options) => {
     createMenuItem({
         /** Menu item: Link download. */
         "action": () => {
-            if (src === "execute") {
-                const {updateDownloadSettings} = require("./settings")
-                updateDownloadSettings(true)
-                setTimeout(() => {
-                    currentPage()?.downloadURL(options.link)
-                }, 100)
-            } else {
+            const {updateDownloadSettings} = require("./settings")
+            updateDownloadSettings(src).then(() => {
                 currentPage()?.downloadURL(options.link)
-            }
+            })
         },
         "title": translate("contextmenu.general.download")
     })

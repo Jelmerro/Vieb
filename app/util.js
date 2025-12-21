@@ -56,7 +56,7 @@ let homeDirPath = ""
  *   icon?: string,
  *   name: string,
  *   order: "none"|"user-only"|"datafolder-only"
- *   |"user-first"|"datafolder-first",
+ *     |"user-first"|"datafolder-first",
  *   override: string,
  *   files: string[],
  *   config: string
@@ -681,7 +681,8 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     return elements
 }
 
-/** @typedef {{
+/**
+ * @typedef {{
  * bottom: number
  * height: number
  * left: number
@@ -999,7 +1000,7 @@ const intervalValueToDate = value => {
  *     path: string,
  *     func?: () => void
  *   }|false,
- *   type?: "info"|"permission"|"success"|"warning"|"error"|"dialog",
+ *   type?: "permission"|"success"|"warning"|"error"|"dialog",
  *   src: import("./renderer/common").RunSource,
  *   silent?: boolean
  * }} NotificationInfo

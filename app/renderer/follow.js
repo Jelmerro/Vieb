@@ -24,10 +24,8 @@ const {
     currentPage,
     currentTab,
     getMouseConf,
-    getStored,
     getUrl,
-    sendToPageOrSubFrame,
-    setStored
+    sendToPageOrSubFrame
 } = require("./common")
 
 /**
@@ -52,6 +50,8 @@ let links = []
 const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
 ]
+/** @type {import("./common").Mode} */
+let modeBeforeFollow = "normal"
 
 /**
  * Inform preloads on interval that follow mode is on, keeps working on reload.
@@ -59,7 +59,7 @@ const savedOrder = [
  */
 const informPreload = (first = false) => {
     let elemTypesToFollow = getSetting("followelement")
-    if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
+    if (["pointer", "visual"].includes(modeBeforeFollow)) {
         elemTypesToFollow = getSetting("followelementpointer")
     }
     if (followLinkDestination !== "current") {
@@ -93,9 +93,9 @@ const startFollow = (dest = followLinkDestination) => {
         return
     }
     followEl.textContent = ""
-    const modeBeforeFollow = currentMode()
-    if (!["follow", "insert"].includes(modeBeforeFollow)) {
-        setStored("modebeforefollow", modeBeforeFollow)
+    const mode = currentMode()
+    if (!["follow", "insert"].includes(mode)) {
+        modeBeforeFollow = mode
     }
     const {setMode} = require("./modes")
     setMode("follow")
@@ -104,6 +104,16 @@ const startFollow = (dest = followLinkDestination) => {
     hoverLink = null
     informPreload(true)
     followEl.style.display = "flex"
+}
+
+/** Request to stop follow mode and return to the mode used before follow. */
+const stopFollow = () => {
+    const {setMode} = require("./modes")
+    if (currentMode() === "follow") {
+        setMode(modeBeforeFollow || "normal")
+    } else {
+        setMode("normal")
+    }
 }
 
 /** Cancel follow mode mode by clearing the links and stopping the loop. */
@@ -192,10 +202,10 @@ const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
 const clickAtLink = async(link, src = "user") => {
     const factor = currentPage()?.getZoomFactor() ?? 1
     const {setMode} = require("./modes")
-    if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
+    if (["pointer", "visual"].includes(modeBeforeFollow)) {
         const {move, start} = require("./pointer")
         start()
-        if (getStored("modebeforefollow") === "visual") {
+        if (modeBeforeFollow === "visual") {
             setMode("visual")
         }
         move((link.x + link.width / 2) * factor,
@@ -357,7 +367,7 @@ const parseAndDisplayLinks = receivedLinks => {
             const {isUrl} = require("../util")
             const {setMode} = require("./modes")
             if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
-                setMode(getStored("modebeforefollow"))
+                setMode(modeBeforeFollow)
                 const {addTab} = require("./tabs")
                 addTab({
                     "src": "user",
@@ -368,7 +378,7 @@ const parseAndDisplayLinks = receivedLinks => {
                 await clickAtLink(link)
                 if (link.type !== "inputs-insert") {
                     if (e.button === 0) {
-                        setMode(getStored("modebeforefollow"))
+                        setMode(modeBeforeFollow)
                     } else {
                         startFollow()
                     }
@@ -410,13 +420,15 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        /** @type {{[alignment: string]: {
+        /**
+         * @type {{[alignment: string]: {
          *   left?: number,
          *   right?: number,
          *   top?: number,
          *   bottom?: number,
          *   transform?: string
-         * }}} */
+         * }}}
+         */
         const alignmentDict = {
             "center": {
                 "left": x + width / 2,
@@ -565,7 +577,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
     const url = getUrl()
     if (!code || !charsInLinks.includes(code.toLowerCase())) {
         if (fallbackAction === "exit") {
-            return setMode(getStored("modebeforefollow"))
+            return setMode(modeBeforeFollow)
         }
         if (fallbackAction === "nothing") {
             return
@@ -611,7 +623,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
     })
     if (matches.length === 0) {
         if (fallbackAction === "exit") {
-            setMode(getStored("modebeforefollow"))
+            setMode(modeBeforeFollow)
             if (stayInFollowMode) {
                 startFollow()
             }
@@ -659,7 +671,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
         }
         await clickAtLink(link, src)
         if (link.type !== "inputs-insert" || stayInFollowMode) {
-            setMode(getStored("modebeforefollow"))
+            setMode(modeBeforeFollow)
             if (stayInFollowMode) {
                 startFollow()
             }
@@ -680,5 +692,6 @@ module.exports = {
     followFiltering,
     init,
     reorderDisplayedLinks,
-    startFollow
+    startFollow,
+    stopFollow
 }

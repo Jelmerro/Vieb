@@ -120,9 +120,11 @@ const defaultSettings = {
     "devtoolsposition": "window",
     /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogalert": "notifyblock",
-    /** @type {(
+    /**
+     * @type {(
      *   "show"|"notifyshow"|"block"|"notifyblock"|"allow"|"notifyallow"
-     * )} */
+     * )}
+     */
     "dialogconfirm": "notifyallow",
     /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogprompt": "notifyblock",
@@ -136,9 +138,11 @@ const defaultSettings = {
     /** @type {"persist"|"session"|"none"} */
     "explorehist": "persist",
     "externalcommand": "",
-    /** @type {(
+    /**
+     * @type {(
      *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"
-     * )} */
+     * )}
+     */
     "favicons": "session",
     /** @type {string[]} */
     "favoritepages": [],
@@ -163,7 +167,8 @@ const defaultSettings = {
     ],
     /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
-    /** @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
+    /**
+     * @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
      * "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
      * "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
      * "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
@@ -171,7 +176,8 @@ const defaultSettings = {
      * "outsidelefttop"|"insidetopleft"|"insidetopcenter"|"insidetopright"|
      * "insiderightcenter"|"insidebottomright"|"insidebottomcenter"|
      * "insidebottomleft"|"insideleftcenter"
-     * )} */
+     * )}
+     */
     "followlabelposition": "outsiderighttop",
     "follownewtabswitch": true,
     "guifontsize": 14,
@@ -229,7 +235,7 @@ const defaultSettings = {
     "mousevisualmode": "onswitch",
     /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
-    /** @type {"dark"|"light"} */
+    /** @type {"dark"|"light"|"system"} */
     "nativetheme": "dark",
     "newtaburl": "",
     "notificationduration": 6000,
@@ -343,12 +349,19 @@ const defaultSettings = {
     "searchengine": ["https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web"],
     /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
+    /** @type {"all"|"visible"|"current"} */
+    "searchreach": "visible",
+    /** @type {"all"|"visible"|"current"|"same"} */
+    "searchreachinc": "same",
+    /** @type {"all"|"visible"|"current"|"same"} */
+    "searchreachtraverse": "same",
     /** @type {"global"|"local"|"inclocal"} */
     "searchscope": "global",
     /** @type {{[key: string]: string}} */
     "searchwords": {},
     "shell": "",
     "showcmd": true,
+    "showsearchresults": true,
     "smartcase": true,
     "spell": true,
     "spelllang": ["system"],
@@ -517,7 +530,7 @@ const validOptions = {
     "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "largeonly", "smallonly", "never"],
-    "nativetheme": ["dark", "light"],
+    "nativetheme": ["dark", "light", "system"],
     "notificationforpermissions": [
         "all", "allowed", "blocked", "silent", "none"
     ],
@@ -559,6 +572,9 @@ const validOptions = {
     "scrollpostype": ["casing", "local", "global"],
     "searchemptyscope": ["global", "local", "both"],
     "searchpointeralignment": ["left", "center", "right"],
+    "searchreach": ["all", "visible", "current"],
+    "searchreachinc": ["all", "visible", "current", "same"],
+    "searchreachtraverse": ["all", "visible", "current", "same"],
     "searchscope": ["global", "local", "inclocal"],
     "suspendonrestore": ["all", "regular", "none"],
     "tabclosefocus": ["left", "right", "previous"],
@@ -1856,28 +1872,28 @@ const updateContainerSettings = (full = true) => {
 
 /**
  * Update download related settings in the main thread on change.
- * @param {boolean} fromExecute
+ * @param {import("./common").RunSource} src
  */
-const updateDownloadSettings = (fromExecute = false) => {
-    /** @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}} */
+const updateDownloadSettings = async(src = "other") => {
+    /**
+     * @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}}
+     */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
     })
-    if (fromExecute) {
-        downloads.src = "execute"
-    } else {
-        downloads.src = "user"
-    }
-    ipcRenderer.send("set-download-settings", downloads)
+    downloads.src = src
+    await ipcRenderer.invoke("set-download-settings", downloads)
 }
 
 /** Update the settings in the file so they are updated in main/preload. */
 const updateSettings = () => {
     const settingsFile = joinPath(appData(), "settings")
-    /** @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}} */
+    /**
+     * @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}}
+     */
     const data = {
         "bg": document.body.computedStyleMap().get("--bg")?.toString() ?? "",
         "fg": document.body.computedStyleMap().get("--fg")?.toString() ?? "",
@@ -1892,8 +1908,10 @@ const updateSettings = () => {
 
 /** Update the permissions in the main thread on change. */
 const updatePermissionSettings = () => {
-    /** @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}} */
+    /**
+     * @type {{[setting: string]: boolean|number|string|string[]
+     *   |{[key: string]: string}}}
+     */
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {
@@ -2256,6 +2274,18 @@ const set = (src, setting, value) => {
         }
         if (setting === "pdfbehavior") {
             updatePdfOption()
+        }
+        if (setting === "showsearchresults") {
+            const searchResultsEl = document.getElementById("search-results")
+            const searchResults = currentTab()?.getAttribute("search-results")
+            if (searchResultsEl) {
+                if (searchResults && allSettings.showsearchresults) {
+                    searchResultsEl.style.display = "flex"
+                } else {
+                    searchResultsEl.style.display = "none"
+                }
+                searchResultsEl.textContent = searchResults || ""
+            }
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {

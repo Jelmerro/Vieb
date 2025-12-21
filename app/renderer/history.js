@@ -266,7 +266,8 @@ const removeFromHistory = entries => {
     return writeHistToFile(true)
 }
 
-/** @typedef {{
+/**
+ * @typedef {{
  *   date: Date,
  *   icon: string,
  *   title: string,

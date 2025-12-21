@@ -441,8 +441,8 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
     // Undock main process devtools to prevent window size issues
     if (undock) {
-        preferences.electron.devtools.preferences.
-            currentDockState = `"undocked"`
+        preferences.electron.devtools.preferences
+            .currentDockState = `"undocked"`
     }
     // Disable release notes, most are not relevant for Vieb
     preferences.electron.devtools.preferences[
@@ -476,11 +476,13 @@ app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
     argErwic = expandPath(argErwic)
-    /** @type {{
+    /**
+     * @type {{
      *   name?: unknown, icon?: unknown, apps: {
      *     container?: unknown, script?: unknown, url?: unknown
      *   }[]
-     * }} */
+     * }}
+     */
     const config = readJSON(argErwic)
     if (!config) {
         console.warn("Erwic config file could not be read\n")
@@ -614,13 +616,15 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
-/** @type {{
+/**
+ * @type {{
  *   [permission: string]: "allow"|"block"|"ask"|"allowkind"|"allowfull"
  * } & {
  *   permissionsallowed?: string[],
  *   permissionsasked?: string[],
  *   permissionsblocked?: string[]
- * }} */
+ * }}
+ */
 let permissions = {}
 
 /**
@@ -1028,10 +1032,12 @@ app.whenReady().then(async() => {
             })
         })
         contents.setWindowOpenHandler(e => {
-            if (e.disposition === "foreground-tab") {
-                mainWindow?.webContents.send("navigate-to", e.url)
-            } else {
-                mainWindow?.webContents.send("new-tab", e.url)
+            if (!["", "about:blank"].includes(e.url.trim())) {
+                if (e.disposition === "foreground-tab") {
+                    mainWindow?.webContents.send("navigate-to", e.url)
+                } else {
+                    mainWindow?.webContents.send("new-tab", e.url)
+                }
             }
             return {"action": "deny"}
         })
@@ -1278,21 +1284,24 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
 })
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
-/** @type {{
+/**
+ * @type {{
  *   downloadmethod?: string,
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
  *   cleardownloadsoncompleted?: boolean,
  *   src?: import("./renderer/common").RunSource
- * }} */
+ * }}
+ */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
-/** @typedef {{
+/**
+ * @typedef {{
  *   current: number,
  *   date: Date,
  *   file: string,
  *   name: string,
  *   item: Electron.DownloadItem
- *   state: "waiting_to_start"|"cancelled"
+ *   state: "waitingToStart"|"cancelled"
  *     |"downloading"|"paused"|"removed"|"completed",
  *   total: number,
  *   url: string
@@ -1338,7 +1347,7 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
 
 /**
  * Update download settings.
- * @param {Electron.IpcMainEvent} _
+ * @param {Electron.IpcMainInvokeEvent} _
  * @param {{
  *   downloadmethod: string,
  *   downloadpath: string,
@@ -1381,7 +1390,7 @@ const writeDownloadsToFile = () => {
         try {
             d.item.getFilename()
         } catch {
-            if (d.state === "waiting_to_start") {
+            if (d.state === "waitingToStart") {
                 d.state = "completed"
             }
         }
@@ -1393,7 +1402,7 @@ const writeDownloadsToFile = () => {
     }
 }
 
-ipcMain.on("set-download-settings", setDownloadSettings)
+ipcMain.handle("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadUuid) => {
     const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
@@ -1843,7 +1852,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return callback({"cancel": false, "requestHeaders": headers})
     })
     newSess.on("will-download", (e, item) => {
-        if (downloadSettings.downloadmethod === "block" || !mainWindow) {
+        if (!mainWindow) {
+            e.preventDefault()
+            return
+        }
+        const downloadSrc = downloadSettings.src ?? "other"
+        downloadSettings.src = "other"
+        if (downloadSettings.downloadmethod === "block"
+            && downloadSrc === "other") {
             e.preventDefault()
             return
         }
@@ -1907,16 +1923,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "file": item.getSavePath(),
             item,
             "name": filename,
-            "state": "waiting_to_start",
+            "state": "waitingToStart",
             "total": item.getTotalBytes(),
             "url": item.getURL(),
             "uuid": randomUUID()
         }
         downloads.push(info)
-        const downloadSrc = downloadSettings.src ?? "user"
-        if (downloadSrc === "execute") {
-            downloadSettings.src = "user"
-        }
         notify({
             "fields": [info.name],
             "id": "downloads.started",
@@ -2230,11 +2242,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         /** @type {typeof import("@mozilla/readability").Readability|null} */
         let Readability = null
-        /** @type {typeof import("jsdom").JSDOM|null} */
-        let JSDOM = null
+        /** @type {typeof import("linkedom").parseHTML|null} */
+        let parseHTML = null
         try {
             ({Readability} = require("@mozilla/readability"))
-            ;({JSDOM} = require("jsdom"))
+            const linkedom = require("linkedom")
+            ;({parseHTML} = linkedom)
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2250,7 +2263,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
-                    if (!body || !JSDOM || !Readability) {
+                    if (!body || !parseHTML || !Readability) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
                             <style id="default-styling">${defaultCSS}</style>
@@ -2264,9 +2277,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         }}))
                         return
                     }
-                    const dom = new JSDOM(body, {url})
-                    const out = new Readability(
-                        dom.window.document).parse()?.content ?? ""
+                    const dom = parseHTML(body).document
+                    ;[...dom.getElementsByTagName("img")].forEach(link => {
+                        link.src = new URL(link.src, url).href
+                    })
+                    ;[...dom.getElementsByTagName("a")].forEach(link => {
+                        link.href = new URL(link.href, url).href
+                    })
+                    const out = new Readability(dom).parse()?.content ?? ""
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
                         <style id="default-styling">${defaultCSS}</style>

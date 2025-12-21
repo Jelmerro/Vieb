@@ -82,9 +82,11 @@ window.addEventListener("DOMContentLoaded", () => {
     if (checkResultEl) {
         checkResultEl.textContent = translate("pages.version.notChecked")
     }
-    /** @type {{
+    /**
+     * @type {{
      *   src: string, id: import("../../types/i18n").TranslationKeys
-     * }[]} */
+     * }[]}
+     */
     const versionLinks = [
         {"id": "pages.version.homepage", "src": "vieb.dev"},
         {"id": "pages.version.repository", "src": "github.com/Jelmerro/Vieb"},

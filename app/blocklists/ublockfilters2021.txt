@@ -90,6 +90,8 @@ watchporn.to##[href^="https://go.gkrtmc.com/"]
 ! https://github.com/uBlockOrigin/uAssets/issues/9448#issuecomment-1006821975
 dotabuff.com##+js(no-fetch-if, ads)
 dotabuff.com##.retaliate.mana-void
+! https://www.reddit.com/r/uBlockOrigin/comments/1nzk76j/dotabuff_ads/
+||dotabuff.com/cargo.js
 
 ! https://github.com/uBlockOrigin/uAssets/issues/11245
 social-unlock.com##+js(set, ad_link,  '')
@@ -445,6 +447,8 @@ crunchyscan.fr##+js(aopr, open)
 crunchyscan.fr##+js(trusted-prevent-fetch, googlesyndication, function, {"type": "cors"})
 ||crunchyscan.fr/js/safe_user.js
 ||crunchyscan.fr/build/assets/sjs_
+||crunchyscan.fr/build/assets/module|
+crunchyscan.fr##+js(aeld, DOMContentLoaded, adbl)
 
 ! 4stream.*, streambee. to popups
 4stream.*,streamers.watch##+js(nowoif)
@@ -489,7 +493,6 @@ h-flash.com#@#.google-ads
 ||h-flash.com/data/image/mcs/chat*$image,1p
 ||h-flash.com/data/image/mcs/*.gif$image,1p
 ||h-flash.com/data/image/candyai/$frame,1p
-||mediacandy.ai^$3p
 h-flash.com##div[style$="overflow:hidden"]:has(> a[alt="CandyAI"])
 h-flash.com##a[href^="https://a.candyai.love/"]
 h-flash.com##a[style*="/data/image/mcs/chat"]
@@ -734,15 +737,11 @@ desitelugusex.com##+js(set, D4zz, noopFunc)
 ! https://github.com/uBlockOrigin/uAssets/issues/14527
 aresmanga.com##+js(acs, eval, replace)
 
-! https://github.com/AdguardTeam/AdguardFilters/issues/112280
-||doubleclick.net^$xhr,redirect-rule=nooptext,domain=soccerstreams-100.*
-
 ! https://github.com/AdguardTeam/AdguardFilters/issues/112322
 mobilanyheter.net##+js(nostif, ai_)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/4574#issuecomment-1062577877
 ! a8ix .live/atishmkv aliases
-||rotf.lol^
 a8ix.*,atishmkv.*,mkv.*##.idmuvi-bannerplayer
 a8ix.*,atishmkv.*,mkv.*##.idmuvi-center-ads
 a8ix.*,atishmkv.*##.idmuvi-topbanner-aftermenu
@@ -973,6 +972,8 @@ fox.com,foxsports.com##+js(m3u-prune, /\,ad\n.+?(?=#UPLYNK-SEGMENT)/gm, /uplynk\
 ||link.theplatform.com/s/*/media/*=m3u&*_webdesktop_vod*$xhr,domain=foxsports.com,removeparam=/^((?!formats|profile).)*$/
 ! https://www.reddit.com/r/uBlockOrigin/comments/19bsssp/foxsports_video_interrupted_by_ads
 ://foxvideo-sports$xhr,3p,removeparam=ad.prof,domain=foxsports.com
+! https://www.reddit.com/r/uBlockOrigin/comments/1oezv04/fox_one_interrupted_by_advertisements/
+||digitalvideoplatform.com/vod/*/index.m3u8$xhr,removeparam=platform,domain=fox.com
 
 ! https://github.com/uBlockOrigin/uAssets/issues/12430
 @@||wintub.com^$ghide
@@ -981,7 +982,6 @@ fox.com,foxsports.com##+js(m3u-prune, /\,ad\n.+?(?=#UPLYNK-SEGMENT)/gm, /uplynk\
 poki-gdn.com##+js(aopr, alert)
 
 ! https://github.com/easylist/easylist/issues/11449
-||gamezop.com^$frame,3p
 ||static.gamezop.com/creatives^$image,3p
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/tnow27/adblock_detected_at_chimicamoorg/
@@ -1280,7 +1280,6 @@ mangaraw.org,rawmanga.top##.banner-landscape
 
 ! https://github.com/uBlockOrigin/uAssets/issues/23650
 y2mate.com##+js(aopr, open)
-||y2mate.com/themes/js/pn.js
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/115688
 @@||anonigviewer.com/assets/js/peelad.js$script,1p
@@ -1527,11 +1526,11 @@ photopea.com##div[style]:has(> a[href*="photopea.com"][href*="ads"])
 !#if cap_html_filtering
 ||photopea.com^$doc,replace=/<head>/<script>if (localStorage.length === 0 || typeof JSON.parse(localStorage._ppp)['0_uid'] === 'undefined') {Object.defineProperty(window\, 'innerWidth'\, {get() { return document.documentElement.offsetWidth + 320 }\,});}<\/script><head>/
 !#else
-! photopea.com##+js(trusted-create-html, head, <img src='/invalid.jpg' onerror='if (localStorage.length === 0 || typeof JSON.parse(localStorage._ppp)["0_uid"] === "undefined") {Object.defineProperty(window\, "innerWidth"\, {get() { return document.documentElement.offsetWidth + 320 }});}'></img>)
+photopea.com##+js(trusted-create-html, head, <img src='/ad-choices.png' onerror='if (localStorage.length !== 0 || typeof JSON.parse(localStorage._ppp)["0_uid"] !== "undefined") {Object.defineProperty(window\, "innerWidth"\, {get() { return document.documentElement.offsetWidth + 320 }});}'></img>)
+photopea.com##+js(set, __osw, undefined)
 !#endif
-!photopea.com##+js(rpnt, script, /^.*?(function gtag).*$/, document.documentElement.setAttribute('onreset'\,(function addCustomEvent(){document.addEventListener('resizecanvas'\,()=>{window.innerWidth=document.documentElement.clientWidth+(window.screen.width<1600?180:320)})})());document.documentElement.dispatchEvent(new CustomEvent('reset'));document.documentElement.removeAttribute('onreset');function resize(event={}){if(!event.skip){document.dispatchEvent(new CustomEvent('resizecanvas'));const resizeEvent=new Event('resize');resizeEvent.skip=true;window.dispatchEvent(resizeEvent)}}let debounce;window.addEventListener('resize'\,event=>{clearTimeout(debounce);debounce=setTimeout(()=>resize(event)\,100)});resize();)
 ! https://github.com/uBlockOrigin/uAssets/issues/20232
-photopea.com##+js(no-fetch-if, uniconsent.com, length:2300)
+photopea.com##+js(no-fetch-if, uniconsent.com)
 ||pagead2.googlesyndication.com^$3p,xhr,method=head,redirect-rule=noop.js,domain=photopea.com
 
 ! https://github.com/uBlockOrigin/uAssets/issues/13104
@@ -1904,7 +1903,7 @@ mathportal.org##.googleOglasVrhCalculatorResp
 ! https://github.com/uBlockOrigin/uAssets/commit/8e9f9f843a337445a8fd71825470eb455e7c0ad0#commitcomment-75070676
 ! https://github.com/uBlockOrigin/uAssets/issues/13808
 #@#.ad-placeholder
-##.ad-placeholder:not(#filter_ads_by_classname):not(#detect_ad_empire):not(#detect):not(.adsbox)
+##.ad-placeholder:not(#detect, #detect_ad_empire, #filter_ads_by_classname, .adsbox)
 
 ! 111.90.151.26 ads
 111.90.151.26##+js(aopr, preroll_helper.advs)
@@ -1917,7 +1916,8 @@ mathportal.org##.googleOglasVrhCalculatorResp
 &key=*&adb=y$popup,3p
 ?campaign-key=*&key=*&publisherKey=*&placementIdentifier=$popup,3p
 /watchnew?shu=$frame,3p
-/^https?:\/\/[-0-9a-z]{5,}\.com\/[0-9a-z]{8,10}\?key=[0-9a-f]{32}$/$frame,3p
+! https://github.com/uBlockOrigin/uAssets/discussions/30392
+/^https?:\/\/[-0-9a-z]{5,}\.com\/[0-9a-z]{8,10}\?key=[0-9a-f]{32}$/$doc,frame,to=com
 ?key=*&psid=https://$popup,3p
 ! https://github.com/uBlockOrigin/uAssets/issues/25495
 ^psid=*&adb=$popup,3p
@@ -1936,7 +1936,6 @@ dads-banging-teens.com,mature-chicks.com##+js(acs, document.querySelectorAll, po
 ||amazon-adsystem.com/aax2/apstag.js$script,redirect=amazon_apstag.js,important,domain=time.com
 ! https://github.com/uBlockOrigin/uAssets/issues/676#issuecomment-2763133489
 time.com##.py-4 > p:has-text(Advertisement):upward(1)
-time.com##.bg-warm-grey-ads
 
 ! yt-subs .com
 /propeller-ads
@@ -1988,7 +1987,7 @@ unblockit.*##center
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/v87ylw/please_remove_anti_adblocker/
 moviegan.*##+js(no-xhr-if, ads)
-moviegan.*##+js(acs, document.createElement, /l\.parentNode\.insertBefore\(s/)
+moviegan.*##+js(acs, document.createElement, l.parentNode.insertBefore(s)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/13639
 ! bc.vc / bcvc. xyz (ex .live) 
@@ -2301,6 +2300,10 @@ elektroda.pl,elektroda.com,elektroda.de##div[id]:has(> .text-center > div[id^="d
 elektroda.de,elektroda.com##section[class]:has(> .text-center > div[id^="div-gpt-ad-"] > script:only-child)
 elektroda.de,elektroda.com##div[style="min-height: 265px;"]:has(> div[class] > .text-center > div[id^="div-gpt-ad-"] > script:only-child)
 elektroda.pl##div[class]:has(> b > .fancy-new-lnk[target="_blank"])
+elektroda.pl,elektroda.de,elektroda.com##div[style="position: relative;"]:has(> a[href*=".php?"][onclick*="sendGAEvent"][target="_blank"][title] > img[width] + div > span)
+elektroda.pl##div[class="topic-box clearfix "] + div[class]:last-child:has(> a[style="font-weight: bold;"][target="_blank"]:only-child)
+elektroda.pl##*:has(> div[style*="height"] + div:last-child > div:first-child + div:last-child > a[href*=".php?"][rel][onclick].fancybox:only-child)
+elektroda.pl##div:not([id], [class]):has(> div:first-child + a[href*=".php?"]:last-child > picture > source + source + img)
 
 ! helmiau. com anti adb
 helmiau.com##+js(acs, document.createElement, open)
@@ -2545,7 +2548,7 @@ sumikai.com##.td-pb-span8:style(width: 100% !important;)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/14388
 ! https://github.com/uBlockOrigin/uAssets/issues/17158
-adslink.pw##+js(acs, document.createElement, /l\.parentNode\.insertBefore\(s/)
+adslink.pw##+js(acs, document.createElement, l.parentNode.insertBefore(s)
 adslink.pw##+js(no-xhr-if, googlesyndication)
 adslink.pw##+js(set, blurred, false)
 adslink.pw##+js(nostif, showModal)
@@ -2661,7 +2664,6 @@ mafiatown.pl##+js(rmnt, script, AreLoaded)
 ! https://github.com/uBlockOrigin/uAssets/issues/14617
 rtl.de##+js(nostif, null, 10)
 @@||iocnt.net^$script,domain=rtl.de
-@@||googletagmanager.com/gtm.js$script,domain=rtl.de
 ||ais-akamai.rtl.de/autoimg/*$frame,1p
 rtl.de##[class*="superbanner"]:upward(article > div:not(#main))
 rtl.de##[class^="AdSlot_"]
@@ -3212,7 +3214,7 @@ cloud-computing-central.com##+js(nostif, -0x)
 @@||partner.googleadservices.com/gampad/cookie.js?$script,domain=okdebrid.com|youdebrid.com
 
 ! https://github.com/uBlockOrigin/uAssets/issues/15311
-expresskaszubski.pl##+js(nostif, offsetHeight)
+expresskaszubski.pl##+js(nosiif, childNodes)
 
 ! nudostar.com,slutmesh.net ad script
 nudostar.com,slutmesh.net##+js(aopw, __aaZoneid)
@@ -3355,8 +3357,6 @@ ssyoutube.com##+js(nowoif)
 ssyou.tube,y2meta-uk.com##+js(acs, EventTarget.prototype.addEventListener, delete window)
 y2meta-uk.com##+js(nowoif, !yt1d.com)
 mmnm.store##+js(nowoif, _blank)
-||awkwardemergency.com^
-||embroiderynaturalistsfighter.com^
 ||flatrelentlessperspective.com^$all
 ||litaudrootsa.net^$all
 
@@ -3556,14 +3556,6 @@ hackr.io##+js(no-fetch-if, googlesyndication)
 ! termux. xyz anti adb
 *$script,domain=termux.xyz,redirect-rule=noopjs
 
-! weloma.art popup
-weloma.art##+js(nowoif)
-weloma.art##+js(acs, document.addEventListener, openPopup)
-*$script,3p,denyallow=cloudflare.net|cloudfront.net|disqus.com|disquscdn.com|fastlylb.net|jsdelivr.net,domain=weloma.art
-weloma.art###welcome-bar
-
-! https://github.com/uBlockOrigin/uAssets/issues/15683
-
 ! https://github.com/uBlockOrigin/uAssets/issues/15688
 ! https://github.com/uBlockOrigin/uAssets/issues/16056
 namasce.pl##+js(nostif, , 1)
@@ -3674,6 +3666,7 @@ kpkuang.org###sterra-ad-onmid
 ! https://github.com/easylist/easylistgermany/issues/216
 www.chip.de###dlcharts-list + div[class]:has(> h2:has-text(/Gesponsert|Bezahlte Empfehlung|Anzeige/) + a[href^="https://www.chip.de/downloads/"])
 www.chip.de##.fb > .Listing > div:has(> h2:has-text(/Gesponsert|Bezahlte Empfehlung|Anzeige/) + a[href^="https://www.chip.de/downloads/"])
+www.chip.de##.ft-charts-teaser > a:has(> div:first-child > span:first-child:has-text(/Gesponsert|Bezahlte Empfehlung|Anzeige/))
 chip.de###R1C3[role="complementary"]
 chip.de###R1C2[role="complementary"]:not(:has(> .Hero))
 chip.de###R1C1[role="complementary"]
@@ -3696,37 +3689,33 @@ www.chip.de###CR[class="download-listing"] > #G32 > #M1 > div:not([class], [id])
 www.chip.de###CR[class="download-listing"] > #G32 > #M1 > [class="wrapper-safe mt-sm"] > .fb > .mt-md:not(.ft-charts-main):has(img[src*="https://im.chip.de/ii/"])
 www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > [class="wrapper-safe"] > [class="fb mt-xl"] > [class="fb-col-lg-4 is-hidden-sm is-hidden-md"] > *:has(img[src*="https://im.chip.de/ii/"]):not(section[class="mt-md"]:has(> h3:first-child + table:last-child))
 www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > [class="wrapper-safe"] > [class="fb mt-xl"] > [class="fb-col-lg-4 is-hidden-sm is-hidden-md"] > section[class="mt-md"] > h3 + table:has(img[src*="https://im.chip.de/ii/"])
-www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > :not(aside[class="mt-md cac"][role="complementary"]) + section[class="wrapper-safe mt-md ft-alts"] .Downloads-Alternative a[href*="https://www.chip.de/downloads/"]:has(> img[src*="https://im.chip.de/ii/"])
-www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > section[class="wrapper-safe mt-md ft-alts"]:first-child .Downloads-Alternative a[href*="https://www.chip.de/downloads/"]:has(> img[src*="https://im.chip.de/ii/"])
-www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > section[class="wrapper-safe mt-md ft-alts"]:first-child:has(> h3:first-child + .Downloads-Alternative:last-child a img)
+www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > [class]:not(.wrapper-safe) .Downloads-Alternative:has(a img[src*="https://im.chip.de/ii/"])
 www.chip.de###CR[class="Downloads-Detail"] > #G32 > #M1 > div[class]:has(> div[class][style="min-height: 250px;"] > ul.is-separated a img[src*="https://im.chip.de/ii/"])
 www.chip.de###CR[class="Downloads-Select"] > #G32 > #M1 > [class="wrapper-safe"] > [class^="fb mt-"] > section[class="fb-col-12 fb-col-lg-8"] > [class]:not(.ButtonAuswahl):has(> a[href^="https://www.chip.de/downloads/"])
 www.chip.de###CR[class="Downloads-Select"] > #G32 > #M1 > [class="wrapper-safe"] > [class="fb mt-lg"] > section > div[class]:has(> div:only-child > ul.is-separated a img)
 www.chip.de###CR[class="Downloads-Getfile"] > #G32 > #M1 > div[class="wrapper-safe"] > [class="fb mt-xl"] > [class="fb-col-lg-4 is-hidden-sm is-hidden-md"] > section[class="mt-md"]:has(table img[src*="https://im.chip.de/ii/"])
 www.chip.de###CR[class="Downloads-Select"] > #G32 > #M1 > [class="wrapper-safe"] > [class="fb mt-lg"] > [class="fb-col-lg-4 is-hidden-sm is-hidden-md"] > [class]:has(img[src*="https://im.chip.de/ii/"] + div > span[style^="width: "])
 www.chip.de###CR[class="Downloads-Getfile"] > #G32 > #M1 > [class="wrapper-safe"] > [class="fb mt-lg"] > [class="fb-col-lg-4 is-hidden-sm is-hidden-md"] > [class]:has(img[src*="https://im.chip.de/ii/"] + div > span[style^="width: "])
-www.chip.de###CR[class="Downloads-Select"] > #G32 > #M1 > :not([class="WidgetOutbrainFocus wrapper-safe mt-md is-loaded Focus ft-focus-ob"]) + [class="wrapper-safe mt-md ft-alts"] .Downloads-Alternative a[href*="https://www.chip.de/downloads/"]:has(img[src*="https://im.chip.de/ii/"])
-www.chip.de###CR[class="Downloads-Getfile"] > #G32 > #M1 > :not([class="wrapper-safe"]) + [class="wrapper-safe mt-md ft-alts"] .Downloads-Alternative a[href*="https://www.chip.de/downloads/"]:has(img[src*="https://im.chip.de/ii/"])
-www.chip.de###CR[class="Downloads-Select"] > #G32 > #M1 > [class="wrapper-safe mt-md ft-alts"]:first-child:has(.Downloads-Alternative a[href*="https://www.chip.de/downloads/"] > img[src*="https://im.chip.de/ii/"])
-www.chip.de###CR[class="Downloads-Getfile"] > #G32 > #M1 > [class="wrapper-safe mt-md ft-alts"]:first-child:has(.Downloads-Alternative a[href*="https://www.chip.de/downloads/"] > img[src*="https://im.chip.de/ii/"])
+www.chip.de###CR[class="Downloads-Select"] > #G32 > #M1 > :not(section[class^="WidgetOutbrainFocus wrapper-safe mt-"][class$="is-loaded Focus ft-focus-ob"] + [class="wrapper-safe mt-lg ft-alts"]) .Downloads-Alternative a[href*="https://www.chip.de/downloads/"]:has(img[src*="https://im.chip.de/ii/"])
+www.chip.de###CR[class="Downloads-Getfile"] > #G32 > #M1 > :not([class="wrapper-safe"] + .wrapper-safe.ft-alts) .Downloads-Alternative a[href*="https://www.chip.de/downloads/"]:has(img[src*="https://im.chip.de/ii/"])
 ! restore speed (the anti adblock script causing lag spikes)
 !#if cap_html_filtering
 www.chip.de##^script:has-text(?metric=transit.counter&key=fail_redirect&tags=)
 www.chip.de##^script:has-text(/pushAdTag|link_click|getAds/)
-www.chip.de##^script:has-text(/\'\, [0-9]{5}\)\]\; \}/)
-www.chip.de##^script:has-text(/\"\,\"clickp\"\:\"[0-9]{1,2}\"/)
+www.chip.de##^script:has-text(/\'\, [0-9]{3}\)\]\; \}  \}/)
+www.chip.de##^script:has-text(/\"\,\"clickp\"\:[0-9]{1,2}\}\;/)
 !#else
 www.chip.de##+js(rmnt, script, ?metric=transit.counter&key=fail_redirect&tags=)
 www.chip.de##+js(rmnt, script, /pushAdTag|link_click|getAds/)
-www.chip.de##+js(rmnt, script, /\'\, [0-9]{5}\)\]\; \}/)
-www.chip.de##+js(rmnt, script, /\"\,\"clickp\"\:\"[0-9]{1\,2}\"/)
+www.chip.de##+js(rmnt, script, /\'\, [0-9]{3}\)\]\; \}  \}/)
+www.chip.de##+js(rmnt, script, /\"\,\"clickp\"\:[0-9]{1\,2}\}\;/)
 !#endif
 ||nah-versorger.de^$3p
 ||stopundstart.de^$3p
 ||mein-organizer.de^$3p
 ||schneesommer.de^$3p
-||free.webcompanion.com/*/index.php?*partner=*&campaign=$popup,doc
-||free.webcompanion.com/*/index.php?*campaign=*&partner=$popup,doc
+||free.webcompanion.com/*/*partner=*&campaign=$popup,doc
+||free.webcompanion.com/*/*campaign=*&partner=$popup,doc
 ||bdu.bitdriverupdater.com/*&utm_source=$popup,doc
 praxistipps.chip.de##div[data-bc-data-trackvars]
 ! https://github.com/orgs/uBlockOrigin/teams/ublock-filters-volunteers/discussions/448
@@ -3765,8 +3754,10 @@ tvtv.ca,tvtv.us##.css-1j9nufa:style(height: 1560px !important;)
 !#endif
 
 ! https://github.com/uBlockOrigin/uAssets/issues/15856
+! https://github.com/uBlockOrigin/uAssets/issues/25961
 ipalibrary.me##+js(no-fetch-if, gloacmug.net)
 ipalibrary.me##+js(nano-sib, countdown)
+ipalibrary.me##+js(rmnt, script, textContent)
 ipalibrary.me###hihi
 
 ! https://swisscows. com/en/web?query=running+shoes - ads

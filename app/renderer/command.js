@@ -1936,7 +1936,8 @@ const runjsinpage = (src, raw, range) => {
  */
 const tabnew = (src, session = null, url = null) => {
     const {addTab} = require("./tabs")
-    /** @type {{
+    /**
+     * @type {{
      *   url?: string, session?: string, src: import("./common").RunSource
      * }}
      */
@@ -2631,14 +2632,16 @@ const noArgumentComands = [
 /** @type {{[command: string]: string}} */
 let userCommands = {}
 /* eslint-disable jsdoc/require-jsdoc */
-/** @type {{
+/**
+ * @type {{
  *   [command: string]: (props: {
  *     args: string[],
  *     range: string,
  *     raw: string,
  *     src: import("./common").RunSource
  *   }) => void
- * }} */
+ * }}
+ */
 const commands = {
     "b": ({args, src}) => buffer(src, args),
     "bm": ({src}) => openSpecialPage(src, "bookmarks", false),

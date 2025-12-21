@@ -64,7 +64,8 @@ const {setMode} = require("./modes")
  *   "open"|"newtab"|"copy"|"download"|"split"|"vsplit"|"external"|"search"
  * )} tabPosition
  */
-/** @typedef {{
+/**
+ * @typedef {{
  *   container: string,
  *   muted: boolean,
  *   url: string,
@@ -255,12 +256,14 @@ const navigateTo = (src, location, customPage = null) => {
 
 /** Save the current and closed tabs to disk if configured to do so. */
 const saveTabs = () => {
-    /** @type {{
+    /**
+     * @type {{
      *   closed: TabInfo[]
      *   pinned: TabInfo[]
      *   tabs: TabInfo[]
      *   id: number
-     * }} */
+     * }}
+     */
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
     const restoreTabs = getSetting("restoretabs")
     const keepRecentlyClosed = getSetting("keeprecentlyclosed")
@@ -377,6 +380,16 @@ const switchToTab = tabOrIndex => {
     if (hoverEl) {
         hoverEl.textContent = ""
         hoverEl.style.display = "none"
+    }
+    const searchResultsEl = document.getElementById("search-results")
+    const searchResults = tab.getAttribute("search-results")
+    if (searchResultsEl) {
+        if (searchResults && getSetting("showsearchresults")) {
+            searchResultsEl.style.display = "flex"
+        } else {
+            searchResultsEl.style.display = "none"
+        }
+        searchResultsEl.textContent = searchResults || ""
     }
     guiRelatedUpdate("tabbar")
     const {updateContainerSettings} = require("./settings")
@@ -951,7 +964,25 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("found-in-page", e => {
-        webview.send("search-element-location", e.result.selectionArea)
+        const current = e.result.activeMatchOrdinal
+        const total = e.result.matches
+        const location = e.result.selectionArea
+        let text = `${current}/${total}`
+        if (total === 0) {
+            webview.stopFindInPage("clearSelection")
+            text = translate("actions.noSearchResults")
+        }
+        webview.send("search-element-location", location)
+        tabForPage(webview)?.setAttribute("search-results", text)
+        const searchResultsEl = document.getElementById("search-results")
+        if (webview === currentPage() && searchResultsEl) {
+            if (getSetting("showsearchresults")) {
+                searchResultsEl.style.display = "flex"
+            } else {
+                searchResultsEl.style.display = "none"
+            }
+            searchResultsEl.textContent = text
+        }
         justSearched = true
         setTimeout(() => {
             justSearched = false
@@ -1306,7 +1337,8 @@ const reopenTab = src => {
     if (recentlyClosed.length === 0 || listTabs().length === 0) {
         return
     }
-    /** @type {{
+    /**
+     * @type {{
      *   muted: boolean,
      *   url: string,
      *   index?: number
@@ -1314,7 +1346,8 @@ const reopenTab = src => {
      *   container?: string
      *   customIndex?: number
      *   src?: import("./common").RunSource
-     * }|undefined} */
+     * }|undefined}
+     */
     const restore = recentlyClosed.pop()
     if (!restore) {
         return
@@ -1351,12 +1384,14 @@ const init = () => {
             document.getElementById("logo")
                 ?.setAttribute("src", appConfig()?.icon ?? "")
         }
-        /** @type {{
+        /**
+         * @type {{
          *   closed?: typeof recentlyClosed,
          *   pinned?: typeof recentlyClosed,
          *   tabs?: typeof recentlyClosed,
          *   id?: number
-         * }} */
+         * }}
+         */
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
             if (parsed) {

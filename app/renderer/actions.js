@@ -17,7 +17,8 @@
 */
 "use strict"
 
-/** @typedef {{
+/**
+ * @typedef {{
  *   key?: string,
  *   src: import("./common").RunSource,
  *   hadModifier?: boolean,
@@ -50,20 +51,20 @@ const {
     currentMode,
     currentPage,
     currentTab,
-    getStored,
     getUrl,
     listRealPages,
     listTabs,
     sendToPageOrSubFrame,
-    setStored,
     tabForPage,
     updateGuiVisibility
 } = require("./common")
 
-let lastSearchFull = false
-let currentSearch = ""
-let storedSearch = ""
+let lastSearchLocal = true
+let lastSearchInc = true
+let lastIncSearch = ""
+let lastProperSearch = ""
 let searchDirection = "forward"
+let globalSearch = ""
 let potentialNewSearchDirection = "forward"
 
 /**
@@ -80,9 +81,17 @@ const emptySearch = args => {
     }
     if (["both", "global"].includes(scope)) {
         pages = listRealPages()
-        setStored("globalsearch", "")
+        globalSearch = ""
     }
-    pages.forEach(page => page?.stopFindInPage("clearSelection"))
+    pages.forEach(page => {
+        tabForPage(page)?.removeAttribute("search-results")
+        page?.stopFindInPage("clearSelection")
+    })
+    const searchResultsEl = document.getElementById("search-results")
+    if (searchResultsEl) {
+        searchResultsEl.style.display = "none"
+        searchResultsEl.textContent = ""
+    }
 }
 
 /**
@@ -99,26 +108,37 @@ const matchCase = search => {
 /** Highlight the next search match based on the scope. */
 const nextSearchMatch = () => {
     const scope = getSetting("searchscope")
-    let search = getStored("globalsearch")
+    let search = globalSearch
     let pages = []
     if (scope === "local") {
-        search = currentTab()?.getAttribute("localsearch")
-            || getStored("globalsearch")
+        search = currentTab()?.getAttribute("localsearch") || search
         pages = [currentPage()]
     } else {
         pages = listRealPages()
     }
-    if (search) {
-        pages.forEach(page => {
-            if (tabForPage(page)?.classList.contains("visible-tab")) {
-                page?.findInPage(search, {
-                    "findNext": true,
-                    "forward": searchDirection === "forward",
-                    "matchCase": matchCase(search)
-                })
+    if (!search) {
+        return
+    }
+    /** @type {"searchreachtraverse"|"searchreach"} */
+    let reachSetting = "searchreach"
+    if (getSetting("searchreachtraverse") !== "same") {
+        reachSetting = "searchreachtraverse"
+    }
+    const reach = getSetting(reachSetting)
+    if (reach === "all") {
+        pages = listRealPages()
+    } else {
+        pages = pages.filter(p => {
+            if (reach === "current") {
+                return p === currentPage()
             }
+            return p?.classList.contains("visible-page")
         })
     }
+    pages.forEach(p => p?.findInPage(search, {
+        "forward": searchDirection === "forward",
+        "matchCase": matchCase(search)
+    }))
 }
 
 /**
@@ -128,12 +148,11 @@ const nextSearchMatch = () => {
 const toSearchMode = args => {
     const {setMode} = require("./modes")
     setMode("search")
-    let search = getStored("globalsearch")
+    let search = globalSearch
     if (getSetting("searchscope") !== "global") {
-        search = currentTab()?.getAttribute("localsearch")
-            || getStored("globalsearch")
+        search = currentTab()?.getAttribute("localsearch") || search
     }
-    storedSearch = search
+    lastProperSearch = search
     if (args.hadModifier) {
         potentialNewSearchDirection = "backward"
     } else {
@@ -151,36 +170,37 @@ const toSearchMode = args => {
 /** Highlight the previous search match based on the scope. */
 const previousSearchMatch = () => {
     const scope = getSetting("searchscope")
-    let search = getStored("globalsearch")
+    let search = globalSearch
     let pages = []
     if (scope === "local") {
-        search = currentTab()?.getAttribute("localsearch")
-            || getStored("globalsearch")
+        search = currentTab()?.getAttribute("localsearch") || search
         pages = [currentPage()]
     } else {
         pages = listRealPages()
     }
-    if (search) {
-        pages.forEach(page => {
-            if (tabForPage(page)?.classList.contains("visible-tab")) {
-                page?.findInPage(search, {
-                    "findNext": true,
-                    "forward": searchDirection === "backward",
-                    "matchCase": matchCase(search)
-                })
+    if (!search) {
+        return
+    }
+    /** @type {"searchreachtraverse"|"searchreach"} */
+    let reachSetting = "searchreach"
+    if (getSetting("searchreachtraverse") !== "same") {
+        reachSetting = "searchreachtraverse"
+    }
+    const reach = getSetting(reachSetting)
+    if (reach === "all") {
+        pages = listRealPages()
+    } else {
+        pages = pages.filter(p => {
+            if (reach === "current") {
+                return p === currentPage()
             }
+            return p?.classList.contains("visible-page")
         })
     }
-}
-
-/**
- * Reset the incremental search match.
- * @param {ActionParam} args
- */
-const resetIncrementalSearch = args => {
-    if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
-        emptySearch({"scope": "local", "src": args?.src ?? "other"})
-    }
+    pages.forEach(p => p?.findInPage(search, {
+        "forward": searchDirection === "backward",
+        "matchCase": matchCase(search)
+    }))
 }
 
 /**
@@ -189,9 +209,11 @@ const resetIncrementalSearch = args => {
  */
 const incrementalSearch = args => {
     let scope = getSetting("searchscope")
+    const isIncSearch = args?.value === undefined
+    lastSearchLocal = scope === "local"
     if (scope === "inclocal") {
-        lastSearchFull = Boolean(args?.value)
-        if (args?.value === undefined) {
+        if (isIncSearch) {
+            lastSearchLocal = true
             scope = "local"
         } else {
             scope = "global"
@@ -199,29 +221,69 @@ const incrementalSearch = args => {
     }
     const url = getUrl()
     const search = args?.value || url?.value || ""
+    if (lastProperSearch === search) {
+        if (!lastSearchInc && !isIncSearch) {
+            nextSearchMatch()
+            return
+        }
+        if (lastIncSearch === search && isIncSearch) {
+            return
+        }
+    }
+    lastIncSearch = search
+    if (!isIncSearch) {
+        lastProperSearch = search
+    }
+    lastSearchInc = isIncSearch
     let pages = [currentPage()]
     if (scope === "global") {
         pages = listRealPages()
-        setStored("globalsearch", search)
+        globalSearch = search
+        listTabs().forEach(t => t.removeAttribute("localsearch"))
     } else {
         currentTab()?.setAttribute("localsearch", search)
     }
-    if (search === currentSearch) {
-        if (args && search === storedSearch) {
-            nextSearchMatch()
-        }
-        return
+    /** @type {"searchreachinc"|"searchreach"} */
+    let reachSetting = "searchreach"
+    if (isIncSearch && getSetting("searchreachinc") !== "same") {
+        reachSetting = "searchreachinc"
     }
-    currentSearch = search
-    if (search) {
-        pages.forEach(page => {
-            page?.stopFindInPage("clearSelection")
-            if (tabForPage(page)?.classList.contains("visible-tab")) {
-                page?.findInPage(search, {"matchCase": matchCase(search)})
+    const reach = getSetting(reachSetting)
+    if (reach === "all") {
+        pages = listRealPages()
+    } else {
+        pages = pages.filter(p => {
+            if (reach === "current") {
+                return p === currentPage()
             }
+            return p?.classList.contains("visible-page")
         })
+    }
+    pages.forEach(p => p?.stopFindInPage("clearSelection"))
+    if (search) {
+        pages.forEach(p => p?.findInPage(search, {
+            "findNext": true, "matchCase": matchCase(search)
+        }))
     } else {
         emptySearch({scope, "src": args?.src ?? "other"})
+    }
+}
+
+/**
+ * Reset the incremental search match.
+ * @param {ActionParam} args
+ */
+const resetIncrementalSearch = args => {
+    if (getSetting("searchscope") === "inclocal" && lastSearchLocal) {
+        emptySearch({"scope": "local", "src": args?.src ?? "other"})
+    } else if (getSetting("incsearch") && lastProperSearch !== lastIncSearch) {
+        if (lastProperSearch) {
+            incrementalSearch({
+                "src": args.src ?? "other", "value": lastProperSearch
+            })
+        } else {
+            emptySearch({"scope": "both", "src": args?.src ?? "other"})
+        }
     }
 }
 
@@ -741,7 +803,7 @@ const refreshTab = args => {
 /**
  * Reopen the last closed tab.
  * @param {ActionParam} args
- * */
+ */
 const reopenTab = args => {
     const {"reopenTab": reopen} = require("./tabs")
     reopen(args.src)
@@ -959,18 +1021,14 @@ const toNormalMode = () => {
 
 /** Go to the previous mode used before follow, or back to normal. */
 const stopFollowMode = () => {
-    const {setMode} = require("./modes")
-    if (currentMode() === "follow") {
-        setMode(getStored("modebeforefollow") || "normal")
-    } else {
-        setMode("normal")
-    }
+    const {stopFollow} = require("./follow")
+    stopFollow()
 }
 
 /**
  * Repeat the last used action.
  * @param {ActionParam} args
- * */
+ */
 const repeatLastAction = args => {
     const {"repeatLastAction": repeat} = require("./input")
     repeat(args.src)
@@ -1307,7 +1365,8 @@ const getPageUrl = (customUrl = "") => {
     return url
 }
 
-/** Get the list of RSS links on the page.
+/**
+ * Get the list of RSS links on the page.
  * @param {ActionParam} args
  * @returns {Promise<string[]|null>}
  */
@@ -1360,7 +1419,8 @@ const pageRSSLinksList = async args => {
     })
 }
 
-/** Copy an RSS link to the clipboard by index.
+/**
+ * Copy an RSS link to the clipboard by index.
  * @param {ActionParam} args
  */
 const pageRSSLinkToClipboard = async args => {
@@ -1577,7 +1637,8 @@ const runRecording = args => {
     }
 }
 
-/** Start a macro recording by key.
+/**
+ * Start a macro recording by key.
  * @param {ActionParam} args
  */
 const startRecording = args => {

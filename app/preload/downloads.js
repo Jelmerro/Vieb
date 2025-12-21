@@ -101,8 +101,7 @@ const addDownload = download => {
     if (download.state === "paused") {
         title.style.color = "var(--notification-warning)"
         togglePause.src = joinPath(getAppRootDir(), "img/resume.png")
-        togglePause.parentNode?.replaceChild(
-            togglePause.cloneNode(true), togglePause)
+        togglePause.replaceWith(togglePause.cloneNode(true))
         togglePause = document.createElement("img")
         togglePause.addEventListener(
             "click", () => update("resume", download.uuid))
@@ -206,12 +205,11 @@ const updateDownload = (download, element) => {
     }
     // Change looks depending on the state
     let remove = element.querySelector(".remove")
-    remove?.parentNode?.replaceChild(remove.cloneNode(true), remove)
+    remove?.replaceWith(remove.cloneNode(true))
     remove = element.querySelector(".remove")
     remove?.addEventListener("click", () => update("remove", download.uuid))
     togglePause.setAttribute("src", joinPath(getAppRootDir(), "img/pause.png"))
-    togglePause.parentNode?.replaceChild(
-        togglePause.cloneNode(true), togglePause)
+    togglePause.replaceWith(togglePause.cloneNode(true))
     togglePause = element.querySelector(".toggle-pause")
     if (!(togglePause instanceof HTMLElement)) {
         return
@@ -233,8 +231,7 @@ const updateDownload = (download, element) => {
         title.style.color = "var(--notification-warning)"
         togglePause.setAttribute("src",
             joinPath(getAppRootDir(), "img/resume.png"))
-        togglePause.parentNode?.replaceChild(
-            togglePause.cloneNode(true), togglePause)
+        togglePause.replaceWith(togglePause.cloneNode(true))
         togglePause = element.querySelector(".toggle-pause")
         togglePause?.addEventListener(
             "click", () => update("resume", download.uuid))

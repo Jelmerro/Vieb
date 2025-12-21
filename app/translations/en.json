@@ -6,6 +6,7 @@
             "success": "Command successful!",
             "successWithOutput": "Command success:\n$1"
         },
+        "noSearchResults": "No results",
         "rss": {
             "clipboard": "RSS feed '$1' copied to clipboard",
             "header": "--- RSS feeds on the page ---\n$1",
@@ -349,7 +350,7 @@
                 "downloading": "Downloading",
                 "paused": "Paused",
                 "removed": "Removed",
-                "waiting_to_start": "Waiting to start"
+                "waitingToStart": "Waiting to start"
             },
             "title": "Downloads"
         },
