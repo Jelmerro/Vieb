@@ -926,7 +926,7 @@ const addWebviewListeners = webview => {
             const bmdata = getBookmarkData()
             webview.send("bookmark-data-response", bmdata)
         }
-        if (e.channel === "delete-folder") {
+        if (e.channel === "delete-bookmarks-folder") {
             const {deleteFolder} = require("./bookmarks")
             deleteFolder([`path=${e.args[0]}`])
         }

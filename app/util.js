@@ -263,6 +263,20 @@ const isUrl = location => {
 }
 
 /**
+ * Check if a string is a valid CSS color.
+ * @param {string} color
+ */
+const isValidColor = color => {
+    if (!color || typeof color !== "string") {
+        return false
+    }
+    const {style} = document.createElement("div")
+    style.color = "white"
+    style.color = color
+    return style.color !== "white" || color === "white"
+}
+
+/**
  * Match a searchword and return the word and filled url.
  * @param {string} location
  */
@@ -1619,6 +1633,7 @@ module.exports = {
     isInputOrTextElement,
     isSVGElement,
     isUrl,
+    isValidColor,
     isValidIntervalValue,
     joinPath,
     listDir,

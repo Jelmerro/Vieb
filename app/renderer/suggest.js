@@ -28,6 +28,7 @@ const {
     isAbsolutePath,
     isDir,
     isUrl,
+    isValidColor,
     joinPath,
     listDir,
     pathExists,
@@ -950,20 +951,20 @@ const suggestCommand = searchStr => {
             if (otherOptions.length > 0) {
                 baseCmd += ` ${otherOptions.join("~")}`
             }
-            const [key, value = ""] = lastOption.split("=")
+            const [optionName, optionValue = ""] = lastOption.split("=")
             let prefix = " "
             if (otherOptions.length > 0) {
                 prefix = "~"
             }
-            const completeCommand = `${baseCmd}${prefix}${key}=`
-            if (key === "path") {
+            const completeCommand = `${baseCmd}${prefix}${optionName}=`
+            if (optionName === "path") {
                 bmData.folders.forEach(f => {
-                    if (f.path.startsWith(value)) {
+                    if (f.path.startsWith(optionValue)) {
                         addCommand(`${completeCommand}${f.path}`)
                     }
                 })
-            } else if (key === "keywords") {
-                const enteredKeywords = value.split(",")
+            } else if (optionName === "keywords") {
+                const enteredKeywords = optionValue.split(",")
                 const suggestingKeyword = enteredKeywords.pop() || ""
                 const baseKeywords = enteredKeywords.filter(k => k)
                 const allKeywords = new Set()
@@ -977,23 +978,23 @@ const suggestCommand = searchStr => {
                             `${completeCommand}${newKeywords.join(",")}`)
                     }
                 })
-            } else if (key === "url") {
+            } else if (optionName === "url") {
                 const page = currentPage()
                 const pageUrl = page?.getAttribute("src") ?? ""
-                if (pageUrl && pageUrl.startsWith(value)) {
+                if (pageUrl && pageUrl.startsWith(optionValue)) {
                     addCommand(`${completeCommand}${pageUrl}`)
                 }
-            } else if (key === "name" || key === "title") {
+            } else if (optionName === "name" || optionName === "title") {
                 const page = currentPage()
                 const pageId = page?.getAttribute("link-id") ?? ""
                 const tabs = listTabs()
                 const currentTab = tabs
                     .find(t => t.getAttribute("link-id") === pageId)
-                const tabTitle = currentTab?.querySelector("span")?.innerText
+                const tabTitle = currentTab?.innerText || ""
                 if (tabTitle) {
                     addCommand(`${completeCommand}${tabTitle}`)
                 }
-            } else if (key === "bg" || key === "fg") {
+            } else if (optionName === "bg" || optionName === "fg") {
                 const colors = [
                     "#000",
                     "#fff",
@@ -1014,15 +1015,28 @@ const suggestCommand = searchStr => {
                     "#0000ff",
                     "#ffff00",
                     "#00ffff",
-                    "#ff00ff"
+                    "#ff00ff",
+                    "red",
+                    "green",
+                    "blue",
+                    "yellow",
+                    "cyan",
+                    "magenta",
+                    "black",
+                    "white",
+                    "gray",
+                    "grey",
+                    "orange",
+                    "pink",
+                    "purple"
                 ]
                 colors.forEach(color => {
-                    if (color.startsWith(value)) {
+                    if (color.startsWith(optionValue)) {
                         addCommand(`${completeCommand}${color}`)
                     }
                 })
-                if (value.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/i)) {
-                    addCommand(`${completeCommand}${value}`)
+                if (isValidColor(optionValue)) {
+                    addCommand(`${completeCommand}${optionValue}`)
                 }
             }
         } else {
@@ -1045,9 +1059,15 @@ const suggestCommand = searchStr => {
             if (!optionsStr) {
                 const page = currentPage()
                 const pageUrl = page?.getAttribute("src") ?? ""
-                const pageTitle = page?.getAttribute("data-title") ?? ""
+                const pageId = page?.getAttribute("link-id") ?? ""
+                const tabs = listTabs()
+                const currentTab = tabs
+                    .find(t => t.getAttribute("link-id") === pageId)
+                const pageTitle = currentTab?.querySelector("span")?.textContent
                 if (pageUrl) {
-                    addCommand(`bmadd url=${pageUrl}~title=${pageTitle}`)
+                    if (pageTitle && pageTitle !== pageUrl) {
+                        addCommand(`bmadd url=${pageUrl}~title=${pageTitle}`)
+                    }
                     addCommand(`bmadd url=${pageUrl}`)
                 }
             }
@@ -1056,15 +1076,11 @@ const suggestCommand = searchStr => {
     ["bmload", "bmdel"].forEach(
         bmCommand => {
             if (bmCommand.startsWith(command) && !confirm) {
-                const {
-                    getBookmarkData
-                } = require("./bookmarks")
-                const bmData = getBookmarkData()
-                // Select by name, url or title.
+                const {getBookmarkData} = require("./bookmarks")
                 const {specialChars} = require("../util")
                 const simpleSearch = args.join("").replace(specialChars, "")
                     .toLowerCase()
-                bmData.bookmarks.map(bmd => ({
+                getBookmarkData().bookmarks.map(bmd => ({
                     "command": `${bmCommand} ${bmd.name}`,
                     "subtext": `${bmd.title} ${bmd.url}
                         ${bmd.keywords?.join(" ")}`

@@ -2403,8 +2403,8 @@ ipcMain.on("import-bookmarks", () => {
             mainWindow?.webContents.send(
                 "import-bookmarks-files", result.filePaths)
         }
-    }).catch(err => {
-        console.error(err)
+    }).catch(error => {
+        errToMain(error)
     })
 })
 ipcMain.on("window-state-init", (_, restore) => {

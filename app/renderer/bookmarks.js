@@ -23,8 +23,10 @@ const {
     getSetting,
     isAbsolutePath,
     isFile,
+    isValidColor,
     joinPath,
     notify,
+    pathToSpecialPageName,
     readFile,
     readJSON,
     specialChars,
@@ -33,7 +35,8 @@ const {
 } = require("../util")
 const {
     currentPage,
-    currentTab
+    currentTab,
+    listReadyPages
 } = require("./common")
 
 /**
@@ -54,7 +57,7 @@ const {
  *  keywords: string[],
  *  bg?: string,
  *  fg?: string,
- *  [key: string]: any
+ *  [key: string]: number | string | string[] | undefined
  * }} Bookmark
  */
 
@@ -116,6 +119,17 @@ const writeBookmarksToFile = () => {
 }
 
 /**
+ * Notify any open bookmarks pages to refresh their display.
+ */
+const notifyBookmarksPages = () => {
+    for (const page of listReadyPages()) {
+        if (pathToSpecialPageName(page.src)?.name === "bookmarks") {
+            page.send("bookmark-data-response", bookmarkData)
+        }
+    }
+}
+
+/**
  * Fix bookmarkData values based on the option type.
  * @param {string} option - The option to fix.
  * @param {string} value - The value to fix.
@@ -128,10 +142,10 @@ const fixBookmarkData = (option, value) => {
         } else {
             correctFormat = `/${value}`
         }
-        correctFormat = correctFormat.replace(/\s/g, "-").replace(/[/]$/, "")
+        correctFormat = correctFormat.replace(/\s/g, "-").replace(/\/$/, "")
     } else if (option === "keywords") {
-        correctFormat = value.split("").map(k => k.replace(specialChars, "")).
-            join("")
+        correctFormat = [...value].map(k => k.replace(specialChars, ""))
+            .join("")
     } else if (option === "name") {
         correctFormat = value.replace(specialCharsAllowSpaces, "")
     } else {
@@ -147,21 +161,27 @@ const fixBookmarkData = (option, value) => {
  */
 const bookmarkObject = input => {
     /** @type {Bookmark} */
-    const newbookmark = {}
-    newbookmark.id = bookmarkData.lastId
+    const newbookmark = {
+        "id": bookmarkData.lastId,
+        "keywords": [],
+        "name": "",
+        "path": "",
+        "title": "",
+        "url": ""
+    }
     // If there's "=" or "~" we parse the input.
-    if (input.join().includes("=") || input.join().includes("~")) {
+    if (input.join(",").includes("=") || input.join(",").includes("~")) {
         // Retain spaces for multiple word inputs.
         const options = input.join(" ").split("~")
-        for (let i = 0; i < options.length; i++) {
+        for (const option of options) {
             // Get key and value: [0,1]
-            const [key, value] = options[i].split("=")
+            const [key, value] = option.split("=")
             if (key === "keywords") {
                 const keywordList = value.split(",").map(
                     item => item.trim()).filter(Boolean)
                 newbookmark[key] = keywordList
             } else {
-                const allValue = options[i].split("=").slice(1).join("")
+                const allValue = option.split("=").slice(1).join("")
                 if (allValue?.trim()) {
                     const correctData = fixBookmarkData(key,
                         allValue)
@@ -209,29 +229,28 @@ const isBookmarkValid = bookmark => {
             "type": "dialog"
         })
     }
-    // Color check for hex values
-    const hexReg = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
-    if (bookmark?.bg && bookmark.bg !== "" && !hexReg.test(bookmark.bg)) {
+    // Color check
+    if (bookmark?.bg && !isValidColor(bookmark.bg)) {
         isValid = false
         notify({
-            "fields": [bookmark?.bg || ""],
-            "id": "commands.bookmarks.hex.invalid",
+            "fields": [bookmark.bg],
+            "id": "commands.bookmarks.color.invalid",
             "src": "user",
             "type": "dialog"
         })
     }
-    if (bookmark?.fg && bookmark.fg !== "" && !hexReg.test(bookmark.fg)) {
+    if (bookmark?.fg && !isValidColor(bookmark.fg)) {
         isValid = false
         notify({
-            "fields": [bookmark?.fg || ""],
-            "id": "commands.bookmarks.hex.invalid",
+            "fields": [bookmark.fg],
+            "id": "commands.bookmarks.color.invalid",
             "src": "user",
             "type": "dialog"
         })
     }
     // Path validation: should be slash-separate,
     // no special chars, no empty segments.
-    const pathRegex = /^\/([a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*)?$/
+    const pathRegex = /^\/([\w-]+(\/[\w-]+)*)?$/
     if (bookmark.path && bookmark.path !== "/"
         && !pathRegex.test(bookmark.path)) {
         isValid = false
@@ -261,12 +280,12 @@ const isBookmarkValid = bookmark => {
         if (bookmark.keywords) {
             // Sanitize keywords: remove special chars and filter empty ones
             bookmark.keywords = bookmark.keywords.map(
-                k => k.trim().replace(specialChars, "")).
-                filter(k => k && !k.includes(" "))
+                k => k.trim().replace(specialChars, ""))
+                .filter(k => k && !k.includes(" "))
         }
         addFolder(bookmark.path)
     }
-    if (badOptions.length) {
+    if (badOptions.length > 0) {
         notify({
             "fields": [badOptions.join(", ")],
             "id": "commands.bookmarks.invalid.options",
@@ -302,21 +321,22 @@ const addBookmark = input => {
     if (!newbookmark.path?.trim()) {
         newbookmark.path = "/"
     }
-    if (typeof newbookmark.keywords === "undefined") {
+    if (newbookmark.keywords === undefined) {
         newbookmark.keywords = []
     }
     if (isBookmarkValid(newbookmark)) {
         bookmarkData.bookmarks.push(newbookmark)
         bookmarkData.lastId += 1
         writeBookmarksToFile()
+        notifyBookmarksPages()
         notify({
             "fields": [
-                newbookmark.name.substring(0, 20),
-                newbookmark.url.substring(0, 40)
+                newbookmark.name.slice(0, 20),
+                newbookmark.url.slice(0, 40)
             ],
             "id": "actions.bookmarks.added",
             "src": "user",
-            "type": "dialog"
+            "type": "success"
         })
     }
 }
@@ -352,25 +372,23 @@ const setBookmarkSettings = () => {
 const matchBookmarksToInput = input => {
     const storedBookmarkData = bookmarkData.bookmarks
     let selectedBookmarks = []
-    if (validBookmarkOptions.some(option => input.join()
+    if (validBookmarkOptions.some(option => input.join(",")
         .includes(`${option}=`))) {
         const eachOption = input.join("").split("~")
         selectedBookmarks = storedBookmarkData.filter(b => {
             let matchedOptions = 0
-            eachOption.forEach(e => {
+            for (const e of eachOption) {
                 const [key, value] = e.split("=")
                 if (key === "keywords") {
                     const eachValue = value.split(",")
                     let matchedValues = 0
-                    eachValue.forEach(v => {
-                        if (v.startsWith("!")) {
-                            if (!b[key].includes(v.substring(1))) {
-                                matchedValues += 1
-                            }
+                    for (const v of eachValue) {
+                        if (v.startsWith("!") && !b[key].includes(v.slice(1))) {
+                            matchedValues += 1
                         } else if (b[key].includes(v)) {
                             matchedValues += 1
                         }
-                    })
+                    }
                     if (eachValue.length === matchedValues) {
                         matchedOptions += 1
                     }
@@ -378,7 +396,7 @@ const matchBookmarksToInput = input => {
                 if (b[key] === value) {
                     matchedOptions += 1
                 }
-            })
+            }
             if (matchedOptions === eachOption.length) {
                 return true
             }
@@ -391,7 +409,7 @@ const matchBookmarksToInput = input => {
         const bookmarksSelectedByKeyword = storedBookmarkData.filter(
             e => e.keywords.find(k => k === input.join("")))
         selectedBookmarks
-            = individualBookmark.concat(bookmarksSelectedByKeyword)
+            = [...individualBookmark, ...bookmarksSelectedByKeyword]
     }
     return selectedBookmarks
 }
@@ -436,10 +454,12 @@ const loadBookmark = input => {
             "src": "user",
             "type": "dialog"
         })
-        selectedBookmarks.forEach(e => addTab({
-            "src": "user",
-            "url": e.url
-        }))
+        for (const e of selectedBookmarks) {
+            addTab({
+                "src": "user",
+                "url": e.url
+            })
+        }
     }
 }
 
@@ -452,16 +472,16 @@ const deleteFolder = input => {
     if (selectedFolder) {
         bookmarkData.folders
             = bookmarkData.folders.filter(f => selectedFolder.path !== f.path)
-        bookmarkData.bookmarks.forEach(b => {
+        for (const b of bookmarkData.bookmarks) {
             if (selectedFolder.path === b.path) {
                 b.path = "/"
             }
-        })
+        }
         writeBookmarksToFile()
         notify({
             "id": "actions.bookmarks.folder.deleted",
             "src": "user",
-            "type": "dialog"
+            "type": "success"
         })
     }
 }
@@ -469,14 +489,13 @@ const deleteFolder = input => {
 /**
  * Delete bookmark based on the input.
  * @param {string[]} input - The input to parse.
- * @param {Bookmark | undefined} bookmark - The bookmark object.
+ * @param {number | undefined} bookmarkId - The bookmark id or undefined.
  */
-const deleteBookmark = (input, bookmark) => {
+const deleteBookmark = (input, bookmarkId) => {
     let selectedBookmarks = []
-    if (bookmark) {
-        selectedBookmarks = bookmarkData.bookmarks.filter(b => b.url
-            === bookmark.url && b.name === bookmark.name
-        && b.path === bookmark.path)
+    if (typeof bookmarkId === "number") {
+        selectedBookmarks = bookmarkData.bookmarks.filter(b => b.id
+            === bookmarkId)
     } else if (input.join("") === "") {
         selectedBookmarks = matchBookmarksToInput([`url=${currentPage()?.src}`])
     } else {
@@ -486,15 +505,15 @@ const deleteBookmark = (input, bookmark) => {
         "fields": [String(selectedBookmarks.length)],
         "id": "actions.bookmarks.deleted",
         "src": "user",
-        "type": "dialog"
+        "type": "success"
     })
-    selectedBookmarks.forEach(sb => {
+    for (const sb of selectedBookmarks) {
         for (let x = 0; x < bookmarkData.bookmarks.length; x++) {
             if (sb.id === bookmarkData.bookmarks[x].id) {
                 bookmarkData.bookmarks.splice(x, 1)
             }
         }
-    })
+    }
     writeBookmarksToFile()
 }
 
@@ -506,9 +525,8 @@ const deleteBookmark = (input, bookmark) => {
  * @param {Set<string>} folders
  */
 const parseBookmarks = (element, path, bookmarks, folders) => {
-    const children = Array.from(element.children)
-    for (let i = 0; i < children.length; i++) {
-        const child = children[i]
+    const children = [...element.children]
+    for (const child of children) {
         if (child.tagName === "DT") {
             const a = child.querySelector("A")
             const h3 = child.querySelector("H3")
@@ -569,7 +587,7 @@ const processBookmark = fileContent => {
     const existingBookmarks = new Set(bookmarkData.bookmarks
         .map(b => `${b.name}::${b.url}`))
     let newBookmarksCount = 0
-    bookmarks.forEach(bookmark => {
+    for (const bookmark of bookmarks) {
         if (!existingBookmarks.has(`${bookmark.name}::${bookmark.url}`)) {
             // @ts-ignore
             bookmarkData.bookmarks.push({
@@ -578,14 +596,14 @@ const processBookmark = fileContent => {
             })
             newBookmarksCount += 1
         }
-    })
-    folders.forEach(folder => {
+    }
+    for (const folder of folders) {
         if (!bookmarkData.folders.some(f => f.path === folder)) {
             bookmarkData.folders.push({
                 "keywords": [], "name": "", "path": folder
             })
         }
-    })
+    }
     writeBookmarksToFile()
     notify({
         "fields": [String(newBookmarksCount)],
@@ -609,12 +627,11 @@ if (ipcRenderer) {
          * @param {string[]} filePaths
          */
         (_, filePaths) => {
-            filePaths.forEach(
-                filePath => {
-                    const fileContent = readFile(filePath)
-                    processBookmark(fileContent)
-                })
-            currentPage()?.reload()
+            for (const filePath of filePaths) {
+                const fileContent = readFile(filePath)
+                processBookmark(fileContent)
+            }
+            notifyBookmarksPages()
         })
 }
 
@@ -627,10 +644,10 @@ const importBookmarks = result => {
     if (result.canceled) {
         return
     }
-    result.filePaths.forEach(filePath => {
+    for (const filePath of result.filePaths) {
         const fileContent = readFile(filePath)
         processBookmark(fileContent)
-    })
+    }
 }
 
 module.exports = {

@@ -50,8 +50,8 @@
             "folderMissing": "Map '$1' bestaat niet!"
         },
         "bookmarks": {
-            "hex": {
-                "invalid": "Ongeldige kleurhexadecimale code: $1"
+            "color": {
+                "invalid": "Ongeldige kleurcode: $1"
             },
             "invalid": {
                 "options": "Geen geldige opties: $1."

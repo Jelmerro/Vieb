@@ -26,6 +26,7 @@ const {
     isDir,
     isFile,
     isUrl,
+    isValidColor,
     isValidIntervalValue,
     joinPath,
     notify,
@@ -946,13 +947,7 @@ const checkOther = (src, setting, value) => {
         }
     }
     if (setting === "darkreaderfg" || setting === "darkreaderbg") {
-        if (typeof value !== "string") {
-            return false
-        }
-        const {style} = document.createElement("div")
-        style.color = "white"
-        style.color = value
-        if (style.color === "white" && value !== "white" || !value) {
+        if (!isValidColor(value)) {
             notify({
                 "fields": [value],
                 "id": "settings.errors.darkreader.color",
@@ -1823,6 +1818,9 @@ const updatePdfOption = () => {
     ipcRenderer.send("update-pdf-option", allSettings.pdfbehavior)
 }
 
+/**
+ * Update the bookmark settings from the bookmarks module.
+ */
 const updateBookmarkSettings = () => {
     const {setBookmarkSettings} = require("./bookmarks")
     setBookmarkSettings()

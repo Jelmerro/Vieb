@@ -50,9 +50,23 @@
 const {ipcRenderer} = require("electron")
 
 /** @type {FolderNode} */
-const tree = {
+let tree = {
     "children": [],
     "folderName": "/"
+}
+
+/**
+ * Clear the bookmark tree display and reset the tree structure.
+ */
+const clearTree = () => {
+    tree = {
+        "children": [],
+        "folderName": "/"
+    }
+    const rootContent = document.getElementById("/")
+    if (rootContent) {
+        rootContent.innerHTML = ""
+    }
 }
 
 /**
@@ -77,25 +91,28 @@ const update = () => ipcRenderer.sendToHost("bookmark-data-request")
  */
 const deleteFolderClick = e => {
     e.stopPropagation()
-    // @ts-ignore
-    const path = e?.target?.dataset?.path
-    ipcRenderer.sendToHost("delete-folder", path)
-    window.location.reload()
+    if (e.target instanceof HTMLElement) {
+        const {path} = e.target.dataset
+        ipcRenderer.sendToHost("delete-bookmarks-folder", path)
+        clearTree()
+        update()
+    }
 }
 
 /**
- * Trigger bookmark's folder delete.
+ * Trigger bookmark delete by id.
  * @param {PointerEvent} e - HTML onclick event.
  */
 const deleteBookmarkClick = e => {
     e.stopPropagation()
-    // @ts-ignore
-    // @ts-ignore
-    const bookmark = e?.target?.dataset?.bookmark
-    // @ts-ignore
-        && JSON.parse(e.target.dataset.bookmark)
-    ipcRenderer.sendToHost("delete-bookmark", bookmark)
-    window.location.reload()
+    if (e.target instanceof HTMLElement) {
+        const {bookmarkId} = e.target.dataset
+        if (bookmarkId) {
+            ipcRenderer.sendToHost("delete-bookmark", Number(bookmarkId))
+        }
+        clearTree()
+        update()
+    }
 }
 
 /**
@@ -105,8 +122,10 @@ const importBookmarks = () => {
     ipcRenderer.send("import-bookmarks")
 }
 
-window.addEventListener("load", () => {
-    // Set up the tree structure.
+/**
+ * Initialize the bookmarks page tree structure and event listeners.
+ */
+const init = () => {
     const treeRootElement = document.createElement("ul")
     treeRootElement.className = "bm-block"
     const treeRootList = document.createElement("li")
@@ -116,19 +135,20 @@ window.addEventListener("load", () => {
     treeRootSummary.textContent = "/"
     const treeRootContent = document.createElement("ul")
     treeRootContent.id = "/"
-    treeRootDetails.appendChild(treeRootSummary)
-    treeRootDetails.appendChild(treeRootContent)
-    treeRootList.appendChild(treeRootDetails)
-    treeRootElement.appendChild(treeRootList)
-    document.getElementById("bookmarks")?.appendChild(treeRootElement)
+    treeRootDetails.append(treeRootSummary)
+    treeRootDetails.append(treeRootContent)
+    treeRootList.append(treeRootDetails)
+    treeRootElement.append(treeRootList)
+    document.getElementById("bookmarks")?.append(treeRootElement)
     const importBookmarksButton
         = document.getElementById("import-bookmarks-button")
     if (importBookmarksButton) {
-        importBookmarksButton.onclick = importBookmarks
+        importBookmarksButton.addEventListener("click", importBookmarks)
     }
     update()
-})
+}
 
+window.addEventListener("load", init)
 
 /**
  * Add a bookmark to the page.
@@ -155,20 +175,20 @@ const addBookmarkToPage = bookmark => {
         bookmarkLink.style.color = bookmark.fg
     }
     const removeButton = document.createElement("button")
-    removeButton.innerText = "Remove"
-    removeButton.setAttribute("data-bookmark", JSON.stringify(bookmark))
-    removeButton.onclick = deleteBookmarkClick
-    bookmarkDiv.appendChild(bookmarkLink)
-    bookmarkDiv.appendChild(removeButton)
-    bookmarkElement.appendChild(bookmarkDiv)
+    removeButton.textContent = "Remove"
+    removeButton.dataset.bookmarkId = String(bookmark.id)
+    removeButton.addEventListener("click", e => deleteBookmarkClick(e))
+    bookmarkDiv.append(bookmarkLink)
+    bookmarkDiv.append(removeButton)
+    bookmarkElement.append(bookmarkDiv)
     if (bookmark?.keywords?.length) {
         const bookmarkKeywords = document.createElement("div")
         bookmarkKeywords.className = "keywords"
-        bookmarkKeywords.innerText = bookmark.keywords.join(", ")
-        bookmarkElement.appendChild(bookmarkKeywords)
+        bookmarkKeywords.textContent = bookmark.keywords.join(", ")
+        bookmarkElement.append(bookmarkKeywords)
     }
     document.getElementById(bookmark.path)
-        ?.appendChild(bookmarkElement)
+        ?.append(bookmarkElement)
 }
 
 /**
@@ -184,17 +204,17 @@ const createFolderHtml = (folderName, path) => {
     const folderDiv = document.createElement("a")
     const folderContent = document.createElement("ul")
     const removeButton = document.createElement("button")
-    removeButton.innerText = "Remove"
-    removeButton.onclick = deleteFolderClick
+    removeButton.textContent = "Remove"
+    removeButton.addEventListener("click", e => deleteFolderClick(e))
     folderElement.className = "folder"
-    folderSummary.appendChild(folderDiv)
+    folderSummary.append(folderDiv)
     folderDiv.textContent = folderName
-    folderDiv.appendChild(removeButton)
-    removeButton.setAttribute("data-path", path)
+    folderDiv.append(removeButton)
+    removeButton.dataset.path = path
     folderContent.id = path
-    folderDetails.appendChild(folderSummary)
-    folderDetails.appendChild(folderContent)
-    folderElement.appendChild(folderDetails)
+    folderDetails.append(folderSummary)
+    folderDetails.append(folderContent)
+    folderElement.append(folderDetails)
     return folderElement
 }
 
@@ -208,11 +228,11 @@ const createFolderHtml = (folderName, path) => {
  */
 const findOrCreateFolder = (folderName, parentFolder, parentPath) => {
     const path = buildPath(parentPath, folderName)
-    let existingFolder = parentFolder.children.
-        find(c => c.folderName === folderName)
+    let existingFolder = parentFolder.children
+        .find(c => c.folderName === folderName)
     if (!existingFolder) {
         const element = createFolderHtml(folderName, path)
-        document.getElementById(parentPath)?.appendChild(element)
+        document.getElementById(parentPath)?.append(element)
         existingFolder = {
             "children": [],
             folderName
@@ -246,16 +266,16 @@ const processFolderPath = folderPath => {
 const createFolderStructure = bookmarkData => {
     const {bookmarks, folders} = bookmarkData
     // Create all folder structures
-    folders.forEach(folder => {
+    for (const folder of folders) {
         processFolderPath(folder.path)
-    })
+    }
     // Add bookmarks to their respective folders
-    bookmarks.forEach(bookmark => {
+    for (const bookmark of bookmarks) {
         addBookmarkToPage(bookmark)
-    })
+    }
 }
 
 ipcRenderer.on("bookmark-data-response", (_, bookmarkData) => {
-    // Create folder structure
+    clearTree()
     createFolderStructure(bookmarkData)
 })

@@ -50,8 +50,8 @@
             "folderMissing": "フォルダー「$1」が存在しません！"
         },
         "bookmarks": {
-            "hex": {
-                "invalid": "無効なカラーヘックス:$1"
+            "color": {
+                "invalid": "無効なカラーコード: $1"
             },
             "invalid": {
                 "options": "無効なオプション:$1。"

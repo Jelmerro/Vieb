@@ -50,8 +50,8 @@
             "folderMissing": "Folder '$1' does not exist!"
         },
         "bookmarks": {
-            "hex": {
-                "invalid": "Invalid color hex: $1"
+            "color": {
+                "invalid": "Invalid color: $1"
             },
             "invalid": {
                 "options": "Not valid options: $1."

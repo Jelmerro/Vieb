@@ -26,7 +26,7 @@ export type TranslationKeys =
     | "adblocker.updated"
     | "adblocker.updating"
     | "commands.arguments.folderMissing"
-    | "commands.bookmarks.hex.invalid"
+    | "commands.bookmarks.color.invalid"
     | "commands.bookmarks.invalid.options"
     | "commands.bookmarks.keywords.multiword"
     | "commands.bookmarks.path.invalid"
