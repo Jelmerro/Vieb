@@ -148,7 +148,8 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
     }
 })
 
-/** @typedef {{
+/**
+ * @typedef {{
  * height: number
  * text: string
  * type: string
@@ -230,9 +231,11 @@ const getAllFollowLinks = (filter = null) => {
     const allEls = querySelectorAll("*").filter(el => el.checkVisibility({
         "opacityProperty": true, "visibilityProperty": true
     }))
-    /** @type {Set<{
+    /**
+     * @type {Set<{
      *   el: Element, type: string, bounds?: DOMRectReadOnly, visible?: boolean
-     * }>} */
+     * }>}
+     */
     const relevantLinks = new Set()
     if (!filter || filter.includes("url")) {
         // A tags with href as the link, can be opened in new tab or current tab
@@ -454,7 +457,8 @@ const trackEventListeners = () => {
         }
     }
     /* eslint-enable no-restricted-syntax */
-    /** Get listen counts from the map inside the main page.
+    /**
+     * Get listen counts from the map inside the main page.
      * @param {EventTarget} el
      */
     return el => mainWorldListenCounts.get(el)

@@ -176,7 +176,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #logo {-webkit-app-region: drag;height: 1.8em;width: 1.8em;margin: .1em;min-width: 1.8em;min-height: 1.8em;}
 #mode-container {display: flex;width: 7em;text-align: center;justify-content: center;}
 #mode {text-transform: capitalize;font-size: 1.3em;font-weight: bold;display: flex;align-items: center;}
-#record-name, #repeat-counter, #pressed-keys {margin: auto .2em;align-items: center;display: none;}
+#search-results, #record-name, #repeat-counter, #pressed-keys {margin: auto .2em;align-items: center;display: none;}
 /* modes */
 #mode-container, #helppage .normal, .normal {color: var(--mode-normal-fg);background: var(--mode-normal-bg);}
 [current-mode=command] #mode-container, #helppage .command, .command {color: var(--mode-command-fg);background: var(--mode-command-bg);}
@@ -492,6 +492,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #markdownviewer {margin: auto;max-width: 65em;padding: 2vw;}
 #markdownviewer img {max-width: 100%;}
 #markdownviewer a {color: var(--link-color);}
+#markdownviewer code {background: var(--code-bg);}
+#markdownviewer pre code {display: inline-block;padding: .5em;}
 
 
 /*

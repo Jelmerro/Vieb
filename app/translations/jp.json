@@ -6,6 +6,7 @@
             "success": "コマンドが成功しました！",
             "successWithOutput": "コマンド成功：\n$1"
         },
+        "noSearchResults": "結果はありません",
         "rss": {
             "clipboard": "RSSフィード「$1」がクリップボードにコピーされました。",
             "header": "--- ページ上のRSSフィード ---\n$1",
@@ -319,7 +320,7 @@
                 "downloading": "ダウンロード中",
                 "paused": "一時停止中",
                 "removed": "削除されました",
-                "waiting_to_start": "開始を待っています"
+                "waitingToStart": "開始を待っています"
             },
             "title": "ダウンロード"
         },

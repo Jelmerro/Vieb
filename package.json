@@ -1,55 +1,56 @@
 {
-  "name": "vieb",
-  "productName": "Vieb",
-  "version": "12.5.1-dev",
-  "description": "Vim Inspired Electron Browser",
-  "main": "app/index.js",
-  "scripts": {
-    "dev": "electron app --datafolder=./ViebData/ --config-order=datafolder-only",
-    "fix": "eslint --fix app build.js i18n.js",
-    "lint": "npm run eslint && npm run tsc",
-    "eslint": "eslint app build.js i18n.js",
-    "tsc": "tsc",
-    "start": "electron app",
-    "test": "node --test",
-    "test:all": "npm run test && npm run lint && echo 'All good :)'",
-    "update": "npx -y jelmerro/nus"
-  },
-  "repository": "https://github.com/Jelmerro/Vieb",
-  "homepage": "https://vieb.dev",
-  "keywords": [
-    "Vim",
-    "Electron",
-    "Browser",
-    "Internet"
-  ],
-  "author": "Jelmer van Arnhem",
-  "email": "Jelmerro@users.noreply.github.com",
-  "funding": "https://github.com/sponsors/Jelmerro/",
-  "license": "GPL-3.0-or-later",
-  "devDependencies": {
-    "@electron/asar": "4.0.1",
-    "@types/jsdom": "21.1.7",
-    "@types/picomatch": "4.0.2",
-    "electron": "38.0.0",
-    "electron-builder": "26.0.12",
-    "eslint-config": "github:Jelmerro/eslint-config",
-    "glob": "11.0.3",
-    "terser-webpack-plugin": "5.3.14",
-    "typescript": "5.9.2",
-    "webpack": "5.101.3",
-    "webpack-node-externals": "3.0.0"
-  },
-  "dependencies": {
-    "@ghostery/adblocker-electron": "2.11.6",
-    "@ghostery/adblocker-electron-preload": "2.11.6",
-    "@mozilla/readability": "0.6.0",
-    "darkreader": "4.9.96",
-    "highlight.js": "11.11.1",
-    "jsdom": "26.1.0",
-    "marked": "15.0.12",
-    "marked-base-url": "1.1.7",
-    "marked-highlight": "2.2.2",
-    "picomatch": "4.0.3"
-  }
+    "name": "vieb",
+    "version": "12.6.1-dev",
+    "description": "Vim Inspired Electron Browser",
+    "keywords": [
+        "Vim",
+        "Electron",
+        "Browser",
+        "Internet"
+    ],
+    "homepage": "https://vieb.dev",
+    "repository": {
+        "url": "https://github.com/Jelmerro/Vieb",
+        "type": "git"
+    },
+    "funding": "https://github.com/sponsors/Jelmerro/",
+    "license": "GPL-3.0-or-later",
+    "author": "Jelmer van Arnhem",
+    "type": "commonjs",
+    "main": "app/index.js",
+    "scripts": {
+        "dev": "electron app --datafolder=./ViebData/ --config-order=datafolder-only",
+        "eslint": "eslint",
+        "fix": "eslint --fix",
+        "lint": "npm run eslint && npm run tsc",
+        "start": "electron app",
+        "test": "node --test",
+        "test:all": "npm run test && npm run lint && echo 'All good :)'",
+        "tsc": "tsc",
+        "update": "npx -y jelmerro/nus"
+    },
+    "dependencies": {
+        "@ghostery/adblocker-electron": "2.13.0",
+        "@ghostery/adblocker-electron-preload": "2.13.0",
+        "@mozilla/readability": "0.6.0",
+        "darkreader": "4.9.96",
+        "highlight.js": "11.11.1",
+        "linkedom": "0.18.12",
+        "marked": "15.0.12",
+        "marked-base-url": "1.1.8",
+        "marked-highlight": "2.2.3",
+        "picomatch": "4.0.3"
+    },
+    "devDependencies": {
+        "@electron/asar": "4.0.1",
+        "@types/picomatch": "4.0.2",
+        "electron": "39.2.6",
+        "electron-builder": "26.3.5",
+        "eslint-config": "github:Jelmerro/eslint-config",
+        "glob": "13.0.0",
+        "terser-webpack-plugin": "5.3.15",
+        "type-config": "github:Jelmerro/type-config",
+        "webpack": "5.103.0",
+        "webpack-node-externals": "3.0.0"
+    }
 }

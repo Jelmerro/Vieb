@@ -37,9 +37,11 @@ const {
 } = require("./common")
 const POINTER = require("./pointer")
 
-/** @type {{[mode: string]: {
+/**
+ * @type {{[mode: string]: {
  *   [key: string]: {mapping: string, noremap?: boolean}
- * }}} */
+ * }}}
+ */
 const defaultBindings = {
     "c": {
         "<C-[>": {"mapping": "<toNormalMode>"},
@@ -1212,7 +1214,8 @@ const splitMapString = mapStr => {
  */
 const fromIdentifier = (identifier, electronNames = true) => {
     let id = splitMapString(identifier).maps[0] ?? identifier
-    /** @type {{
+    /**
+     * @type {{
      * modifiers: string[],
      * ctrlKey?: boolean, control?: boolean,
      * metaKey?: boolean, meta?: boolean,

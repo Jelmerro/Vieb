@@ -224,9 +224,11 @@ const suggestFiles = loc => {
         location = expandPath(loc.replace(/^file:\/+/g, ""))
     }
     if (isAbsolutePath(location)) {
-        /** @type {{
+        /**
+         * @type {{
          *   path: string, title: string, type: "file", url: string
-         * }[]} */
+         * }[]}
+         */
         let matching = []
         if (dirname(location) !== location) {
             matching = listDir(dirname(location))?.map(
@@ -284,7 +286,7 @@ const addExplore = explore => {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(explore.icon) || explore.icon
+        thumbnail.src = forSite(explore.icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const title = document.createElement("span")
@@ -413,7 +415,7 @@ const addCommand = (
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(icon) || icon
+        thumbnail.src = forSite(icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const commandElement = document.createElement("span")

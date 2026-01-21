@@ -81,6 +81,7 @@ helpnetsecurity.com##+js(acs, jQuery, Object)
 
 ! https://github.com/NanoMeow/QuickReports/issues/3575
 thepiratebay.org##+js(aopr, exoJsPop101)
+||thepiratebay.org/sw.js
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/53580
 kollhong.com##+js(aopr, adBlockDetected)
@@ -227,7 +228,10 @@ firefile.cc##+js(set, blockAdBlock._options.baitClass, null)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/7283
 uploadhub.*##+js(nowoif)
+uploadhub.*##+js(no-fetch-if, adsbygoogle)
+uploadhub.*##+js(nostif, location.href, 1000)
 *$script,3p,denyallow=bootstrapcdn.com|cloudflare.com,domain=uploadhub.*
+uploadhub.*##[src^="https://blogger.googleusercontent.com/"]
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/54403
 verteleseriesonline.com##+js(aopr, adBlockDetected)
@@ -1091,7 +1095,6 @@ teleboy.ch##a[href*="BrandingDay"]
 
 ! https://github.com/NanoMeow/QuickReports/issues/4162
 ddownr.com##+js(nowoif)
-||curioushingefast.com^
 
 ! https://github.com/NanoMeow/QuickReports/issues/4166
 keepv.id##+js(nowoif)
@@ -1236,11 +1239,6 @@ v1.safevideo.click###video-container
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/58505
 arabianbusiness.com##+js(aopr, adBlockDetected)
-
-! https://github.com/uBlockOrigin/uAssets/issues/7631
-! https://github.com/uBlockOrigin/uAssets/issues/18102
-||intergient.com^$script,domain=emoji.gg,redirect=noopjs
-emoji.gg##+js(no-xhr-if, adsbygoogle)
 
 ! https://github.com/NanoMeow/QuickReports/issues/4243
 tattle.life##+js(nostif, prompt, 1000)
@@ -1501,7 +1499,6 @@ atozmath.com##.videoDiscovery
 @@||biltag.bilsyndication.com^$script,domain=atozmath.com
 @@||assets.bilsyndication.com/prebid/default/*$script,domain=atozmath.com
 ||assets.bilsyndication.com/plugins/*$script,redirect=noopjs,domain=atozmath.com
-||a-mx.com^
 @@||ssl.google-analytics.com/ga.js$script,domain=atozmath.com
 *$image,redirect-rule=2x2.png,domain=atozmath.com
 *$script,redirect-rule=noopjs,domain=atozmath.com
@@ -2309,7 +2306,6 @@ citytv.com##+js(no-xhr-if, wp-json/rsm-adutil, true)
 ! brave issue google funding
 globo.com,latimes.com##+js(nostif, f.parentNode.removeChild(f), 100)
 ! https://github.com/uBlockOrigin/uAssets/issues/23957
-@@||googletagmanager.com/gtm.js$script,domain=globo.com
 globo.com##+js(trusted-set-cookie, _ga, GA1.1.000000000.1900000000, , , domain, globo.com)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/7972
@@ -2952,7 +2948,7 @@ taufiqhdyt.com###big-ads
 ! https://github.com/AdguardTeam/AdguardFilters/issues/68438
 ! https://github.com/uBlockOrigin/uAssets/issues/16498
 ! https://github.com/uBlockOrigin/uAssets/issues/21742
-beverfood.com##+js(nosiif, adblock)
+beverfood.com##+js(nosiif, .offsetHeight)
 beverfood.com###backy
 beverfood.com##.switchabig
 ||beverfood.com/immagini/*1920$image
@@ -3137,8 +3133,8 @@ pikkado.com###dest_rev
 
 ! https://github.com/uBlockOrigin/uAssets/issues/8340
 hindustantimes.com##+js(no-fetch-if, adsbygoogle.js)
-hindustantimes.com##+js(nostif, checkAdBlockerOn)
 hindustantimes.com##+js(ra, onclick, a[href][onclick^="getFullStory"])
+hindustantimes.com##.adBlockerPopup
 hindustantimes.com##.adBlocker
 hindustantimes.com##.blackOverlay
 hindustantimes.com##.desktopAd
@@ -3187,6 +3183,8 @@ hentaihd.net##.active-item
 
 ! nypost.com PH
 nypost.com##img[src$="/knewz_300x250.png"]:upward(.widget_text)
+! https://github.com/uBlockOrigin/uAssets/issues/28257#issuecomment-3288078833
+nypost.com##.entry-content > .nyp-video-player
 
 ! xmegadrive.com popup
 xmegadrive.com##+js(set, flashvars.adv_pause_html, '')
@@ -3411,7 +3409,6 @@ timesnownews.com##.ad-section-one
 timesnownews.com##.ad-section-three
 timesnownews.com##.ad-panel-wrap
 timesnownews.com##.add-wrap
-timesnownews.com##.gutterAdContainer
 timesnownews.com##.right-block > .section-six
 timesnownews.com##.right-block > .section-one
 ||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=google-ima.js,domain=timesnownews.com
@@ -3573,6 +3570,7 @@ hdhub4u.*##.hd-links
 hdhub4u.*##[href*="?aff"]
 superstream.*##+js(aopr, AaDetector)
 $script,3p,denyallow=bootstrapcdn.com,domain=uploadflix.*
+||bloggingworld.net/wp-content/plugins^$3p
 moviezwap.*##+js(nowoif)
 moviezwap.*##[style^=" width: 305px;"][type^="button"][onclick^="window.location.href"]
 ! https://s3.xfile.sbs/file/rczaGIkXGE

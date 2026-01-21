@@ -15,12 +15,38 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
+- Default markdownviewer colors to highlight code blocks better
+
+### Fixed
+
+- URLs being requested for suggestions if the favicon url is not set for a page
+- Empty URLs from being opened if a new window is attempted to be opened
+
+### Versions
+
+- Electron 39.2.6 (was 39.0.0)
+- Chromium 142.0.7444.226 (was 142.0.7444.52)
+
+## [12.6.0](https://github.com/Jelmerro/Vieb/compare/12.5.0...12.6.0) - 2025-11-02
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/12.5.0...12.6.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.6.0)
+
+### Added
+
+- Settings "searchreach", "searchreachinc" and "searchreachtraverse" to control which pages should be searched
+- Setting "showsearchresults" to control if search results should be shown
+- The "system" value for "nativetheme" as an option
+
+### Changed
+
 - Follow mode event listener detection to pass data as a Map via contextBridge instead of via DOM attributes
+- Readerview HTML parser from JSDOM to Linkedom for faster and less error-prone parsing
 
 ### Fixed
 
 - Setting "insertleavetimeout" not triggering when switching to insert mode manually
 - Media devices attempted to be returned with full labels not including any device info since 12.4.0
+- Manual downloads not starting when "downloadmethod" is set to "block"
 
 ### Removed
 
@@ -28,8 +54,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 38.0.0 (unchanged)
-- Chromium 140.0.7339.41 (unchanged)
+- Electron 39.0.0 (was 38.0.0)
+- Chromium 142.0.7444.52 (was 140.0.7339.41)
 
 ## [12.5.0](https://github.com/Jelmerro/Vieb/compare/12.4.0...12.5.0) - 2025-09-03
 

@@ -169,18 +169,6 @@ const currentMode = () => {
 }
 
 /**
- * Get a value from the session storage.
- * @param {string} set
- */
-const getStored = set => {
-    try {
-        return JSON.parse(sessionStorage.getItem(set) ?? "")
-    } catch {
-        return ""
-    }
-}
-
-/**
  * Check if a specific mouse feature is enabled.
  * @param {string} val
  */
@@ -188,13 +176,6 @@ const getMouseConf = val => {
     const mouse = getSetting("mouse")
     return mouse === "all" || mouse.includes(val)
 }
-
-/**
- * Store a value for later use in session storage.
- * @param {string} set
- * @param {any} val
- */
-const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 
 /**
  * Get the current gui status value depending on window status.
@@ -335,7 +316,6 @@ module.exports = {
     currentPage,
     currentTab,
     getMouseConf,
-    getStored,
     getUrl,
     guiRelatedUpdate,
     listFakePages,
@@ -345,7 +325,6 @@ module.exports = {
     listTabs,
     pageForTab,
     sendToPageOrSubFrame,
-    setStored,
     setTopOfPageWithMouse,
     tabForPage,
     updateGuiVisibility,
