@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2025 Jelmer van Arnhem
+* Copyright (C) 2025-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
     /* general */
     --bg: #000000;
     --fg: #e0e0e0;
+    --tab-suspended: #111;
     --tab-background: #111;
     --visible-tab: #222;
     --mode-normal-fg: #e0e0e0;
