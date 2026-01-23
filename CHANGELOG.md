@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- New "totalblack" theme that has completely black backgrounds, good for OLED
+
 ### Changed
 
 - Default markdownviewer colors to highlight code blocks better

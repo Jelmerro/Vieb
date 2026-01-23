@@ -17,9 +17,8 @@
 */
 :root {
     /* general */
-    --bg: #000000;
+    --bg: #000;
     --fg: #e0e0e0;
-    --tab-suspended: #111;
     --tab-background: #111;
     --visible-tab: #222;
     --mode-normal-fg: #e0e0e0;
