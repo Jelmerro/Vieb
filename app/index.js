@@ -2389,6 +2389,24 @@ const saveWindowState = (statesOnly = false) => {
     }
 }
 
+ipcMain.on("import-bookmarks", () => {
+    if (!mainWindow) {
+        return
+    }
+    dialog.showOpenDialog(mainWindow, {
+        "filters": [
+            {"extensions": ["html", "htm"], "name": "HTML"}
+        ],
+        "properties": ["openFile", "multiSelections"]
+    }).then(result => {
+        if (!result.canceled && result.filePaths.length > 0) {
+            mainWindow?.webContents.send(
+                "import-bookmarks-files", result.filePaths)
+        }
+    }).catch(error => {
+        errToMain(error)
+    })
+})
 ipcMain.on("window-state-init", (_, restore) => {
     if (!mainWindow) {
         return
