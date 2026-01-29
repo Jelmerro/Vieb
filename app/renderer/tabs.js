@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -842,6 +842,7 @@ const addWebviewListeners = webview => {
         applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
+        const {backInHistory, forwardInHistory} = require("./actions")
         const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
             notify(e.args[0])
@@ -857,13 +858,11 @@ const addWebviewListeners = webview => {
             const {commonAction} = require("./contextmenu")
             commonAction("other", "link", "external", {"link": e.args[0]})
         }
-        if (e.channel === "back-button") {
-            const {backInHistory} = require("./actions")
-            backInHistory({"src": "user"})
+        if (e.channel === "back-button" && getMouseConf("history")) {
+            backInHistory({"customPage": webview, "src": "user"})
         }
-        if (e.channel === "forward-button") {
-            const {forwardInHistory} = require("./actions")
-            forwardInHistory({"src": "user"})
+        if (e.channel === "forward-button" && getMouseConf("history")) {
+            forwardInHistory({"customPage": webview, "src": "user"})
         }
         if (e.channel === "mouse-up") {
             const {resetScreenshotDrag} = require("./input")
@@ -915,10 +914,17 @@ const addWebviewListeners = webview => {
                 }
             })
             const topPages = suggestTopSites()
-            if (getSetting("suggesttopsites") && topPages.length) {
+            if (getSetting("suggesttopsites") && topPages.length > 0) {
                 webview.send("insert-new-tab-info", topPages, favoritePages)
             } else if (favoritePages.length > 0) {
                 webview.send("insert-new-tab-info", false, favoritePages)
+            }
+        }
+        if (e.channel === "swipe" && getMouseConf("historyswipe")) {
+            if (e.args[0]) {
+                forwardInHistory({"customPage": webview, "src": "user"})
+            } else {
+                backInHistory({"customPage": webview, "src": "user"})
             }
         }
         if (e.channel === "mousemove") {
@@ -940,11 +946,10 @@ const addWebviewListeners = webview => {
             }
             resetScrollbarTimer("move")
         }
-        if (e.channel === "search-element-location") {
-            if (currentMode() === "pointer") {
-                const {move} = require("./pointer")
-                move(e.args[0], e.args[1])
-            }
+        if (e.channel === "search-element-location"
+            && currentMode() === "pointer") {
+            const {move} = require("./pointer")
+            move(e.args[0], e.args[1])
         }
         if (e.channel === "custom-style-inject") {
             injectCustomStyleRequest(webview, e.args[0], e.args[1])

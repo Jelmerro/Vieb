@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -150,13 +150,13 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
 
 /**
  * @typedef {{
- * height: number
- * text: string
- * type: string
- * url: string
- * width: number
- * x: number
- * y: number
+ *   height: number,
+ *   text: string,
+ *   type: string,
+ *   url: string,
+ *   width: number,
+ *   x: number,
+ *   y: number
  * }} ParsedElement
  */
 
@@ -617,11 +617,11 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
 /**
  * Context menu listener that sends info to renderer via main.
  * @param {{
- *   isTrusted: boolean
- *   preventDefault?: () => void
- *   button?: number
- *   composedPath: () => EventTarget[]
- *   x: number
+ *   isTrusted: boolean,
+ *   preventDefault?: () => void,
+ *   button?: number,
+ *   composedPath: () => EventTarget[],
+ *   x: number,
  *   y: number
  * }} e
  * @param {Element|ShadowRoot|null} frame
@@ -942,6 +942,41 @@ ipcRenderer.on("search-element-location", (_, pos) => {
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
 })
+const wheelInfo = {
+    "lastevent": Date.now(),
+    /** @type {NodeJS.Timeout|null} */
+    "timeout": null,
+    "x": 0,
+    "y": 0
+}
+
+/**
+ * Wheel listener to detect swipe actions and send to main if detected.
+ * @param {{deltaX: number, deltaY: number}} event
+ */
+const wheelListener = event => {
+    if (wheelInfo.x === 0 && wheelInfo.y === 0) {
+        wheelInfo.lastevent = Date.now()
+    }
+    wheelInfo.x += event.deltaX
+    wheelInfo.y += Math.abs(event.deltaY)
+    clearTimeout(wheelInfo.timeout ?? undefined)
+    wheelInfo.timeout = setTimeout(() => {
+        if (wheelInfo.y === 0) {
+            const duration = Date.now() - wheelInfo.lastevent
+            const isFast = duration < 500
+            const isFar = Math.abs(wheelInfo.x) > 1000 * window.devicePixelRatio
+            const isAboveThresholdRatio = Math.abs(wheelInfo.x) / duration > 10
+            if (isFast && isFar && isAboveThresholdRatio) {
+                ipcRenderer.sendToHost("swipe", wheelInfo.x > 0)
+            }
+        }
+        wheelInfo.x = 0
+        wheelInfo.y = 0
+    }, 100)
+}
+
+window.addEventListener("wheel", wheelListener)
 
 /** The main info loop that populates the subframe data in the main thread. */
 const mainInfoLoop = () => {

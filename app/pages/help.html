@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019-2025 Jelmer van Arnhem
+    Copyright (C) 2019-2026 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1021,6 +1021,7 @@
             <li><span class="command-block">pageoutsideinsert</span> - Interact with the webpage, even outside of <a class="insert" href="#insert">insert mode</a>. You might need to update the page after adding this feature for it to take effect. This also controls if mouse scrolling works, even if you are currently hovering <a class="follow" href="#follow">follow mode</a> links or such.</li>
             <li><span class="command-block">switchtab</span> - Click on tabs to switch to them, optionally even by hovering them if <a href="#mousefocus">mousefocus</a> is enabled.</li>
             <li><span class="command-block">history</span> - Use the previous and forward keys of your mouse to interact with the page history, similar to <a href="#action.backInHistory">action.backInHistory</a> and <a href="#action.forwardInHistory">action.forwardInHistory</a>.</li>
+            <li><span class="command-block">historyswipe</span> - Use fast and quick horizontal swiping for interacting with the page history, similar to <a href="#action.backInHistory">action.backInHistory</a> and <a href="#action.forwardInHistory">action.forwardInHistory</a>. Horizontal scrolling is always enabled if supported by the trackpad used, but if the action is fast and quick enough with this feature enabled the history will be moved. Requires the swipe to be invoked with the cursor inside a page with page interactions enabled via "pageininsert" and/or "pageoutsideinsert", depending on the current mode.</li>
             <li><span class="command-block">guiontop</span> - Bring back the GUI elements when moving to the top of the page regardless of <a href="#guitabbar">guitabbar</a> and <a href="#guinavbar">guinavbar</a>.</li>
             <li><span class="command-block">newtab</span> - Open a new tab by double clicking on the tab bar, also works when double clicking on an existing tab. The new tab will open at the position relative to the double clicked tab depending on how <a href="#tabnewposition">tabnewposition</a> is configured.</li>
             <li><span class="command-block">closetab</span> - Middle click on a tab to close it.</li>

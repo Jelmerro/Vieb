@@ -16,15 +16,18 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - New "totalblack" theme that has completely black backgrounds, good for OLED
+- Feature "historyswipe" to the "mouse" setting for swiping to go back and forward in history
 
 ### Changed
 
 - Default markdownviewer colors to highlight code blocks better
+- Mouse back and forward button to target the (split) page it is forwarded from
 
 ### Fixed
 
 - URLs being requested for suggestions if the favicon url is not set for a page
 - Empty URLs from being opened if a new window is attempted to be opened
+- Mouse option "history" always being on for events forwarded from inside the page
 
 ### Versions
 
