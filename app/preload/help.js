@@ -117,6 +117,33 @@ const addTextWithLinksToTypes = (baseEl, text) => {
 }
 
 /**
+ * Process a mapping, store it in the cache objects and return a new kbd node.
+ * @param {{[mode: string]: {[key: string]: HTMLElement|null}}} obj
+ * @param {string} mapping
+ * @param {Element} element
+ */
+const createUpdatedMapKbdAndUpdateInCacheObject = (obj, mapping, element) => {
+    const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
+    const [, keys] = mapping.split(" ")
+    if (mode) {
+        if (!obj[mode][keys]) {
+            obj[mode][keys] = document.querySelector(`a[href='#${element.id}']`)
+        }
+    } else {
+        for (const m of modes) {
+            if (!obj[m][keys]) {
+                obj[m][keys] = document.querySelector(
+                    `a[href='#${element.id}']`)
+            }
+        }
+    }
+    const mappingKbd = document.createElement("kbd")
+    mappingKbd.textContent = mapping
+    mappingKbd.className = "command-block"
+    return mappingKbd
+}
+
+/**
  * Update the setting list with realtime information based on current settings.
  * @param {Electron.IpcRendererEvent} _
  * @param {{
@@ -189,24 +216,8 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
             map => map.includes(`<${cmdNode.id} `)
                 || map.includes(`<${cmdNode.id}>`))
         for (const mapping of commandMappings) {
-            const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
-            const [, keys] = mapping.split(" ")
-            if (mode) {
-                if (!allCommandsByKeys[mode][keys]) {
-                    allCommandsByKeys[mode][keys] = document.querySelector(
-                        `a[href='#${cmdNode.id}']`)
-                }
-            } else {
-                for (const m of modes) {
-                    if (!allCommandsByKeys[m][keys]) {
-                        allCommandsByKeys[m][keys] = document.querySelector(
-                            `a[href='#${cmdNode.id}']`)
-                    }
-                }
-            }
-            const mappingKbd = document.createElement("kbd")
-            mappingKbd.textContent = mapping
-            mappingKbd.className = "command-block"
+            const mappingKbd = createUpdatedMapKbdAndUpdateInCacheObject(
+                allCommandsByKeys, mapping, cmdNode)
             mapList.append(mappingKbd)
         }
         if (commandMappings.length === 0) {
@@ -244,24 +255,8 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
         const actionMappings = mappings.split("\n").filter(map => map.includes(
             `<${actionName}>`))
         for (const mapping of actionMappings) {
-            const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
-            const [, keys] = mapping.split(" ")
-            if (mode) {
-                if (!allActionsByKeys[mode][keys]) {
-                    allActionsByKeys[mode][keys] = document.querySelector(
-                        `a[href='#${actionNode.id}']`)
-                }
-            } else {
-                for (const m of modes) {
-                    if (!allActionsByKeys[m][keys]) {
-                        allActionsByKeys[m][keys] = document.querySelector(
-                            `a[href='#${actionNode.id}']`)
-                    }
-                }
-            }
-            const mappingKbd = document.createElement("kbd")
-            mappingKbd.textContent = mapping
-            mappingKbd.className = "command-block"
+            const mappingKbd = createUpdatedMapKbdAndUpdateInCacheObject(
+                allActionsByKeys, mapping, actionNode)
             mapList.append(mappingKbd)
         }
         if (actionMappings.length === 0) {

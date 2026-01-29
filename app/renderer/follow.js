@@ -329,7 +329,7 @@ const parseAndDisplayLinks = receivedLinks => {
             for (let i = 0; i < links.length; i++) {
                 if (!links[i]) {
                     links[i] = newLink
-                    return
+                    break
                 }
             }
             if (!linkInList(links, newLink)) {

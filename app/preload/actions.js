@@ -699,6 +699,7 @@ const showTOC = (customStyling, fontsize) => {
         listLink.href = `#${headingId}`
         listLink.textContent = heading.textContent
         heading.id = headingId
+        headingNames.add(headingId)
         listItem.append(listLink)
         lists.at(-1)?.append(listItem)
     }
