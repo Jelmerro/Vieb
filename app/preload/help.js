@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {appConfig, getAppRootDir, joinPath, readFile} = require("../util")
 const {icon} = appConfig() ?? {}
-const modes = "nicsefpvm".split("")
+const modes = [..."nicsefpvm"]
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allActionsByKeys = modes.reduce((a, m) => {
     // @ts-expect-error Creation of keys on empty object is not allowed
@@ -70,7 +70,7 @@ const processHash = () => {
     }
     let mode = null
     let keys = String(hash)
-    if (hash.match(/^\w_.*/)) {
+    if (/^\w_.*/.test(hash)) {
         [mode] = hash.split("_")
         keys = hash.split("_").slice(1).join("_")
     }
@@ -103,7 +103,7 @@ const addTextWithLinksToTypes = (baseEl, text) => {
     const types = [
         "Boolean", "String", "Interval", "Number", "Enum", "Array", "Object"
     ]
-    text.split(RegExp(`(${types.join("|")})`, "g")).forEach(s => {
+    for (const s of text.split(new RegExp(`(${types.join("|")})`, "g"))) {
         /** @type {HTMLAnchorElement|Text} */
         let el = document.createElement("a")
         if (types.includes(s)) {
@@ -113,7 +113,7 @@ const addTextWithLinksToTypes = (baseEl, text) => {
             el = document.createTextNode(s)
         }
         baseEl.append(el)
-    })
+    }
 }
 
 /**
@@ -142,10 +142,11 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
         return a
     }, {})
     // Enrich the settings list with type, default, current and value lists
-    ;[...document.querySelectorAll(
-        ".setting-status, .map-status, .countable, .range-compat")]
-        .forEach(el => el.remove())
-    settings.forEach(setting => {
+    for (const el of document.querySelectorAll(
+        ".setting-status, .map-status, .countable, .range-compat")) {
+        el.remove()
+    }
+    for (const setting of settings) {
         if (document.getElementById(setting.name)) {
             const settingStatus = document.createElement("div")
             settingStatus.className = "setting-status"
@@ -178,16 +179,16 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
                 ?.insertBefore(settingStatus, document.getElementById(
                     setting.name)?.parentNode?.nextSibling ?? null)
         }
-    })
+    }
     // Enrich the command list with the keys that map to them
-    ;[...document.querySelectorAll("h3[id^=':']")].forEach(cmdNode => {
+    for (const cmdNode of document.querySelectorAll("h3[id^=':']")) {
         // List mappings in which this command is used
         const mapList = document.createElement("div")
         mapList.className = "map-status"
         const commandMappings = mappings.split("\n").filter(
             map => map.includes(`<${cmdNode.id} `)
                 || map.includes(`<${cmdNode.id}>`))
-        commandMappings.forEach(mapping => {
+        for (const mapping of commandMappings) {
             const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
             const [, keys] = mapping.split(" ")
             if (mode) {
@@ -196,19 +197,19 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
                         `a[href='#${cmdNode.id}']`)
                 }
             } else {
-                modes.forEach(m => {
+                for (const m of modes) {
                     if (!allCommandsByKeys[m][keys]) {
                         allCommandsByKeys[m][keys] = document.querySelector(
                             `a[href='#${cmdNode.id}']`)
                     }
-                })
+                }
             }
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping
             mappingKbd.className = "command-block"
             mapList.append(mappingKbd)
-        })
-        if (!commandMappings.length) {
+        }
+        if (commandMappings.length === 0) {
             const noMappingsLabel = document.createElement("kbd")
             noMappingsLabel.textContent = "No mappings with this command found"
             mapList.append(noMappingsLabel)
@@ -229,12 +230,12 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
             badge.textContent = "Supports ranges"
             cmdNode.parentNode?.insertBefore(badge, cmdNode.nextSibling)
         }
-    })
+    }
     // Enrich the action list with the keys that map to them
-    ;[
+    for (const actionNode of [
         ...document.querySelectorAll("h3[id^='action.']"),
         ...document.querySelectorAll("h3[id^='pointer.']")
-    ].forEach(actionNode => {
+    ]) {
         // List mappings in which this action is used
         const mapList = document.createElement("div")
         mapList.className = "map-status"
@@ -242,7 +243,7 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
             /^a.*\./, "").replace(/p.*\./, "p.")
         const actionMappings = mappings.split("\n").filter(map => map.includes(
             `<${actionName}>`))
-        actionMappings.forEach(mapping => {
+        for (const mapping of actionMappings) {
             const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
             const [, keys] = mapping.split(" ")
             if (mode) {
@@ -251,19 +252,19 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
                         `a[href='#${actionNode.id}']`)
                 }
             } else {
-                modes.forEach(m => {
+                for (const m of modes) {
                     if (!allActionsByKeys[m][keys]) {
                         allActionsByKeys[m][keys] = document.querySelector(
                             `a[href='#${actionNode.id}']`)
                     }
-                })
+                }
             }
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping
             mappingKbd.className = "command-block"
             mapList.append(mappingKbd)
-        })
-        if (!actionMappings.length) {
+        }
+        if (actionMappings.length === 0) {
             const noMappingsLabel = document.createElement("kbd")
             noMappingsLabel.textContent = "No mappings with this action found"
             mapList.append(noMappingsLabel)
@@ -277,7 +278,7 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
             badge.textContent = "Countable"
             actionNode.parentNode?.insertBefore(badge, actionNode.nextSibling)
         }
-    })
+    }
     // Set focus to correct part of the page after it's done loading
     if (window.scrollY < 10) {
         processHash()
@@ -354,7 +355,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // After loading, this will display the section id as a link
     const sections = [...document.querySelectorAll("#helppage *[id]")]
-    sections.forEach(section => createIdLabel(section))
+    for (const section of sections) {
+        createIdLabel(section)
+    }
     // Set focus to correct part of the page after it's done loading
     setTimeout(processHash, 200)
 })

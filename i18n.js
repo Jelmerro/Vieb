@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2023-2025 Jelmer van Arnhem
+* Copyright (C) 2023-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ const writeTranslations = () => {
                 if (typeof value !== "object" || Array.isArray(value)) {
                     return value
                 }
-                return Object.keys(value).sort().reduce((sorted, k) => {
+                return Object.keys(value).toSorted().reduce((sorted, k) => {
                     sorted[k] = value[k]
                     return sorted
                 }, {})

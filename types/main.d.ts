@@ -24,23 +24,32 @@ declare global {
     }
 
     interface Node {
-        cloneNode<T extends Node = Node>(this: T, deep?: boolean): T;
+        cloneNode<T extends Node = Node>(this: T, deep?: boolean): T
     }
 
     type GetKeysOfType<
         Type extends Record<string, any>,
         Obj extends Record<string, any>
     > = keyof {
-        [Key in keyof Obj as Obj[Key] extends Type ? Key : never]: Obj[Key];
+        [Key in keyof Obj as Obj[Key] extends Type ? Key : never]: Obj[Key]
     }
 
-     interface Error {
-         name: string
-         message: string
-         stack?: string
-         code?: number | string | undefined
-     }
+    interface Error {
+        name: string
+        message: string
+        stack?: string
+        code?: number | string | undefined
+    }
 
+    type NonFalsy<T> = T extends false | 0 | "" | null | undefined | 0n ? never : T
+
+    interface Array<T> {
+        filter<S extends T>(predicate: BooleanConstructor, thisArg?: any): NonFalsy<S>[]
+    }
+
+    interface ReadonlyArray<T> {
+        filter<S extends T>(predicate: BooleanConstructor, thisArg?: any): NonFalsy<S>[]
+    }
 }
 
 export {}

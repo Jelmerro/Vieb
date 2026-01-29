@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -41,8 +41,8 @@ const mappingFile = joinPath(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
-/** @type {number|null} */
-let faviconWriteTimeout = 0
+/** @type {NodeJS.Timeout|null} */
+let faviconWriteTimeout = null
 const viebIcon = `file:///${joinPath(
     getAppRootDir(), "img/vieb.svg").replace(/^\/*/g, "")}`
 
@@ -59,30 +59,30 @@ const urlToPath = url => joinPath(faviconFolder,
  */
 const updateMappings = async({currentUrl = null, now = null} = {}) => {
     // Don't update the mappings before done loading or in rapid succession
-    window.clearTimeout(faviconWriteTimeout ?? undefined)
+    clearTimeout(faviconWriteTimeout ?? undefined)
     if (!now || !isParsed) {
-        faviconWriteTimeout = window.setTimeout(() => {
+        faviconWriteTimeout = setTimeout(() => {
             updateMappings({currentUrl, "now": true})
         }, 5000)
         return
     }
     // Delete mappings for urls that aren't present in the history
     const {visitCount} = require("./history")
-    Object.keys(mappings).forEach(m => {
+    for (const m of Object.keys(mappings)) {
         if (m === "redirects") {
-            Object.keys(mappings.redirects ?? {}).forEach(r => {
+            for (const r of Object.keys(mappings.redirects ?? {})) {
                 const dest = mappings.redirects?.[r] ?? null
                 if (dest !== currentUrl && visitCount(dest) === 0) {
                     delete mappings.redirects?.[r]
                 }
-            })
+            }
             if (Object.keys(mappings.redirects ?? {}).length === 0) {
                 delete mappings.redirects
             }
         } else if (m !== currentUrl && visitCount(m) === 0) {
             delete mappings[m]
         }
-    })
+    }
     // Write changes to mapping file
     if (Object.keys(mappings).length === 0) {
         deleteFile(mappingFile)
@@ -91,15 +91,15 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
     }
     // Delete unused favicons from disk in nested promises to stay responsive
     await new Promise(resolveAll => {
-        const usedFavNames = Object.values(mappings).flatMap(f => {
+        const usedFavNames = new Set(Object.values(mappings).flatMap(f => {
             if (typeof f === "string") {
                 return encodeURIComponent(f).replace(/%/g, "_").slice(0, 256)
             }
             return []
-        })
+        }))
         listDirAsync(faviconFolder).catch(() => null).then(async files => {
             const promises = files?.map(file => new Promise(res => {
-                if (!usedFavNames.includes(file) && file !== "mappings") {
+                if (!usedFavNames.has(file) && file !== "mappings") {
                     deleteFile(joinPath(faviconFolder, file))
                 }
                 res("Done")
@@ -119,12 +119,11 @@ const loading = (webview, empty = false) => {
     const loadingIndicator = getSetting("loadingindicator")
     const tab = tabForPage(webview)
     const status = tab?.querySelector(".status")
-    if (["all", "line"].includes(loadingIndicator)) {
-        if (webview === currentPage()) {
-            const loadingProgress = document.getElementById("loading-progress")
-            if (loadingProgress) {
-                loadingProgress.style.display = "flex"
-            }
+    if (["all", "line"].includes(loadingIndicator)
+        && webview === currentPage()) {
+        const loadingProgress = document.getElementById("loading-progress")
+        if (loadingProgress) {
+            loadingProgress.style.display = "flex"
         }
     }
     if (status instanceof HTMLElement) {
@@ -164,10 +163,8 @@ const setPath = (tab, loc) => {
     }
     favicon.src = loc
     const status = tab?.querySelector(".status")
-    if (status instanceof HTMLElement) {
-        if (status.style.display === "none") {
-            favicon.style.display = ""
-        }
+    if (status instanceof HTMLElement && status.style.display === "none") {
+        favicon.style.display = ""
     }
 }
 
@@ -192,11 +189,10 @@ const deleteIfTooOld = loc => {
     }
     // All other favicon options are suffixed with day, e.g. "1day"
     const cutoff = Number(setting.replace("day", ""))
-    if (isNaN(cutoff)) {
+    if (Number.isNaN(cutoff)) {
         return
     }
-    const days = (new Date().getTime()
-        - modifiedAt(loc).getTime()) / 1000 / 60 / 60 / 24
+    const days = (Date.now() - modifiedAt(loc).getTime()) / 1000 / 60 / 60 / 24
     if (days > cutoff) {
         deleteFile(loc)
     }

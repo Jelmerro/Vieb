@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2025 Jelmer van Arnhem
+* Copyright (C) 2022-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,9 @@ const loadSponsorblock = () => {
 
     /** Fetch the sponsorblock data from the api. */
     const fetchSponsorBlockData = () => {
-        previousBlockEls.forEach(el => el.remove())
+        for (const el of previousBlockEls) {
+            el.remove()
+        }
         previousBlockEls = []
         const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
         previousDuration = vid.duration
@@ -80,7 +82,7 @@ const loadSponsorblock = () => {
                     blockEl.style.width = `${right - left}%`
                 }, 1000)
             }
-        }).catch(err => console.warn(err))
+        }).catch(error => console.warn(error))
     }
 
     if (window.location.href.includes("watch?v=")

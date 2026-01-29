@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -145,7 +145,7 @@ const start = (args = null) => {
 const moveToMouse = () => {
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos) {
-        [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
+        for (const el of document.elementsFromPoint(mousePos.x, mousePos.y)) {
             if (el instanceof HTMLElement
                 && matchesQuery(el, "webview[link-id]")) {
                 if (el !== currentPage() || currentMode() !== "visual") {
@@ -165,7 +165,7 @@ const moveToMouse = () => {
                     })
                 }
             }
-        })
+        }
     }
 }
 
@@ -1082,16 +1082,15 @@ const init = () => {
         if ("ces".includes(currentMode()[0]) && getMouseConf("leaveinput")) {
             setMode("normal")
         }
-        if (clickInfo.webviewId) {
-            if (clickInfo.webviewId !== currentPage()?.getWebContentsId()) {
-                const page = listReadyPages().find(
-                    p => p.getWebContentsId() === clickInfo.webviewId)
-                if (page) {
-                    const tab = tabForPage(page)
-                    if (tab) {
-                        const {switchToTab} = require("./tabs")
-                        switchToTab(tab)
-                    }
+        if (clickInfo.webviewId
+            && clickInfo.webviewId !== currentPage()?.getWebContentsId()) {
+            const page = listReadyPages().find(
+                p => p.getWebContentsId() === clickInfo.webviewId)
+            if (page) {
+                const tab = tabForPage(page)
+                if (tab) {
+                    const {switchToTab} = require("./tabs")
+                    switchToTab(tab)
                 }
             }
         }
@@ -1127,10 +1126,9 @@ const init = () => {
             if (getMouseConf("toinsert")) {
                 setMode("insert")
             }
-        } else if ("ces".includes(currentMode()[0])) {
-            if (getMouseConf("leaveinput")) {
-                setMode("normal")
-            }
+        } else if ("ces".includes(currentMode()[0])
+            && getMouseConf("leaveinput")) {
+            setMode("normal")
         }
         const {setFocusCorrectly} = require("./actions")
         setFocusCorrectly()

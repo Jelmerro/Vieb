@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -152,7 +152,7 @@ const followChars = () => {
     if (validFollowSet(setName)) {
         allKeys = keys[setName]
     }
-    return allKeys.split("")
+    return [...allKeys]
 }
 
 /**
@@ -243,28 +243,28 @@ const clickAtLink = async(link, src = "user") => {
 
 /** Apply the new order of links after changing them through rotation. */
 const applyIndexedOrder = () => {
-    savedOrder.forEach((type, index) => {
-        [...document.querySelectorAll(`.follow-${type}`)].forEach(e => {
+    for (const [index, type] of savedOrder.entries()) {
+        for (const e of document.querySelectorAll(`.follow-${type}`)) {
             if (e instanceof HTMLElement) {
                 e.style.zIndex = `${index + 10 + savedOrder.length}`
             }
-        })
-        ;[...document.querySelectorAll(`.follow-${type}-border`)].forEach(e => {
+        }
+        for (const e of document.querySelectorAll(`.follow-${type}-border`)) {
             if (e instanceof HTMLElement) {
                 e.style.zIndex = `${index + 9}`
             }
-        })
-    })
-    ;[...document.querySelectorAll(`.follow-other`)].forEach(e => {
+        }
+    }
+    for (const e of document.querySelectorAll(`.follow-other`)) {
         if (e instanceof HTMLElement) {
             e.style.zIndex = "8"
         }
-    })
-    ;[...document.querySelectorAll(`.follow-other-border`)].forEach(e => {
+    }
+    for (const e of document.querySelectorAll(`.follow-other-border`)) {
         if (e instanceof HTMLElement) {
             e.style.zIndex = "7"
         }
-    })
+    }
 }
 
 /** Rotate the display order of follow links by type. */
@@ -277,8 +277,9 @@ const reorderDisplayedLinks = () => {
 const emptyHoverLink = () => {
     hoverLink = null
     if (alreadyFollowing) {
-        [...document.querySelectorAll(`#follow .hover`)]
-            .forEach(el => el.classList.remove("hover"))
+        for (const el of document.querySelectorAll(`#follow .hover`)) {
+            el.classList.remove("hover")
+        }
     }
 }
 
@@ -318,13 +319,13 @@ const parseAndDisplayLinks = receivedLinks => {
             return {...link, "type": "url"}
         })
     }
-    if (links.length) {
+    if (links.length > 0) {
         for (let i = 0; i < links.length; i++) {
             if (!linkInList(newLinks, links[i])) {
                 links[i] = null
             }
         }
-        newLinks.filter(l => !linkInList(links, l)).forEach(newLink => {
+        for (const newLink of newLinks.filter(l => !linkInList(links, l))) {
             for (let i = 0; i < links.length; i++) {
                 if (!links[i]) {
                     links[i] = newLink
@@ -334,11 +335,11 @@ const parseAndDisplayLinks = receivedLinks => {
             if (!linkInList(links, newLink)) {
                 links.push(newLink)
             }
-        })
+        }
     } else {
         links = newLinks
     }
-    while (!links[links.length - 1] && links.length) {
+    while (!links.at(-1) && links.length > 0) {
         links.pop()
     }
     const baseDims = getWritableDOMRect(followEl)
@@ -351,9 +352,9 @@ const parseAndDisplayLinks = receivedLinks => {
     const followChildren = []
     const neededLength = numberToKeys(links.length).length
     const followlabelposition = getSetting("followlabelposition")
-    links.forEach((link, index) => {
+    for (const [index, link] of links.entries()) {
         if (!link) {
-            return
+            continue
         }
 
         /**
@@ -410,9 +411,12 @@ const parseAndDisplayLinks = receivedLinks => {
             hoverLink = link
             borderElement.classList.add("hover")
             if (alreadyFollowing) {
-                [...document.querySelectorAll(`#follow .hover`)]
-                    .filter(el => el !== borderElement)
-                    .forEach(el => el.classList.remove("hover"))
+                const hoveredFollowElements = [
+                    ...document.querySelectorAll(`#follow .hover`)
+                ].filter(el => el !== borderElement)
+                for (const el of hoveredFollowElements) {
+                    el.classList.remove("hover")
+                }
             }
         })
         followChildren.push(borderElement)
@@ -498,17 +502,15 @@ const parseAndDisplayLinks = receivedLinks => {
         for (const align of alignmentProps) {
             if (alignment[align] !== undefined) {
                 let value = alignment[align]
-                if (align === "left" && elWidth && typeof value === "number") {
-                    if (value > baseDims.width + baseDims.right - elWidth) {
-                        value = baseDims.width + baseDims.right
-                        linkElement.style.transform += "translateX(-100%) "
-                    }
+                if (align === "left" && elWidth && typeof value === "number"
+                    && value > baseDims.width + baseDims.right - elWidth) {
+                    value = baseDims.width + baseDims.right
+                    linkElement.style.transform += "translateX(-100%) "
                 }
-                if (align === "top" && elWidth && typeof value === "number") {
-                    if (value > baseDims.height + baseDims.bottom - elWidth) {
-                        value = baseDims.height + baseDims.bottom
-                        linkElement.style.transform += "translateY(-100%) "
-                    }
+                if (align === "top" && elWidth && typeof value === "number"
+                    && value > baseDims.height + baseDims.bottom - elWidth) {
+                    value = baseDims.height + baseDims.bottom
+                    linkElement.style.transform += "translateY(-100%) "
                 }
                 if (align === "right" && typeof value === "number") {
                     if (elWidth && value + baseDims.left < elWidth) {
@@ -545,13 +547,16 @@ const parseAndDisplayLinks = receivedLinks => {
             hoverLink = link
             borderElement.classList.add("hover")
             if (alreadyFollowing) {
-                [...document.querySelectorAll(`#follow .hover`)]
-                    .filter(el => el !== borderElement)
-                    .forEach(el => el.classList.remove("hover"))
+                const hoveredFollowElements = [
+                    ...document.querySelectorAll(`#follow .hover`)
+                ].filter(el => el !== borderElement)
+                for (const el of hoveredFollowElements) {
+                    el.classList.remove("hover")
+                }
             }
         })
         followChildren.push(linkElement)
-    })
+    }
     followEl.replaceChildren(...followChildren)
     applyIndexedOrder()
 }
@@ -591,7 +596,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
         const filterText = url?.value.toLowerCase()
         /** @type {HTMLSpanElement[]} */
         const visibleLinks = []
-        allLinkKeys.forEach(linkKey => {
+        for (const linkKey of allLinkKeys) {
             const link = links[Number(linkKey.getAttribute("link-id") ?? -1)]
             if (filterText !== undefined
                 && (link?.text.toLowerCase().includes(filterText)
@@ -601,16 +606,16 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             } else {
                 linkKey.style.display = "none"
             }
-        })
+        }
         const neededLength = numberToKeys(visibleLinks.length).length
-        visibleLinks.forEach((linkKey, index) => {
+        for (const [index, linkKey] of visibleLinks.entries()) {
             linkKey.textContent = numberToKeys(index, neededLength)
-        })
+        }
         return
     }
     /** @type {HTMLSpanElement[]} */
     const matches = []
-    allLinkKeys.forEach(linkKey => {
+    for (const linkKey of allLinkKeys) {
         if (linkKey.textContent?.toLowerCase().startsWith(code.toLowerCase())) {
             if (linkKey.computedStyleMap().get(
                 "display")?.toString() !== "none") {
@@ -620,7 +625,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
         } else {
             linkKey.remove()
         }
-    })
+    }
     if (matches.length === 0) {
         if (fallbackAction === "exit") {
             setMode(modeBeforeFollow)

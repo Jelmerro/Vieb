@@ -6,7 +6,7 @@ This is a sync-only no-glob native-fs reworked rimraf that also works in Windows
 - rimraf has a hard dependency on glob and async versions which are unnecessary
 - Now I have to maintain a separate version of rimraf that just works...
 
-Copyright (C) 2022-2025 Jelmer van Arnhem
+Copyright (C) 2022-2026 Jelmer van Arnhem
 Copyright (c) 2011-2022 Isaac Z. Schlueter and Contributors
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -23,14 +23,14 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 "use strict"
 
-const fs = require("fs")
+const fs = require("node:fs")
 
 /**
  * Check if the exception is a NodeJS Errno Exception.
- * @param {any} e
+ * @param {unknown} e
  * @returns {e is NodeJS.ErrnoException}
  */
-const isErrnoException = e => "code" in e
+const isErrnoException = e => typeof e === "object" && e !== null && "code" in e
 
 /**
  * Remove a directory sync.
@@ -41,18 +41,20 @@ const isErrnoException = e => "code" in e
 const rmdirSync = (p, originalEr) => {
     try {
         fs.rmdirSync(p)
-    } catch(er) {
-        if (isErrnoException(er) && er.code === "ENOENT") {
+    } catch(error) {
+        if (isErrnoException(error) && error.code === "ENOENT") {
             return
         }
-        if (isErrnoException(er) && er.code === "ENOTDIR") {
+        if (isErrnoException(error) && error.code === "ENOTDIR") {
             throw originalEr
         }
-        if (isErrnoException(er)
-            && ["EEXIST", "ENOTEMPTY", "EPERM"].includes(er.code ?? "")) {
-            const {join} = require("path")
-            /* eslint-disable-next-line no-use-before-define */
-            fs.readdirSync(p).forEach(f => rimrafSync(join(p, f)))
+        if (isErrnoException(error)
+            && ["EEXIST", "ENOTEMPTY", "EPERM"].includes(error.code ?? "")) {
+            const {join} = require("node:path")
+            for (const f of fs.readdirSync(p)) {
+                /* eslint-disable-next-line no-use-before-define */
+                rimrafSync(join(p, f))
+            }
             let retries = 1
             if (process.platform === "win32") {
                 retries = 100
@@ -81,8 +83,8 @@ const rmdirSync = (p, originalEr) => {
 const fixWinEPERMSync = (p, er) => {
     try {
         fs.chmodSync(p, 0o666)
-    } catch(er2) {
-        if (isErrnoException(er2) && er2.code === "ENOENT") {
+    } catch(error) {
+        if (isErrnoException(error) && error.code === "ENOENT") {
             return
         }
         throw er
@@ -90,8 +92,8 @@ const fixWinEPERMSync = (p, er) => {
     let stats = null
     try {
         stats = fs.statSync(p)
-    } catch(er3) {
-        if (isErrnoException(er3) && er3.code === "ENOENT") {
+    } catch(error) {
+        if (isErrnoException(error) && error.code === "ENOENT") {
             return
         }
         throw er
@@ -112,14 +114,13 @@ const rimrafSync = p => {
     let st = null
     try {
         st = fs.lstatSync(p)
-    } catch(er) {
-        if (isErrnoException(er) && er.code === "ENOENT") {
+    } catch(error) {
+        if (isErrnoException(error) && error.code === "ENOENT") {
             return
         }
-        if (process.platform === "win32") {
-            if (isErrnoException(er) && er.code === "EPERM") {
-                fixWinEPERMSync(p, er)
-            }
+        if (process.platform === "win32"
+            && isErrnoException(error) && error.code === "EPERM") {
+            fixWinEPERMSync(p, error)
         }
     }
     try {
@@ -128,21 +129,21 @@ const rimrafSync = p => {
         } else {
             fs.unlinkSync(p)
         }
-    } catch(er) {
-        if (isErrnoException(er) && er.code === "ENOENT") {
+    } catch(error) {
+        if (isErrnoException(error) && error.code === "ENOENT") {
             return
         }
-        if (isErrnoException(er) && er.code === "EPERM") {
+        if (isErrnoException(error) && error.code === "EPERM") {
             if (process.platform === "win32") {
-                return fixWinEPERMSync(p, er)
+                return fixWinEPERMSync(p, error)
             }
-            return rmdirSync(p, er)
+            return rmdirSync(p, error)
         }
-        if (!isErrnoException(er) || er.code !== "EISDIR") {
-            throw er
+        if (!isErrnoException(error) || error.code !== "EISDIR") {
+            throw error
         }
-        if (er instanceof Error) {
-            rmdirSync(p, er)
+        if (error instanceof Error) {
+            rmdirSync(p, error)
         }
     }
 }

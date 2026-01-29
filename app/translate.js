@@ -12,16 +12,11 @@ const {
 /** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */
 /** @type {StringOrObject} */
 const translations = {}
-const safeElements = [
+const safeElements = new Set([
     "#text",
+    "a",
     "body",
     "br",
-    "a",
-    "kbd",
-    "li",
-    "ul",
-    "ol",
-    "span",
     "div",
     "h1",
     "h2",
@@ -29,9 +24,14 @@ const safeElements = [
     "h4",
     "h5",
     "h6",
-    "p"
-]
-const safeAttributes = ["class", "href"]
+    "kbd",
+    "li",
+    "ol",
+    "p",
+    "span",
+    "ul"
+])
+const safeAttributes = new Set(["class", "href"])
 
 /** Returns a list of languages according to the language files present. */
 const validLanguages = () => {
@@ -63,12 +63,12 @@ const loadLang = lang => {
  * @param {{fields?: string[], customLang?: null|string}} opts
  * @returns {string}
  */
-const translate = (id, opts = {"customLang": null, "fields": []}) => {
+const translate = (id, {customLang = null, fields = []} = {}) => {
     if (!translations.en) {
         const filePath = joinPath(getAppRootDir(), "translations/en.json")
         translations.en = readJSON(filePath)
     }
-    const currentLang = opts.customLang ?? getSetting("lang")
+    const currentLang = customLang ?? getSetting("lang")
     if (!translations[currentLang]) {
         loadLang(currentLang)
     }
@@ -82,14 +82,14 @@ const translate = (id, opts = {"customLang": null, "fields": []}) => {
         translation = translation[key]
     }
     if (translation && typeof translation === "string") {
-        for (const [key, value] of opts.fields?.entries() ?? []) {
+        for (const [key, value] of fields?.entries() ?? []) {
             translation = translation.replace(
-                RegExp(`\\$${key + 1}`, "g"), String(value))
+                new RegExp(String.raw`\$${key + 1}`, "g"), String(value))
         }
         return translation
     }
     if (currentLang !== "en") {
-        return translate(id, {...opts, "customLang": "en"})
+        return translate(id, {"customLang": "en", "fields": fields ?? []})
     }
     return id
 }
@@ -99,21 +99,23 @@ const translate = (id, opts = {"customLang": null, "fields": []}) => {
  * @param {ChildNode} node
  */
 const onlyKeepSafeNodes = node => {
-    if (!safeElements.includes(node.nodeName.toLowerCase())) {
+    if (!safeElements.has(node.nodeName.toLowerCase())) {
         console.warn("Removed node from translations:", node)
         node.remove()
         return
     }
     if (node instanceof Element) {
         for (const attr of node.attributes) {
-            if (!safeAttributes.includes(attr.name)) {
+            if (!safeAttributes.has(attr.name)) {
                 console.warn(
                     `Removed attribute ${attr.name} from translations:`, node)
                 node.removeAttribute(attr.name)
             }
         }
     }
-    node.childNodes.forEach(onlyKeepSafeNodes)
+    for (const child of node.childNodes) {
+        onlyKeepSafeNodes(child)
+    }
 }
 
 /**
@@ -121,8 +123,8 @@ const onlyKeepSafeNodes = node => {
  * @param {import("../types/i18n").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
  */
-const translateAsHTML = (id, opts = {"customLang": null, "fields": []}) => {
-    const value = translate(id, opts)
+const translateAsHTML = (id, {customLang = null, fields = []} = {}) => {
+    const value = translate(id, {customLang, fields})
     const parsed = new DOMParser().parseFromString(value, "text/html")
     const body = parsed.querySelector("body")
     if (!body) {

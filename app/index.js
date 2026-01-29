@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 */
 "use strict"
 
-const {randomUUID} = require("crypto")
 const {
     app,
     BrowserWindow,
@@ -31,6 +30,7 @@ const {
     shell,
     webContents
 } = require("electron")
+const {randomUUID} = require("node:crypto")
 const {translate} = require("./translate")
 const {
     basePath,
@@ -255,14 +255,14 @@ let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
 let argInterfaceScale = Number(
-    process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
+    process.env.VIEB_INTERFACE_SCALE?.trim() || 1) || 1
 let argDevtoolsTheme = process.env.VIEB_DEVTOOLS_THEME?.trim().toLowerCase()
     || "dark"
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
 let DRM = false
-args.forEach(a => {
+for (const a of args) {
     const arg = a.trim()
     if (arg.startsWith("-")) {
         if (arg === "--help") {
@@ -355,7 +355,7 @@ args.forEach(a => {
     } else {
         urls.push(arg)
     }
-})
+}
 if (argAutoplayMedia !== "user" && argAutoplayMedia !== "always") {
     console.warn("The 'autoplay-media' argument only accepts:\n"
         + "'user' or 'always'\n")
@@ -381,7 +381,7 @@ const validConfigOrders = [
 if (!validConfigOrders.includes(argConfigOrder)) {
     console.warn(`The 'config-order' argument only accepts:\n${
         validConfigOrders.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
-        validConfigOrders.slice(-1)[0]}'\n`)
+        validConfigOrders.at(-1)}'\n`)
     printUsage()
 }
 if (argConfigOverride) {
@@ -397,7 +397,7 @@ if (argConfigOverride) {
 if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
-if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
+if (Number.isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
     console.warn(
         "The 'interface-scale' argument only accepts positive numbers\n")
     printUsage()
@@ -406,11 +406,11 @@ if (argInterfaceScale !== 1) {
     app.commandLine.appendSwitch(
         "force-device-scale-factor", `${argInterfaceScale}`)
 }
-if (isNaN(argExecuteDur) || argExecuteDur < 0) {
+if (Number.isNaN(argExecuteDur) || argExecuteDur < 0) {
     console.warn("The 'execute-dur' argument only accepts positive numbers\n")
     printUsage()
 }
-if (isNaN(argExecuteCount) || argExecuteCount < 0) {
+if (Number.isNaN(argExecuteCount) || argExecuteCount < 0) {
     console.warn("The 'execute-count' argument only accepts positive numbers\n")
     printUsage()
 }
@@ -419,7 +419,7 @@ if (argExecuteDur === 0 && argExecuteCount === 0) {
         "The 'execute-dur' and 'execute-count' arguments cannot both be zero\n")
     printUsage()
 }
-if (urls.length && argExecute) {
+if (urls.length > 0 && argExecute) {
     console.warn(
         "The 'execute' argument cannot be combined with opening urls\n")
     printUsage()
@@ -468,8 +468,11 @@ if (!argMediaKeys) {
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 const partitionDir = joinPath(argDatafolder, "Partitions")
-listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
-    .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+for (const part of listDir(partitionDir, false, true)
+    ?.filter(p => p.startsWith("temp"))
+    .map(p => joinPath(partitionDir, p)) ?? []) {
+    rm(part)
+}
 rm(joinPath(argDatafolder, "erwicmode"))
 app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
@@ -515,17 +518,16 @@ if (argErwic) {
             return null
         }
         const simpleContainerName = a.container.replace(/_/g, "")
-        if (simpleContainerName.match(specialChars)) {
+        if (specialChars.test(simpleContainerName)) {
             console.warn("Container names are not allowed to have "
                 + "special characters besides underscores\n")
             printUsage()
         }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
-            if (typeof a.script === "string") {
-                if (a.script !== joinPath(a.script)) {
-                    a.script = joinPath(dirname(argErwic), a.script)
-                }
+            if (typeof a.script === "string"
+                && a.script !== joinPath(a.script)) {
+                a.script = joinPath(dirname(argErwic), a.script)
             }
         } else {
             a.script = null
@@ -560,13 +562,12 @@ const currentInputMatches = key => {
         return true
     }
     return blockedInsertMappings.some(mapping => {
-        if (!!mapping.alt === key.alt && !!mapping.control === key.control) {
-            if (!!mapping.meta === key.meta && !!mapping.shift === key.shift) {
-                if (key.location === 3) {
-                    return mapping.key === `k${key.key}`
-                }
-                return mapping.key === key.key
+        if (!!mapping.alt === key.alt && !!mapping.control === key.control
+            && !!mapping.meta === key.meta && !!mapping.shift === key.shift) {
+            if (key.location === 3) {
+                return mapping.key === `k${key.key}`
             }
+            return mapping.key === key.key
         }
         return false
     })
@@ -585,7 +586,7 @@ const notify = opts => mainWindow?.webContents.send("notify", opts)
  * })[]} paths
  * @param {string|null} cwd
  */
-const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
+const resolveLocalPaths = (paths, cwd = null) => paths.map(u => {
     let url = ""
     if (typeof u === "string") {
         url = String(u)
@@ -612,7 +613,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
         return {...u, url}
     }
     return {url}
-}).filter(u => u)
+}).filter(Boolean)
 
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
@@ -631,7 +632,7 @@ let permissions = {}
  * Main check if a permission should be allowed or declined.
  * @param {Electron.WebContents|null} _
  * @param {string} pm
- * @param {null|((_: any) => void)} callback
+ * @param {null|((allowed: boolean) => void)} callback
  * @param {{
  *   mediaTypes?: ("video"|"audio"|"unknown")[],
  *   mediaType?: "video"|"audio"|"unknown",
@@ -663,11 +664,10 @@ const permissionHandler = (_, pm, callback, details) => {
         }
     }
     let permissionName = `permission${permission}`
-    if (permission === "openexternal" && details.externalURL) {
-        if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
-            mainWindow.webContents.send("navigate-to", details.externalURL)
-            return false
-        }
+    if (permission === "openexternal" && details.externalURL
+        && details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
+        mainWindow.webContents.send("navigate-to", details.externalURL)
+        return false
     }
     let setting = permissions[permissionName]
     if (!setting) {
@@ -685,22 +685,20 @@ const permissionHandler = (_, pm, callback, details) => {
                 continue
             }
             const [match, ...names] = rule.split("~")
-            if (names.some(p => permissionName.endsWith(p))) {
-                if (details.requestingUrl?.match(match)) {
-                    settingRule = override
+            if (names.some(p => permissionName.endsWith(p))
+                && details.requestingUrl?.match(match)) {
+                settingRule = override
+                break
+            }
+            if (permissionName.includes("mediadevices")
+                && details.requestingUrl?.match(match)) {
+                if (names.some(p => p.endsWith("mediadeviceskind"))) {
+                    settingRule = "allow"
                     break
                 }
-            }
-            if (permissionName.includes("mediadevices")) {
-                if (details.requestingUrl?.match(match)) {
-                    if (names.some(p => p.endsWith("mediadeviceskind"))) {
-                        settingRule = "allow"
-                        break
-                    }
-                    if (names.some(p => p.endsWith("mediadevicesfull"))) {
-                        settingRule = "allow"
-                        break
-                    }
+                if (names.some(p => p.endsWith("mediadevicesfull"))) {
+                    settingRule = "allow"
+                    break
                 }
             }
         }
@@ -710,18 +708,16 @@ const permissionHandler = (_, pm, callback, details) => {
         return setting !== "block"
     }
     const domain = domainName(details.requestingUrl ?? "") ?? ""
-    if (permission === "certificateerror") {
-        if (allowedFingerprints[domain]
-            ?.includes(details.cert?.fingerprint ?? "")) {
-            notify({
-                "fields": [permission, details.requestingUrl ?? ""],
-                "id": "permissions.domainCachedAllowed",
-                "src": "user",
-                "type": "permission"
-            })
-            callback(true)
-            return true
-        }
+    if (permission === "certificateerror" && allowedFingerprints[domain]
+        ?.includes(details.cert?.fingerprint ?? "")) {
+        notify({
+            "fields": [permission, details.requestingUrl ?? ""],
+            "id": "permissions.domainCachedAllowed",
+            "src": "user",
+            "type": "permission"
+        })
+        callback(true)
+        return true
     }
     if (setting === "ask") {
         let url = details.requestingUrl ?? ""
@@ -729,7 +725,7 @@ const permissionHandler = (_, pm, callback, details) => {
             url = url.replace(/.{50}/g, "$&\n")
         }
         if (url.length > 1000) {
-            url = `${url.split("").slice(0, 1000).join("")}...`
+            url = `${[...url].slice(0, 1000).join("")}...`
         }
         let message = translate("permissions.ask.body", {
             "fields": [permission, permissionName, url]
@@ -753,7 +749,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
             }
             if (exturl.length > 1000) {
-                exturl = `${exturl.split("").slice(0, 1000).join("")}...`
+                exturl = `${[...exturl].slice(0, 1000).join("")}...`
             }
             message = translate("permissions.ask.bodyExternal", {
                 "fields": [url, exturl]
@@ -911,7 +907,7 @@ app.whenReady().then(async() => {
                 if (parts.at(-1) === "") {
                     parts.pop()
                 }
-                if (fileContents !== null && parts.length) {
+                if (fileContents !== null && parts.length > 0) {
                     console.info(parts.join("\n"))
                 }
                 deleteFile(executeOut)
@@ -1384,7 +1380,7 @@ const writeDownloadsToFile = () => {
     if (!downloadSettings.downloadmethod) {
         return
     }
-    downloads.forEach(d => {
+    for (const d of downloads) {
         // Update downloads that are stuck on waiting to start,
         // but have already been destroyed by electron.
         try {
@@ -1394,7 +1390,7 @@ const writeDownloadsToFile = () => {
                 d.state = "completed"
             }
         }
-    })
+    }
     if (downloadSettings.cleardownloadsonquit || downloads.length === 0) {
         deleteFile(dlsFile)
     } else {
@@ -1406,13 +1402,13 @@ ipcMain.handle("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadUuid) => {
     const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
-        downloads.forEach(d => {
+        for (const d of downloads) {
             try {
                 d.item.cancel()
             } catch {
                 // Download was already removed or is already done
             }
-        })
+        }
         downloads = []
     }
     if (action === "pause") {
@@ -1471,10 +1467,10 @@ const setSpelllangs = (_, langs) => {
         }
         return lang
     }).flatMap(lang => lang ?? [])
-    sessionList.forEach(ses => {
+    for (const ses of sessionList) {
         session.fromPartition(ses).setSpellCheckerLanguages(parsedLangs)
         session.defaultSession.setSpellCheckerLanguages(parsedLangs)
-    })
+    }
 }
 
 ipcMain.on("set-spelllang", setSpelllangs)
@@ -1506,11 +1502,13 @@ const disableAdblocker = () => {
     if (!blocker) {
         return
     }
-    sessionList.forEach(part => {
+    for (const part of sessionList) {
         const ses = session.fromPartition(part)
-        ses.getPreloadScripts().filter(p => p.id === "adblock-preload")
-            .forEach(p => ses.unregisterPreloadScript(p.id))
-    })
+        for (const preload of ses.getPreloadScripts()
+            .filter(p => p.id === "adblock-preload")) {
+            ses.unregisterPreloadScript(preload.id)
+        }
+    }
     ipcMain.removeHandler("@ghostery/adblocker/inject-cosmetic-filters")
     ipcMain.removeHandler("@ghostery/adblocker/is-mutation-observer-enabled")
     blocker = null
@@ -1527,11 +1525,11 @@ const reloadAdblocker = () => {
     ]
     let filters = ""
     for (const blocklistsFolder of blocklistsFolders) {
-        listDir(blocklistsFolder, true)?.forEach(file => {
+        for (const file of listDir(blocklistsFolder, true) ?? []) {
             if (file.endsWith(".txt")) {
                 filters += loadBlocklist(file)
             }
-        })
+        }
     }
     let ElectronBlocker = null
     try {
@@ -1553,14 +1551,14 @@ const reloadAdblocker = () => {
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
     }
-    sessionList.forEach(part => {
+    for (const part of sessionList) {
         const ses = session.fromPartition(part)
         ses.registerPreloadScript({
             "filePath": adblockerPreload,
             "id": "adblock-preload",
             "type": "frame"
         })
-    })
+    }
     ipcMain.handle("@ghostery/adblocker/inject-cosmetic-filters",
         blocker.onInjectCosmeticFilters)
     ipcMain.handle("@ghostery/adblocker/is-mutation-observer-enabled",
@@ -1649,7 +1647,7 @@ ipcMain.on("adblock-enable", (_, type) => {
 ipcMain.on("adblock-disable", disableAdblocker)
 ipcMain.on("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
-    sessionList.forEach(ses => {
+    for (const ses of sessionList) {
         const {protocol} = session.fromPartition(ses)
         if (pdfbehavior === "view") {
             if (protocol.isProtocolHandled("chrome-extension")) {
@@ -1658,7 +1656,7 @@ ipcMain.on("update-pdf-option", (_, newPdfValue) => {
         } else if (!protocol.isProtocolHandled("chrome-extension")) {
             protocol.handle("chrome-extension", blockPdf)
         }
-    })
+    }
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
@@ -1712,8 +1710,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             let tabImg = null
             if (tabId) {
                 try {
-                    tabImg = (await webContents.fromId(tabId)?.capturePage())
-                        ?.resize({"width": 20 * fontsize})?.toDataURL() ?? null
+                    const img = await webContents.fromId(tabId)?.capturePage()
+                    tabImg = img?.resize({"width": 20 * fontsize})?.toDataURL()
                 } catch {
                     // No tab preview, not a huge problem
                 }
@@ -1790,40 +1788,49 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
-        redirects.forEach(r => {
+        for (const r of redirects) {
             if (r.trim()) {
                 const [match, replace] = r.split("~")
-                url = url.replace(RegExp(match), replace)
+                url = url.replace(new RegExp(match), replace)
             }
-        })
+        }
         if (details.url !== url) {
             return callback({"cancel": false, "redirectURL": url})
         }
         if (resourceTypes && (url.startsWith("http") || url.startsWith("ws"))) {
             let allow = null
             for (const r of resourcesBlocked) {
-                const [match, ...names] = r.split("~")
-                if (!names?.length || names.includes(details.resourceType)) {
-                    if (url.match(match) || details.frame?.url.match(match)) {
+                const [pattern, ...names] = r.split("~")
+                const expression = new RegExp(pattern)
+                const urlMatch = expression.test(url)
+                    && (!details.frame || expression.test(details.frame?.url))
+                if (urlMatch) {
+                    const nameMatch = !names?.length
+                        || names.includes(details.resourceType)
+                    if (nameMatch) {
                         allow = false
                         break
                     }
                 }
             }
             for (const r of resourcesAllowed) {
-                const [match, ...names] = r.split("~")
-                if (!names?.length || names.includes(details.resourceType)) {
-                    if (url.match(match) || details.frame?.url.match(match)) {
+                const [pattern, ...names] = r.split("~")
+                const expression = new RegExp(pattern)
+                const urlMatch = expression.test(url)
+                    && (!details.frame || expression.test(details.frame?.url))
+                if (urlMatch) {
+                    const nameMatch = !names?.length
+                        || names.includes(details.resourceType)
+                    if (nameMatch) {
                         allow = true
                         break
                     }
                 }
             }
-            if (typeof allow === "boolean") {
-                if (!["cspReport", "mainFrame", "other", "subFrame"]
-                    .includes(details.resourceType)) {
-                    return callback({"cancel": !allow})
-                }
+            const internals = ["cspReport", "mainFrame", "other", "subFrame"]
+            if (typeof allow === "boolean"
+                && !internals.includes(details.resourceType)) {
+                return callback({"cancel": !allow})
             }
             if (!resourceTypes.includes(details.resourceType.toLowerCase())) {
                 return callback({"cancel": true})
@@ -1865,19 +1872,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         const filename = item.getFilename()
         let save = joinPath(downloadSettings.downloadpath, filename)
-        let duplicateNumber = 0
+        let duplicateId = 0
         let newFilename = item.getFilename()
         while (isFile(save)) {
-            duplicateNumber += 1
+            duplicateId += 1
             let extStart = filename.lastIndexOf(".tar.")
             if (extStart === -1) {
                 extStart = filename.lastIndexOf(".")
             }
             if (extStart === -1) {
-                newFilename = `${filename} (${duplicateNumber})`
+                newFilename = `${filename} (${duplicateId})`
             } else {
-                newFilename = `${filename.substring(0, extStart)} (${
-                    duplicateNumber}).${filename.substring(extStart + 1)}`
+                newFilename = `${filename.slice(0, Math.max(0, extStart))} (${
+                    duplicateId}).${filename.slice(Math.max(0, extStart + 1))}`
             }
             save = joinPath(downloadSettings.downloadpath, newFilename)
         }
@@ -1887,7 +1894,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (downloadSettings.downloadmethod === "confirm") {
             let wrappedFileName = filename.replace(/.{50}/g, "$&\n")
             if (wrappedFileName.length > 1000) {
-                wrappedFileName = `${wrappedFileName.split("")
+                wrappedFileName = `${[...wrappedFileName]
                     .slice(0, 1000).join("")}...`
             }
             let wrappedUrl = item.getURL()
@@ -1898,8 +1905,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
             wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
             if (wrappedUrl.length > 1000) {
-                wrappedUrl = `${wrappedUrl.split("")
-                    .slice(0, 1000).join("")}...`
+                wrappedUrl = `${[...wrappedUrl].slice(0, 1000).join("")}...`
             }
             const button = dialog.showMessageBoxSync(mainWindow, {
                 "buttons": ["Allow", "Deny"],
@@ -2118,8 +2124,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                  * @param {string} code
                  * @param {string|undefined} lang
                  */
-                "highlight": (code, lang) => {
-                    let language = lang ?? "plaintext"
+                "highlight": (code, lang = "plaintext") => {
+                    let language = lang
                     if (!hljs.getLanguage(language)) {
                         language = "plaintext"
                     }
@@ -2139,7 +2145,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
          */
         mdRenderer.html = ({text}) => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
-            .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+            .replace(/ src="([\dA-Za-z])]/g, ` src="${urlFolder}/$1`)
         /**
          * Add md-uuid to the url to allow requests to markdownfiles protocol.
          * @param {import("marked").Tokens.Image} image
@@ -2278,12 +2284,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         return
                     }
                     const dom = parseHTML(body).document
-                    ;[...dom.getElementsByTagName("img")].forEach(link => {
+                    for (const link of dom.getElementsByTagName("img")) {
                         link.src = new URL(link.src, url).href
-                    })
-                    ;[...dom.getElementsByTagName("a")].forEach(link => {
+                    }
+                    for (const link of dom.getElementsByTagName("a")) {
                         link.href = new URL(link.href, url).href
-                    })
+                    }
                     const out = new Readability(dom).parse()?.content ?? ""
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
@@ -2308,7 +2314,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
 
 /** Cancel all downloads immediately. */
 const cancellAllDownloads = () => {
-    downloads.forEach(download => {
+    for (const download of downloads) {
         try {
             if (download.state !== "completed") {
                 download.state = "cancelled"
@@ -2317,7 +2323,7 @@ const cancellAllDownloads = () => {
         } catch {
             // Download was already removed or is already done
         }
-    })
+    }
     writeDownloadsToFile()
 }
 
@@ -2618,31 +2624,32 @@ let allLinks = []
 const frameInfo = {}
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of webContents.fromId(id)
+            ?.mainFrame.framesInSubtree ?? []) {
             try {
                 f.send("follow-mode-start", followTypeFilter)
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
+        }
         if (switchTo) {
             allLinks = []
         }
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("follow-mode-stop", e => {
     try {
-        e.sender.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of e.sender.mainFrame.framesInSubtree) {
             try {
                 f.send("follow-mode-stop")
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 
@@ -2668,8 +2675,8 @@ const handleFrameDetails = (e, details) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
         return
     }
     if (!frameInfo[frameId]) {
@@ -2677,8 +2684,8 @@ const handleFrameDetails = (e, details) => {
     }
     frameInfo[frameId].id = frameId
     frameInfo[frameId].url = details.url
-    details.subframes.forEach(subframe => {
-        Object.keys(frameInfo).forEach(id => {
+    for (const subframe of details.subframes) {
+        for (const id of Object.keys(frameInfo)) {
             const url = frameInfo[id].url?.replace(/^about:srcdoc$/g, "") ?? ""
             if (url === subframe.url && id !== frameId) {
                 frameInfo[id].x = subframe.x
@@ -2701,8 +2708,8 @@ const handleFrameDetails = (e, details) => {
                 frameInfo[id].pagey = details.pagey
                 frameInfo[id].parent = frameId
             }
-        })
-    })
+        }
+    }
 }
 
 ipcMain.on("frame-details", handleFrameDetails)
@@ -2718,8 +2725,8 @@ const handleFollowResponse = (e, rawLinks) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
         return
     }
     const info = frameInfo[frameId]
@@ -2765,13 +2772,13 @@ const handleFollowResponse = (e, rawLinks) => {
                 } catch {
                     return null
                 }
-            }).filter(f => f)
+            }).filter(Boolean)
         allLinks = allLinks.filter(l => l.frameId !== frameId
             && allFramesIds?.includes(l.frameId))
-        allLinks = allLinks.concat(frameLinks)
+        allLinks = [...allLinks, ...frameLinks]
         mainWindow?.webContents.send("follow-response", allLinks)
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
 }
 
@@ -2816,31 +2823,23 @@ const findRelevantSubFrame = (wc, x, y) => {
         })
         /** @type {frameDetails & {absY: number, absX: number}|null} */
         let relevantFrame = null
-        absoluteFrames.forEach(info => {
+        for (const info of absoluteFrames) {
             if (!info || !info.absX || !info.absY) {
-                return
+                continue
             }
-            if (info.absX < x && info.absY < y
-                && info.width !== undefined && info.height !== undefined) {
-                if (info.absX + info.width > x && info.absY + info.height > y) {
-                    if (relevantFrame?.width) {
-                        if (relevantFrame.width > info.width) {
-                            // A smaller frame means a subframe, use it
-                            relevantFrame = {
-                                ...info, "absX": info.absX, "absY": info.absY
-                            }
-                        }
-                    } else {
-                        relevantFrame = {
-                            ...info, "absX": info.absX, "absY": info.absY
-                        }
-                    }
+            if (info.absX < x && info.absY < y && info.width !== undefined
+                && info.height !== undefined && info.absX + info.width > x
+                && info.absY + info.height > y && (!relevantFrame?.width
+                || relevantFrame.width > info.width)) {
+                // A smaller frame means a subframe, use it
+                relevantFrame = {
+                    ...info, "absX": info.absX, "absY": info.absY
                 }
             }
-        })
+        }
         return relevantFrame
-    } catch(ex) {
-        return errToMain(ex)
+    } catch(error) {
+        return errToMain(error)
     }
 }
 
@@ -2868,22 +2867,22 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
                 }
                 frameRef?.send("action", actionName, opts[0] - subframe.absX,
                     opts[1] - subframe.absY, ...opts.slice(2))
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
             return
         }
     }
     try {
-        wc.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of wc.mainFrame.framesInSubtree) {
             try {
                 f.send("action", actionName, ...opts)
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
@@ -2908,8 +2907,8 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
                 "x": info.x - subframe.absX,
                 "y": info.y - subframe.absY
             })
-        } catch(ex) {
-            errToMain(ex)
+        } catch(error) {
+            errToMain(error)
         }
         return
     }
@@ -2917,15 +2916,16 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
 })
 ipcMain.on("contextmenu", (_, id) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of webContents.fromId(id)
+            ?.mainFrame.framesInSubtree ?? []) {
             try {
                 f.send("contextmenu")
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("focus-input", (_, id, location = null) => {
@@ -2949,8 +2949,8 @@ ipcMain.on("focus-input", (_, id, location = null) => {
                     "x": location.x - subframe.absX,
                     "y": location.y - subframe.absY
                 })
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
             return
         }
@@ -2975,8 +2975,8 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
             return
         }
         wc.send("replace-input-field", correction, inputField)
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
 })
 
@@ -2997,8 +2997,8 @@ const translateMouseEvent = (e, clickInfo = null) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch(ex) {
-        return errToMain(ex)
+    } catch(error) {
+        return errToMain(error)
     }
     const info = frameInfo[frameId]
     let frameX = info?.x ?? 0
@@ -3031,8 +3031,8 @@ const translateMouseEvent = (e, clickInfo = null) => {
                 return false
             }
         })?.id ?? null
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
     return {
         ...clickInfo,
@@ -3087,21 +3087,21 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
             wc.sendInputEvent({keyCode, modifiers, "type": "char"})
         }
         wc.sendInputEvent({keyCode, modifiers, "type": "keyUp"})
-        wc.mainFrame.framesInSubtree.filter(f => {
+        for (const frame of wc.mainFrame.framesInSubtree.filter(f => {
             try {
                 return f.routingId !== wc.mainFrame.routingId
             } catch {
                 return false
             }
-        }).forEach(f => {
+        })) {
             try {
-                f.send("keyboard-type-event", keyOptions)
-            } catch(ex) {
-                errToMain(ex)
+                frame.send("keyboard-type-event", keyOptions)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
@@ -3151,8 +3151,8 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                     "x": X - subframe.absX, "y": Y - subframe.absY
                 })
             }
-        } catch(ex) {
-            errToMain(ex)
+        } catch(error) {
+            errToMain(error)
         }
         return
     }

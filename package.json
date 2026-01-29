@@ -9,6 +9,7 @@
         "Internet"
     ],
     "homepage": "https://vieb.dev",
+    "bugs": "https://github.com/Jelmerro/Vieb/issues/",
     "repository": {
         "url": "https://github.com/Jelmerro/Vieb",
         "type": "git"
@@ -17,7 +18,8 @@
     "license": "GPL-3.0-or-later",
     "author": "Jelmer van Arnhem",
     "type": "commonjs",
-    "main": "app/index.js",
+    "exports": "./app/*",
+    "main": "./app/index.js",
     "scripts": {
         "dev": "electron app --datafolder=./ViebData/ --config-order=datafolder-only",
         "eslint": "eslint",
@@ -52,5 +54,8 @@
         "type-config": "github:Jelmerro/type-config",
         "webpack": "5.103.0",
         "webpack-node-externals": "3.0.0"
+    },
+    "engines": {
+        "node": ">=22"
     }
 }

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -331,7 +331,7 @@ const documentAtPos = (x, y) => findElementAtPosition(x, y)
 
 /**
  * Check if a node is a text node.
- * @param {any} node
+ * @param {Node} node
  * @returns {node is Text|Comment|CDATASection}
  */
 const isTextNode = node => [
@@ -479,6 +479,25 @@ const selectionRequest = (startX, startY, endX, endY) => {
 }
 
 /**
+ * Process the translation result for a specific node.
+ * @param {string} text
+ * @param {Node} node
+ */
+const processTranslateResult = (text, node) => {
+    if (!text) {
+        return
+    }
+    const resEl = document.createElement("div")
+    resEl.innerHTML = text
+    for (const [txtIndex, txtEl] of [...node.childNodes].entries()) {
+        const txt = resEl.childNodes[txtIndex]?.textContent
+        if (txt) {
+            txtEl.textContent = txt
+        }
+    }
+}
+
+/**
  * Translate a page based on api name, url, language and api key.
  * @param {string} api
  * @param {string} url
@@ -486,9 +505,12 @@ const selectionRequest = (startX, startY, endX, endY) => {
  * @param {string} apiKey
  */
 const translatepage = async(api, url, lang, apiKey) => {
-    [...document.querySelectorAll("rt")].forEach(r => r.remove())
-    ;[...document.querySelectorAll("ruby")].forEach(
-        r => r.replaceWith(document.createTextNode(r?.textContent ?? "")))
+    for (const r of document.querySelectorAll("rt")) {
+        r.remove()
+    }
+    for (const r of document.querySelectorAll("ruby")) {
+        r.replaceWith(document.createTextNode(r?.textContent ?? ""))
+    }
     const tree = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
     let textNodes = []
     /** @type {TreeWalker|{currentNode: null}} */
@@ -500,20 +522,20 @@ const translatepage = async(api, url, lang, apiKey) => {
     textNodes = textNodes.filter(n => (n.nodeValue?.length ?? 0) > 5)
     /** @type {Node[]} */
     let baseNodes = []
-    textNodes.forEach(n => {
+    for (const n of textNodes) {
         let base = n.parentNode ?? n
         if (n.childNodes.length === 1
             && n.childNodes[0].nodeName === "#text" && n.parentNode) {
             base = n.parentNode
         }
         if (["kbd", "script", "style"].includes(base.nodeName.toLowerCase())) {
-            return
+            continue
         }
         if (baseNodes.includes(base) || base === document.body) {
-            return
+            continue
         }
         baseNodes.push(base)
-    })
+    }
     const parsedNodes = baseNodes.map(base => {
         const txtEl = document.createElement("p")
         for (const textNode of base.childNodes) {
@@ -533,7 +555,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         }
         baseNodes = baseNodes.filter(b => b !== base)
         return null
-    }).filter(el => el)
+    }).filter(Boolean)
     const strings = parsedNodes.map(n => n?.innerHTML ?? "")
     if (api === "libretranslate") {
         try {
@@ -571,28 +593,17 @@ const translatepage = async(api, url, lang, apiKey) => {
                 })
             }
             if (response.translatedText) {
-                baseNodes.forEach((node, index) => {
-                    const text = response.translatedText[index]
-                    if (!text) {
-                        return
-                    }
-                    const resEl = document.createElement("div")
-                    resEl.innerHTML = text
-                    ;[...node.childNodes].forEach((txtEl, txtIndex) => {
-                        const txt = resEl.childNodes[txtIndex]?.textContent
-                        if (txt) {
-                            txtEl.textContent = txt
-                        }
-                    })
-                })
+                for (const [index, node] of baseNodes.entries()) {
+                    processTranslateResult(response.translatedText[index], node)
+                }
             }
-        } catch(e) {
+        } catch(error) {
             notify({
                 "id": "actions.translations.errors.general",
                 "src": "user",
                 "type": "error"
             })
-            console.warn(e)
+            console.warn(error)
         }
         return
     }
@@ -618,28 +629,17 @@ const translatepage = async(api, url, lang, apiKey) => {
             })
         }
         if (response.translations) {
-            baseNodes.forEach((node, index) => {
-                const text = response.translations[index]?.text
-                if (!text) {
-                    return
-                }
-                const resEl = document.createElement("div")
-                resEl.innerHTML = text
-                ;[...node.childNodes].forEach((txtEl, txtIndex) => {
-                    const txt = resEl.childNodes[txtIndex]?.textContent
-                    if (txt) {
-                        txtEl.textContent = txt
-                    }
-                })
-            })
+            for (const [index, node] of baseNodes.entries()) {
+                processTranslateResult(response.translations[index]?.text, node)
+            }
         }
-    } catch(e) {
+    } catch(error) {
         notify({
             "id": "actions.translations.errors.general",
             "src": "user",
             "type": "error"
         })
-        console.warn(e)
+        console.warn(error)
     }
 }
 
@@ -673,8 +673,7 @@ const showTOC = (customStyling, fontsize) => {
     /** Returns the current taversing depth of the toc. */
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
 
-    /** @type {string[]} */
-    const headingNames = []
+    const headingNames = new Set()
     for (const heading of headings) {
         const depth = Number(heading.tagName[1])
         while (currentDepth() > depth && lists.length > 1) {
@@ -688,11 +687,11 @@ const showTOC = (customStyling, fontsize) => {
         }
         const listItem = document.createElement("li")
         const baseHeadingId = heading.id || `toc_${heading.textContent
-            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "")
+            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{ffff}]/gu, "")
             || Math.round(Math.random() * 1000000000000000)}`
         let headingId = baseHeadingId
         let duplicateHeadingCounter = 2
-        while (headingNames.includes(headingId)) {
+        while (headingNames.has(headingId)) {
             headingId = `${baseHeadingId}${duplicateHeadingCounter}`
             duplicateHeadingCounter += 1
         }

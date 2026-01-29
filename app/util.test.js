@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2025 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,12 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* eslint-disable padding-lines/statements, jsdoc/require-jsdoc */
+/* eslint-disable padding-lines/statements */
+/* eslint-disable jsdoc/require-jsdoc, n/no-path-concat */
 "use strict"
 
-const assert = require("assert")
+const assert = require("node:assert")
+const path = require("node:path")
 const {describe, test} = require("node:test")
-const path = require("path")
 const UTIL = require("./util")
 
 describe("Check isUrl", () => {
@@ -254,11 +255,11 @@ describe("Check isUrl", () => {
             "valid": false
         }
     ]
-    urlTests.forEach(urlTest => {
+    for (const urlTest of urlTests) {
         test(`Testing "${urlTest.url}": ${urlTest.reason}`, () => {
             assert.strictEqual(UTIL.isUrl(urlTest.url), urlTest.valid)
         })
-    })
+    }
 })
 
 describe("Special pages", () => {
@@ -292,14 +293,14 @@ describe("Special pages", () => {
                 `${__dirname}/pages/help.html#test`)}`
         }
     ]
-    specialPagesToFilenames.forEach(specialPageTest => {
+    for (const specialPageTest of specialPagesToFilenames) {
         test(`Testing "${specialPageTest.arguments}":
     ${specialPageTest.reason}`, () => {
             assert.strictEqual(
                 UTIL.specialPagePath(...specialPageTest.arguments),
                 specialPageTest.response)
         })
-    })
+    }
 })
 
 describe("Versions", () => {
@@ -394,11 +395,11 @@ describe("Versions", () => {
             "result": "newer"
         }
     ]
-    versions.forEach(v => {
+    for (const v of versions) {
         test(`Testing '${v.ref}' vs '${v.new}': ${v.reason}`, () => {
             assert.strictEqual(UTIL.compareVersions(v.new, v.ref), v.result)
         })
-    })
+    }
 })
 
 describe("Format sizes work correctly", () => {
@@ -416,17 +417,17 @@ describe("Format sizes work correctly", () => {
         {"number": 9999999999999, "output": "9.09 TB"},
         {"number": 1.1111111111111111e+35, "output": "87651.21 QB"}
     ]
-    sizes.forEach(s => {
+    for (const s of sizes) {
         test(`Testing that ${s.number} becomes ${s.output}`, () => {
             assert.strictEqual(UTIL.formatSize(s.number), s.output)
         })
-    })
+    }
 })
 
 test("Filesystem helpers should work as expected", () => {
-    const {rmdirSync} = require("fs")
-    const {tmpdir} = require("os")
-    const {basename, dirname, isAbsolute} = require("path")
+    const {rmdirSync} = require("node:fs")
+    const {tmpdir} = require("node:os")
+    const {basename, dirname, isAbsolute} = require("node:path")
     const file = UTIL.joinPath(tmpdir(), "vieb-test")
     // Clean old test files
     UTIL.deleteFile(file)
@@ -544,6 +545,10 @@ test(`Firefox version should increment by date`, () => {
             }
             return firstMockDate
         }
+
+        static now() {
+            return firstMockDate
+        }
     }
     let ver = 113
     assert.strictEqual(UTIL.firefoxUseragent(),
@@ -555,6 +560,10 @@ test(`Firefox version should increment by date`, () => {
             }
             return secondMockDate
         }
+
+        static now() {
+            return secondMockDate
+        }
     }
     ver = 114
     assert.strictEqual(UTIL.firefoxUseragent(),
@@ -564,6 +573,10 @@ test(`Firefox version should increment by date`, () => {
             if (date?.length) {
                 return super(...date)
             }
+            return thirdMockDate
+        }
+
+        static now() {
             return thirdMockDate
         }
     }

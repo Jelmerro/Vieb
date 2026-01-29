@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2025 Jelmer van Arnhem
+* Copyright (C) 2021-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -166,9 +166,9 @@ const createMenuItem = options => {
     item.className = "menu-item"
     item.textContent = options.title
     item.addEventListener("mouseover", () => {
-        [...contextMenu.querySelectorAll("div")].forEach(el => {
+        for (const el of contextMenu.querySelectorAll("div")) {
             el.classList.remove("selected")
-        })
+        }
         item.classList.add("selected")
     })
     item.addEventListener("click", () => {
@@ -186,8 +186,9 @@ const top = () => {
     if (!contextMenu) {
         return
     }
-    [...contextMenu.querySelectorAll(".menu-item")]
-        .forEach(el => el.classList.remove("selected"))
+    for (const el of contextMenu.querySelectorAll(".menu-item")) {
+        el.classList.remove("selected")
+    }
     contextMenu.firstElementChild?.classList.add("selected")
 }
 
@@ -212,11 +213,15 @@ const up = () => {
     /** @type {(Element|null)[]} */
     const nodes = [...contextMenu.querySelectorAll(".menu-item")]
     if (nodes.indexOf(selected) < 1) {
-        nodes.forEach(el => el?.classList.remove("selected"))
+        for (const el of nodes) {
+            el?.classList.remove("selected")
+        }
         contextMenu.lastElementChild?.classList.add("selected")
     } else if (active()) {
         const newSelected = nodes[nodes.indexOf(selected) - 1]
-        nodes.forEach(el => el?.classList.remove("selected"))
+        for (const el of nodes) {
+            el?.classList.remove("selected")
+        }
         newSelected?.classList.add("selected")
     }
 }
@@ -238,11 +243,15 @@ const down = () => {
     /** @type {(Element|null)[]} */
     const nodes = [...contextMenu.querySelectorAll(".menu-item")]
     if ([-1, nodes.length - 1].includes(nodes.indexOf(selected))) {
-        nodes.forEach(el => el?.classList.remove("selected"))
+        for (const el of nodes) {
+            el?.classList.remove("selected")
+        }
         contextMenu.firstElementChild?.classList.add("selected")
     } else if (active()) {
         const newSelected = nodes[nodes.indexOf(selected) + 1]
-        nodes.forEach(el => el?.classList.remove("selected"))
+        for (const el of nodes) {
+            el?.classList.remove("selected")
+        }
         newSelected?.classList.add("selected")
     }
 }
@@ -260,8 +269,9 @@ const bottom = () => {
     if (!contextMenu) {
         return
     }
-    [...contextMenu.querySelectorAll(".menu-item")]
-        .forEach(el => el.classList.remove("selected"))
+    for (const el of contextMenu.querySelectorAll(".menu-item")) {
+        el.classList.remove("selected")
+    }
     contextMenu.lastElementChild?.classList.add("selected")
 }
 
@@ -300,14 +310,14 @@ const commonAction = (src, type, action, options) => {
         const el = document.createElement("img")
         const canvas = document.createElement("canvas")
         /** Once the image is loaded, draw it to a canvas, then copy. */
-        el.onload = () => {
+        el.addEventListener("load", () => {
             canvas.width = el.naturalWidth
             canvas.height = el.naturalHeight
             canvas.getContext("2d")?.drawImage(el, 0, 0)
             const {nativeImage} = require("electron")
             clipboard.writeImage(nativeImage.createFromDataURL(
                 canvas.toDataURL("image/png")))
-        }
+        })
         el.src = relevantData
         return
     }
@@ -451,14 +461,12 @@ const viebMenu = (src, options, force = false) => {
             },
             "title": translate("contextmenu.text.selectAll")
         })
-        if (url?.value.trim().length) {
-            if ("sec".includes(currentMode()[0])) {
-                createMenuItem({
-                    /** Menu item: Go to url. */
-                    "action": () => useEnteredData({src}),
-                    "title": translate("contextmenu.general.go")
-                })
-            }
+        if (url?.value.trim().length && "sec".includes(currentMode()[0])) {
+            createMenuItem({
+                /** Menu item: Go to url. */
+                "action": () => useEnteredData({src}),
+                "title": translate("contextmenu.general.go")
+            })
         }
         if (window.getSelection()?.toString().trim()) {
             createMenuItem({
@@ -828,23 +836,22 @@ const webviewMenu = (src, options, force = false) => {
     if (options.canEdit && options.inputVal && (options.inputSel ?? 0) >= 0) {
         const wordRegex = specialChars.source.replace("[", "[^")
         const words = options.inputVal.split(new RegExp(`(${
-            wordRegex}+|${specialChars.source}+)`, "g")).filter(s => s)
+            wordRegex}+|${specialChars.source}+)`, "g")).filter(Boolean)
         let letterCount = 0
         let wordIndex = 0
         let word = words[wordIndex]
         while (wordIndex < words.length) {
             word = words[wordIndex].trim()
             letterCount += words[wordIndex].length
-            if (letterCount >= (options.inputSel ?? 0)) {
-                if (word.match(new RegExp(`${wordRegex}+`, "g"))) {
-                    break
-                }
+            if (letterCount >= (options.inputSel ?? 0)
+                && new RegExp(`${wordRegex}+`, "g").test(word)) {
+                break
             }
             wordIndex += 1
         }
         const {webFrame} = require("electron")
         const suggestions = webFrame.getWordSuggestions(word)
-        if (suggestions.length) {
+        if (suggestions.length > 0) {
             createMenuGroup("suggestions")
         }
         for (const suggestion of suggestions) {
@@ -1087,37 +1094,36 @@ const webviewMenu = (src, options, force = false) => {
     fixAlignmentNearBorders()
 }
 
-/** Register the context menu handler. */
-const init = () => {
-    /**
-     * Handle context menu info to open the menu with the right details.
-     * @param {Electron.IpcRendererEvent} _
-     * @param {webviewData} info
-     */
-    const handleContextMenu = (_, info) => {
-        if (info.webviewId) {
-            if (info.webviewId !== currentPage()?.getWebContentsId()) {
-                const page = listReadyPages().find(
-                    p => p.getWebContentsId() === info.webviewId)
-                if (page) {
-                    const {switchToTab} = require("./tabs")
-                    const tab = tabForPage(page)
-                    if (tab) {
-                        switchToTab(tab)
-                    }
-                }
+/**
+ * Handle context menu info to open the menu with the right details.
+ * @param {Electron.IpcRendererEvent} _
+ * @param {webviewData} info
+ */
+const handleContextMenuClick = (_, info) => {
+    if (info.webviewId
+        && info.webviewId !== currentPage()?.getWebContentsId()) {
+        const page = listReadyPages().find(
+            p => p.getWebContentsId() === info.webviewId)
+        if (page) {
+            const {switchToTab} = require("./tabs")
+            const tab = tabForPage(page)
+            if (tab) {
+                switchToTab(tab)
             }
         }
-        if (info.extraData?.type && info.extraData?.action) {
-            commonAction(info.extraData.src ?? "user", info.extraData.type,
-                info.extraData.action, info)
-        } else {
-            webviewMenu(info.extraData?.src ?? "user",
-                info, info?.extraData?.force)
-        }
     }
+    if (info.extraData?.type && info.extraData?.action) {
+        commonAction(info.extraData.src ?? "user", info.extraData.type,
+            info.extraData.action, info)
+    } else {
+        webviewMenu(info.extraData?.src ?? "user",
+            info, info?.extraData?.force)
+    }
+}
 
-    ipcRenderer.on("context-click-info", handleContextMenu)
+/** Register the context menu handler. */
+const init = () => {
+    ipcRenderer.on("context-click-info", handleContextMenuClick)
 }
 
 module.exports = {

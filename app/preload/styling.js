@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2025 Jelmer van Arnhem
+* Copyright (C) 2022-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -121,8 +121,8 @@ const enableDarkReader = async() => {
         darkreader.enable(darkreaderOpts)
         const style = await darkreader.exportGeneratedCSS()
         ipcRenderer.sendToHost("custom-style-inject", "darkreader", style)
-    } catch(e) {
-        console.error("Darkreader failed to apply:", e)
+    } catch(error) {
+        console.error("Darkreader failed to apply:", error)
     }
 }
 
@@ -148,11 +148,11 @@ const loadThemes = (loadedFully = false) => {
     if (!html) {
         return
     }
-    if (document.location.ancestorOrigins.length) {
+    if (document.location.ancestorOrigins.length > 0) {
         updateScrollbar()
         return
     }
-    if (document.head?.innerText === "") {
+    if (!document.head?.children.length) {
         if (!specialPage?.name) {
             applyThemeStyling()
         }
@@ -221,7 +221,7 @@ const loadThemes = (loadedFully = false) => {
             expandPath(`~/.vieb/userstyle/${domain}.css`)
         ]
         const style = userStyleFiles.map(f => readFile(f))
-            .filter(s => s).join("\n")
+            .filter(Boolean).join("\n")
         ipcRenderer.sendToHost("custom-style-inject", "userstyle", style)
     }
     updateScrollbar()

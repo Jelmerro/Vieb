@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2025 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -114,7 +114,6 @@ const alertOverride = text => {
             "type": "question"
         })
     }
-    return undefined
 }
 
 contextBridge.executeInMainWorld({
@@ -189,6 +188,7 @@ const privacyOverrides = platform => {
         }
         // Don't share the connection information
         scope.Object.defineProperty(scope.Navigator.prototype,
+            // eslint-disable-next-line unicorn/no-useless-undefined
             "connection", {"get": (() => undefined).bind(null)})
         try {
             delete scope.Object.getPrototypeOf(scope.navigator).connection
@@ -197,6 +197,7 @@ const privacyOverrides = platform => {
         }
         // Disable the experimental keyboard API, which exposes every mapping
         scope.Object.defineProperty(scope.Navigator.prototype,
+            // eslint-disable-next-line unicorn/no-useless-undefined
             "keyboard", {"get": (() => undefined).bind(null)})
         try {
             delete scope.Object.getPrototypeOf(scope.navigator).keyboard
@@ -205,6 +206,7 @@ const privacyOverrides = platform => {
         }
         // Disable redundant userAgentData API, which exposes extra version info
         scope.Object.defineProperty(scope.Navigator.prototype,
+            // eslint-disable-next-line unicorn/no-useless-undefined
             "userAgentData", {"get": (() => undefined).bind(null)})
         try {
             delete scope.Object.getPrototypeOf(scope.navigator).userAgentData
@@ -244,8 +246,8 @@ const privacyOverrides = platform => {
     }
 
     const observer = new MutationObserver(mutations => {
-        const iframes = mutations.map(m => [...m.addedNodes]
-            .filter(n => n.nodeName.toLowerCase() === "iframe")).flat()
+        const iframes = mutations.flatMap(m => [...m.addedNodes]
+            .filter(n => n.nodeName.toLowerCase() === "iframe"))
         for (const frame of iframes) {
             if ("contentWindow" in frame) {
                 // @ts-expect-error contentWindow is not compatible with window
@@ -332,24 +334,21 @@ const deviceEnumeratePermissionHandler = () => {
                 if (!r.trim() || settingRule) {
                     continue
                 }
-                const [match, ...names] = r.split("~")
-                if (names.some(p => p.endsWith("mediadevices"))) {
-                    if (url.match(match)) {
-                        settingRule = type
-                        break
-                    }
+                const [pattern, ...names] = r.split("~")
+                const urlMatch = new RegExp(pattern).test(url)
+                if (names.some(p => p.endsWith("mediadevices")) && urlMatch) {
+                    settingRule = type
+                    break
                 }
-                if (names.some(p => p.endsWith("mediadevicesfull"))) {
-                    if (url.match(match) && type === "allow") {
-                        settingRule = "allowfull"
-                        break
-                    }
+                if (names.some(p => p.endsWith("mediadevicesfull"))
+                    && urlMatch && type === "allow") {
+                    settingRule = "allowfull"
+                    break
                 }
-                if (names.some(p => p.endsWith("mediadeviceskind"))) {
-                    if (url.match(match) && type === "allow") {
-                        settingRule = "allowkind"
-                        break
-                    }
+                if (names.some(p => p.endsWith("mediadeviceskind"))
+                    && urlMatch && type === "allow") {
+                    settingRule = "allowkind"
+                    break
                 }
             }
         }

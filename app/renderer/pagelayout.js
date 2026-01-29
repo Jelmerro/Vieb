@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2025 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -35,14 +35,14 @@ const {
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id ?? "none"}']`)
 
-/** @type {{[id: string]: number}} */
+/** @type {{[id: string]: NodeJS.Timeout}} */
 const timers = {}
 /** @type {string[]} */
 const lastTabIds = []
 let recentlySwitched = false
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let scrollbarHideTimer = null
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let scrollbarHideIgnoreTimer = null
 
 /** Clean up any single div or webview elements into the parent recursively. */
@@ -51,27 +51,27 @@ const removeRedundantContainers = () => {
     if (!base) {
         return
     }
-    [...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver"), base]
-        .forEach(container => {
-            if (container.children.length < 2 && container !== base) {
-                const [lonelyView] = container.children
-                if (lonelyView instanceof HTMLElement) {
-                    lonelyView.style.flexGrow = ""
-                    container.parentNode?.insertBefore(lonelyView, container)
-                }
-                container.remove()
+    for (const container of [
+        ...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver"), base
+    ]) {
+        if (container.children.length < 2 && container !== base) {
+            const [lonelyView] = container.children
+            if (lonelyView instanceof HTMLElement) {
+                lonelyView.style.flexGrow = ""
+                container.parentNode?.insertBefore(lonelyView, container)
             }
-            [...container.children].forEach(child => {
-                if (!child.getAttribute("link-id")) {
-                    if (child.className === container.className) {
-                        [...child.children].forEach(subChild => {
-                            container.insertBefore(subChild, child)
-                        })
-                        child.remove()
-                    }
+            container.remove()
+        }
+        for (const child of container.children) {
+            if (!child.getAttribute("link-id")
+                && child.className === container.className) {
+                for (const subChild of child.children) {
+                    child.before(subChild)
                 }
-            })
-        })
+                child.remove()
+            }
+        }
+    }
 }
 
 /** Apply all layout changes from the div elements to the actual webviews. */
@@ -80,13 +80,13 @@ const applyLayout = () => {
     if (!pagelayout) {
         return
     }
-    pagelayout.querySelectorAll("*[link-id]").forEach(element => {
+    for (const element of pagelayout.querySelectorAll("*[link-id]")) {
         const id = element.getAttribute("link-id")
         const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         if (!page) {
             element.remove()
         }
-    })
+    }
     removeRedundantContainers()
     if (pagelayout.children.length === 0) {
         pagelayout.classList.add("hor")
@@ -102,12 +102,12 @@ const applyLayout = () => {
     /** @type {HTMLSpanElement[]} */
     const visibleTabs = []
     const containerPos = pagelayout.getBoundingClientRect()
-    pagelayout.querySelectorAll("*[link-id]").forEach(element => {
+    for (const element of pagelayout.querySelectorAll("*[link-id]")) {
         const id = element.getAttribute("link-id")
         const page = listPages().find(p => p.getAttribute("link-id") === id)
         const tab = listTabs().find(t => t.getAttribute("link-id") === id)
         if (!page || !tab) {
-            return
+            continue
         }
         visiblePages.push(page)
         visibleTabs.push(tab)
@@ -116,7 +116,7 @@ const applyLayout = () => {
         page.style.top = `${Math.round(dimensions.y - containerPos.y)}px`
         page.style.width = `${Math.round(dimensions.width)}px`
         page.style.height = `${Math.round(dimensions.height)}px`
-    })
+    }
     if (visiblePages.length > 1) {
         document.getElementById("pages")?.classList.add("multiple")
         document.getElementById("tabs")?.classList.add("multiple")
@@ -124,14 +124,12 @@ const applyLayout = () => {
         document.getElementById("pages")?.classList.remove("multiple")
         document.getElementById("tabs")?.classList.remove("multiple")
     }
-    listFakePages().forEach(page => page.classList.remove("visible-page"))
-    listRealPages().forEach(page => {
-        if (visiblePages.includes(page)) {
-            page.classList.add("visible-page")
-        } else {
-            page.classList.remove("visible-page")
-        }
-    })
+    for (const page of listFakePages()) {
+        page.classList.remove("visible-page")
+    }
+    for (const page of listRealPages()) {
+        page.classList.toggle("visible-page", visiblePages.includes(page))
+    }
 
     /**
      * Suspend a tab after a timeout, optionally repeating if playing media.
@@ -142,37 +140,37 @@ const applyLayout = () => {
     const susCall = (tab, linkId, timeout) => {
         const index = listTabs().indexOf(tab)
         let shouldSuspend = true
-        getSetting("suspendtimeoutignore").forEach(ignore => {
+        for (const ignore of getSetting("suspendtimeoutignore")) {
             const {rangeToTabIdxs} = require("./command")
             if (rangeToTabIdxs("other", ignore).tabs.includes(index)) {
                 shouldSuspend = false
             }
-        })
+        }
         if (shouldSuspend) {
             delete timers[linkId]
             const {suspendTab} = require("./tabs")
             suspendTab("other", tab)
         } else {
-            timers[linkId] = window.setTimeout(
+            timers[linkId] = setTimeout(
                 () => susCall(tab, linkId, timeout), timeout)
         }
     }
 
     const timeout = getSetting("suspendtimeout")
-    listTabs().forEach(tab => {
+    for (const tab of listTabs()) {
         const linkId = tab.getAttribute("link-id") ?? ""
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
-            window.clearTimeout(timers[linkId])
+            clearTimeout(timers[linkId])
             delete timers[linkId]
         } else {
             tab.classList.remove("visible-tab")
             if (timeout && !timers[linkId] && !tab.getAttribute("suspended")) {
-                timers[linkId] = window.setTimeout(
+                timers[linkId] = setTimeout(
                     () => susCall(tab, linkId, timeout), timeout)
             }
         }
-    })
+    }
     const cur = currentPage()
     const follow = document.getElementById("follow")
     if (cur && follow) {
@@ -231,11 +229,11 @@ const hide = (view, close = false) => {
     const parent = inLayout?.parentElement
     const sibling = inLayout?.nextElementSibling
     inLayout?.remove()
-    ;[...parent?.children ?? [], parent].forEach(element => {
+    for (const element of [...parent?.children ?? [], parent]) {
         if (element instanceof HTMLElement) {
             element.style.flexGrow = ""
         }
-    })
+    }
     if (view.id === "current-page") {
         const visibleTabs = listTabs().filter(
             t => t.classList.contains("visible-tab"))
@@ -333,14 +331,14 @@ const add = (viewOrId, method, leftOrAbove) => {
         inLayout?.parentElement?.insertBefore(verContainer, inLayout)
         inLayout?.remove()
     }
-    [
+    for (const element of [
         ...layoutDivById(id)?.parentElement?.children ?? [],
         layoutDivById(id)?.parentElement
-    ].forEach(element => {
+    ]) {
         if (element instanceof HTMLElement) {
             element.style.flexGrow = ""
         }
-    })
+    }
     applyLayout()
 }
 
@@ -407,11 +405,11 @@ const exchange = () => {
 
 /** Remove any custom grow CSS rules to reset all custom split sizes. */
 const resetResizing = () => {
-    [...document.querySelectorAll("#pagelayout *")].forEach(element => {
+    for (const element of document.querySelectorAll("#pagelayout *")) {
         if (element instanceof HTMLElement) {
             element.style.flexGrow = ""
         }
-    })
+    }
     applyLayout()
 }
 
@@ -445,7 +443,9 @@ const toTop = direction => {
         const subLayout = document.createElement("div")
         subLayout.className = subLayoutClass
         layout.className = pageLayoutClass
-        ;[...layout.children].forEach(child => subLayout.append(child))
+        for (const child of layout.children) {
+            subLayout.append(child)
+        }
         layout.append(subLayout)
         if (["left", "top"].includes(direction)) {
             layout.insertBefore(current, layout.firstChild)
@@ -531,29 +531,29 @@ const resize = (orientation, change) => {
         flexGrow /= 1.5
     }
     if (flexGrow < 1) {
-        [...element.parentNode?.children ?? []].forEach(child => {
+        for (const child of element.parentNode?.children ?? []) {
             if (child instanceof HTMLElement) {
                 const current = propPixels(child, "flex-grow") || 1
                 child.style.flexGrow = `${current / flexGrow}`
             }
-        })
+        }
         flexGrow = 1
     }
     if (flexGrow > 10) {
-        [...element.parentNode?.children ?? []].forEach(child => {
+        for (const child of element.parentNode?.children ?? []) {
             if (child instanceof HTMLElement) {
                 const current = propPixels(child, "flex-grow") || 1
                 child.style.flexGrow = `${current / (flexGrow / 10)}`
             }
-        })
+        }
         flexGrow = 10
     }
-    [...element.parentNode?.children ?? []].forEach(child => {
+    for (const child of element.parentNode?.children ?? []) {
         if (child instanceof HTMLElement) {
             const current = propPixels(child, "flex-grow") || 1
             child.style.flexGrow = `${Math.min(10, Math.max(1, current))}`
         }
-    })
+    }
     if (element instanceof HTMLElement) {
         element.style.flexGrow = `${flexGrow}`
     }
@@ -578,7 +578,7 @@ const previousSplit = () => {
     if (!current) {
         return
     }
-    const next = views[views.indexOf(current) - 1] || views[views.length - 1]
+    const next = views[views.indexOf(current) - 1] || views.at(-1)
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
@@ -606,7 +606,7 @@ const nextSplit = () => {
 /** Go to the last split based on position in the list. */
 const lastSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
-    const last = views[views.length - 1]
+    const last = views.at(-1) ?? views[0]
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === last.getAttribute("link-id"))
@@ -648,7 +648,7 @@ const setLastUsedTab = id => {
 /** Restart all suspend timeouts when the setting is changed. */
 const restartSuspendTimeouts = () => {
     for (const linkId of Object.keys(timers)) {
-        window.clearTimeout(timers[linkId])
+        clearTimeout(timers[linkId])
         delete timers[linkId]
     }
     applyLayout()
@@ -659,7 +659,9 @@ const showScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
-    listReadyPages().forEach(p => p.send("show-scrollbar"))
+    for (const p of listReadyPages()) {
+        p.send("show-scrollbar")
+    }
 }
 
 /** Hide the scrollbar for all pages. */
@@ -667,10 +669,12 @@ const hideScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
-    scrollbarHideIgnoreTimer = window.setTimeout(() => {
+    scrollbarHideIgnoreTimer = setTimeout(() => {
         scrollbarHideIgnoreTimer = null
     }, 500)
-    listReadyPages().forEach(p => p.send("hide-scrollbar"))
+    for (const p of listReadyPages()) {
+        p.send("hide-scrollbar")
+    }
 }
 
 /**
@@ -682,9 +686,9 @@ const resetScrollbarTimer = (event = "none") => {
     const timeout = getSetting("guihidetimeout")
     if (setting === "onmove" || setting === "onscroll") {
         if (event === "scroll" || setting === "onmove" && event !== "none") {
-            window.clearTimeout(scrollbarHideTimer ?? undefined)
+            clearTimeout(scrollbarHideTimer ?? undefined)
             showScrollbar()
-            scrollbarHideTimer = window.setTimeout(
+            scrollbarHideTimer = setTimeout(
                 () => hideScrollbar(), timeout)
         }
         return

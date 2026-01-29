@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ const checkForUpdates = () => {
     button.disabled = true
     const req = new XMLHttpRequest()
     /** Compare the current version to the latest Github version and report. */
-    req.onreadystatechange = () => {
+    req.addEventListener("readystatechange", () => {
         if (req.readyState === 4) {
             if (req.status === 200) {
                 try {
@@ -63,7 +63,7 @@ const checkForUpdates = () => {
             }
             button.disabled = false
         }
-    }
+    })
     req.open("GET", apiUrl, true)
     req.send(null)
 }

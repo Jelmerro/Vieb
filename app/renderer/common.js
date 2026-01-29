@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2025 Jelmer van Arnhem
+* Copyright (C) 2021-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ const {getSetting} = require("../util")
 /** @typedef {"execute"|"user"|"source"|"other"} RunSource */
 
 let topOfPageWithMouse = false
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let navbarGuiTimer = null
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let tabbarGuiTimer = null
 
 /** Get the current url input element if available. */
@@ -111,7 +111,7 @@ const currentPage = () => {
 /**
  * Send a message to the current page and its frames.
  * @param {string} channel
- * @param {any[]} args
+ * @param {unknown[]} args
  */
 const sendToPageOrSubFrame = (channel, ...args) => {
     const {ipcRenderer} = require("electron")
@@ -138,24 +138,23 @@ const tabForPage = page => listTabs().find(
  *   |"explore"|"follow"|"pointer"|"visual")} Mode
  */
 
-/** @type {Mode[]} */
-const modes = [
-    "normal",
-    "insert",
+const modes = new Set([
     "command",
-    "search",
     "explore",
     "follow",
+    "insert",
+    "normal",
     "pointer",
+    "search",
     "visual"
-]
+])
 
 /**
  * Check if a mode is valid.
- * @param {any} mode
+ * @param {string} mode
  * @returns {mode is Mode}
  */
-const isValidMode = mode => modes.includes(mode)
+const isValidMode = mode => modes.has(mode)
 
 /**
  * Get the current mode.
@@ -199,19 +198,12 @@ const updateGuiVisibility = () => {
     const navbar = getGuiStatus("navbar")
     const tabbar = getGuiStatus("tabbar")
     if (!navbarGuiTimer) {
-        const notTyping = !"ces".includes(currentMode()[0])
-        if (navbar === "never" || navbar !== "always" && notTyping) {
-            document.body.classList.add("navigationhidden")
-        } else {
-            document.body.classList.remove("navigationhidden")
-        }
+        const navigationhidden = navbar === "never"
+            || navbar !== "always" && !"ces".includes(currentMode()[0])
+        document.body.classList.toggle("navigationhidden", navigationhidden)
     }
     if (!tabbarGuiTimer) {
-        if (tabbar === "always") {
-            document.body.classList.remove("tabshidden")
-        } else {
-            document.body.classList.add("tabshidden")
-        }
+        document.body.classList.toggle("tabshidden", tabbar !== "always")
     }
     const {applyLayout} = require("./pagelayout")
     applyLayout()
@@ -239,7 +231,7 @@ const setTopOfPageWithMouse = status => {
 const updateScreenshotHighlight = (hide = false) => {
     const url = getUrl()
     const dims = url?.value.split(" ").find(
-        arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
+        arg => arg?.match(/^(?:\d+,){3}\d+$/g))
     const cmd = url?.value.replace(/^:/g, "").trim() ?? ""
     const screenCmd = cmd.match(/^screenc(opy )?.*/)
         || cmd.match(/^screens(hot )?.*/)
@@ -290,20 +282,20 @@ const guiRelatedUpdate = type => {
     updateGuiVisibility()
     const timeout = getSetting("guihidetimeout")
     if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
-        window.clearTimeout(navbarGuiTimer ?? undefined)
+        clearTimeout(navbarGuiTimer ?? undefined)
         document.body.classList.remove("navigationhidden")
         if (timeout) {
-            navbarGuiTimer = window.setTimeout(() => {
+            navbarGuiTimer = setTimeout(() => {
                 navbarGuiTimer = null
                 updateGuiVisibility()
             }, timeout)
         }
     }
     if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
-        window.clearTimeout(tabbarGuiTimer ?? undefined)
+        clearTimeout(tabbarGuiTimer ?? undefined)
         document.body.classList.remove("tabshidden")
         if (timeout) {
-            tabbarGuiTimer = window.setTimeout(() => {
+            tabbarGuiTimer = setTimeout(() => {
                 tabbarGuiTimer = null
                 updateGuiVisibility()
             }, timeout)

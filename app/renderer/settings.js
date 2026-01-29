@@ -93,7 +93,7 @@ const defaultSettings = {
     /** @type {"all"|"persistall"|"useronly"|"persistuseronly"|"none"} */
     "commandhist": "persistuseronly",
     /** @type {string[]} */
-    "containercolors": ["temp\\d+~#ff0"],
+    "containercolors": [String.raw`temp\d+~#ff0`],
     "containerkeeponreopen": true,
     /** @type {string[]} */
     "containernames": [],
@@ -312,7 +312,7 @@ const defaultSettings = {
     "quitonlasttabclose": false,
     /** @type {string[]} */
     "redirects": [
-        "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3"
+        String.raw`https?://(www\.)?google\.com(\.\w+)?/amp/s/amp\.(.*)~https://$3`
     ],
     "redirecttohttp": false,
     "reloadtaboncrash": false,
@@ -651,10 +651,10 @@ const numberRanges = {
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 9000000000000000]
 }
-/** @type {(keyof typeof defaultSettings)[]} */
-const acceptsIntervals = ["clearhistoryinterval"]
-/** @type {(keyof typeof defaultSettings)[]} */
-const acceptsInvertedIntervals = []
+/** @type {Set<keyof typeof defaultSettings>} */
+const acceptsIntervals = new Set(["clearhistoryinterval"])
+/** @type {Set<keyof typeof defaultSettings>} */
+const acceptsInvertedIntervals = new Set()
 let customStyling = ""
 /** @type {(keyof typeof defaultSettings)[]} */
 const downloadSettings = [
@@ -663,9 +663,9 @@ const downloadSettings = [
     "cleardownloadsonquit",
     "cleardownloadsoncompleted"
 ]
-const containerSettings = [
+const containerSettings = new Set([
     "containernewtab", "containersplitpage", "containerstartuppage"
-]
+])
 /** @type {string[]} */
 let spelllangs = []
 
@@ -823,7 +823,7 @@ const checkOther = (src, setting, value) => {
         }
         return valid
     }
-    if (containerSettings.includes(setting)) {
+    if (containerSettings.has(setting)) {
         if (typeof value !== "string") {
             return false
         }
@@ -847,7 +847,7 @@ const checkOther = (src, setting, value) => {
             return false
         }
         const simpleValue = value.replace("%n", "valid").replace(/_/g, "")
-        if (simpleValue.match(specialChars)) {
+        if (specialChars.test(simpleValue)) {
             notify({
                 "fields": [setting, value],
                 "id": "settings.errors.container.specialchars",
@@ -873,7 +873,7 @@ const checkOther = (src, setting, value) => {
             }
             const [match, color] = colorMatch.split("~")
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [match],
@@ -922,7 +922,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [match],
@@ -933,7 +933,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             const simpleValue = container.replace("%n", "valid").replace(/_/g, "")
-            if (simpleValue.match(specialChars)) {
+            if (specialChars.test(simpleValue)) {
                 notify({
                     "fields": [setting, simpleValue],
                     "id": "settings.errors.container.specialchars",
@@ -967,7 +967,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const match of value) {
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [setting, match],
@@ -1058,7 +1058,7 @@ const checkOther = (src, setting, value) => {
             return false
         }
         if (value.startsWith("custom:")) {
-            const chars = value.replace("custom:", "").split("")
+            const chars = [...value.replace("custom:", "")]
             if (chars.length < 2) {
                 notify({
                     "id": "settings.errors.followchars.notEnough",
@@ -1108,17 +1108,16 @@ const checkOther = (src, setting, value) => {
             return false
         }
         for (const name of value) {
-            if (name.length > 1) {
-                if (!keyNames.some(l => l.vim.map(k => `<${k}>`).includes(name))
-                    || name === "<Any>") {
-                    notify({
-                        "fields": [name],
-                        "id": "settings.errors.modifiers",
-                        src,
-                        "type": "warning"
-                    })
-                    return false
-                }
+            if (name.length > 1
+                && (!keyNames.some(l => l.vim.map(k => `<${k}>`).includes(name))
+                || name === "<Any>")) {
+                notify({
+                    "fields": [name],
+                    "id": "settings.errors.modifiers",
+                    src,
+                    "type": "warning"
+                })
+                return false
             }
         }
     }
@@ -1158,7 +1157,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const val of Object.keys(value)) {
             try {
-                RegExp(val)
+                new RegExp(val)
             } catch {
                 notify({
                     "fields": [val],
@@ -1208,10 +1207,10 @@ const checkOther = (src, setting, value) => {
         }
         return true
     }
-    const permissionSettings = [
+    const permissionSettings = new Set([
         "permissionsallowed", "permissionsasked", "permissionsblocked"
-    ]
-    if (permissionSettings.includes(setting)) {
+    ])
+    if (permissionSettings.has(setting)) {
         if (!Array.isArray(value)) {
             return false
         }
@@ -1227,7 +1226,7 @@ const checkOther = (src, setting, value) => {
             }
             const [match, ...names] = override.split("~")
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [match],
@@ -1249,7 +1248,7 @@ const checkOther = (src, setting, value) => {
                     && setting.endsWith("allowed")) {
                     return true
                 }
-                const reservedName = permissionSettings.includes(name)
+                const reservedName = permissionSettings.has(name)
                 if (reservedName || !(name in defaultSettings)) {
                     notify({
                         "fields": [name],
@@ -1334,7 +1333,7 @@ const checkOther = (src, setting, value) => {
             }
             const [match] = redirect.split("~")
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [match],
@@ -1353,7 +1352,7 @@ const checkOther = (src, setting, value) => {
         for (const override of value) {
             const [match, ...names] = override.split("~")
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [setting, match],
@@ -1428,7 +1427,7 @@ const checkOther = (src, setting, value) => {
         for (const searchword of Object.entries(value)) {
             const [keyword, url] = searchword
             const simpleKeyword = keyword.replace(/_/g, "")
-            if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
+            if (keyword.length === 0 || specialChars.test(simpleKeyword)) {
                 notify({
                     "fields": [searchword.join("~")],
                     "id": "settings.errors.searchwords.separator",
@@ -1463,7 +1462,7 @@ const checkOther = (src, setting, value) => {
             return false
         }
         for (const lang of value) {
-            if (spelllangs.length && !spelllangs.includes(lang)) {
+            if (spelllangs.length > 0 && !spelllangs.includes(lang)) {
                 notify({
                     "fields": [lang],
                     "id": "settings.errors.spelllang",
@@ -1542,7 +1541,7 @@ const checkOther = (src, setting, value) => {
                     "s:replacecurrent"
                 ]
                 const simple = cname.replace("%n", "valid").replace(/_/g, "")
-                if (!specials.includes(cname) && simple.match(specialChars)) {
+                if (!specials.includes(cname) && specialChars.test(simple)) {
                     notify({
                         "fields": [cname],
                         "id": "settings.errors.startuppages.name",
@@ -1628,7 +1627,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const match of value) {
             try {
-                RegExp(match)
+                new RegExp(match)
             } catch {
                 notify({
                     "fields": [match],
@@ -1661,7 +1660,7 @@ const checkOther = (src, setting, value) => {
         if (value === "restore" || value === "default") {
             return true
         }
-        if (!value.match(/^\d+x\d+$/g)) {
+        if (!/^\d+x\d+$/g.test(value)) {
             notify({
                 "fields": [setting],
                 "id": "settings.errors.windowsize.format",
@@ -1671,16 +1670,14 @@ const checkOther = (src, setting, value) => {
             return false
         }
         const nums = value.split("x").map(Number)
-        if (setting === "windowsize") {
-            if (nums.some(v => v < 500)) {
-                notify({
-                    "fields": [String(nums.find(v => v < 500))],
-                    "id": "settings.errors.windowsize.minimum",
-                    src,
-                    "type": "warning"
-                })
-                return false
-            }
+        if (setting === "windowsize" && nums.some(v => v < 500)) {
+            notify({
+                "fields": [String(nums.find(v => v < 500))],
+                "id": "settings.errors.windowsize.minimum",
+                src,
+                "type": "warning"
+            })
+            return false
         }
     }
     return true
@@ -1741,7 +1738,7 @@ const isStringSetting = set => isExistingSetting(set)
 
 /**
  * Check if a setting will be valid for a given value.
- * @template {keyof typeof defaultSettings} T
+ * @template {keyof typeof defaultSettings} T Valid setting names.
  * @param {import("./common").RunSource} src
  * @param {T} setting
  * @param {typeof defaultSettings[T]} value
@@ -1756,16 +1753,15 @@ const isValidSetting = (src, setting, value) => {
     }
     /** @type {string|number|boolean|string[]|{[key: string]: string}} */
     let parsedValue = value
-    if (expectedType === "number" && !isNaN(Number(parsedValue))) {
+    if (expectedType === "number" && !Number.isNaN(Number(parsedValue))) {
         parsedValue = Number(value)
     }
     if (expectedType === "string") {
         parsedValue = String(value)
     }
-    if (expectedType === "boolean") {
-        if (["false", "true"].includes(String(parsedValue))) {
-            parsedValue = value === "true"
-        }
+    if (expectedType === "boolean"
+        && ["false", "true"].includes(String(parsedValue))) {
+        parsedValue = value === "true"
     }
     if (expectedType !== typeof parsedValue) {
         notify({
@@ -1800,11 +1796,8 @@ const updateMouseSettings = () => {
             document.body.classList.remove(`mouse-${mouseSetting}`)
         }
     }
-    if (allSettings.mousedisabledbehavior === "drag") {
-        document.body.classList.add("mousedisabled-drag")
-    } else {
-        document.body.classList.remove("mousedisabled-drag")
-    }
+    document.body.classList.toggle("mousedisabled-drag",
+        allSettings.mousedisabledbehavior === "drag")
 }
 
 /** Update the request headers setting in the main thread. */
@@ -1874,9 +1867,9 @@ const updateDownloadSettings = async(src = "other") => {
      *   |{[key: string]: string}}}
      */
     const downloads = {}
-    downloadSettings.forEach(setting => {
+    for (const setting of downloadSettings) {
         downloads[setting] = allSettings[setting]
-    })
+    }
     downloads.src = src
     await ipcRenderer.invoke("set-download-settings", downloads)
 }
@@ -1894,9 +1887,9 @@ const updateSettings = () => {
         "linkcolor": document.body.computedStyleMap().get(
             "--link-color")?.toString() ?? ""
     }
-    Object.keys(allSettings).forEach(setting => {
+    for (const setting of Object.keys(allSettings)) {
         data[setting] = allSettings[setting]
-    })
+    }
     writeJSON(settingsFile, data)
 }
 
@@ -1907,11 +1900,11 @@ const updatePermissionSettings = () => {
      *   |{[key: string]: string}}}
      */
     const permissions = {}
-    Object.keys(allSettings).forEach(setting => {
+    for (const setting of Object.keys(allSettings)) {
         if (setting.startsWith("permission")) {
             permissions[setting] = allSettings[setting]
         }
-    })
+    }
     ipcRenderer.send("set-permissions", permissions)
 }
 
@@ -1920,81 +1913,64 @@ const listSettingsAsArray = () => Object.keys(defaultSettings)
 
 /** Return the list of suggestions for all settings. */
 const suggestionList = () => {
-    const listOfSuggestions = ["all", ...listSettingsAsArray()]
-    listOfSuggestions.push("all&")
-    listOfSuggestions.push("all?")
+    const listOfSuggestions = ["all", ...listSettingsAsArray(), "all&", "all?"]
     for (const setting of listSettingsAsArray()) {
         if (typeof defaultSettings[setting] === "boolean") {
-            listOfSuggestions.push(`${setting}!`)
-            listOfSuggestions.push(`no${setting}`)
-            listOfSuggestions.push(`inv${setting}`)
+            listOfSuggestions.push(`${setting}!`,
+                `no${setting}`, `inv${setting}`)
         } else if (isEnumSetting(setting)) {
-            listOfSuggestions.push(`${setting}!`)
-            listOfSuggestions.push(`${setting}=`)
+            listOfSuggestions.push(`${setting}!`, `${setting}=`)
             for (const option of validOptions[setting]) {
                 listOfSuggestions.push(`${setting}=${option}`)
             }
         } else if (isObjectSetting(setting) || isArraySetting(setting)
             || isNumberSetting(setting)) {
-            listOfSuggestions.push(`${setting}=`)
-            listOfSuggestions.push(`${setting}=${
-                JSON.stringify(defaultSettings[setting])}`)
-            listOfSuggestions.push(`no${setting}`)
+            listOfSuggestions.push(`${setting}=`, `${setting}=${JSON.stringify(
+                defaultSettings[setting])}`, `no${setting}`)
         } else {
-            listOfSuggestions.push(`${setting}=`)
-            listOfSuggestions.push(`${setting}=${
+            listOfSuggestions.push(`${setting}=`, `${setting}=${
                 JSON.stringify(defaultSettings[setting])}`)
         }
         if (setting === "clearhistoryinterval") {
             listOfSuggestions.push(`${setting}=session`)
         }
         if (setting === "followchars") {
-            listOfSuggestions.push(`${setting}=custom:`)
-            listOfSuggestions.push(`${setting}=all`)
-            listOfSuggestions.push(`${setting}=alphanum`)
-            listOfSuggestions.push(`${setting}=dvorakhome`)
-            listOfSuggestions.push(`${setting}=numbers`)
-            listOfSuggestions.push(`${setting}=qwertyhome`)
-            listOfSuggestions.push(`${setting}=qwertyhome`)
+            listOfSuggestions.push(
+                `${setting}=custom:`, `${setting}=all`, `${setting}=alphanum`,
+                `${setting}=dvorakhome`, `${setting}=numbers`,
+                `${setting}=qwertyhome`, `${setting}=qwertyhome`)
         }
-        if (containerSettings.includes(setting)) {
-            listOfSuggestions.push(`${setting}=s:usematching`)
-            listOfSuggestions.push(`${setting}=s:usecurrent`)
+        if (containerSettings.has(setting)) {
+            listOfSuggestions.push(`${setting}=s:usematching`,
+                `${setting}=s:usecurrent`)
             if (setting !== "containersplitpage") {
-                listOfSuggestions.push(`${setting}=s:replacematching`)
-                listOfSuggestions.push(`${setting}=s:replacecurrent`)
+                listOfSuggestions.push(`${setting}=s:replacematching`,
+                    `${setting}=s:replacecurrent`)
             }
             if (setting === "containernewtab") {
                 listOfSuggestions.push(`${setting}=s:external`)
             }
             listOfSuggestions.push(`${setting}=temp%n`)
         }
-        if (acceptsIntervals.includes(setting)) {
-            listOfSuggestions.push(`${setting}=1second`)
-            listOfSuggestions.push(`${setting}=1minute`)
-            listOfSuggestions.push(`${setting}=1hour`)
-            listOfSuggestions.push(`${setting}=1day`)
-            listOfSuggestions.push(`${setting}=1month`)
-            listOfSuggestions.push(`${setting}=1year`)
+        if (acceptsIntervals.has(setting)) {
+            listOfSuggestions.push(
+                `${setting}=1second`, `${setting}=1minute`, `${setting}=1hour`,
+                `${setting}=1day`, `${setting}=1month`, `${setting}=1year`)
         }
-        if (acceptsInvertedIntervals.includes(setting)) {
-            listOfSuggestions.push(`${setting}=last1second`)
-            listOfSuggestions.push(`${setting}=last1minute`)
-            listOfSuggestions.push(`${setting}=last1hour`)
-            listOfSuggestions.push(`${setting}=last1day`)
-            listOfSuggestions.push(`${setting}=last1month`)
-            listOfSuggestions.push(`${setting}=last1year`)
+        if (acceptsInvertedIntervals.has(setting)) {
+            listOfSuggestions.push(
+                `${setting}=last1second`, `${setting}=last1minute`,
+                `${setting}=last1hour`, `${setting}=last1day`,
+                `${setting}=last1month`, `${setting}=last1year`)
         }
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
         const isListLike = typeof defaultSettings[setting] === "object"
         if (isNumber || isFreeText || isListLike) {
-            listOfSuggestions.push(`${setting}+=`)
-            listOfSuggestions.push(`${setting}^=`)
-            listOfSuggestions.push(`${setting}-=`)
+            listOfSuggestions.push(
+                `${setting}+=`, `${setting}^=`, `${setting}-=`)
         }
-        listOfSuggestions.push(`${setting}&`)
-        listOfSuggestions.push(`${setting}?`)
+        listOfSuggestions.push(`${setting}&`, `${setting}?`)
     }
     return listOfSuggestions
 }
@@ -2020,7 +1996,9 @@ const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateSettings()
     const {addColorschemeStylingToWebview} = require("./tabs")
-    listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
+    for (const p of listReadyPages()) {
+        addColorschemeStylingToWebview(p)
+    }
     const {applyLayout} = require("./pagelayout")
     applyLayout()
     ipcRenderer.send("set-custom-styling",
@@ -2062,7 +2040,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "clearhistoryinterval") {
         allowedValues = "Interval, session or none"
     }
-    if (containerSettings.includes(setting) || setting === "followchars") {
+    if (containerSettings.has(setting) || setting === "followchars") {
         allowedValues = "See description"
     }
     if (setting === "darkreaderfg" || setting === "darkreaderbg") {
@@ -2126,7 +2104,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
  * @param {import("./common").RunSource} src
  */
 const updateHelpPage = src => {
-    listReadyPages().forEach(p => {
+    for (const p of listReadyPages()) {
         const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
         if (special?.name === "help") {
             const {rangeCompatibleCommands} = require("./command")
@@ -2137,12 +2115,12 @@ const updateHelpPage = src => {
                 listMappingsAsCommandList(src, null, true), uncountableActions,
                 rangeCompatibleCommands)
         }
-    })
+    }
 }
 
 /**
  * Set the value of a setting, if considered valid, else notify the user.
- * @template {keyof typeof defaultSettings} T
+ * @template {keyof typeof defaultSettings} T Valid setting names.
  * @param {import("./common").RunSource} src
  * @param {T} setting
  * @param {typeof defaultSettings[T]} value
@@ -2162,7 +2140,7 @@ const set = (src, setting, value) => {
                 try {
                     allSettings[setting] = JSON.parse(value)
                 } catch {
-                    allSettings[setting] = value.split(",").filter(t => t)
+                    allSettings[setting] = value.split(",").filter(Boolean)
                 }
             } else if (Array.isArray(value)) {
                 allSettings[setting] = value
@@ -2174,10 +2152,10 @@ const set = (src, setting, value) => {
                     if (Array.isArray(parsed)) {
                         /** @type {{[key: string]: string}} */
                         const element = {}
-                        parsed.forEach(el => {
+                        for (const el of parsed) {
                             const [key, val] = el.split("~")
                             element[key] = val
-                        })
+                        }
                         allSettings[setting] = element
                     } else {
                         allSettings[setting] = parsed
@@ -2185,19 +2163,19 @@ const set = (src, setting, value) => {
                 } catch {
                     /** @type {{[key: string]: string}} */
                     const element = {}
-                    value.split(",").filter(t => t).forEach(el => {
+                    for (const el of value.split(",").filter(Boolean)) {
                         const [key, val] = el.split("~")
                         element[key] = val
-                    })
+                    }
                     allSettings[setting] = element
                 }
             } else if (Array.isArray(value)) {
                 /** @type {{[key: string]: string}} */
                 const element = {}
-                value.forEach(el => {
+                for (const el of value) {
                     const [key, val] = el.split("~")
                     element[key] = val
-                })
+                }
                 allSettings[setting] = element
             } else if (typeof value === "object") {
                 // @ts-expect-error for some reason setting could be never,
@@ -2230,11 +2208,9 @@ const set = (src, setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
-        if (setting === "useragent") {
-            if (typeof value === "string") {
-                ipcRenderer.sendSync("override-global-useragent",
-                    userAgentTemplated(value.split("~")[0]))
-            }
+        if (setting === "useragent" && typeof value === "string") {
+            ipcRenderer.sendSync("override-global-useragent",
+                userAgentTemplated(value.split("~")[0]))
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
@@ -2254,9 +2230,9 @@ const set = (src, setting, value) => {
             updateGuiVisibility()
         }
         if (setting === "mintabwidth") {
-            listTabs().forEach(tab => {
+            for (const tab of listTabs()) {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
-            })
+            }
             currentTab()?.scrollIntoView({"inline": "center"})
             applyLayout()
         }
@@ -2299,8 +2275,7 @@ const set = (src, setting, value) => {
         }
         if (setting === "taboverflow") {
             const tabs = document.getElementById("tabs")
-            tabs?.classList.remove("scroll")
-            tabs?.classList.remove("wrap")
+            tabs?.classList.remove("scroll", "wrap")
             if (typeof value === "string" && value !== "hidden") {
                 tabs?.classList.add(value)
             }
@@ -2308,7 +2283,7 @@ const set = (src, setting, value) => {
             applyLayout()
         }
         if (setting.startsWith("darkreader")) {
-            listReadyPages().forEach(p => {
+            for (const p of listReadyPages()) {
                 let scope = "page"
                 const specialPage = pathToSpecialPageName(p.src)
                 if (specialPage?.name) {
@@ -2322,10 +2297,10 @@ const set = (src, setting, value) => {
                 } else {
                     p.send("disable-darkreader")
                 }
-            })
+            }
         }
         if (setting.startsWith("userstyle")) {
-            listReadyPages().forEach(p => {
+            for (const p of listReadyPages()) {
                 let scope = "page"
                 const specialPage = pathToSpecialPageName(p.src)
                 if (specialPage?.name) {
@@ -2339,7 +2314,7 @@ const set = (src, setting, value) => {
                 } else {
                     p.send("disable-userstyle")
                 }
-            })
+            }
         }
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
@@ -2377,9 +2352,9 @@ const loadFromDisk = (firstRun, src = "source") => {
     if (isFile(joinPath(appData(), "erwicmode"))) {
         /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
-        Object.keys(erwicDefaults).forEach(t => {
+        for (const t of Object.keys(erwicDefaults)) {
             set(src, t, erwicDefaults[t])
-        })
+        }
     }
     for (const conf of files) {
         if (isFile(conf)) {
@@ -2419,8 +2394,9 @@ const loadFromDisk = (firstRun, src = "source") => {
  */
 const reset = (src, setting) => {
     if (setting === "all") {
-        Object.keys(defaultSettings).forEach(
-            s => set(src, s, defaultSettings[s]))
+        for (const s of Object.keys(defaultSettings)) {
+            set(src, s, defaultSettings[s])
+        }
     } else if (isExistingSetting(setting)) {
         set(src, setting, defaultSettings[setting])
     } else {
@@ -2438,7 +2414,7 @@ const reset = (src, setting) => {
  * @param {string|number} value
  */
 const escapeValueChars = value => {
-    if (typeof value === "string" && value.match(/('|"| )/g)?.length) {
+    if (typeof value === "string" && value.match(/([ "'])/g)?.length) {
         return JSON.stringify(value)
     }
     return value
@@ -2459,14 +2435,14 @@ const listCurrentSettings = (full = false) => {
             )
             Object.assign(defaults, erwicDefaults)
         }
-        Object.keys(settings).forEach(t => {
+        for (const t of Object.keys(settings)) {
             if (JSON.stringify(settings[t]) === JSON.stringify(defaults[t])) {
                 delete settings[t]
             }
-        })
+        }
     }
     let setCommands = ""
-    Object.keys(settings).forEach(setting => {
+    for (const setting of Object.keys(settings)) {
         const value = settings[setting]
         if (typeof value === "boolean") {
             if (value) {
@@ -2478,9 +2454,9 @@ const listCurrentSettings = (full = false) => {
             const defaultStringVal = JSON.stringify(defaultSettings[setting])
             if (JSON.stringify(value) !== defaultStringVal) {
                 setCommands += `${setting}=\n`
-                value.forEach(entry => {
+                for (const entry of value) {
                     setCommands += `${setting}+=${escapeValueChars(entry)}\n`
-                })
+                }
             }
         } else if (typeof value === "object") {
             const valueString = JSON.stringify(value)
@@ -2491,7 +2467,7 @@ const listCurrentSettings = (full = false) => {
         } else {
             setCommands += `${setting}=${escapeValueChars(value)}\n`
         }
-    })
+    }
     return setCommands
 }
 
@@ -2502,7 +2478,7 @@ const listCurrentSettings = (full = false) => {
  */
 const saveToDisk = (src, full) => {
     let settingsAsCommands = ""
-    const options = listCurrentSettings(full).split("\n").filter(s => s)
+    const options = listCurrentSettings(full).split("\n").filter(Boolean)
         .map(s => `set ${s}`).join("\n").trim()
     const {listMappingsAsCommandList} = require("./input")
     const mappings = listMappingsAsCommandList(src).trim()
@@ -2559,12 +2535,11 @@ const init = () => {
     ipcRenderer.on("set-permission", (
         _, name, value) => set("user", name, value))
     ipcRenderer.on("notify", (_, opts) => {
-        if (getMouseConf("notification")) {
-            if (opts.action?.type === "download-success") {
-                /** If a download function is provided, add the right action. */
-                opts.action.func = () => ipcRenderer.send(
-                    "open-download", opts.action.path)
-            }
+        if (getMouseConf("notification")
+            && opts.action?.type === "download-success") {
+            /** If a download function is provided, add the right action. */
+            opts.action.func = () => ipcRenderer.send(
+                "open-download", opts.action.path)
         }
         notify(opts)
     })

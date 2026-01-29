@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021-2025 Jelmer van Arnhem
+* Copyright (C) 2021-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ let originalSite = ""
 
 /** Load the explore hist of the previous session if stored. */
 const init = () => {
-    previousSites = readFile(exploreFile)?.split("\n").filter(s => s) || []
+    previousSites = readFile(exploreFile)?.split("\n").filter(Boolean) || []
 }
 
 /** Show the right entry based on new index set by previous or next. */
@@ -87,10 +87,8 @@ const push = explore => {
     if (setting === "none") {
         return
     }
-    if (previousSites.length) {
-        if (previousSites[previousSites.length - 1] === explore) {
-            return
-        }
+    if (previousSites.length > 0 && previousSites.at(-1) === explore) {
+        return
     }
     previousSites.push(explore)
     if (setting === "persist") {

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2024 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ window.addEventListener("load", () => {
             }
         }
     })
-    inputs.forEach(input => {
+    for (const input of inputs) {
         input.addEventListener("keydown", e => {
             if (e.key === "Enter") {
                 ipcRenderer.send("login-credentials",
@@ -87,5 +87,5 @@ window.addEventListener("load", () => {
                 input.click()
             }
         })
-    })
+    }
 })

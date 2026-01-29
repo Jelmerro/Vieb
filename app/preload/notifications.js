@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2024 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ window.addEventListener("DOMContentLoaded", () => {
      */
     const showNofitications = (_, notifications) => {
         list.textContent = ""
-        notifications.forEach(notification => {
+        for (const notification of notifications) {
             const element = document.createElement("div")
             element.className = "notification"
             if (notification.click?.type === "download-success") {
@@ -58,7 +58,7 @@ window.addEventListener("DOMContentLoaded", () => {
             contents.className = notification.type
             element.append(contents)
             list.prepend(element)
-        })
+        }
         if (list.textContent === "") {
             list.textContent = translate("pages.notifications.empty")
         }

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 
 const {
     cpSync, mkdirSync, readdir, readFileSync, rmSync, unlinkSync
-} = require("fs")
-const {dirname, join} = require("path")
+} = require("node:fs")
+const {dirname, join} = require("node:path")
 const defaultConfig = {"config": {
     "appId": "com.github.Jelmerro.vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "
@@ -170,11 +170,14 @@ const releases = {
                 "productName": "Vieb-debug"
             },
             "files": {
-                "filter": ["app/**/*.js", "!app/**/*.test.js"].concat(
-                    defaultConfig.config.files.filter(
+                "filter": [
+                    "app/**/*.js",
+                    "!app/**/*.test.js",
+                    ...defaultConfig.config.files.filter(
                         f => typeof f !== "object"
                         && !f.includes("node_modules")
-                        && !f.includes("popups")))
+                        && !f.includes("popups"))
+                ]
             },
             "productName": "Vieb-debug"
         },
@@ -232,8 +235,9 @@ const releases = {
                 defaultConfig.config.afterPack?.(context)
                 const localeDir = `${context.appOutDir}/locales/`
                 readdir(localeDir, (_err, files) => {
-                    files?.filter(f => !f.match(/en-US\.pak/))
-                        .forEach(f => unlinkSync(localeDir + f))
+                    for (const file of files.filter(f => !/en-US\.pak/.test(f))) {
+                        unlinkSync(localeDir + file)
+                    }
                 })
             },
             "extraMetadata": {

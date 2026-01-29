@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,8 @@ const createElement = (type, loc, customTitle = null) => {
         element.textContent += "/"
     }
     /** Navigate to the clicked file using the url syntax. */
-    element.onclick = () => ipcRenderer.sendToHost("navigate-to", toUrl(loc))
+    element.addEventListener("click",
+        () => ipcRenderer.sendToHost("navigate-to", toUrl(loc)))
     return element
 }
 
@@ -88,12 +89,12 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
         error.className = "error"
         main.append(error)
     } else {
-        directories.forEach(dir => {
+        for (const dir of directories) {
             main.append(createElement("dir", dir))
-        })
-        files.forEach(file => {
+        }
+        for (const file of files) {
             main.append(createElement("file", file))
-        })
+        }
     }
     document.body.append(main)
 }

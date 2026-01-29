@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -686,13 +686,13 @@ const globalDefaultMappings = {
     "<F11>": {"mapping": "<toggleFullscreen>"},
     "<F12>": {"mapping": "<:devtools>"}
 }
-Object.keys(defaultBindings).forEach(mode => {
-    Object.keys(globalDefaultMappings).forEach(key => {
+for (const mode of Object.keys(defaultBindings)) {
+    for (const key of Object.keys(globalDefaultMappings)) {
         if (!defaultBindings[mode][key]) {
             defaultBindings[mode][key] = globalDefaultMappings[key]
         }
-    })
-})
+    }
+}
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
@@ -702,9 +702,9 @@ let keyboardEventSource = "user"
 let bindings = JSON.parse(JSON.stringify(defaultBindings))
 /** @type {string[]} */
 let supportedActions = []
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let timeoutTimer = null
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let insertleavetimeoutTimer = null
 let blockNextInsertKey = false
 let inputHistoryList = [{"index": 0, "value": ""}]
@@ -717,7 +717,7 @@ let lastExecutedMapstring = null
 let draggingScreenshotFrame = false
 let lastScreenshotX = 0
 let lastScreenshotY = 0
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let suggestionTimer = null
 let hadModifier = false
 /** @type {string|null} */
@@ -960,20 +960,19 @@ const updateSuggestions = () => {
 const requestSuggestUpdate = (updateHistory = true) => {
     const url = getUrl()
     const suggestBounceDelay = getSetting("suggestbouncedelay")
-    if (updateHistory) {
-        if (url?.value !== inputHistoryList[inputHistoryIndex]?.value) {
-            inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
-            inputHistoryIndex = inputHistoryList.length
-            const start = Number(url?.selectionStart)
-            inputHistoryList.push({"index": start, "value": url?.value ?? ""})
-        }
+    if (updateHistory
+        && url?.value !== inputHistoryList[inputHistoryIndex]?.value) {
+        inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
+        inputHistoryIndex = inputHistoryList.length
+        const start = Number(url?.selectionStart)
+        inputHistoryList.push({"index": start, "value": url?.value ?? ""})
     }
     if (!suggestionTimer) {
         updateSuggestions()
     }
     if (suggestBounceDelay) {
-        window.clearTimeout(suggestionTimer ?? undefined)
-        suggestionTimer = window.setTimeout(() => {
+        clearTimeout(suggestionTimer ?? undefined)
+        suggestionTimer = setTimeout(() => {
             suggestionTimer = null
             updateSuggestions()
         }, suggestBounceDelay)
@@ -991,7 +990,7 @@ const moveScreenshotFrame = (x, y) => {
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
         const url = getUrl()
         const dims = url?.value.split(" ").find(
-            arg => arg?.match(/^[0-9,]+$/g))
+            arg => arg?.match(/^[\d,]+$/g))
         const dimsIndex = url?.value.split(" ").indexOf(dims ?? "") ?? 1
         if (currentMode() !== "command" || !currentPage()) {
             return
@@ -1037,7 +1036,7 @@ const moveScreenshotFrame = (x, y) => {
             }).join(" ")
         } else if (url) {
             url.value = `${url.value.split(" ").slice(0, 2)
-                .filter(t => t).join(" ")} ${newDims}`
+                .filter(Boolean).join(" ")} ${newDims}`
         }
         updateScreenshotHighlight()
         requestSuggestUpdate()
@@ -1152,11 +1151,11 @@ const toIdentifier = e => {
     if (e.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD) {
         keyCode = `k${keyCode}`
     }
-    keyNames.forEach(key => {
+    for (const key of keyNames) {
         if (key.js.includes(keyCode)) {
             [keyCode] = key.vim
         }
-    })
+    }
     // If the shift status can be detected by name or casing,
     // it will not be prefixed with 'S-'.
     const needsShift = keyCode.length > 1 && !["Bar", "lt"].includes(keyCode)
@@ -1186,7 +1185,7 @@ const splitMapString = mapStr => {
     const maps = []
     let bracketCounter = 0
     let temp = ""
-    for (const char of mapStr.split("")) {
+    for (const char of mapStr) {
         if (char === "<") {
             bracketCounter += 1
         }
@@ -1258,7 +1257,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
         options.shift = true
         options.modifiers.push("shift")
     } else {
-        keyNames.forEach(key => {
+        for (const key of keyNames) {
             if (key.vim.includes(id)) {
                 if (electronNames && key.electron) {
                     id = key.electron
@@ -1266,7 +1265,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
                     [id] = key.js
                 }
             }
-        })
+        }
     }
     return {...options, "key": id}
 }
@@ -1295,7 +1294,7 @@ const findMaps = (actionKeys, mode, future = false) => {
             keyCount += 1
         }
         return true
-    }).sort((a, b) => splitMapString(a).maps.indexOf("<Any>")
+    }).toSorted((a, b) => splitMapString(a).maps.indexOf("<Any>")
         - splitMapString(b).maps.indexOf("<Any>"))
 }
 
@@ -1351,13 +1350,13 @@ const updateKeysOnScreen = () => {
             if (active() && bindings.m[pressedKeys]) {
                 futureActions = []
             }
-            if (futureActions.length) {
+            if (futureActions.length > 0) {
                 mapsuggestElement.style.display = "flex"
             }
-            futureActions.map(b => ({
+            for (const action of futureActions.map(b => ({
                 "next": b.replace(pressedKeys, ""),
                 "result": bindings[mode][b].mapping
-            })).forEach(action => {
+            }))) {
                 const singleSuggestion = document.createElement("span")
                 singleSuggestion.append(alreadyDone.cloneNode(true))
                 const nextKeys = document.createElement("span")
@@ -1369,7 +1368,7 @@ const updateKeysOnScreen = () => {
                 resultAction.className = "info"
                 singleSuggestion.append(resultAction)
                 mapsuggestElement.append(singleSuggestion)
-            })
+            }
         }
     }
     if (pressedKeys) {
@@ -1378,8 +1377,11 @@ const updateKeysOnScreen = () => {
     }
     let blockedKeys = Object.keys(bindings.i)
     if (active()) {
-        blockedKeys = Object.keys(bindings.i).concat(
-            Object.keys(bindings.m)).concat("0123456789".split(""))
+        blockedKeys = [...new Set([
+            ..."0123456789",
+            ...Object.keys(bindings.i),
+            ...Object.keys(bindings.m)
+        ])]
     }
     ipcRenderer.send("insert-mode-blockers",
         blockedKeys.map(key => fromIdentifier(
@@ -1503,11 +1505,10 @@ const executeMapString = async(mapStr, recursive, opts) => {
     }
     recursiveCounter += 1
     let repeater = Number(repeatCounter) || 1
-    if (opts.initial && repeatCounter) {
-        if (["<scrollBottom>", "<scrollTop>"].includes(mapStr)) {
-            currentPage()?.send("action", "scrollPerc", repeatCounter)
-            repeater = 0
-        }
+    if (opts.initial && repeatCounter
+        && ["<scrollBottom>", "<scrollTop>"].includes(mapStr)) {
+        currentPage()?.send("action", "scrollPerc", repeatCounter)
+        repeater = 0
     }
     repeatCounter = 0
     updateKeysOnScreen()
@@ -1605,7 +1606,7 @@ const resetInputHistory = () => {
  */
 const typeCharacterIntoNavbar = (character, force = false) => {
     const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
-        .replace(/<k([a-zA-Z]+)>/, (_, r) => `<${r}>`)
+        .replace(/<k([A-Za-z]+)>/, (_, r) => `<${r}>`)
         .replace(/<k(\d)>/, (_, r) => r)
         .replace("<Plus>", "+").replace("<Minus>", "-").replace("<Point>", ".")
         .replace("<Divide>", "/").replace("<Multiply>", "*")
@@ -1678,7 +1679,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     const wordRegex = specialChars.source.replace("[", "[^")
     const words = url.value.split(new RegExp(`(${
-        wordRegex}+|${specialChars.source}+)`, "g")).filter(w => w)
+        wordRegex}+|${specialChars.source}+)`, "g")).filter(Boolean)
     let index = Number(url.selectionStart)
     if (url.selectionDirection !== "backward") {
         index = Number(url.selectionEnd)
@@ -1744,7 +1745,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
         let wordPosition = url.value.length
-        for (const word of words.slice().reverse()) {
+        for (const word of words.toReversed()) {
             wordPosition -= word.length
             if (wordPosition < index) {
                 url.setSelectionRange(wordPosition, wordPosition)
@@ -1756,7 +1757,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
         let wordPosition = url.value.length
-        for (const word of words.slice().reverse()) {
+        for (const word of words.toReversed()) {
             wordPosition -= word.length
             if (wordPosition < index) {
                 if (url.selectionStart === url.selectionEnd) {
@@ -1820,18 +1821,14 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     if (url.selectionStart !== url.selectionEnd
         && url.selectionStart !== null && url.selectionEnd !== null) {
-        if (!["<Bar>", "<Bslash>", "<lt>", "<Space>"].includes(id)) {
-            if (id.length !== 1) {
-                if (id !== "<Del>" && !id.endsWith("-Del>")) {
-                    if (id !== "<BS>" && !id.endsWith("-BS>")) {
-                        return
-                    }
-                }
-            }
+        if (!["<Bar>", "<Bslash>", "<lt>", "<Space>"].includes(id)
+            && id.length !== 1 && id !== "<Del>" && !id.endsWith("-Del>")
+            && id !== "<BS>" && !id.endsWith("-BS>")) {
+            return
         }
         const cur = Number(url.selectionStart)
-        url.value = url.value.substring(0, url.selectionStart)
-            + url.value.substring(url.selectionEnd)
+        url.value = url.value.slice(0, Math.max(0, url.selectionStart))
+            + url.value.slice(Math.max(0, url.selectionEnd))
         url.setSelectionRange(cur, cur)
         requestSuggestUpdate()
         updateNavbarScrolling()
@@ -1843,15 +1840,15 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         }
     }
     if (id === "<Del>") {
-        if (url.selectionStart !== null && url.selectionEnd !== null) {
-            if (url.selectionEnd < url.value.length) {
-                const cur = Number(url.selectionStart)
-                url.value = `${url.value.substring(0, url.selectionStart)}${
-                    url.value.substring(url.selectionEnd + 1)}`
-                url.setSelectionRange(cur, cur)
-                requestSuggestUpdate()
-                updateNavbarScrolling()
-            }
+        if (url.selectionStart !== null && url.selectionEnd !== null
+            && url.selectionEnd < url.value.length) {
+            const cur = Number(url.selectionStart)
+            url.value = `${url.value.slice(0, Math.max(0,
+                url.selectionStart))}${url.value.slice(
+                Math.max(0, url.selectionEnd + 1))}`
+            url.setSelectionRange(cur, cur)
+            requestSuggestUpdate()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1862,8 +1859,9 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             if (url.selectionStart !== null
                 && wordPosition > url.selectionStart) {
                 const cur = Number(url.selectionStart)
-                url.value = `${url.value.substring(0, url.selectionStart)}${
-                    url.value.substring(wordPosition)}`
+                url.value = `${url.value.slice(0, Math.max(0,
+                    url.selectionStart))}${url.value.slice(
+                    Math.max(0, wordPosition))}`
                 url.setSelectionRange(cur, cur)
                 requestSuggestUpdate()
                 updateNavbarScrolling()
@@ -1876,8 +1874,9 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         if (url.selectionStart !== null && url.selectionEnd !== null
             && url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
-            url.value = `${url.value.substring(0, url.selectionStart - 1)}${
-                url.value.substring(url.selectionEnd)}`
+            url.value = `${url.value.slice(0, Math.max(0,
+                url.selectionStart - 1))}${url.value.slice(
+                Math.max(0, url.selectionEnd))}`
             url.setSelectionRange(cur - 1, cur - 1)
             requestSuggestUpdate()
             updateNavbarScrolling()
@@ -1886,12 +1885,12 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     if (keyForOs(["<C-BS>", "<C-S-BS>"], ["<M-BS>", "<A-BS>"], id)) {
         let wordPosition = url.value.length
-        for (const word of words.slice().reverse()) {
+        for (const word of words.toReversed()) {
             wordPosition -= word.length
             if (url.selectionStart !== null
                 && wordPosition < url.selectionStart) {
-                url.value = `${url.value.substring(0, wordPosition)}${
-                    url.value.substring(url.selectionStart)}`
+                url.value = `${url.value.slice(0, Math.max(0, wordPosition))}${
+                    url.value.slice(Math.max(0, url.selectionStart))}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 requestSuggestUpdate()
                 updateNavbarScrolling()
@@ -1918,8 +1917,9 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             char = id
         }
         if (char) {
-            url.value = `${url.value.substring(0, url.selectionStart)}${char}${
-                url.value.substring(url.selectionEnd)}`
+            url.value = `${url.value.slice(0, Math.max(0,
+                url.selectionStart))}${char}${url.value.slice(
+                Math.max(0, url.selectionEnd))}`
         }
     }
     if (text !== url.value) {
@@ -1935,7 +1935,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
  */
 const isEmptyObject = obj => {
     // This is the fastest way, but not very elegant sadly
-    // eslint-disable-next-line
+    // eslint-disable-next-line no-unreachable-loop, guard-for-in
     for (const _ in obj) {
         return false
     }
@@ -1993,7 +1993,7 @@ const sanitiseMapString = (src, mapString, allowSpecials = false) => {
         }
         if (m.length > 1) {
             const splitKeys = m.replace(/(^<|>$)/g, "")
-                .split("-").filter(s => s)
+                .split("-").filter(Boolean)
             modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
             ;[key] = splitKeys.slice(-1)
         }
@@ -2040,7 +2040,7 @@ const sanitiseMapString = (src, mapString, allowSpecials = false) => {
 
 /** Restart or clear the insert mode leave timeout timer. */
 const resetInsertLeaveTimeout = () => {
-    window.clearTimeout(insertleavetimeoutTimer ?? undefined)
+    clearTimeout(insertleavetimeoutTimer ?? undefined)
     if (currentMode() !== "insert") {
         return
     }
@@ -2048,7 +2048,7 @@ const resetInsertLeaveTimeout = () => {
     if (!timeout) {
         return
     }
-    insertleavetimeoutTimer = window.setTimeout(() => {
+    insertleavetimeoutTimer = setTimeout(() => {
         if (currentMode() === "insert") {
             ACTIONS.toNormalMode()
         }
@@ -2113,11 +2113,11 @@ const handleKeyboard = async e => {
     }
     const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
-    window.clearTimeout(timeoutTimer ?? undefined)
+    clearTimeout(timeoutTimer ?? undefined)
     resetInsertLeaveTimeout()
     const {active, clear} = require("./contextmenu")
     if (getSetting("timeout")) {
-        timeoutTimer = window.setTimeout(async() => {
+        timeoutTimer = setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
             if (pressedKeys) {
                 const ac = actionForKeys(pressedKeys)
@@ -2161,7 +2161,7 @@ const handleKeyboard = async e => {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
         const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
-        if (!isNaN(keyNumber) && noFutureActions && shouldCount) {
+        if (!Number.isNaN(keyNumber) && noFutureActions && shouldCount) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
             if (repeatCounter > getSetting("countlimit")) {
                 repeatCounter = getSetting("countlimit")
@@ -2169,13 +2169,11 @@ const handleKeyboard = async e => {
             updateKeysOnScreen()
             return
         }
-        if (id === "<Esc>" || id === "<C-[>") {
-            if (repeatCounter !== 0) {
-                pressedKeys = ""
-                repeatCounter = 0
-                updateKeysOnScreen()
-                return
-            }
+        if ((id === "<Esc>" || id === "<C-[>") && repeatCounter !== 0) {
+            pressedKeys = ""
+            repeatCounter = 0
+            updateKeysOnScreen()
+            return
         }
     } else {
         repeatCounter = 0
@@ -2188,20 +2186,18 @@ const handleKeyboard = async e => {
     } else {
         const action = actionForKeys(pressedKeys)
         const existingMapping = actionForKeys(pressedKeys + id)
-        if (action && !existingMapping) {
-            if (!["<C-[>", "<Esc>"].includes(id)) {
-                pressedKeys = ""
-                await executeMapString(action.mapping, !action.noremap, {
-                    "initial": true, src
-                })
-            }
+        if (action && !existingMapping && !["<C-[>", "<Esc>"].includes(id)) {
+            pressedKeys = ""
+            await executeMapString(action.mapping, !action.noremap, {
+                "initial": true, src
+            })
         }
         pressedKeys += id
     }
     const action = actionForKeys(pressedKeys)
     const hasMenuAction = active() && action
     if (!hasFutureActions(pressedKeys) || hasMenuAction) {
-        window.clearTimeout(timeoutTimer ?? undefined)
+        clearTimeout(timeoutTimer ?? undefined)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
                 await executeMapString(action.mapping, !action.noremap, {
@@ -2272,12 +2268,9 @@ const mappingModified = (mode, mapping) => {
     if (!current && !original) {
         return false
     }
-    if (current && original) {
-        if (current.mapping === original.mapping) {
-            if (Boolean(current.noremap) === Boolean(original.noremap)) {
-                return false
-            }
-        }
+    if (current && original && current.mapping === original.mapping
+        && Boolean(current.noremap) === Boolean(original.noremap)) {
+        return false
     }
     return true
 }
@@ -2323,28 +2316,29 @@ const listMappingsAsCommandList = (
     if (oneMode) {
         modes = [oneMode]
     }
-    modes.forEach(bindMode => {
+    for (const bindMode of modes) {
         const keys = customKeys
-            ?? [...new Set(Object.keys(defaultBindings[bindMode])
-                .concat(Object.keys(bindings[bindMode])))]
+            ?? [...new Set([
+                ...Object.keys(bindings[bindMode]),
+                ...Object.keys(defaultBindings[bindMode])
+            ])]
         for (const key of keys) {
             mappings.push(listMapping(src, bindMode, includeDefault, key))
         }
-    })
+    }
     if (!oneMode) {
         // Mappings that can be added with a global "map" instead of 1 per mode
-        /** @type {string[]} */
         const globalMappings = []
-        mappings.filter(m => m.match(/^n(noremap|map|unmap) /g))
-            .filter(m => !modes.some(mode => !mappings.includes(
-                `${mode}${m.slice(1)}`)))
-            .forEach(m => {
-                globalMappings.push(m.slice(1))
-                mappings = mappings.filter(map => map.slice(1) !== m.slice(1))
-            })
+        const globalIdenticalMappings = mappings.filter(m => m.match(
+            /^n(noremap|map|unmap) /g)).filter(m => !modes.some(
+            mode => !mappings.includes(`${mode}${m.slice(1)}`)))
+        for (const m of globalIdenticalMappings) {
+            globalMappings.push(m.slice(1))
+            mappings = mappings.filter(map => map.slice(1) !== m.slice(1))
+        }
         mappings = [...globalMappings, ...mappings]
     }
-    return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
+    return mappings.join("\n").replace(/[\n\r]+/g, "\n").trim()
 }
 
 /**
@@ -2363,9 +2357,9 @@ const mapSingle = (src, mode, args, noremap) => {
     if (mode) {
         bindings[mode][mapping] = {"mapping": actions, noremap}
     } else {
-        Object.keys(bindings).forEach(m => {
+        for (const m of Object.keys(bindings)) {
             bindings[m][mapping] = {"mapping": actions, noremap}
-        })
+        }
     }
     const {updateHelpPage} = require("./settings")
     updateHelpPage(src)
@@ -2417,7 +2411,7 @@ const mapOrList = (
         } else {
             let mappings = listMappingsAsCommandList(
                 src, null, includeDefault, [args[0]])
-            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
+            mappings = mappings.replace(/[\n\r]+/g, "\n").trim()
             if (mappings) {
                 notify({"fields": [mappings], "id": "mappings.list", src})
             } else if (includeDefault) {
@@ -2459,12 +2453,12 @@ const unmap = (src, mode, args, anyAsWildcard) => {
         return
     }
     const keys = splitMapString(mapStr).maps
-    Object.keys(bindings).forEach(bindMode => {
+    for (const bindMode of Object.keys(bindings)) {
         if (mode && mode !== bindMode) {
-            return
+            continue
         }
         if (anyAsWildcard) {
-            Object.keys(bindings[bindMode]).forEach(map => {
+            for (const map of Object.keys(bindings[bindMode])) {
                 const mapKeys = splitMapString(map).maps
                 const sameKeys = mapKeys.every((key, index) => key
                     === keys[index] || keys[index] === "<Any>")
@@ -2472,11 +2466,11 @@ const unmap = (src, mode, args, anyAsWildcard) => {
                 if (sameKeys && sameKeyLen) {
                     delete bindings[bindMode][map]
                 }
-            })
+            }
         } else {
             delete bindings[bindMode][mapStr]
         }
-    })
+    }
     const {updateHelpPage} = require("./settings")
     updateHelpPage(src)
 }
@@ -2495,9 +2489,9 @@ const clearmap = (src, mode, removeDefaults = false) => {
             bindings[mode] = JSON.parse(JSON.stringify(defaultBindings[mode]))
         }
     } else if (removeDefaults) {
-        Object.keys(bindings).forEach(bindMode => {
+        for (const bindMode of Object.keys(bindings)) {
             bindings[bindMode] = {}
-        })
+        }
     } else {
         bindings = JSON.parse(JSON.stringify(defaultBindings))
     }
@@ -2544,17 +2538,24 @@ const stopRecording = () => {
     return record
 }
 
+/**
+ * Find url box, suggest dropdown or screenshot highlight in the event targets.
+ * @param {MouseEvent} ev
+ */
+const urlOrSuggest = ev => ev.composedPath().find(
+    n => isElement(n) && matchesQuery(n,
+        "#url, #suggest-dropdown, #screenshot-highlight"))
+
 /** Setup all input listeners for both keyboard and mouse across the app. */
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
-        if (currentMode() === "insert" && getMouseConf("leaveinsert")) {
-            if (!e.composedPath().some(n => isElement(n)
-                && matchesQuery(n, "#context-menu"))) {
-                ACTIONS.toNormalMode()
-            }
+        if (currentMode() === "insert" && getMouseConf("leaveinsert")
+            && !e.composedPath().some(n => isElement(n)
+            && matchesQuery(n, "#context-menu"))) {
+            ACTIONS.toNormalMode()
         }
         if (e.button === 3) {
             if (getMouseConf("history")) {
@@ -2575,15 +2576,13 @@ const init = () => {
         }
         const selector = "#screenshot-highlight"
         if (e.composedPath().some(n => isElement(n)
-            && matchesQuery(n, selector))) {
-            if (getMouseConf("screenshotframe")) {
-                if (e.button === 0) {
-                    draggingScreenshotFrame = "position"
-                } else {
-                    draggingScreenshotFrame = "size"
-                }
-                e.preventDefault()
+            && matchesQuery(n, selector)) && getMouseConf("screenshotframe")) {
+            if (e.button === 0) {
+                draggingScreenshotFrame = "position"
+            } else {
+                draggingScreenshotFrame = "size"
             }
+            e.preventDefault()
         }
         if (e.target === getUrl()) {
             const {followFiltering} = require("./follow")
@@ -2607,12 +2606,10 @@ const init = () => {
     })
     window.addEventListener("wheel", ev => {
         if (ev.composedPath().some(e => isElement(e)
-            && matchesQuery(e, "#tabs"))) {
-            if (getMouseConf("scrolltabs")) {
-                // Make both directions of scrolling move the tabs horizontally
-                document.getElementById("tabs")?.scrollBy(
-                    ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
-            }
+            && matchesQuery(e, "#tabs")) && getMouseConf("scrolltabs")) {
+            // Make both directions of scrolling move the tabs horizontally
+            document.getElementById("tabs")?.scrollBy(
+                ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
         }
         const overPageElements = "#follow, #screenshot-highlight, #pointer, "
             + "#url-hover, #loading-progress"
@@ -2631,10 +2628,9 @@ const init = () => {
             }
         }
         if (ev.composedPath().some(e => isElement(e)
-            && matchesQuery(e, "#suggest-dropdown"))) {
-            if (!getMouseConf("scrollsuggest")) {
-                ev.preventDefault()
-            }
+            && matchesQuery(e, "#suggest-dropdown"))
+            && !getMouseConf("scrollsuggest")) {
+            ev.preventDefault()
         }
     }, {"passive": false})
     window.addEventListener("drop", e => {
@@ -2727,24 +2723,15 @@ const init = () => {
             return
         }
         e.preventDefault()
-
-        /**
-         * Find the url box or the suggest dropdown in the list of targets.
-         * @param {MouseEvent} ev
-         */
-        const urlOrSuggest = ev => ev.composedPath().find(
-            n => isElement(n) && matchesQuery(n, "#url, #suggest-dropdown"))
-
         if (urlOrSuggest(e)) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (!typing && getMouseConf("toexplore")) {
                 ACTIONS.toExploreMode()
             }
-        } else if ("sec".includes(currentMode()[0])) {
-            if (getMouseConf("leaveinput")) {
-                ACTIONS.toNormalMode()
-            }
+        } else if ("sec".includes(currentMode()[0])
+            && getMouseConf("leaveinput")) {
+            ACTIONS.toNormalMode()
         }
         if (getMouseConf("switchtab")) {
             const tab = e.composedPath().find(n => {
@@ -2767,7 +2754,7 @@ const init = () => {
             setTopOfPageWithMouse(getMouseConf("guiontop"))
         }
         if (getSetting("mousefocus")) {
-            document.elementsFromPoint(e.x, e.y).forEach(n => {
+            for (const n of document.elementsFromPoint(e.x, e.y)) {
                 if (matchesQuery(n, tabSelector)) {
                     const tab = listTabs().find(t => t.getAttribute(
                         "link-id") === n.getAttribute("link-id"))
@@ -2776,7 +2763,7 @@ const init = () => {
                         switchToTab(tab)
                     }
                 }
-            })
+            }
         }
         moveScreenshotFrame(e.x, e.y)
     })
@@ -2785,15 +2772,6 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
-
-            /**
-             * Find the url box or the suggest dropdown in the list of targets.
-             * @param {MouseEvent} ev
-             */
-            const urlOrSuggest = ev => ev.composedPath().find(
-                n => isElement(n) && matchesQuery(n,
-                    "#url, #suggest-dropdown, #screenshot-highlight"))
-
             if (typing && !urlOrSuggest(e)) {
                 ACTIONS.toNormalMode()
             }
@@ -2858,7 +2836,9 @@ const init = () => {
             "metaKey": input.meta,
             "passedOnFromInsert": true,
             /** Emulated key event doesn't matter if it's prevented. */
-            "preventDefault": () => undefined,
+            "preventDefault": () => {
+                // No need to handle this.
+            },
             "shiftKey": input.shift
         })
     })
@@ -2879,21 +2859,21 @@ const init = () => {
     })
     ipcRenderer.on("window-update-gui", () => updateGuiVisibility())
     ACTIONS.setFocusCorrectly()
-    const unSupportedActions = [
-        "setFocusCorrectly",
+    const unSupportedActions = new Set([
         "incrementalSearch",
-        "resetIncrementalSearch",
-        "resetInputHistory",
+        "p.handleScrollDiffEvent",
         "p.init",
         "p.move",
+        "p.releaseKeys",
         "p.storeMouseSelection",
-        "p.handleScrollDiffEvent",
         "p.updateElement",
-        "p.releaseKeys"
-    ]
+        "resetIncrementalSearch",
+        "resetInputHistory",
+        "setFocusCorrectly"
+    ])
     supportedActions = [
         ...Object.keys(ACTIONS), ...Object.keys(POINTER).map(c => `p.${c}`)
-    ].filter(m => !unSupportedActions.includes(m))
+    ].filter(m => !unSupportedActions.has(m))
     updateKeysOnScreen()
 }
 

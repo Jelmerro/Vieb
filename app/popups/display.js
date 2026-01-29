@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2024-2025 Jelmer van Arnhem
+* Copyright (C) 2024-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 
-const keys = "abcdefghijklmnopqrstuvwxyz0123456789".split("")
+const keys = [..."abcdefghijklmnopqrstuvwxyz0123456789"]
 /** @type {{title: string, img: string, icon: string}[]} */
 let sources = []
 window.addEventListener("load", () => {

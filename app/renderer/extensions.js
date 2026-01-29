@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022-2025 Jelmer van Arnhem
+* Copyright (C) 2022-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ const {
  * @param {string} meta
  * @returns {{[info: string]: (string[]|number|string)}}
  */
-const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
+const parseGM = meta => meta.split(/[\n\r]/).filter(line => (/\S+/).test(line)
         && !line.includes("==UserScript==") && !line.includes("==/UserScript==")
 ).reduce(
     /**
@@ -74,7 +74,7 @@ const runGMScript = (webview, rawContents) => {
     const headerLines = []
     const scriptLines = []
     let pastHeader = false
-    for (const line of rawContents.split(/[\r\n]/)) {
+    for (const line of rawContents.split(/[\n\r]/)) {
         if (pastHeader) {
             scriptLines.push(line)
         } else if (line.includes("==/UserScript==")) {
@@ -225,7 +225,7 @@ const runGMScript = (webview, rawContents) => {
     } catch {
         // No picomatch available, assume scripts should run everywhere
     }
-    if (info?.name && scriptLines.length) {
+    if (info?.name && scriptLines.length > 0) {
         if (Array.isArray(info.includes)) {
             if (Array.isArray(info.match)) {
                 info.includes = [...info.includes, ...info.match]
