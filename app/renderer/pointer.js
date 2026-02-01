@@ -1016,8 +1016,12 @@ const storePos = args => {
             posType = "local"
         }
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    if (!qm.pointer) {
+    if (!("pointer" in qm) || !qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
     if (args?.path === "global") {
@@ -1066,7 +1070,11 @@ const restorePos = args => {
         path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     path = args?.path ?? path
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
     if (pos) {
         move(pos.x, pos.y)

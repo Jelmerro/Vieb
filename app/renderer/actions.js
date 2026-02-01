@@ -26,6 +26,20 @@
  * }} ActionParam
  */
 
+/**
+ * @typedef {{
+ *   marks: {[key: string]: string},
+ *   pointer: {
+ *     "local": {[key: string]: {[path: string]: {x: number, y: number}}},
+ *     "global": {[key: string]: {x: number, y: number}},
+ *   },
+ *   scroll: {
+ *     "local": {[key: string]: {[path: string]: string}},
+ *     "global": {[key: string]: string},
+ *   }
+ * }} Quickmarks
+ */
+
 const {clipboard, ipcRenderer} = require("electron")
 const {
     appData,
@@ -1525,8 +1539,9 @@ const storeScrollPos = async args => {
             scrollType = "local"
         }
     }
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    if (!qm.scroll) {
+    if (!("scroll" in qm) || !qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
     let pixels = await currentPage()?.executeJavaScript("window.scrollY")
@@ -1578,7 +1593,8 @@ const restoreScrollPos = args => {
         path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     path = args.path ?? path
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
         currentPage()?.executeJavaScript(`
@@ -1598,8 +1614,9 @@ const makeMark = args => {
     if (!args.key) {
         return
     }
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    if (!qm.marks) {
+    if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
     qm.marks[args.key] = urlToString(args.url ?? currentPage()?.src ?? "")
@@ -1614,7 +1631,11 @@ const restoreMark = args => {
     if (!args.key) {
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!("marks" in qm) || !qm.marks) {
+        qm.marks = {}
+    }
     const {commonAction} = require("./contextmenu")
     let position = getSetting("markposition")
     const shiftedPosition = getSetting("markpositionshifted")
@@ -1622,7 +1643,7 @@ const restoreMark = args => {
         position = shiftedPosition
     }
     position = args.position ?? position
-    commonAction(args.src, "link", position, {"link": qm?.marks?.[args.key]})
+    commonAction(args.src, "link", position, {"link": qm.marks[args.key]})
 }
 
 /**

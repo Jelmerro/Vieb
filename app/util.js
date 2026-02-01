@@ -186,9 +186,16 @@ const appData = () => {
 }
 
 /**
+ * @typedef {string|number|boolean|null|PartialJSONArray|PartialJSONObject}
+ * PartialJSON
+ */
+/** @typedef {Array<PartialJSON>} PartialJSONArray */
+/** @typedef {{[key: string]: (PartialJSON|undefined)}} PartialJSONObject */
+
+/**
  * Read the file contents of a file and parse it as JSON.
  * @param {string} loc
- * @returns {unknown|null}
+ * @returns {PartialJSON|null}
  */
 const readJSON = loc => {
     try {

@@ -432,7 +432,22 @@ if (urls.length > 0 && argExecute) {
  */
 const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
-    const preferences = readJSON(prefFile) || {}
+    /**
+     * @type {Partial<{electron: {devtools?: {preferences?: {
+     *   cssSourceMapsEnabled?: "true"|"false",
+     *   consoleTimestampsEnabled?: "true"|"false",
+     *   disablePausedStateOverlay?: "true"|"false",
+     *   currentDockState?: `"left"`|`"right"`|`"bottom"`|`"undocked"`,
+     *   "help.show-release-note"?: "true"|"false",
+     *   jsSourceMapsEnabled?: "true"|"false",
+     *   "ui-theme"?: `"dark"`|`"light"`|`"system"`,
+     *   uiTheme?: `"dark"`|`"light"`|`"system"`
+     * }}}}>&import("./util").PartialJSON}
+     */
+    const preferences = readJSON(prefFile) ?? {}
+    if (!("electron" in preferences)) {
+        preferences.electron = {}
+    }
     preferences.electron ||= {}
     preferences.electron.devtools ||= {}
     preferences.electron.devtools.preferences ||= {}
@@ -452,6 +467,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     // Disable the paused overlay which prevents interaction with other pages
     preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
     // Style the devtools based on the system theme
+    /** @type {`"dark"`|`"light"`} */
     let theme = `"dark"`
     if (argDevtoolsTheme === "light") {
         theme = `"light"`
@@ -480,13 +496,13 @@ applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
     argErwic = expandPath(argErwic)
     /**
-     * @type {{
+     * @type {Partial<{
      *   name?: unknown, icon?: unknown, apps: {
      *     container?: unknown, script?: unknown, url?: unknown
      *   }[]
-     * }}
+     * }>&import("./util").PartialJSON}
      */
-    const config = readJSON(argErwic)
+    const config = readJSON(argErwic) ?? {}
     if (!config) {
         console.warn("Erwic config file could not be read\n")
         printUsage()
@@ -513,7 +529,7 @@ if (argErwic) {
         console.warn("Erwic config file requires a list of 'apps'\n")
         printUsage()
     }
-    config.apps = config.apps.map(a => {
+    config.apps = config.apps?.map(a => {
         if (typeof a.url !== "string" || typeof a.container !== "string") {
             return null
         }
@@ -533,7 +549,7 @@ if (argErwic) {
             a.script = null
         }
         return a
-    }).flatMap(a => a ?? [])
+    }).flatMap(a => a ?? []) ?? []
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")

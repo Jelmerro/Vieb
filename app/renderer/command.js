@@ -739,8 +739,8 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
     let [charOrNum] = rangePart.split(/[+-]/g)
     if (rangePart.split("/").length > 2) {
         const searchResult = translateSearchRangeToIdx(src, rangePart, silent)
-        charOrNum = searchResult.tabs.find(i => i >= start)
-        if (typeof charOrNum !== "number" || !searchResult.valid) {
+        charOrNum = searchResult.tabs.find(i => i >= start) ?? -1
+        if (charOrNum < 0 || !searchResult.valid) {
             return {"num": Number.NaN, "valid": searchResult.valid}
         }
     }
@@ -957,8 +957,13 @@ const tabForBufferArg = (args, filter = null) => {
 const quitall = async() => {
     ipcRenderer.send("hide-window")
     const keepQuickmarkNames = getSetting("quickmarkpersistence")
-    const clearMark = ["scroll", "marks", "pointer"]
-        .filter(t => !keepQuickmarkNames.includes(t))
+    /** @type {("scroll"|"marks"|"pointer")[]} */
+    let clearMark = ["scroll", "marks", "pointer"]
+    clearMark = clearMark.filter(t => !keepQuickmarkNames.includes(t))
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     for (const markType of clearMark) {
         delete qm[markType]
@@ -1987,7 +1992,14 @@ const marks = (src, args) => {
         }
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!("marks" in qm) || !qm.marks) {
+        qm.marks = {}
+    }
     const relevantMarks = []
     const longest = Object.keys(qm.marks ?? {}).reduce((prev, curr) => {
         if (curr.length > prev) {
@@ -2077,6 +2089,10 @@ const delmarks = (src, all, args) => {
         notify({"id": "commands.delmarks.argCount", src, "type": "warning"})
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (all) {
         qm.marks = {}
@@ -2130,6 +2146,10 @@ const scrollpos = (src, args) => {
         storeScrollPos({key, path, pixels, src})
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
@@ -2137,8 +2157,7 @@ const scrollpos = (src, args) => {
     const relevantPos = []
     const longest = [
         ...Object.keys(qm.scroll.global),
-        ...Object.values(qm.scroll.local).reduce(
-            (prev, curr) => [...prev, ...Object.keys(curr)], [])
+        ...Object.values(qm.scroll.local).flatMap(v => Object.keys(v))
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
@@ -2219,6 +2238,10 @@ const restorescrollpos = (src, args) => {
  * @param {string[]} args
  */
 const delscrollpos = (src, all, args) => {
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
@@ -2244,9 +2267,9 @@ const delscrollpos = (src, all, args) => {
         if (args[0] === "*") {
             delete qm.scroll
         } else if (args[0] === "global") {
-            delete qm.scroll.global
+            qm.scroll.global = {}
         } else if (args[0] === "local") {
-            delete qm.scroll.local
+            qm.scroll.local = {}
         } else if (args[0]) {
             if (qm.scroll.local[args[0]]) {
                 delete qm.scroll.local[args[0]]
@@ -2320,6 +2343,10 @@ const pointerpos = (src, args) => {
         storePos({key, location, path})
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
@@ -2327,8 +2354,7 @@ const pointerpos = (src, args) => {
     const relevantPos = []
     const longest = [
         ...Object.keys(qm.pointer.global),
-        ...Object.values(qm.pointer.local).reduce(
-            (prev, curr) => [...prev, ...Object.keys(curr)], [])
+        ...Object.values(qm.pointer.local).flatMap(v => Object.keys(v))
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
@@ -2415,6 +2441,10 @@ const restorepointerpos = (src, args) => {
  * @param {string[]} args
  */
 const delpointerpos = (src, all, args) => {
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
@@ -2440,9 +2470,9 @@ const delpointerpos = (src, all, args) => {
         if (args[0] === "*") {
             delete qm.pointer
         } else if (args[0] === "global") {
-            delete qm.pointer.global
+            qm.pointer.global = {}
         } else if (args[0] === "local") {
-            delete qm.pointer.local
+            qm.pointer.local = {}
         } else if (args[0]) {
             if (qm.pointer.local[args[0]]) {
                 delete qm.pointer.local[args[0]]

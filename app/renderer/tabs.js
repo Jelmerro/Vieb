@@ -1427,7 +1427,8 @@ const init = () => {
         }
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
-            if (parsed) {
+            if (typeof parsed === "object"
+                && parsed && !Array.isArray(parsed)) {
                 loadPreviousSessionTabs(parsed)
             }
             const startup = getSetting("startuppages")
