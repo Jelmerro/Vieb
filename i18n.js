@@ -16,7 +16,6 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 "use strict"
-/* eslint-disable max-depth */
 
 const {
     joinPath, listDir, readJSON, writeFile, writeJSON
@@ -136,6 +135,7 @@ if (args[0] === "lint") {
         for (const key of listKeys(translations[lang])) {
             const val = getVal(lang, key)
             if (!val) {
+                /* eslint-disable-next-line max-depth */
                 if (getVal("en", key)) {
                     console.warn(`Empty value for ${key} in lang file ${lang}`)
                 } else if (key !== "util.none") {

@@ -295,6 +295,165 @@ const getWritableDOMRect = el => {
 }
 
 /**
+ * Add an onclick listener to mouseup events to click on the links.
+ * @param {MouseEvent} e
+ * @param {FollowLink} link
+ */
+const onclickListener = async(e, link) => {
+    if (!getMouseConf("follow")) {
+        return
+    }
+    const {isUrl} = require("../util")
+    const {setMode} = require("./modes")
+    if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
+        setMode(modeBeforeFollow)
+        const {addTab} = require("./tabs")
+        addTab({
+            "src": "user",
+            "switchTo": getSetting("mousenewtabswitch"),
+            "url": link.url
+        })
+    } else {
+        await clickAtLink(link)
+        if (link.type !== "inputs-insert") {
+            if (e.button === 0) {
+                setMode(modeBeforeFollow)
+            } else {
+                startFollow()
+            }
+        }
+    }
+}
+
+/**
+ * Update the link element with alignment CSS styling based on position setting.
+ * @param {{
+ *   x: number,
+ *   y: number,
+ *   width: number,
+ *   height: number,
+ *   baseDims: import("../util").DOMRectJSON,
+ *   elWidth: number,
+ *   followlabelposition: string,
+ *   linkElement: HTMLSpanElement
+ * }} link
+ */
+const alignLink = ({
+    baseDims, elWidth, followlabelposition, height, linkElement, width, x, y
+}) => {
+    /**
+     * @type {{[alignment: string]: {
+     *   left?: number,
+     *   right?: number,
+     *   top?: number,
+     *   bottom?: number,
+     *   transform?: string
+     * }}}
+     */
+    const alignmentDict = {
+        "center": {
+            "left": x + width / 2,
+            "top": y + height / 2,
+            "transform": "translateX(-50%) translateY(-50%)"
+        },
+        "cornerbottomleft": {"right": x, "top": y + height},
+        "cornerbottomright": {"left": x + width, "top": y + height},
+        "cornertopleft": {"bottom": y, "right": x},
+        "cornertopright": {"bottom": y, "left": x + width},
+        "insidebottomcenter": {
+            "bottom": y + height,
+            "left": x + width / 2,
+            "transform": "translateX(-50%)"
+        },
+        "insidebottomleft": {"bottom": y + height, "left": x},
+        "insidebottomright": {"bottom": y + height, "right": x + width},
+        "insideleftcenter": {
+            "left": x,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "insiderightcenter": {
+            "right": x + width,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "insidetopcenter": {
+            "left": x + width / 2,
+            "top": y,
+            "transform": "translateX(-50%)"
+        },
+        "insidetopleft": {"left": x, "top": y},
+        "insidetopright": {"right": x + width, "top": y},
+        "outsidebottomcenter": {
+            "left": x + width / 2,
+            "top": y + height,
+            "transform": "translateX(-50%)"
+        },
+        "outsidebottomleft": {"left": x, "top": y + height},
+        "outsidebottomright": {"right": x + width, "top": y + height},
+        "outsideleftbottom": {"bottom": y + height, "right": x},
+        "outsideleftcenter": {
+            "right": x,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "outsidelefttop": {"right": x, "top": y},
+        "outsiderightbottom": {"bottom": y + height, "left": x + width},
+        "outsiderightcenter": {
+            "left": x + width,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "outsiderighttop": {"left": x + width, "top": y},
+        "outsidetopcenter": {
+            "bottom": y,
+            "left": x + width / 2,
+            "transform": "translateX(-50%)"
+        },
+        "outsidetopleft": {"bottom": y, "left": x},
+        "outsidetopright": {"bottom": y, "right": x + width}
+    }
+    const alignment = alignmentDict[followlabelposition]
+    /** @type {("left"|"top"|"right"|"bottom"|"transform")[]} */
+    const alignmentProps = ["left", "top", "right", "bottom", "transform"]
+    for (const align of alignmentProps) {
+        if (alignment[align] !== undefined) {
+            let value = alignment[align]
+            if (align === "left" && elWidth && typeof value === "number"
+                && value > baseDims.width + baseDims.right - elWidth) {
+                value = baseDims.width + baseDims.right
+                linkElement.style.transform += "translateX(-100%) "
+            }
+            if (align === "top" && elWidth && typeof value === "number"
+                && value > baseDims.height + baseDims.bottom - elWidth) {
+                value = baseDims.height + baseDims.bottom
+                linkElement.style.transform += "translateY(-100%) "
+            }
+            if (align === "right" && typeof value === "number") {
+                if (elWidth && value + baseDims.left < elWidth) {
+                    value = 0
+                    linkElement.style.transform += "translateX(100%) "
+                }
+                value = baseDims.width - value
+            }
+            if (align === "bottom" && typeof value === "number") {
+                if (elWidth && value + baseDims.top < elWidth) {
+                    value = 0
+                    linkElement.style.transform += "translateY(100%) "
+                }
+                value = baseDims.height - value
+            }
+            if (align === "transform" && value) {
+                linkElement.style.transform += value
+            } else if (typeof value === "number") {
+                linkElement.style[align] = `${value.toFixed(2)}px`
+            }
+        }
+    }
+}
+
+
+/**
  * Parse the received links and add them to the follow element to be picked.
  * @param {(FollowLink|null)[]} receivedLinks
  */
@@ -345,48 +504,14 @@ const parseAndDisplayLinks = receivedLinks => {
     const baseDims = getWritableDOMRect(followEl)
     baseDims.right = window.innerWidth - baseDims.left - baseDims.width
     baseDims.bottom = window.innerHeight - baseDims.top - baseDims.height
-    const elWidth = document.querySelector("#follow [link-id]")
-        ?.getBoundingClientRect()?.width ?? 0
     const factor = currentPage()?.getZoomFactor() ?? 1
     /** @type {HTMLSpanElement[]} */
     const followChildren = []
     const neededLength = numberToKeys(links.length).length
-    const followlabelposition = getSetting("followlabelposition")
     for (const [index, link] of links.entries()) {
         if (!link) {
             continue
         }
-
-        /**
-         * Add an onclick listener to mouseup events to click on the links.
-         * @param {MouseEvent} e
-         */
-        const onclickListener = async e => {
-            if (!getMouseConf("follow")) {
-                return
-            }
-            const {isUrl} = require("../util")
-            const {setMode} = require("./modes")
-            if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
-                setMode(modeBeforeFollow)
-                const {addTab} = require("./tabs")
-                addTab({
-                    "src": "user",
-                    "switchTo": getSetting("mousenewtabswitch"),
-                    "url": link.url
-                })
-            } else {
-                await clickAtLink(link)
-                if (link.type !== "inputs-insert") {
-                    if (e.button === 0) {
-                        setMode(modeBeforeFollow)
-                    } else {
-                        startFollow()
-                    }
-                }
-            }
-        }
-
         // Show a border around the link
         const borderElement = document.createElement("span")
         borderElement.className = `follow-${link.type}-border`
@@ -401,7 +526,7 @@ const parseAndDisplayLinks = receivedLinks => {
         borderElement.style.top = `${y}px`
         borderElement.style.width = `${width}px`
         borderElement.style.height = `${height}px`
-        borderElement.addEventListener("mouseup", onclickListener)
+        borderElement.addEventListener("mouseup", e => onclickListener(e, link))
         borderElement.addEventListener("mousemove", () => {
             if (!getMouseConf("follow")) {
                 hoverLink = null
@@ -424,120 +549,24 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        /**
-         * @type {{[alignment: string]: {
-         *   left?: number,
-         *   right?: number,
-         *   top?: number,
-         *   bottom?: number,
-         *   transform?: string
-         * }}}
-         */
-        const alignmentDict = {
-            "center": {
-                "left": x + width / 2,
-                "top": y + height / 2,
-                "transform": "translateX(-50%) translateY(-50%)"
-            },
-            "cornerbottomleft": {"right": x, "top": y + height},
-            "cornerbottomright": {"left": x + width, "top": y + height},
-            "cornertopleft": {"bottom": y, "right": x},
-            "cornertopright": {"bottom": y, "left": x + width},
-            "insidebottomcenter": {
-                "bottom": y + height,
-                "left": x + width / 2,
-                "transform": "translateX(-50%)"
-            },
-            "insidebottomleft": {"bottom": y + height, "left": x},
-            "insidebottomright": {"bottom": y + height, "right": x + width},
-            "insideleftcenter": {
-                "left": x,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "insiderightcenter": {
-                "right": x + width,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "insidetopcenter": {
-                "left": x + width / 2,
-                "top": y,
-                "transform": "translateX(-50%)"
-            },
-            "insidetopleft": {"left": x, "top": y},
-            "insidetopright": {"right": x + width, "top": y},
-            "outsidebottomcenter": {
-                "left": x + width / 2,
-                "top": y + height,
-                "transform": "translateX(-50%)"
-            },
-            "outsidebottomleft": {"left": x, "top": y + height},
-            "outsidebottomright": {"right": x + width, "top": y + height},
-            "outsideleftbottom": {"bottom": y + height, "right": x},
-            "outsideleftcenter": {
-                "right": x,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "outsidelefttop": {"right": x, "top": y},
-            "outsiderightbottom": {"bottom": y + height, "left": x + width},
-            "outsiderightcenter": {
-                "left": x + width,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "outsiderighttop": {"left": x + width, "top": y},
-            "outsidetopcenter": {
-                "bottom": y,
-                "left": x + width / 2,
-                "transform": "translateX(-50%)"
-            },
-            "outsidetopleft": {"bottom": y, "left": x},
-            "outsidetopright": {"bottom": y, "right": x + width}
-        }
-        const alignment = alignmentDict[followlabelposition]
-        /** @type {("left"|"top"|"right"|"bottom"|"transform")[]} */
-        const alignmentProps = ["left", "top", "right", "bottom", "transform"]
-        for (const align of alignmentProps) {
-            if (alignment[align] !== undefined) {
-                let value = alignment[align]
-                if (align === "left" && elWidth && typeof value === "number"
-                    && value > baseDims.width + baseDims.right - elWidth) {
-                    value = baseDims.width + baseDims.right
-                    linkElement.style.transform += "translateX(-100%) "
-                }
-                if (align === "top" && elWidth && typeof value === "number"
-                    && value > baseDims.height + baseDims.bottom - elWidth) {
-                    value = baseDims.height + baseDims.bottom
-                    linkElement.style.transform += "translateY(-100%) "
-                }
-                if (align === "right" && typeof value === "number") {
-                    if (elWidth && value + baseDims.left < elWidth) {
-                        value = 0
-                        linkElement.style.transform += "translateX(100%) "
-                    }
-                    value = baseDims.width - value
-                }
-                if (align === "bottom" && typeof value === "number") {
-                    if (elWidth && value + baseDims.top < elWidth) {
-                        value = 0
-                        linkElement.style.transform += "translateY(100%) "
-                    }
-                    value = baseDims.height - value
-                }
-                if (align === "transform" && value) {
-                    linkElement.style.transform += value
-                } else if (typeof value === "number") {
-                    linkElement.style[align] = `${value.toFixed(2)}px`
-                }
-            }
-        }
+        const followlabelposition = getSetting("followlabelposition")
+        const elWidth = followEl.querySelector(`[link-id='${index}']`)
+            ?.getBoundingClientRect()?.width ?? 0
+        alignLink({
+            baseDims,
+            elWidth,
+            followlabelposition,
+            height,
+            linkElement,
+            width,
+            x,
+            y
+        })
         if (linkInList([link], hoverLink)) {
             borderElement.classList.add("hover")
         }
         linkElement.setAttribute("link-id", `${index}`)
-        linkElement.addEventListener("mouseup", onclickListener)
+        linkElement.addEventListener("mouseup", e => onclickListener(e, link))
         linkElement.addEventListener("mousemove", () => {
             if (!getMouseConf("follow")) {
                 hoverLink = null

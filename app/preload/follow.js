@@ -223,6 +223,30 @@ const parseElement = (element, type = null, bounds = null) => {
 }
 
 /**
+ * Detect the type of input element, either insert or click.
+ * @param {Element} el
+ */
+const detectInputType = el => {
+    let type = "inputs-click"
+    if (el.tagName.toLowerCase() === "label") {
+        const labelFor = el.getAttribute("for")
+        if (labelFor) {
+            try {
+                const forEl = el.closest(`#${labelFor}`)
+                if (matchesQuery(forEl, textlikeInputs)) {
+                    type = "inputs-insert"
+                }
+            } catch {
+                // Invalid label, not a valid selector, assuming click
+            }
+        } else if (el.querySelector(textlikeInputs)) {
+            type = "inputs-insert"
+        }
+    }
+    return type
+}
+
+/**
  * Get all follow links parsed, optionally for a specific type.
  * @param {string[]|null} filter
  * @returns {Promise<ParsedElement[]>}
@@ -254,23 +278,7 @@ const getAllFollowLinks = (filter = null) => {
                 return []
             }))
         for (const el of inputs) {
-            let type = "inputs-click"
-            if (el.tagName.toLowerCase() === "label") {
-                const labelFor = el.getAttribute("for")
-                if (labelFor) {
-                    try {
-                        const forEl = el.closest(`#${labelFor}`)
-                        if (matchesQuery(forEl, textlikeInputs)) {
-                            type = "inputs-insert"
-                        }
-                    } catch {
-                        // Invalid label, not a valid selector, assuming click
-                    }
-                } else if (el.querySelector(textlikeInputs)) {
-                    type = "inputs-insert"
-                }
-            }
-            relevantLinks.add({el, type})
+            relevantLinks.add({el, "type": detectInputType(el)})
         }
         // Input tags such as email and text, can have text inserted
         for (const el of allEls.filter(e => matchesQuery(e, textlikeInputs))) {

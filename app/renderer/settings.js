@@ -1738,10 +1738,9 @@ const isStringSetting = set => isExistingSetting(set)
 
 /**
  * Check if a setting will be valid for a given value.
- * @template {keyof typeof defaultSettings} T Valid setting names.
  * @param {import("./common").RunSource} src
- * @param {T} setting
- * @param {typeof defaultSettings[T]} value
+ * @param {keyof typeof defaultSettings} setting
+ * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
 const isValidSetting = (src, setting, value) => {
     let expectedType = typeof allSettings[setting]
@@ -2119,11 +2118,54 @@ const updateHelpPage = src => {
 }
 
 /**
- * Set the value of a setting, if considered valid, else notify the user.
- * @template {keyof typeof defaultSettings} T Valid setting names.
- * @param {import("./common").RunSource} src
+ * Set the value of an object setting, including converting from array/string.
+ * @template {GetKeysOfType<{[key: string]: string}, typeof defaultSettings>} T
+ * Valid object setting names.
  * @param {T} setting
- * @param {typeof defaultSettings[T]} value
+ * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
+ */
+const updateObjectSetting = (setting, value) => {
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value)
+            if (Array.isArray(parsed)) {
+                /** @type {{[key: string]: string}} */
+                const element = {}
+                for (const el of parsed) {
+                    const [key, val] = el.split("~")
+                    element[key] = val
+                }
+                allSettings[setting] = element
+            } else {
+                allSettings[setting] = parsed
+            }
+        } catch {
+            /** @type {{[key: string]: string}} */
+            const element = {}
+            for (const el of value.split(",").filter(Boolean)) {
+                const [key, val] = el.split("~")
+                element[key] = val
+            }
+            allSettings[setting] = element
+        }
+    } else if (Array.isArray(value)) {
+        /** @type {{[key: string]: string}} */
+        const element = {}
+        for (const el of value) {
+            const [key, val] = el.split("~")
+            element[key] = val
+        }
+        allSettings[setting] = element
+    } else if (typeof value === "object") {
+        allSettings[setting] = value
+    }
+}
+
+/**
+ * Set the value of a setting, if considered valid, else notify the user.
+ * @param {import("./common").RunSource} src
+ * @param {keyof typeof defaultSettings} setting
+ * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
 const set = (src, setting, value) => {
     if (isValidSetting(src, setting, value)) {
@@ -2146,44 +2188,8 @@ const set = (src, setting, value) => {
                 allSettings[setting] = value
             }
         } else if (isObjectSetting(setting)) {
-            if (typeof value === "string") {
-                try {
-                    const parsed = JSON.parse(value)
-                    if (Array.isArray(parsed)) {
-                        /** @type {{[key: string]: string}} */
-                        const element = {}
-                        for (const el of parsed) {
-                            const [key, val] = el.split("~")
-                            element[key] = val
-                        }
-                        allSettings[setting] = element
-                    } else {
-                        allSettings[setting] = parsed
-                    }
-                } catch {
-                    /** @type {{[key: string]: string}} */
-                    const element = {}
-                    for (const el of value.split(",").filter(Boolean)) {
-                        const [key, val] = el.split("~")
-                        element[key] = val
-                    }
-                    allSettings[setting] = element
-                }
-            } else if (Array.isArray(value)) {
-                /** @type {{[key: string]: string}} */
-                const element = {}
-                for (const el of value) {
-                    const [key, val] = el.split("~")
-                    element[key] = val
-                }
-                allSettings[setting] = element
-            } else if (typeof value === "object") {
-                // @ts-expect-error for some reason setting could be never,
-                // the type seems correct, so ignoring seems safe for now.
-                allSettings[setting] = value
-            }
+            updateObjectSetting(setting, value)
         } else if (isStringSetting(setting)) {
-            // @ts-expect-error properly checked: is a string, but not an enum
             allSettings[setting] = String(value)
         }
         if (setting === "mouse") {

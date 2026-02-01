@@ -1693,7 +1693,8 @@ const pin = (src, args, range) => {
         const tabs = listTabs()
         const tabContainer = document.getElementById("tabs")
         const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
-        for (const target of rangeToTabIdxs(src, range).tabs.map(id => tabs[id])) {
+        for (const target of rangeToTabIdxs(
+            src, range).tabs.map(id => tabs[id])) {
             if (target.classList.contains("pinned")) {
                 tabContainer?.insertBefore(target, firstUnpinned ?? null)
                 target.classList.remove("pinned")
@@ -2137,7 +2138,7 @@ const scrollpos = (src, args) => {
     const longest = [
         ...Object.keys(qm.scroll.global),
         ...Object.values(qm.scroll.local).reduce(
-            (prev, curr) => prev.concat(Object.keys(curr)), [])
+            (prev, curr) => [...prev, ...Object.keys(curr)], [])
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
@@ -2327,7 +2328,7 @@ const pointerpos = (src, args) => {
     const longest = [
         ...Object.keys(qm.pointer.global),
         ...Object.values(qm.pointer.local).reduce(
-            (prev, curr) => prev.concat(Object.keys(curr)), [])
+            (prev, curr) => [...prev, ...Object.keys(curr)], [])
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
