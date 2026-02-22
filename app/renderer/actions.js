@@ -932,7 +932,6 @@ const refreshTabWithoutCache = args => {
     }
 }
 
-
 /**
  * Open a new tab, switch to explore mode and have the current url ready.
  * @param {{

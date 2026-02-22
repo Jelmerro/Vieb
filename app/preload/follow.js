@@ -409,7 +409,6 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
 /** Track updates to event listeners and write them down as a data attribute. */
 const trackEventListeners = () => {
     const mainWorldListenCounts = new Map()
-
     /**
      * Check if a node is an element, taking subframes into account.
      * @param {Node|EventTarget|null|undefined} el
@@ -424,7 +423,6 @@ const trackEventListeners = () => {
         }
         return el instanceof el.ownerDocument.defaultView.Element
     }
-
     /* eslint-disable no-restricted-syntax */
     const realAdd = EventTarget.prototype.addEventListener
     /**

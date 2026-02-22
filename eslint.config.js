@@ -1,12 +1,10 @@
 "use strict"
 
-const eslintConfig = require("eslint-config").default
+const {"default": eslintConfig, JS} = require("eslint-config")
 
-eslintConfig[0].languageOptions.sourceType = "commonjs"
-eslintConfig[0].rules["n/global-require"] = "off"
-eslintConfig[0].rules["unicorn/prefer-module"] = "off"
-eslintConfig[0].rules["unicorn/prefer-top-level-await"] = "off"
-eslintConfig[0].ignores.push("ViebData/**/*.js")
-eslintConfig[1].ignores.push("ViebData/**/*.json", "dist/**/*.json")
+eslintConfig[JS].languageOptions.sourceType = "commonjs"
+eslintConfig[JS].rules["n/global-require"] = "off"
+eslintConfig[JS].rules["unicorn/prefer-module"] = "off"
+eslintConfig[JS].rules["unicorn/prefer-top-level-await"] = "off"
 
 module.exports = eslintConfig

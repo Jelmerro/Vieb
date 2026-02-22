@@ -32,8 +32,8 @@
         "update": "npx -y jelmerro/nus"
     },
     "dependencies": {
-        "@ghostery/adblocker-electron": "2.13.4",
-        "@ghostery/adblocker-electron-preload": "2.13.4",
+        "@ghostery/adblocker-electron": "2.14.1",
+        "@ghostery/adblocker-electron-preload": "2.14.1",
         "@mozilla/readability": "0.6.0",
         "darkreader": "4.9.96",
         "highlight.js": "11.11.1",
@@ -46,13 +46,13 @@
     "devDependencies": {
         "@electron/asar": "4.0.1",
         "@types/picomatch": "4.0.2",
-        "electron": "40.1.0",
-        "electron-builder": "26.7.0",
+        "electron": "40.6.0",
+        "electron-builder": "26.8.1",
         "eslint-config": "github:Jelmerro/eslint-config",
-        "glob": "13.0.0",
+        "glob": "13.0.6",
         "terser-webpack-plugin": "5.3.16",
         "type-config": "github:Jelmerro/type-config",
-        "webpack": "5.104.1",
+        "webpack": "5.105.2",
         "webpack-node-externals": "3.0.0"
     },
     "engines": {

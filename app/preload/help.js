@@ -20,6 +20,7 @@
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {appConfig, getAppRootDir, joinPath, readFile} = require("../util")
+
 const {icon} = appConfig() ?? {}
 const modes = [..."nicsefpvm"]
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
@@ -324,7 +325,6 @@ window.addEventListener("DOMContentLoaded", () => {
     if (icon && mainImg) {
         mainImg.src = icon
     }
-
     /**
      * Create an id label for each section element.
      * @param {Element} element
@@ -347,7 +347,6 @@ window.addEventListener("DOMContentLoaded", () => {
         section.append(label)
         element.replaceWith(section)
     }
-
     // After loading, this will display the section id as a link
     const sections = [...document.querySelectorAll("#helppage *[id]")]
     for (const section of sections) {

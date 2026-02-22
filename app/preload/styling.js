@@ -33,6 +33,7 @@ const {
     pathToSpecialPageName,
     readFile
 } = require("../util")
+
 const specialPage = pathToSpecialPageName(window.location.href)
 
 /**

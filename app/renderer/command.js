@@ -920,7 +920,6 @@ const allTabsForBufferArg = (args, filter = null) => {
      */
     const allWordsAnywhere = (search, simpleUrl, name) => search.every(
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
-
     const simpleSearch = args.join(" ").split(specialChars).filter(Boolean)
     return listTabs().filter(t => !filter || filter(t)).map(t => {
         const url = pageForTab(t)?.getAttribute("src") ?? ""
@@ -2055,7 +2054,6 @@ const restoremark = (src, args) => {
     const {restoreMark} = require("./actions")
     const {validOptions} = require("./settings")
     const [key, position] = args
-
     /**
      * Check if a mark position is valid.
      * @param {string} pos
@@ -2063,7 +2061,6 @@ const restoremark = (src, args) => {
      */
     const isValidPosition = pos => pos === undefined
         || validOptions.markposition.includes(pos)
-
     if (isValidPosition(position)) {
         restoreMark({key, position, src})
     } else {
@@ -2841,7 +2838,9 @@ const commands = {
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
+
 const {clearmap, mapOrList, unmap} = require("./input")
+
 for (const prefix of " nicsefpvm") {
     commands[`${prefix.trim()}map!`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args, false, true)

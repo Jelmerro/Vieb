@@ -244,7 +244,6 @@ const privacyOverrides = platform => {
         }
         /* eslint-enable jsdoc/require-jsdoc */
     }
-
     const observer = new MutationObserver(mutations => {
         const iframes = mutations.flatMap(m => [...m.addedNodes]
             .filter(n => n.nodeName.toLowerCase() === "iframe"))
@@ -273,7 +272,6 @@ contextBridge.executeInMainWorld({
 const deviceEnumeratePermissionHandler = () => {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
-
     /**
      * Get the media devices with or without labels, or throw permission error.
      * @param {string} action
@@ -314,7 +312,6 @@ const deviceEnumeratePermissionHandler = () => {
             "toJSON": () => ({deviceId, groupId, kind, "label": ""})
         }))
     }
-
     /** Override the device list based on permission settings. */
     return () => {
         let setting = getSetting("permissionmediadevices") ?? "block"

@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - URLs being requested for suggestions if the favicon url is not set for a page
 - Empty URLs from being opened if a new window is attempted to be opened
 - Mouse option "history" always being on for events forwarded from inside the page
+- Wayland window sizes not being stored as the position is always 0,0 in Wayland
 
 ### Versions
 

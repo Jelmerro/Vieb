@@ -21,6 +21,7 @@ const {
     cpSync, mkdirSync, readdir, readFileSync, rmSync, unlinkSync
 } = require("node:fs")
 const {dirname, join} = require("node:path")
+
 const defaultConfig = {"config": {
     "appId": "com.github.Jelmerro.vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "

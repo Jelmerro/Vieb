@@ -875,6 +875,7 @@ const permissionHandler = (_, pm, callback, details) => {
     return false
 }
 
+const minWindowSize = 500
 app.whenReady().then(async() => {
     app.userAgentFallback = defaultUseragent()
     const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
@@ -984,8 +985,8 @@ app.whenReady().then(async() => {
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(
-        Math.floor(Math.min(500 / argInterfaceScale, 500)),
-        Math.floor(Math.min(500 / argInterfaceScale, 500)))
+        Math.floor(Math.min(minWindowSize / argInterfaceScale, minWindowSize)),
+        Math.floor(Math.min(minWindowSize / argInterfaceScale, minWindowSize)))
     mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
     mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
@@ -1587,8 +1588,12 @@ const reloadAdblocker = () => {
  */
 const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
-    const blocklists = readJSON(joinPath(
-        __dirname, "blocklists/list.json")) || {}
+    /** @type {Partial<{[key: string]: string}>&import("./util").PartialJSON} */
+    let blocklists = readJSON(joinPath(
+        __dirname, "blocklists/list.json")) ?? {}
+    if (typeof blocklists !== "object" || Array.isArray(blocklists)) {
+        blocklists = {}
+    }
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
@@ -1601,7 +1606,13 @@ const enableAdblocker = type => {
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
         const adblockerNotify = getSetting("adblockernotifications")
-        const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
+        /**
+         * @type {Partial<{[key: string]: string}>&import("./util").PartialJSON}
+         */
+        let extraLists = readJSON(joinPath(blocklistDir, "list.json")) ?? {}
+        if (typeof extraLists !== "object" || Array.isArray(extraLists)) {
+            extraLists = {}
+        }
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
             const url = allBlocklists[list]
@@ -2383,13 +2394,31 @@ ipcMain.on("download-favicon", (_, options) => {
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 
 /**
+ * @typedef {Electron.Rectangle&{
+ *   fullscreen: boolean, maximized: boolean
+ * }} WindowState
+ */
+
+/**
  * Save the current window state, optionally just the maximize/fullscreen state.
  * @param {boolean} statesOnly
  */
 const saveWindowState = (statesOnly = false) => {
     try {
         mainWindow?.webContents?.send("window-update-gui")
-        let state = readJSON(windowStateFile) || {}
+        /** @type {Partial<WindowState>&import("./util").PartialJSON} */
+        const oldState = readJSON(windowStateFile) ?? {}
+        /** @type {Partial<WindowState>} */
+        let state = {}
+        if (typeof oldState.x === "number" && typeof oldState.y === "number") {
+            state.x = oldState.x
+            state.y = oldState.y
+        }
+        if (oldState.width && oldState.width >= minWindowSize
+            && oldState.height && oldState.height >= minWindowSize) {
+            state.width = oldState.width
+            state.height = oldState.height
+        }
         if (!statesOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
             const currentScreen = screen.getDisplayMatching(newBounds).workArea
@@ -2398,13 +2427,15 @@ const saveWindowState = (statesOnly = false) => {
             const halfW = newBounds.width === currentScreen.width / 2
             const halfH = newBounds.height === currentScreen.height / 2
             const halfX = newBounds.x === currentScreen.x / 2
+                && newBounds.x !== 0
             const halfY = newBounds.y === currentScreen.y / 2
+                && newBounds.y !== 0
             if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
                 state = newBounds
             }
         }
-        state.maximized = mainWindow?.isMaximized()
-        state.fullscreen = mainWindow?.fullScreen
+        state.maximized = mainWindow?.isMaximized() ?? false
+        state.fullscreen = mainWindow?.fullScreen ?? false
         writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
@@ -2415,18 +2446,10 @@ ipcMain.on("window-state-init", (_, restore) => {
     if (!mainWindow) {
         return
     }
-    const bounds = {}
-    const parsed = readJSON(windowStateFile)
-    if (parsed) {
-        bounds.x = Number(parsed.x)
-        bounds.y = Number(parsed.y)
-        bounds.width = Number(parsed.width)
-        bounds.height = Number(parsed.height)
-        bounds.maximized = !!parsed.maximized
-        bounds.fullscreen = !!parsed.fullscreen
-    }
+    /** @type {Partial<WindowState>&import("./util").PartialJSON} */
+    const bounds = readJSON(windowStateFile) ?? {}
     if (restore.pos === "restore") {
-        if (bounds.x > 0 && bounds.y > 0) {
+        if (typeof bounds.x === "number" && typeof bounds.y === "number") {
             mainWindow.setPosition(bounds.x, bounds.y)
         }
     } else if (restore.pos !== "default") {
@@ -2434,7 +2457,8 @@ ipcMain.on("window-state-init", (_, restore) => {
         mainWindow.setPosition(nums[0], nums[1])
     }
     if (restore.size === "restore") {
-        if (bounds.width > 500 && bounds.height > 500) {
+        if (bounds.width && bounds.width >= minWindowSize
+            && bounds.height && bounds.height >= minWindowSize) {
             mainWindow.setSize(bounds.width, bounds.height)
         }
     } else if (restore.size !== "default") {

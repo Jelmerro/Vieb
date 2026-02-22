@@ -31,7 +31,6 @@ window.addEventListener("DOMContentLoaded", () => {
         return
     }
     list.textContent = translate("pages.notifications.loading")
-
     /**
      * Show the list of notifications.
      * @param {Electron.IpcRendererEvent} _
@@ -63,6 +62,5 @@ window.addEventListener("DOMContentLoaded", () => {
             list.textContent = translate("pages.notifications.empty")
         }
     }
-
     ipcRenderer.on("notification-history", showNofitications)
 })

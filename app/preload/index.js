@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ require("./actions")
 // Always load follow mode JavaScript
 require("./follow")
 const {pathToSpecialPageName} = require("../util")
+
 const specialPage = pathToSpecialPageName(window.location.href)
 const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
 if (specialPage?.name) {
@@ -37,5 +38,6 @@ if (specialPage?.name) {
     // Load optional plugins and extensions
     require("./extensions")
 }
+
 // Load the custom styling such as colors, fontsizes and darkreader
 require("./styling")

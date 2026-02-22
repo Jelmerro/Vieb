@@ -42,7 +42,6 @@ const loadSponsorblock = () => {
     if (!vid) {
         return
     }
-
     /** Fetch the sponsorblock data from the api. */
     const fetchSponsorBlockData = () => {
         for (const el of previousBlockEls) {
@@ -84,7 +83,6 @@ const loadSponsorblock = () => {
             }
         }).catch(error => console.warn(error))
     }
-
     if (window.location.href.includes("watch?v=")
         && getSetting("sponsorblock")) {
         fetchSponsorBlockData()

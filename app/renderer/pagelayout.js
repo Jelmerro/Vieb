@@ -130,7 +130,6 @@ const applyLayout = () => {
     for (const page of listRealPages()) {
         page.classList.toggle("visible-page", visiblePages.includes(page))
     }
-
     /**
      * Suspend a tab after a timeout, optionally repeating if playing media.
      * @param {HTMLSpanElement} tab
@@ -155,7 +154,6 @@ const applyLayout = () => {
                 () => susCall(tab, linkId, timeout), timeout)
         }
     }
-
     const timeout = getSetting("suspendtimeout")
     for (const tab of listTabs()) {
         const linkId = tab.getAttribute("link-id") ?? ""

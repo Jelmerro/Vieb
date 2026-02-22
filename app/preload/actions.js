@@ -329,14 +329,17 @@ const playbackUp = (x, y) => {
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
+/** @type {Set<number>} */
+const textNodeList = new Set([
+    Node.CDATA_SECTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE
+])
+
 /**
  * Check if a node is a text node.
  * @param {Node} node
  * @returns {node is Text|Comment|CDATASection}
  */
-const isTextNode = node => [
-    Node.CDATA_SECTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE
-].includes(node.nodeType)
+const isTextNode = node => textNodeList.has(node.nodeType)
 
 /**
  * Calculate the offset in characters for a given position in an element.
@@ -357,7 +360,6 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     }
     let properNode = startNode
     let offset = 0
-
     /**
      * Descend down into a node of the tree.
      * @param {Node} baseNode
@@ -374,7 +376,6 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
             return [...range.getClientRects()].find(rect => x >= rect.left
                 && y >= rect.top && x <= rect.right && y <= rect.bottom)
         }
-
         let left = 0
         let right = 0
         if (isTextNode(baseNode)) {
@@ -402,7 +403,6 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
         }
         descendNodeTree(baseNode.childNodes[left])
     }
-
     descendNodeTree(startNode)
     range.detach()
     return {"node": properNode, offset}
@@ -669,10 +669,8 @@ const showTOC = (customStyling, fontsize) => {
     topLink.href = topUrl.href
     topLink.textContent = translate("actions.toc.top")
     toc.append(title, topLink, baseUl)
-
     /** Returns the current taversing depth of the toc. */
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
-
     const headingNames = new Set()
     for (const heading of headings) {
         const depth = Number(heading.tagName[1])
