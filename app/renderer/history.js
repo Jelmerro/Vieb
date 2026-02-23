@@ -24,6 +24,7 @@ const {
     getSetting,
     hasProtocol,
     isFile,
+    isObject,
     joinPath,
     pathToSpecialPageName,
     readJSON,
@@ -32,6 +33,8 @@ const {
     writeJSONAsync
 } = require("../util")
 
+/** @typedef {{visits: string[], title: string}} HistItem */
+
 const histFile = joinPath(appData(), "hist")
 /** @type {{[url: string]: string}} */
 const simpleUrls = {}
@@ -39,12 +42,33 @@ const simpleUrls = {}
 const simpleTitles = {}
 /** @type {NodeJS.Timeout|null} */
 let histWriteTimeout = null
-/** @type {{[url: string]: {visits: string[], title: string}}} */
-let groupedHistory = {}
+/** @type {{[url: string]: HistItem}} */
+const groupedHistory = {}
+
+/**
+ * Validate if an entry in the history is a valid history item.
+ * @param {import("../util").PartialJSON|undefined} item
+ * @returns {item is HistItem}
+ */
+const isValidHistItem = item => {
+    if (isObject(item) && "title" in item && typeof item.title === "string"
+        && "visits" in item && Array.isArray(item.visits)) {
+        return item.visits.every(v => typeof v === "string")
+    }
+    return false
+}
 
 /** Load the history file from disk to memory. */
 const init = () => {
-    groupedHistory = readJSON(histFile) || {}
+    const allHist = readJSON(histFile) || {}
+    if (isObject(allHist)) {
+        for (const key of Object.keys(allHist)) {
+            const histItem = allHist[key]
+            if (isValidHistItem(histItem)) {
+                groupedHistory[key] = histItem
+            }
+        }
+    }
 }
 
 /**

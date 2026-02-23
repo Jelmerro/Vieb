@@ -31,7 +31,7 @@ for (const f of files) {
 
 /**
  * Recursively traverse objects and list all keys as dot-separated values.
- * @param {import("./app/translate").StringOrObject} obj
+ * @param {import("./app/util").StringOrObject} obj
  * @param {string} folder
  */
 const listKeys = (obj, folder = "") => {

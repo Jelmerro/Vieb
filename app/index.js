@@ -45,6 +45,7 @@ const {
     isAbsolutePath,
     isDir,
     isFile,
+    isFlatStringObject,
     joinPath,
     listDir,
     makeDir,
@@ -1319,9 +1320,9 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   total: number,
  *   url: string
  *   uuid: string,
- * }} downloadItem
+ * }} DownloadItem
  */
-/** @type {downloadItem[]} */
+/** @type {DownloadItem[]} */
 let downloads = []
 /** @type {string[]} */
 let redirects = []
@@ -1358,6 +1359,32 @@ const updateRequestHeaders = (_, headers) => {
 ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
 
+/** Cancel all downloads immediately. */
+const cancellAllDownloads = () => {
+    for (const download of downloads) {
+        try {
+            if (download.state !== "completed") {
+                download.state = "cancelled"
+            }
+            download.item.cancel()
+        } catch {
+            // Download was already removed or is already done
+        }
+    }
+}
+
+/**
+ * Check if an element in the download file is actually a download info object.
+ * @param {import("./util").PartialJSON|undefined} d
+ * @returns {d is DownloadItem}
+ */
+const isDownloadObject = d => {
+    if (!d || typeof d !== "object") {
+        return false
+    }
+    return "state" in d
+}
+
 /**
  * Update download settings.
  * @param {Electron.IpcMainInvokeEvent} _
@@ -1374,14 +1401,12 @@ const setDownloadSettings = (_, settings) => {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            /** @type {downloadItem[]} */
+            /** @type {Partial<DownloadItem[]>|import("./util").PartialJSON} */
             const downloadsFile = readJSON(dlsFile) ?? []
-            downloads = downloadsFile.map(d => {
-                if (d.state !== "completed") {
-                    d.state = "cancelled"
-                }
-                return d
-            }) || []
+            if (Array.isArray(downloadsFile)) {
+                downloads = downloadsFile.filter(v => isDownloadObject(v))
+                cancellAllDownloads()
+            }
         }
     }
     downloadSettings = settings
@@ -1588,11 +1613,12 @@ const reloadAdblocker = () => {
  */
 const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
-    /** @type {Partial<{[key: string]: string}>&import("./util").PartialJSON} */
-    let blocklists = readJSON(joinPath(
-        __dirname, "blocklists/list.json")) ?? {}
-    if (typeof blocklists !== "object" || Array.isArray(blocklists)) {
-        blocklists = {}
+    /** @type {{[property: string]: string}} */
+    let blocklists = {}
+    const blocklistFileData = readJSON(joinPath(
+        __dirname, "blocklists/list.json"))
+    if (isFlatStringObject(blocklistFileData)) {
+        blocklists = blocklistFileData
     }
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
@@ -1606,12 +1632,12 @@ const enableAdblocker = type => {
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
         const adblockerNotify = getSetting("adblockernotifications")
-        /**
-         * @type {Partial<{[key: string]: string}>&import("./util").PartialJSON}
-         */
-        let extraLists = readJSON(joinPath(blocklistDir, "list.json")) ?? {}
-        if (typeof extraLists !== "object" || Array.isArray(extraLists)) {
-            extraLists = {}
+        /** @type {{[property: string]: string}} */
+        let extraLists = {}
+        const extralistFileData = readJSON(joinPath(
+            blocklistDir, "list.json")) ?? {}
+        if (isFlatStringObject(extralistFileData)) {
+            extraLists = extralistFileData
         }
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
@@ -1949,7 +1975,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 return
             }
         }
-        /** @type {downloadItem} */
+        /** @type {DownloadItem} */
         const info = {
             "current": 0,
             "date": new Date(),
@@ -2338,22 +2364,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         })
     })
 })
-
-/** Cancel all downloads immediately. */
-const cancellAllDownloads = () => {
-    for (const download of downloads) {
-        try {
-            if (download.state !== "completed") {
-                download.state = "cancelled"
-            }
-            download.item.cancel()
-        } catch {
-            // Download was already removed or is already done
-        }
-    }
-    writeDownloadsToFile()
-}
-
 ipcMain.on("download-favicon", (_, options) => {
     const customSession = webContents.fromId(options.webId)?.session
         ?? session.defaultSession
@@ -2534,6 +2544,7 @@ ipcMain.on("open-internal-devtools",
     () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
+    writeDownloadsToFile()
     mainWindow?.destroy()
 })
 ipcMain.handle("run-isolated-js-head-check", (_, id) => webContents.fromId(id)

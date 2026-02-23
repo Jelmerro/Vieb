@@ -4,13 +4,13 @@ const {
     getAppRootDir,
     getSetting,
     isFile,
+    isNestedStringObject,
     joinPath,
     listDir,
     readJSON
 } = require("./util")
 
-/** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */
-/** @type {StringOrObject} */
+/** @type {import("./util").StringOrObject} */
 const translations = {}
 const safeElements = new Set([
     "#text",
@@ -43,7 +43,7 @@ const validLanguages = () => {
 /**
  * Load a translation language from disk.
  * @param {string} lang
- * @throws {Error} When the language key is invalid.
+ * @throws {Error} When the language key is invalid or its language file broken.
  */
 const loadLang = lang => {
     if (translations[lang]) {
@@ -51,7 +51,12 @@ const loadLang = lang => {
     }
     const filePath = joinPath(getAppRootDir(), "translations", `${lang}.json`)
     if (validLanguages().includes(lang) && isFile(filePath)) {
-        translations[lang] = readJSON(filePath)
+        const tr = readJSON(filePath) ?? {}
+        if (isNestedStringObject(tr)) {
+            translations[lang] = tr
+        } else {
+            throw new Error(`Language file ${lang} contains errors`)
+        }
     } else {
         throw new Error(`Language ${lang} not found`)
     }
@@ -62,11 +67,17 @@ const loadLang = lang => {
  * @param {import("../types/i18n").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
  * @returns {string}
+ * @throws {Error} When the English language file is not valid.
  */
 const translate = (id, {customLang = null, fields = []} = {}) => {
     if (!translations.en) {
         const filePath = joinPath(getAppRootDir(), "translations/en.json")
-        translations.en = readJSON(filePath)
+        const tr = readJSON(filePath) ?? {}
+        if (isNestedStringObject(tr)) {
+            translations.en = tr
+        } else {
+            throw new Error("Language file en contains errors")
+        }
     }
     const currentLang = customLang ?? getSetting("lang")
     if (!translations[currentLang]) {

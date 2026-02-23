@@ -24,6 +24,8 @@ const {
     getAppRootDir,
     getSetting,
     isFile,
+    isFlatStringObject,
+    isNestedStringObject,
     joinPath,
     listDirAsync,
     makeDir,
@@ -314,8 +316,15 @@ const show = webview => {
 /** Initialize/load the favicon cache in memory and register event handlers. */
 const init = () => {
     const parsed = readJSON(mappingFile)
-    if (parsed) {
-        mappings = parsed
+    if (isNestedStringObject(parsed) && typeof parsed === "object") {
+        const {redirects} = parsed
+        delete parsed.redirects
+        if (isFlatStringObject(parsed)) {
+            mappings = parsed
+        }
+        if (isFlatStringObject(redirects)) {
+            mappings.redirects = redirects
+        }
     }
     isParsed = true
     const {ipcRenderer} = require("electron")

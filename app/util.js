@@ -449,6 +449,35 @@ const framePosition = frame => ({
 })
 
 /**
+ * Check if anything inside a JSON structure is an object.
+ * @param {import("./util").PartialJSON|undefined} o
+ * @returns {o is import("./util").PartialJSONObject}
+ */
+const isObject = o => o && typeof o === "object" && !Array.isArray(o) || false
+
+/** @typedef {string|{[property: string]: StringOrObject}} StringOrObject */
+
+/**
+ * Check if an object only has string values, possibly nested in sub objects.
+ * @param {import("./util").PartialJSON|undefined} item
+ * @returns {item is {[property: string]: string}}
+ */
+const isFlatStringObject = item => isObject(item)
+    && Object.values(item).every(v => typeof v === "string")
+
+/**
+ * Check if an object only has string values, possibly nested in sub objects.
+ * @param {import("./util").PartialJSON|undefined} item
+ * @returns {item is StringOrObject}
+ */
+const isNestedStringObject = item => {
+    if (isObject(item)) {
+        return Object.values(item).every(v => isNestedStringObject(v))
+    }
+    return typeof item === "string"
+}
+
+/**
  * Check if a node is an element, taking subframes into account.
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is Element}
@@ -1254,7 +1283,7 @@ const deleteFile = loc => {
 }
 
 /**
- * Make a directory at a location, optionally with feedback notifications.
+ * Make a directory at a location, returns success state.
  * @param {string} loc
  */
 const makeDir = loc => {
@@ -1624,6 +1653,7 @@ module.exports = {
     isDir,
     isElement,
     isFile,
+    isFlatStringObject,
     isHTMLAnchorElement,
     isHTMLAudioElement,
     isHTMLElement,
@@ -1632,6 +1662,8 @@ module.exports = {
     isHTMLLinkElement,
     isHTMLVideoElement,
     isInputOrTextElement,
+    isNestedStringObject,
+    isObject,
     isSVGElement,
     isUrl,
     isValidIntervalValue,

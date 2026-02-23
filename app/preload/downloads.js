@@ -56,7 +56,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Add a download to the list.
- * @param {import("../index").downloadItem} download
+ * @param {import("../index").DownloadItem} download
  */
 const addDownload = download => {
     const element = document.createElement("div")
@@ -146,7 +146,7 @@ const addDownload = download => {
 
 /**
  * Update a download element with new data.
- * @param {import("../index").downloadItem} download
+ * @param {import("../index").DownloadItem} download
  * @param {Element} element
  */
 const updateDownload = (download, element) => {
@@ -250,7 +250,7 @@ const updateDownload = (download, element) => {
  * @param {string} l
  */
 const generateDownloadList = (_, l) => {
-    /** @type {import("../index").downloadItem[]} */
+    /** @type {import("../index").DownloadItem[]} */
     const list = JSON.parse(l).toReversed()
     // List
     if (list.length === 0) {

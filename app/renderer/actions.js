@@ -48,6 +48,7 @@ const {
     getSetting,
     isDir,
     isFile,
+    isFlatStringObject,
     isUrl,
     joinPath,
     makeDir,
@@ -1653,14 +1654,20 @@ const runRecording = args => {
     if (!args.key) {
         return
     }
-    const recording = readJSON(joinPath(appData(), "recordings"))?.[args.key]
-    if (recording) {
-        setTimeout(() => {
-            const {executeMapString, sanitiseMapString} = require("./input")
-            executeMapString(sanitiseMapString(args.src, recording, true),
-                true, {"initial": true, "src": args.src})
-        }, 5)
+    const recordings = readJSON(joinPath(appData(), "recordings"))
+    if (!isFlatStringObject(recordings)) {
+        return
     }
+    const recording = recordings[args.key]
+    if (!recording) {
+        return
+    }
+    setTimeout(() => {
+        const {executeMapString, sanitiseMapString} = require("./input")
+        executeMapString(sanitiseMapString(
+            args.src, recording, true),
+        true, {"initial": true, "src": args.src})
+    }, 5)
 }
 
 /**
@@ -1682,7 +1689,12 @@ const stopRecording = () => {
     if (!record) {
         return
     }
-    const recordings = readJSON(joinPath(appData(), "recordings")) ?? {}
+    /** @type {{[property: string]: string}} */
+    let recordings = {}
+    const recordingFileData = readJSON(joinPath(appData(), "recordings"))
+    if (isFlatStringObject(recordingFileData)) {
+        recordings = recordingFileData
+    }
     recordings[record.name] = record.string
     writeJSON(joinPath(appData(), "recordings"), recordings)
 }
