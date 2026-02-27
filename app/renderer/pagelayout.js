@@ -388,9 +388,9 @@ const exchange = () => {
         }
     } else {
         newId = current?.nextElementSibling?.getAttribute("link-id")
-        if (current && current.nextElementSibling?.nextElementSibling) {
+        if (current) {
             parent?.insertBefore(current,
-                current.nextElementSibling.nextElementSibling)
+                current?.nextElementSibling?.nextElementSibling ?? null)
         }
     }
     const tab = listTabs().find(t => t.getAttribute("link-id") === newId)

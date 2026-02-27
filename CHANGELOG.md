@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Empty URLs from being opened if a new window is attempted to be opened
 - Mouse option "history" always being on for events forwarded from inside the page
 - Wayland window sizes not being stored as the position is always 0,0 in Wayland
+- Action exchangeSplitWindow not working well when the first split is selected
 
 ### Versions
 
