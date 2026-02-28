@@ -1,0 +1,94 @@
+/*
+* Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2022-2025 Jelmer van Arnhem
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/* colors */
+:root {
+    /* general */
+    --bg: #eee;
+    --fg: #333;
+    --tab-background: #ddd;
+    --tab-suspended: #777;
+    --visible-tab: #fff;
+    --tab-crashed: #faa;
+    --mode-normal-fg: #333;
+    --mode-insert-fg: #0c0;
+    --mode-explore-fg: #0cc;
+    --mode-search-fg: #fb0;
+    --url-default: #ddd;
+    --url-search: #f80;
+    --url-searchwords: #f5f;
+    --url-url: #08f;
+    --url-suggest: #0c0;
+    --url-file: #fb0;
+    --suggestions-border: #eee;
+    --suggestions-bg: #ddd;
+    --suggestions-selected: #fff;
+    --suggestions-url: #08f;
+    --suggestions-file: #f80;
+    --notification-border: #aaa;
+    --notification-date: #777;
+    --notification-permission: #777;
+    --notification-error: #f33;
+    --notification-warning: #f80;
+    --notification-info: #08f;
+    --notification-success: #0c0;
+    /* special pages */
+    --link-color: #08f;
+    --link-underline: #0df;
+    --scrollbar-bg: #fff;
+    --scrollbar-thumb: #aaa7;
+    --button-disabled: #777;
+    --code-fg: #000;
+    --code-bg: #fff;
+    --special-page-element-bg: #ddd;
+    --special-page-element-border: #aaa;
+    --input-unfocused: #aaa;
+    --input-focused: #666;
+    --download-progress-fg: #fff;
+    --download-progress-bg: #eee;
+    --helppage-countable: #0c0;
+    /* sourceviewer */
+    --syntax-keyword: #d45;
+    --syntax-entity: #74c;
+    --syntax-constant: #06c;
+    --syntax-string: #036;
+    --syntax-variable: #e60;
+    --syntax-comment: #777;
+    --syntax-entity-tag: #284;
+    --syntax-markup-heading: #06c;
+    --syntax-markup-list: #760;
+    --syntax-markup-emphasis: #233;
+    --syntax-markup-addition-fg: #284;
+    --syntax-markup-addition-bg: #efe;
+    --syntax-markup-deletion-fg: #b22;
+    --syntax-markup-deletion-bg: #fee;
+}
+
+/* general */
+#tabs .status {filter: invert(.4);}
+
+/* special pages */
+#app #pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
+.specialpage a::after {filter: invert(1);}
+#helppage .cheatsheet {filter: none;}
+#historypage img.favicon {filter: none;}
+
+/* numbered tabs */
+#tabs, #navbar {counter-reset: tab-counter -1;}
+#tabs > ::before {counter-increment: tab-counter 1;content: counter(tab-counter) ". ";margin: auto 0;}
+#tabs [media-playing]::before {margin: 0 !important;}
+#tabs .pinned {min-width: 3em !important;}
