@@ -1,8 +1,8 @@
 [Adblock Plus 1.1]
-! Checksum: m+gAq4VuJvmFDWTeBCc9DQ
-! Version: 202602271401
+! Checksum: ApPzUVu+aiKQ226Bilao5Q
+! Version: 202603021421
 ! Title: EasyPrivacy
-! Last modified: 27 Feb 2026 14:01 UTC
+! Last modified: 02 Mar 2026 14:21 UTC
 ! Expires: 1 days (update frequency)
 ! Homepage: https://easylist.to/
 ! Licence: https://easylist.to/pages/licence.html
@@ -2137,6 +2137,7 @@
 /silveregg/js/cookie_lib.js
 /simple_reach.js
 /simtracker.min.js
+/site24x7rum-min.js
 /site_statistics.js
 /site_stats.js
 /site_stats/*
@@ -3269,6 +3270,7 @@ _WebVitalsReporter_
 /email/open?
 /email_open_log_
 /emailopen?q=$image
+/emailtrack.offers-exchange.com/*$image
 /emimp/*$image
 /engage.indeed.com/*$image
 /eo?_t=$image
@@ -8483,6 +8485,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||concert.io/lookup/
 ||conde.io/beacon
 ||condenastdigital.com/content?$third-party
+||conduit.redfast.com^
 ||confiant-integrations.global.ssl.fastly.net^
 ||config-security.com/event
 ||confirmit.com/wix/inline.aspx?
@@ -8650,6 +8653,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||doppiocdn.org/healthcheck
 ||doppler-beacon.cbsivideo.com^
 ||doppler-client-events.cbsivideo.com^
+||doppler-config.cbsivideo.com^
 ||doppler-reporting.cbsivideo.com^
 ||dotaudiences.com^$third-party
 ||drift.com/impressions/
@@ -8823,6 +8827,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||feedblitz.com/imp?$third-party
 ||feedblitz.com^*.gif?$third-party
 ||feedify.net/thirdparty/json/track/
+||fem.gprod.postmedia.digital/*/IIQUniversalID.js
 ||fgip.rosehosting.com^
 ||filament-stats.herokuapp.com^
 ||files.envoke.com^*_nvk_tracking.js
@@ -10291,6 +10296,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||tr.thecontentserver.com^
 ||tr.vitals.co^
 ||tr.webantenna.info^
+||tr6.snapchat.com^
 ||tra.scds.pmdstatic.net/sourcepoint/
 ||traccoon.intellectsoft.net^
 ||trace.swaven.com^
@@ -10599,6 +10605,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||vs4.com/impr.php?
 ||vst.sibnet.ru^
 ||vstat.borderlessbd.com^
+||vtrk.dv.tech^
 ||vuukle.com/bq-publish?
 ||vuukle.com/getGeo
 ||vvhp.net/read/view.gif
@@ -12441,6 +12448,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||arttrk.com/pixel/
 ||as.coinbase.com/metrics
 ||asanalytics.booking.com^
+||asb.co.nz/analytics/
 ||asset.d5techs.com/script/track.min.js
 ||asset.d5techs.com/script/utm.min.js
 ||assets.engoo-static.com/tracking.js
@@ -13099,6 +13107,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||imagetwistcams.com/pixel/
 ||imdb.com/api/_ajax/metrics/
 ||imf.org/Assets/IMF/js/SocialScript.js
+||img.konami.com/games/s/common/js/analytics.js
 ||imgur.com/albumview.gif?
 ||imgur.com/imageview.gif?
 ||immoweb.be/*/track/
@@ -13244,6 +13253,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||lnkd.in/li/track
 ||load.tm.all3dp.com/rqlevydw.js
 ||log-gateway.zoom.us^
+||log.arkansasonline.com^
 ||log.china.cn^
 ||log.genyt.net^
 ||log.hypebeast.com^
@@ -13759,6 +13769,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||sp.ecosia.org^
 ||sp.justwatch.com^
 ||sp.pcoptimum.ca^
+||sp.pluto.tv^
 ||sp.welcometothejungle.com^
 ||spaning.creavite.co^
 ||spanishdict.com/page-view-metadata
@@ -17443,6 +17454,7 @@ $csp=child-src 'none'; frame-src *; worker-src 'none',domain=thepiratebay.org|vi
 ! ||sstats.bitdefender.com^
 ! ||target.microsoft.com^
 ! ||aamt.msnbc.com^
+! ||visit.asb.co.nz^
 !
 ||0tfsd2rwwu3xjstb.edge41.testandtarget.omniture.com^
 ||1ps6e7sort397gy9.edge46.testandtarget.omniture.com^
@@ -26955,7 +26967,6 @@ $csp=child-src 'none'; frame-src *; worker-src 'none',domain=thepiratebay.org|vi
 ||ut.upmc.com^
 ||value.register.com^
 ||vdmwntw1of9t8xgd.edge41.testandtarget.omniture.com^
-||visit.asb.co.nz^
 ||visitor.novartisoncology.us^
 ||visualscience.external.bbc.co.uk^
 ||vs.target.com^
@@ -52693,6 +52704,7 @@ $csp=child-src 'none'; frame-src *; worker-src 'none',domain=thepiratebay.org|vi
 @@||api.useinsider.com/api/web/$xmlhttprequest
 @@||api.vk.com/method/statEvents.$~third-party
 @@||api.zeeg.me/api/analytics/events/$~third-party
+@@||asb.co.nz.ssl.d2.sc.omtrdc.net^$xmlhttprequest,domain=asb.co.nz
 @@||assets.fyers.in/Lib/analytics/Analytics.js$~third-party
 @@||assets.msn.com/staticsb/statics/latest/adboxes/$script,~third-party
 @@||assets.yasno.live/packs/assets/analytics-events-$script,~third-party
@@ -52723,6 +52735,7 @@ $csp=child-src 'none'; frame-src *; worker-src 'none',domain=thepiratebay.org|vi
 @@||cdn.facil-iti.app/tags/faciliti-tag.min.js$script,domain=apec.fr|kyoto.travel
 @@||cdn.getblueshift.com/blueshift.js$script,domain=rentcafe.com
 @@||cdn.heapanalytics.com^$script,domain=libertymutual.com
+@@||cdn.intellimize.co/snippet/$script,domain=talkspace.com
 @@||cdn.jsdelivr.net^*/fp.min.js$script,domain=cuevana2.io
 @@||cdn.matomo.cloud/tekuchi.matomo.cloud/matomo.js$domain=berkeleygroup.digital
 @@||cdn.mxpnl.com/libs/$script,domain=get.pumpkin.care

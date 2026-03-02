@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- 2026 edition of ublock to the default adblocker lists
+
+### Versions
+
+- Electron 40.6.1 (unchanged)
+- Chromium 144.0.7559.220 (unchanged)
+
 ## [12.7.0](https://github.com/Jelmerro/Vieb/compare/12.6.0...12.7.0) - 2026-02-27
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.6.0...12.7.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.7.0)
