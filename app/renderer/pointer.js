@@ -1144,8 +1144,7 @@ const init = () => {
     })
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {
         if (process.platform === "linux" || process.platform.includes("bsd")) {
-            const {clipboard} = require("electron")
-            clipboard.writeText(selectInfo.text, "selection")
+            ipcRenderer.invoke("write-clipboard", selectInfo.text, "selection")
         }
         if (selectInfo.toinsert) {
             if (getMouseConf("toinsert")) {

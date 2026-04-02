@@ -302,11 +302,10 @@ const commonAction = (src, type, action, options) => {
     if (!relevantData) {
         return
     }
-    const {clipboard} = require("electron")
     const {add} = require("./pagelayout")
     const {addTab} = require("./tabs")
     if (action === "copyimage") {
-        clipboard.clear()
+        ipcRenderer.sendSync("clear-clipboard")
         const el = document.createElement("img")
         const canvas = document.createElement("canvas")
         /** Once the image is loaded, draw it to a canvas, then copy. */
@@ -314,9 +313,8 @@ const commonAction = (src, type, action, options) => {
             canvas.width = el.naturalWidth
             canvas.height = el.naturalHeight
             canvas.getContext("2d")?.drawImage(el, 0, 0)
-            const {nativeImage} = require("electron")
-            clipboard.writeImage(nativeImage.createFromDataURL(
-                canvas.toDataURL("image/png")))
+            ipcRenderer.invoke("write-clipboard",
+                canvas.toDataURL("image/png"), "dataurl")
         })
         el.src = relevantData
         return
@@ -339,7 +337,7 @@ const commonAction = (src, type, action, options) => {
                 urlData = stringToUrl(relevantData)
             }
         }
-        clipboard.writeText(urlData)
+        ipcRenderer.invoke("write-clipboard", urlData)
     } else if (action === "download") {
         const {updateDownloadSettings} = require("./settings")
         updateDownloadSettings(src).then(() => {
@@ -438,7 +436,6 @@ const viebMenu = (src, options, force = false) => {
     clear()
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`
-    const {clipboard} = require("electron")
     const {
         backInHistory,
         forwardInHistory,
@@ -494,7 +491,7 @@ const viebMenu = (src, options, force = false) => {
                 "title": translate("contextmenu.text.copy")
             })
         }
-        if (clipboard.readText().trim()) {
+        if (ipcRenderer.sendSync("read-clipboard").trim()) {
             createMenuItem({
                 /** Menu item: Paste. */
                 "action": () => {
@@ -605,7 +602,7 @@ const viebMenu = (src, options, force = false) => {
         })
         createMenuItem({
             /** Menu item: Copy url. */
-            "action": () => clipboard.writeText(urlToString(
+            "action": () => ipcRenderer.invoke("write-clipboard", urlToString(
                 page.getAttribute("src") ?? "").replace(/ /g, "%20")),
             "title": translate("contextmenu.tab.copy")
         })
@@ -685,10 +682,8 @@ const linkMenu = (src, options) => {
     })
     createMenuItem({
         /** Menu item: Link to clipboard. */
-        "action": () => {
-            const {clipboard} = require("electron")
-            clipboard.writeText(urlToString(options.link).replace(/ /g, "%20"))
-        },
+        "action": () => ipcRenderer.invoke("write-clipboard",
+            urlToString(options.link).replace(/ /g, "%20")),
         "title": translate("contextmenu.general.copy")
     })
     createMenuItem({
@@ -746,10 +741,7 @@ const commandMenu = (src, options) => {
     })
     createMenuItem({
         /** Menu item: Copy the command. */
-        "action": () => {
-            const {clipboard} = require("electron")
-            clipboard.writeText(options.command)
-        },
+        "action": () => ipcRenderer.invoke("write-clipboard", options.command),
         "title": translate("contextmenu.general.copy")
     })
     fixAlignmentNearBorders()
@@ -789,7 +781,6 @@ const webviewMenu = (src, options, force = false) => {
     if (!page || page.isCrashed()) {
         return
     }
-    const {clipboard} = require("electron")
     const {backInHistory, forwardInHistory, refreshTab} = require("./actions")
     const containerPos = pageContainerPos()
     const webviewY = propPixels(page.style, "top") + containerPos.top
@@ -913,7 +904,7 @@ const webviewMenu = (src, options, force = false) => {
             "title": translate("contextmenu.text.copy")
         })
     }
-    if (options.canEdit && clipboard.readText().trim()) {
+    if (options.canEdit && ipcRenderer.sendSync("read-clipboard").trim()) {
         createMenuItem({
             /** Menu item: Paste text from clipboard at the pointed location. */
             "action": () => sendToPageOrSubFrame("action", "selectionPaste",

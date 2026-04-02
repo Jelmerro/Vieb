@@ -1372,8 +1372,7 @@ const screencopy = (src, args) => {
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            const {clipboard, nativeImage} = require("electron")
-            clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
+            ipcRenderer.invoke("write-clipboard", img.toPNG(), "buffer")
         })
     }, 20)
 }

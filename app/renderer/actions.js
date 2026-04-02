@@ -40,7 +40,7 @@
  * }} Quickmarks
  */
 
-const {clipboard, ipcRenderer} = require("electron")
+const {ipcRenderer} = require("electron")
 const {
     appData,
     domainName,
@@ -1457,7 +1457,7 @@ const pageRSSLinkToClipboard = async args => {
     }
     const feedkey = !Number.isNaN(Number(args.key)) && Number(args.key) || 0
     const feedUrl = feedUrls[feedkey] ?? ""
-    clipboard.writeText(feedUrl)
+    ipcRenderer.invoke("write-clipboard", feedUrl)
     notify({
         "fields": [feedUrl],
         "id": "actions.rss.clipboard",
@@ -1467,46 +1467,48 @@ const pageRSSLinkToClipboard = async args => {
 }
 
 /** Copy the current page url to the system clipboard. */
-const pageToClipboard = () => clipboard.writeText(getPageUrl())
+const pageToClipboard = () => ipcRenderer.invoke(
+    "write-clipboard", getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
 const pageTitleToClipboard = () => {
     const {getPageTitle} = require("./command")
-    clipboard.writeText(getPageTitle())
+    ipcRenderer.invoke("write-clipboard", getPageTitle())
 }
 
 /** Copy the current page to the system clipboard formatted as HTML. */
 const pageToClipboardHTML = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`<a href="${url}">${title}</a>`)
+    ipcRenderer.invoke("write-clipboard", `<a href="${url}">${title}</a>`)
 }
 
 /** Copy the current page to the system clipboard formatted as Markdown. */
 const pageToClipboardMarkdown = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`[${title}](${url})`)
+    ipcRenderer.invoke("write-clipboard", `[${title}](${url})`)
 }
 
 /** Copy the current page to the system clipboard formatted as RST. */
 const pageToClipboardRST = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`\`${title} <${url}>\`_`)
+    ipcRenderer.invoke("write-clipboard", `\`${title} <${url}>\`_`)
 }
 
 /** Copy the current page to the system clipboard formatted as Emacs. */
 const pageToClipboardEmacs = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`[[${url}][${title}]]`)
+    ipcRenderer.invoke("write-clipboard", `[[${url}][${title}]]`)
 }
 
 /** Paste the contents of the clipboard into the page programmatically. */
 const pasteText = () => {
     if (currentMode() === "insert") {
-        sendToPageOrSubFrame("action", "paste", clipboard.readText())
+        sendToPageOrSubFrame("action", "paste",
+            ipcRenderer.sendSync("read-clipboard"))
     } else {
         const {typeCharacterIntoNavbar} = require("./input")
         typeCharacterIntoNavbar("<C-v>")
@@ -1518,9 +1520,10 @@ const pasteText = () => {
  * @param {ActionParam} args
  */
 const openFromClipboard = args => {
-    if (clipboard.readText().trim()) {
+    const text = ipcRenderer.sendSync("read-clipboard").trim()
+    if (text) {
         const {navigateTo} = require("./tabs")
-        navigateTo(args.src, stringToUrl(clipboard.readText()))
+        navigateTo(args.src, stringToUrl(text))
     }
 }
 

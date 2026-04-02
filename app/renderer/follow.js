@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {clipboard, ipcRenderer} = require("electron")
+const {ipcRenderer} = require("electron")
 const {getSetting} = require("../util")
 const {
     currentMode,
@@ -681,7 +681,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                     "url": link.url
                 })
             } else if (followLinkDestination === "copylink") {
-                clipboard.writeText(link.url)
+                ipcRenderer.invoke("write-clipboard", link.url)
             } else {
                 const currentTabId = currentTab()?.getAttribute("link-id")
                 addTab({

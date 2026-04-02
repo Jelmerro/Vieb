@@ -1081,8 +1081,7 @@ const cutInput = (event = null) => {
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
-    const {clipboard} = require("electron")
-    clipboard.writeText(selection)
+    ipcRenderer.invoke("write-clipboard", selection)
     const url = getUrl()
     if (!url) {
         return
@@ -1105,8 +1104,7 @@ const copyInput = (event = null) => {
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
-    const {clipboard} = require("electron")
-    clipboard.writeText(selection)
+    ipcRenderer.invoke("write-clipboard", selection)
 }
 
 /**
@@ -1121,8 +1119,7 @@ const pasteInput = (event = null) => {
     }
     const cur = Number(url.selectionStart)
     const end = Number(url.selectionEnd)
-    const {clipboard} = require("electron")
-    const pastedText = clipboard.readText()
+    const pastedText = ipcRenderer.sendSync("read-clipboard")
     url.value = url.value.slice(0, cur) + pastedText + url.value.slice(end)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
     requestSuggestUpdate()

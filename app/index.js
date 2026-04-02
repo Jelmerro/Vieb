@@ -20,9 +20,11 @@
 const {
     app,
     BrowserWindow,
+    clipboard,
     desktopCapturer,
     dialog,
     ipcMain,
+    nativeImage,
     nativeTheme,
     net,
     screen,
@@ -2601,7 +2603,25 @@ ipcMain.handle("make-default-app", () => {
     app.setAsDefaultProtocolClient("http")
     app.setAsDefaultProtocolClient("https")
 })
-// Operations below are sync
+ipcMain.on("clear-clipboard", e => {
+    e.returnValue = clipboard.clear()
+})
+ipcMain.on("read-clipboard", e => {
+    e.returnValue = clipboard.readText()
+})
+ipcMain.handle("write-clipboard", (_, data, type = "text") => {
+    if (type === "dataurl") {
+        clipboard.writeImage(nativeImage.createFromDataURL(data))
+    } else if (type === "buffer") {
+        clipboard.writeImage(nativeImage.createFromBuffer(data))
+    } else if (type === "image") {
+        clipboard.writeImage(data)
+    } else if (type === "selection") {
+        clipboard.writeText(data, "selection")
+    } else {
+        clipboard.writeText(data)
+    }
+})
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
     for (const ses of sessionList) {
