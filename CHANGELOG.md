@@ -16,6 +16,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - 2026 edition of ublock to the default adblocker lists
+- Setting "useragentsys" to control the operating system platform for useragent etc.
+
+### Changed
+
+- Useragent system variable to be dynamic based on "useragentsys"
+
+### Fixed
+
+- Useragent for Windows being slightly off if using "%sys"
 
 ### Versions
 

@@ -20,15 +20,14 @@
 
 const {contextBridge, ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {getSetting} = require("../util")
+const {
+    getSetting, userAgentPlatform, userAgentResolvedSystem
+} = require("../util")
 
-let firefoxPlatformString = "Linux x86_64"
-if (process.platform === "win32") {
-    firefoxPlatformString = "Win32"
-}
-if (process.platform === "darwin") {
-    firefoxPlatformString = "MacIntel"
-}
+const platformString = userAgentPlatform()
+const oscpuString = {
+    "linux": "Linux x86_64", "mac": "MacIntel", "windows": "Win32"
+}[userAgentResolvedSystem()]
 
 /**
  * Send a notification to the renderer thread.
@@ -133,9 +132,10 @@ contextBridge.executeInMainWorld({
 
 /**
  * Run privacy overrides function inside the main window.
+ * @param {string} oscpu
  * @param {string} platform
  */
-const privacyOverrides = platform => {
+const privacyOverrides = (oscpu, platform) => {
     /**
      * Override privacy sensitive APIs with empty or simple defaults.
      * @param {(Window & typeof globalThis)|null} customScope
@@ -179,13 +179,16 @@ const privacyOverrides = platform => {
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "doNotTrack", {"get": (() => "unspecified").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
-                "oscpu", {"get": (() => platform).bind(null)})
+                "oscpu", {"get": (() => oscpu).bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "productSub", {"get": (() => "20100101").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "vendor", {"get": (() => "").bind(null)})
             scope.Object.defineProperty(scope, "chrome", {})
         }
+        // Override the system platform to one set by useragentsys
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "platform", {"get": (() => platform).bind(null)})
         // Don't share the connection information
         scope.Object.defineProperty(scope.Navigator.prototype,
             // eslint-disable-next-line unicorn/no-useless-undefined
@@ -264,7 +267,7 @@ const privacyOverrides = platform => {
 }
 
 contextBridge.executeInMainWorld({
-    "args": [firefoxPlatformString],
+    "args": [oscpuString, platformString],
     "func": privacyOverrides
 })
 

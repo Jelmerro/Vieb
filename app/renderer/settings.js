@@ -413,6 +413,8 @@ const defaultSettings = {
     "translateurl": "https://api-free.deepl.com/v2/",
     /** @type {string[]} */
     "useragent": [],
+    /** @type {"auto"|"windows"|"mac"|"linux"} */
+    "useragentsys": "auto",
     "userscript": false,
     "userscriptscope": ["page"],
     "userstyle": false,
@@ -625,6 +627,7 @@ const validOptions = {
         "uk",
         "zh"
     ],
+    "useragentsys": ["auto", "windows", "mac", "linux"],
     "windowfullscreen": ["true", "false", "restore"],
     "windowmaximize": ["true", "false", "restore"]
 }
@@ -2214,9 +2217,9 @@ const set = (src, setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
-        if (setting === "useragent" && typeof value === "string") {
+        if (setting.startsWith("useragent") && typeof value === "string") {
             ipcRenderer.sendSync("override-global-useragent",
-                userAgentTemplated(value.split("~")[0]))
+                userAgentTemplated(allSettings.useragent[0]))
         }
         if (setting === "guifontsize") {
             updateCustomStyling()

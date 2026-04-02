@@ -53,6 +53,7 @@ const {
     readJSON,
     rm,
     specialChars,
+    userAgentResolvedSystem,
     watchFile,
     writeFile,
     writeJSON
@@ -478,7 +479,6 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     writeJSON(prefFile, preferences)
 }
 
-// https://github.com/electron/electron/issues/30201
 if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
@@ -1691,6 +1691,11 @@ const enableAdblocker = type => {
     }
 }
 
+/** Return the system matching sec-ch-ua-platform client hint platform. */
+const clientHintPlatform = () => ({
+    "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
+}[userAgentResolvedSystem()])
+
 ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
@@ -1719,6 +1724,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
+    newSess.setUserAgent(app.userAgentFallback)
     newSess.registerPreloadScript({
         "filePath": joinPath(__dirname, "preload/index.js"),
         "type": "service-worker"
@@ -1907,6 +1913,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 delete headers[head.replace(/$-/, "")]
             } else {
                 headers[head] = requestHeaders[head]
+            }
+        }
+        for (const head of Object.keys(headers)) {
+            if (head.toLowerCase() === "sec-ch-ua-platform") {
+                headers[head] = clientHintPlatform()
             }
         }
         return callback({"cancel": false, "requestHeaders": headers})
@@ -2593,6 +2604,9 @@ ipcMain.handle("make-default-app", () => {
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
+    for (const ses of sessionList) {
+        session.fromPartition(ses).setUserAgent(app.userAgentFallback)
+    }
     e.returnValue = null
 })
 ipcMain.on("app-config", e => {

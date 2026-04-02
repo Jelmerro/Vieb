@@ -22,6 +22,7 @@ const {translate} = require("../translate")
 const {
     appConfig,
     appData,
+    defaultUseragent,
     deleteFile,
     getSetting,
     hasProtocol,
@@ -132,7 +133,7 @@ const rerollUserAgent = webview => {
             agents.at(Math.random() * agents.length) ?? "")
         webview.setUserAgent(agent)
     } else {
-        webview.setUserAgent("")
+        webview.setUserAgent(defaultUseragent())
     }
 }
 

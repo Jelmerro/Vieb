@@ -303,17 +303,25 @@ const searchword = location => {
 /** Return the notification history. */
 const listNotificationHistory = () => notificationHistory
 
-/** Return per operating system the result of navigator.platform. */
-const userAgentPlatform = () => {
-    let platform = "X11; Linux x86_64"
-    if (process.platform === "win32") {
-        platform = "Window NT 10.0; Win64; x64"
+/** Return the resolved system that should be exposed via useragent. */
+const userAgentResolvedSystem = () => {
+    const desired = getSetting("useragentsys") || "auto"
+    const current = process.platform
+    if (desired === "auto" && current === "win32" || desired === "windows") {
+        return "windows"
     }
-    if (process.platform === "darwin") {
-        platform = "Macintosh; Intel Mac OS X 10_15_7"
+    if (desired === "auto" && current === "darwin" || desired === "mac") {
+        return "mac"
     }
-    return platform
+    return "linux"
 }
+
+/** Return per operating system the result of navigator.platform. */
+const userAgentPlatform = () => ({
+    "linux": "X11; Linux x86_64",
+    "mac": "Macintosh; Intel Mac OS X 10_15_7",
+    "windows": "Windows NT 10.0; Win64; x64"
+}[userAgentResolvedSystem()])
 
 /** Return the default navigator.userAgent. */
 const defaultUseragent = () => {
@@ -1692,6 +1700,7 @@ module.exports = {
     stringToUrl,
     urlToString,
     userAgentPlatform,
+    userAgentResolvedSystem,
     userAgentTemplated,
     watchFile,
     writeFile,
