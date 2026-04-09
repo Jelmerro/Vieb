@@ -1,6 +1,6 @@
 {
     "name": "vieb",
-    "version": "12.8.0-dev",
+    "version": "12.8.0",
     "description": "Vim Inspired Electron Browser",
     "keywords": [
         "Vim",
