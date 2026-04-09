@@ -2350,6 +2350,20 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         return
                     }
                     const dom = parseHTML(body).document
+                    if (!dom?.documentElement || !dom?.firstChild) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style id="default-styling">${defaultCSS}</style>
+                            <style id="custom-styling">${customCSS}</style>
+                            <title>${decodeURI(req.url)}</title>
+                            </head><body>
+                                Reader view not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
+                        return
+                    }
                     for (const link of dom.getElementsByTagName("img")) {
                         link.src = new URL(link.src, url).href
                     }

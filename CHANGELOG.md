@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Useragent for Windows being slightly off if using "%sys"
+- Readerview showing an error dialog for non-html pages instead of blocking them with an inline notice
 
 ### Versions
 
