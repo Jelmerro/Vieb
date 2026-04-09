@@ -64,7 +64,7 @@
     {
       "name": "trusted-create-html.js",
       "aliases": [],
-      "body": "function trustedCreateHTML(e,t=\"\",r=\"\"){if(e===\"\")return;if(t===\"\")return;const n=safeSelf();const o=n.makeLogPrefix(\"trusted-create-html\",e,t,r);const s=n.getExtraArgs(Array.from(arguments),3);self.trustedCreateHTML=true;let u=self.frameElement;while(u!==null){const e=u.ownerDocument;if(e===null)break;const t=e.defaultView;if(t===null)break;if(t.trustedCreateHTML)return;u=u.frameElement}const i=parseInt(r,10);const l=new DOMParser;const c=l.parseFromString(t,\"text/html\");const f=[];while(c.body.firstChild!==null)f.push(document.adoptNode(c.body.firstChild));if(f.length===0)return;const a=[];const d=()=>{for(const e of a){if(e.parentNode===null)continue;e.parentNode.removeChild(e)}n.uboLog(o,\"Node(s) removed\")};const m=(e,t)=>{for(const r of t){e.append(r);if(isNaN(i))continue;a.push(r)}};const h=()=>{const t=document.querySelectorAll(e);if(t.length===0)return false;const r=Math.min(t.length,s.limit||1)-1;for(let e=0;e<r;e++)m(t[e],f.map((e=>e.cloneNode(true))));m(t[r],f);n.uboLog(o,\"Node(s) appended\");if(a.length===0)return true;setTimeout(d,i);return true};const p=()=>{if(h())return;const t=new MutationObserver((()=>{if(h()===false)return;t.disconnect()}));const r={childList:true,subtree:true};if(/[#.[]/.test(e)){r.attributes=true;if(e.includes(\"[\")===false){r.attributeFilter=[];if(e.includes(\"#\"))r.attributeFilter.push(\"id\");if(e.includes(\".\"))r.attributeFilter.push(\"class\")}}t.observe(document,r)};runAt(p,s.runAt||\"loading\")}",
+      "body": "function trustedCreateHTML(e,t=\"\",r=\"\"){if(e===\"\")return;if(t===\"\")return;const n=safeSelf();const o=n.makeLogPrefix(\"trusted-create-html\",e,t,r);const s=n.getExtraArgs(Array.from(arguments),3);self.trustedCreateHTML=true;let u=self.frameElement;while(u){const e=u.ownerDocument;if(e===null)break;const t=e.defaultView;if(t===null)break;if(t.trustedCreateHTML)return;u=u.frameElement}const i=parseInt(r,10);const l=new DOMParser;const c=l.parseFromString(t,\"text/html\");const f=[];while(c.body.firstChild!==null)f.push(document.adoptNode(c.body.firstChild));if(f.length===0)return;const a=[];const d=()=>{for(const e of a){if(e.parentNode===null)continue;e.parentNode.removeChild(e)}n.uboLog(o,\"Node(s) removed\")};const m=(e,t)=>{for(const r of t){e.append(r);if(isNaN(i))continue;a.push(r)}};const h=()=>{const t=document.querySelectorAll(e);if(t.length===0)return false;const r=Math.min(t.length,s.limit||1)-1;for(let e=0;e<r;e++)m(t[e],f.map((e=>e.cloneNode(true))));m(t[r],f);n.uboLog(o,\"Node(s) appended\");if(a.length===0)return true;setTimeout(d,i);return true};const p=()=>{if(h())return;const t=new MutationObserver((()=>{if(h()===false)return;t.disconnect()}));const r={childList:true,subtree:true};if(/[#.[]/.test(e)){r.attributes=true;if(e.includes(\"[\")===false){r.attributeFilter=[];if(e.includes(\"#\"))r.attributeFilter.push(\"id\");if(e.includes(\".\"))r.attributeFilter.push(\"class\")}}t.observe(document,r)};runAt(p,s.runAt||\"loading\")}",
       "dependencies": [
         "run-at.fn",
         "safe-self.fn"
@@ -546,7 +546,8 @@
       "body": "function preventDialog(e=\"\"){const o=safeSelf();const t=o.makeLogPrefix(\"prevent-dialog\",e);const n=()=>{i=void 0;const n=document.querySelectorAll(`dialog${e}`);for(const e of n){if(typeof e.close!==\"function\")continue;if(e.open===false)continue;e.close();o.uboLog(t,\"Closed\")}};let i;const r=new MutationObserver((()=>{if(i!==void 0)return;i=requestAnimationFrame(n)}));r.observe(document,{attributes:true,childList:true,subtree:true})}",
       "dependencies": [
         "safe-self.fn"
-      ]
+      ],
+      "executionWorld": "ISOLATED"
     },
     {
       "name": "prevent-fetch.fn",
@@ -581,12 +582,29 @@
       "requiresTrust": true
     },
     {
-      "name": "prevent-innerHTML.js",
+      "name": "freeze-element-property.js",
       "aliases": [],
-      "body": "function preventInnerHTML(e=\"\",t=\"\"){const n=safeSelf();const r=n.makeLogPrefix(\"prevent-innerHTML\",e,t);const i=n.initPattern(t,{canNegate:true});const o=n.Object_getOwnPropertyDescriptor(Element.prototype,\"innerHTML\");if(o===void 0)return;const s=(t,r)=>{if(e!==\"\"){if(typeof t.matches!==\"function\")return false;if(t.matches(e)===false)return false}return n.testPattern(i,`${r}`)};Object.defineProperty(Element.prototype,\"innerHTML\",{get:function(){return o.get?o.get.call(this):o.value},set:function(e){if(s(this,e))n.uboLog(r,\"Prevented\");else if(o.set)o.set.call(this,e);if(n.logLevel>1)n.uboLog(r,`Assigned:\\n${e}`);o.value=e}})}",
+      "body": "function freezeElementProperty(e=\"\",t=\"\",n=\"\"){const r=safeSelf();const o=r.makeLogPrefix(\"freeze-element-property\",e,t,n);const s=r.initPattern(n,{canNegate:true});const i=(()=>{if(Object.hasOwn(Element.prototype,e))return Element.prototype;if(Object.hasOwn(HTMLElement.prototype,e))return HTMLElement.prototype;if(Object.hasOwn(Node.prototype,e))return Node.prototype;return null})();if(i===null)return;const f=r.Object_getOwnPropertyDescriptor(i,e);if(f===void 0)return;const l=(e,n)=>{if(t!==\"\"){if(typeof e.matches!==\"function\")return false;if(e.matches(t)===false)return false}return r.testPattern(s,`${n}`)};Object.defineProperty(i,e,{get:function(){return f.get?f.get.call(this):f.value},set:function(e){if(l(this,e))r.uboLog(o,\"Assignment prevented\");else if(f.set)f.set.call(this,e);if(r.logLevel>1)r.uboLog(o,`Assigned:\\n${e}`);f.value=e}})}",
       "dependencies": [
         "safe-self.fn"
       ]
+    },
+    {
+      "name": "prevent-innerHTML.js",
+      "aliases": [],
+      "body": "function preventInnerHTML(e=\"\",n=\"\"){freezeElementProperty(\"innerHTML\",e,n)}",
+      "dependencies": [
+        "freeze-element-property.js"
+      ]
+    },
+    {
+      "name": "prevent-navigation.js",
+      "aliases": [],
+      "body": "function preventNavigation(t=\"\"){const e=safeSelf();const n=e.makeLogPrefix(\"prevent-navigation\",t);const i=t===\"location.href\"?self.location.href:t;const a=e.initPattern(i,{canNegate:true});self.navigation.addEventListener(\"navigate\",(i=>{if(i.userInitiated)return;const{url:o}=i.destination;if(t===\"\"){e.uboLog(n,`Navigation to ${o}`);return}if(e.testPattern(a,o)){i.preventDefault();e.uboLog(n,`Prevented navigation to ${o}`)}}))}",
+      "dependencies": [
+        "safe-self.fn"
+      ],
+      "executionWorld": "ISOLATED"
     },
     {
       "name": "range-parser.fn",

@@ -487,7 +487,7 @@ hd-pornos.*##div[id="wrapper_content"] > aside
 ! https://github.com/uBlockOrigin/uAssets/issues/24264
 ! https://github.com/uBlockOrigin/uAssets/issues/24281
 ! https://github.com/uBlockOrigin/uAssets/issues/30308
-*$script,1p,domain=~kat.pink|~kat.computer|~kat.am|~kat.at|~kat.directory|~kat.rip|~kat.software|~kat.studio|~kickass.codes|~kickass.website|kat.*|katbay.*|kickass.*|kickasshydra.*|kickasskat.*|kickass2.*|kickasstorrents.*|kat2.*|kattracker.*|thekat.*|thekickass.*|kickassz.*|kickasstorrents2.*|topkickass.*|kickassgo.*|kkickass.*|kkat.*|kickasst.*|kick4ss.*|kickassbay.*|torrentkat.*|kickassuk.*|torrentskickass.*|kickasspk.*|kickasstrusty.*|katkickass.*|kickassindia.*|kickass-usa.*|kickassaustralia.*|kickassdb.*|kathydra.*|kickassminds.*|katkickass.*|kickassunlocked.*|kickassmovies.*|kickassfull.*|bigkickass.*|kickasstracker.*|katfreak.*
+*$script,1p,domain=~kat.ai|~kat.pink|~kat.computer|~kat.am|~kat.at|~kat.directory|~kat.rip|~kat.software|~kat.studio|~kickass.codes|~kickass.website|kat.*|katbay.*|kickass.*|kickasshydra.*|kickasskat.*|kickass2.*|kickasstorrents.*|kat2.*|kattracker.*|thekat.*|thekickass.*|kickassz.*|kickasstorrents2.*|topkickass.*|kickassgo.*|kkickass.*|kkat.*|kickasst.*|kick4ss.*|kickassbay.*|torrentkat.*|kickassuk.*|torrentskickass.*|kickasspk.*|kickasstrusty.*|katkickass.*|kickassindia.*|kickass-usa.*|kickassaustralia.*|kickassdb.*|kathydra.*|kickassminds.*|katkickass.*|kickassunlocked.*|kickassmovies.*|kickassfull.*|bigkickass.*|kickasstracker.*|katfreak.*
 kat.*,kickass.*,kickass2.*,kickasstorrents.*,kat2.*,kattracker.*,thekat.*,thekickass.*,kickassz.*,kickasstorrents2.*,topkickass.*,kickassgo.*,kkickass.*,kkat.*,kickasst.*,kick4ss.*,katbay.*,kickasshydra.*,kickasskat.*,kickassbay.*,torrentkat.*,kickassuk.*,torrentskickass.*,kickasspk.*,kickasstrusty.*,katkickass.*,kickassindia.*,kickass-usa.*,kickassaustralia.*,kickassdb.*,kathydra.*,kickassminds.*,katkickass.*,kickassunlocked.*,kickassmovies.*,kickassfull.*,bigkickass.*,kickasstracker.*,katfreak.*##[style*="decoration"]:not([style^="width"])
 kat.*,katbay.*,kickass.*,kickasshydra.*,kickasskat.*,kickass2.*,kickasstorrents.*,kat2.*,kattracker.*,thekat.*,thekickass.*,kickassz.*,kickasstorrents2.*,topkickass.*,kickassgo.*,kkickass.*,kkat.*,kickasst.*,kick4ss.*##[href="/k.php?q=q"]
 @@||kickasstorrents.*/static/js/all.js$script,1p
@@ -886,9 +886,12 @@ cambb.xxx,nudecams.xxx##+js(no-xhr-if, googlesyndication)
 cambb.xxx,nudecams.xxx###adb
 
 ! https://github.com/uBlockOrigin/uAssets/issues/8631
+! https://vexfile.com/download/kO0lNaD9s6
 ||vexfile.com/sw.js$script,1p
 ||vexfile.com/img/cofksar.png
 vexfile.com##.title-box > [href] > [src]
+vexfile.com##+js(rpnt, script, var TIMER_MS = 40000;, var TIMER_MS = 0;)
+vexfile.com##+js(rpnt, script, get_offers();, get_offers(); setTimeout(function(){ $('.offer-link:first').trigger('click'); }\, 100);)
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/152086
 manga18fx.com##+js(aopr, exoNoExternalUI38djdkjDDJsio96)
@@ -2310,9 +2313,6 @@ xanimehub.com##+js(nosiif, visibility, 1000)
 
 ! crackevil.com anti adb
 crackevil.com##+js(acs, mMcreateCookie)
-
-! https://github.com/uBlockOrigin/uAssets/issues/9633
-online-fix.me##+js(nostif, /width|innerHTML/)
 
 ! https://github.com/bogachenko/fuckfuckadblock/issues/213
 buydekhke.com##+js(aost, String.prototype.charCodeAt, ai_)

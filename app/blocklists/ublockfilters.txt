@@ -869,22 +869,6 @@ mmorpg.com##[onclick^="trackClick"]
 mmorpg.com##a[href^="http://v2.g.99.com/"]
 mmorpg.com##.vhadb
 
-! https://github.com/uBlockOrigin/uAssets/issues/4163
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##+js(acs, decodeURIComponent, 'shift')
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##+js(nosiif, /0x|google|ecoded|==/)
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##+js(nowoif)
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##a[href^="https://go.nordvpn.net/"], [src^="/nordcode.php"]
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##div[id][style^="width: 970px; height: 250px;"]
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##div[id][style="width: 300px; height: 250px;"]
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##div[id][style="width: 728px; height: 90px;"]:upward(#pub1)
-mylink.*,my1ink.*,myl1nk.*,myli3k.*##html > iframe
-@@*$script,1p,domain=mylink.*|my1ink.*|myl1nk.*|myli3k.*
-@@||in-page-push.com^$script,domain=mylink.*|my1ink.*|myl1nk.*|myli3k.*
-@@||googleads.g.doubleclick.net/pagead/test_domain.js$script,domain=mylink.*|my1ink.*|myl1nk.*|myli3k.*
-*$script,redirect-rule=noopjs,domain=mylink.*|my1ink.*|myl1nk.*|myli3k.*
-*$script,3p,denyallow=cloudflare.com|cloudflare.net|consensu.org|google.com|googleapis.com|gstatic.com|hcaptcha.com|hwcdn.net|recaptcha.net|twitter.com|x.com,domain=mylink.*|my1ink.*|myl1nk.*|myli3k.*|~mylink.tel
-freebeacon.com##.uppercase:has-text(/advertisement/i)
-
 ! https://github.com/uBlockOrigin/uAssets/issues/19806
 sankakucomplex.com##.vce-ad-container
 sankakucomplex.com#@#.scad
@@ -1278,15 +1262,6 @@ pornwatchers.com##.stage-promo
 ! https://github.com/uBlockOrigin/uAssets/issues/983
 sotemnovinhas.com##+js(nofab)
 ||sotemnovinhas.com/*.gif$image
-
-! https://github.com/uBlockOrigin/uAssets/issues/5421
-ondemandkorea.com##+js(aopr, pbjs.libLoaded)
-ondemandkorea.com##.banner_728x90
-ondemandkorea.com##.floatBanner
-ondemandkorea.com##.player_overlay.banner
-@@||ondemandkorea.com^$ghide
-||ondemandkorea.com/*/*sponsor*300x250.jpg$image,redirect=32x32.png
-||google-analytics.com/collect$image,redirect=1x1.gif,domain=ondemandkorea.com
 
 ! https://github.com/uBlockOrigin/uAssets/issues/979
 gotporn.com##+js(aeld, , open)
@@ -3136,6 +3111,10 @@ ashemaletube.com##.header-ads-wrapper
 ashemaletube.*##.js-toggle-content-wrapper a[href^="/link/out/"]:upward(.js-toggle-content-wrapper)
 ashemaletube.com##.ads-wrapper
 ashemaletube.*##.ad-wrap
+||ashemaletube.*/ads/$xhr
+||ashemaletube.*/ast/b/$frame
+ashemaletube.*##.fh-line
+ashemaletube.*##iframe[src*="/link/out/b/"]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/2286
 hotscope.tv##+js(nowoif)
@@ -4089,7 +4068,7 @@ iframejav.*##+js(nowoif)
 iframejav.*##+js(aopr, __Y)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/3160
-anysex.com##+js(set, vastAds, [])
+!anysex.com##+js(set, vastAds, [])
 anysex.com##+js(aopr, ExoLoader)
 anysex.com##+js(aopr, document.dispatchEvent)
 anysex.com##+js(aopr, console.clear)
@@ -6534,6 +6513,7 @@ nrj-play.fr##+js(set, adBlockDetector.isEnabled, falseFunc)
 
 ! https://github.com/NanoMeow/QuickReports/issues/935
 thegatewaypundit.com##+js(aopr, adtoniq)
+thegatewaypundit.com##.hide-for-admiral
 
 ! https://github.com/uBlockOrigin/uAssets/issues/5310
 lippycorn.com##+js(acs, document.createElement, __esModule)
@@ -6735,6 +6715,8 @@ sendvid.com##[href*=".php"]
 sendvid.com###video-js-video > [href^="javascript:"]
 sendvid.com###vjs-logo-top-bar
 sendvid.com###ftr
+sendvid.com##a[href^="https://go.gsrv.dev/"]
+sendvid.com##a[href][target="_blank"][style^="display: block;position: fixed;"][style*="z-index:"]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/5448
 imgdawgknuttz.com##+js(aopw, atOptions)
@@ -6759,8 +6741,8 @@ duden.de##.tabloid__side-column
 duden.de##body:style(margin-top: 0px !important;)
 ! https://github.com/uBlockOrigin/uAssets/issues/25788
 @@||duden.de^$ghide
-duden.de##+js(no-fetch-if, googlesyndication, length:2001)
-||www.duden.de/utilities/includes/$script,css,1p
+duden.de##+js(no-fetch-if, googlesyndication, length:40000-60000)
+duden.de##+js(set, handleUtilitiesChecking, noopFunc)
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/bhr1sj/adblocker_detected/
 faresgame.com##+js(aopr, adBlockDetected)
@@ -6986,9 +6968,6 @@ solarmovie.id##+js(aopr, AaDetector)
 ! https://github.com/uBlockOrigin/uAssets/issues/5489#issuecomment-491483476
 bezpolitickekorektnosti.cz##+js(aopr, sc_adv_out)
 bezpolitickekorektnosti.cz##.SC_TBlock
-
-! https://github.com/uBlockOrigin/uAssets/issues/5579
-glodls.*##+js(nowebrtc)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/5489#issuecomment-491564073
 bitcoinminingforex.blogspot.com##+js(nofab)
@@ -8324,20 +8303,6 @@ keysbrasil.blogspot.com##+js(nostif, nextFunction, 2000)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/6236
 @@||liveadexchanger.com/a/display.php$script,domain=prem.link
-
-! https://github.com/uBlockOrigin/uAssets/issues/9542
-! https://github.com/uBlockOrigin/uAssets/issues/19903#issuecomment-1837748723
-multiup.io,multiup.org,multiup.eu##+js(acs, decodeURI, decodeURIComponent)
-multiup.io,multiup.org,multiup.eu##+js(nosiif, .submit)
-multiup.io##+js(nowoif, _blank)
-multiup.io##+js(rpnt, script, setInterval)
-multiup.io,multiup.org,multiup.eu##.text-center.bg-info
-multiup.io,multiup.org,multiup.eu##div.col-md-4:has(> .panel > .panel-footer > a[href^="/download-fast/"])
-multiup.io,multiup.org,multiup.eu##a[href^="/download-fast/"]
-multiup.io,multiup.org,multiup.eu##.mfp-ready
-multiup.io,multiup.org,multiup.eu##div.text-center:has(a[class="btn btn-success"][href^="abp:subscribe"])
-*$popunder,3p,domain=multiup.io|multiup.org|multiup.eu
-||multinews.me^$3p
 
 ! https://github.com/uBlockOrigin/uAssets/issues/2015
 ! https://github.com/uBlockOrigin/uAssets/issues/6242

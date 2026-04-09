@@ -877,15 +877,16 @@ xxxmax.net##^script:has-text(\'shift\')
 xxxmax.net##+js(acs, String.fromCharCode, 'shift')
 
 ! https://github.com/uBlockOrigin/uAssets/issues/5674
+@@*$ghide,domain=uploadrar.*
 uploadrar.*###commonId > a[target="_blank"]
 uploadrar.*##main > center > a.btn-primary
+uploadrar.*##form > center:has(.btn):has([href])
 uploadrar.*##.footer, span > .text-muted, .card, .m-2.submit-btn.btn-primary.btn
 uploadrar.*##.fs-5, p, ul, li, #how-to-open, .p-0.block, .download-controls, .ad-box + center
+uploadrar.*##.ad-label, .adsbygoogle
 uploadrar.*##+js(acs, document.documentElement, break;case $.)
 uploadrar.*##+js(nano-stb, /.?/, *)
 ||pixeltrey.com^
-! https://github.com/AdguardTeam/AdguardFilters/issues/57027
-rahim-soft.com##+js(nosiif, visibility, 1000)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/7242
 ! https://github.com/uBlockOrigin/uAssets/issues/7534
@@ -2448,7 +2449,7 @@ top.gg##.chakra-stack[data-testid="p-p"]
 top.gg##div[class^="css-"]:not(.chakra-stack):has(> #parent_nn_player)
 ! https://github.com/AdguardTeam/AdguardFilters/issues/170083
 top.gg##.css-adfhee:upward(2)
-top.gg##.w-full.items-center.flex-col.flex:has-text(Ad)
+top.gg##aside > div.w-full > .items-center > .w-full.items-center:has-text(Ad)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/8163
 @@||arrowos.net/js/*$script,1p
