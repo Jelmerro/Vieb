@@ -39,20 +39,20 @@
         "highlight.js": "11.11.1",
         "linkedom": "0.18.12",
         "marked": "15.0.12",
-        "marked-base-url": "1.1.8",
-        "marked-highlight": "2.2.3",
+        "marked-base-url": "1.1.9",
+        "marked-highlight": "2.2.4",
         "picomatch": "4.0.4"
     },
     "devDependencies": {
         "@electron/asar": "4.2.0",
-        "@types/picomatch": "4.0.2",
-        "electron": "41.1.1",
+        "@types/picomatch": "4.0.3",
+        "electron": "41.2.0",
         "electron-builder": "26.8.1",
         "eslint-config": "github:Jelmerro/eslint-config",
         "glob": "13.0.6",
         "terser-webpack-plugin": "5.4.0",
         "type-config": "github:Jelmerro/type-config",
-        "webpack": "5.105.4",
+        "webpack": "5.106.0",
         "webpack-node-externals": "3.0.0"
     },
     "engines": {
