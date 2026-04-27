@@ -590,6 +590,11 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
+            const oldUrl = webview.getAttribute("src") ?? ""
+            if (sameDomain(oldUrl, e.url)) {
+                const {copyMapping} = require("./favicons")
+                copyMapping(oldUrl, e.url)
+            }
             rerollUserAgent(webview)
             resetTabInfo(webview)
             const name = tabForPage(webview)?.querySelector("span")

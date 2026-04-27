@@ -56,7 +56,7 @@ const urlToPath = url => joinPath(faviconFolder,
     encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
 /**
- * Update the current mappings and delete unused ones.
+ * Update the current mappings file and delete unused ones from the cache.
  * @param {{currentUrl?: string|null, now?: boolean|null}} arg
  */
 const updateMappings = async({currentUrl = null, now = null} = {}) => {
@@ -257,7 +257,16 @@ const update = (webview, favicon) => {
 const getRedirect = url => mappings.redirects?.[url] || url
 
 /**
- * Get the url for a given site.
+ * Copy an existing favicon link to another page at a different url.
+ * @param {string} existing
+ * @param {string} newPage
+ */
+const copyMapping = (existing, newPage) => {
+    mappings[newPage] = mappings[getRedirect(existing)]
+}
+
+/**
+ * Get the resolved file path or local image for a given site.
  * @param {string} url
  */
 const forSite = url => {
@@ -348,5 +357,12 @@ const init = () => {
 }
 
 module.exports = {
-    forSite, getRedirect, init, loading, show, update, updateMappings
+    copyMapping,
+    forSite,
+    getRedirect,
+    init,
+    loading,
+    show,
+    update,
+    updateMappings
 }

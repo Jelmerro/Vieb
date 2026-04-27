@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Favicons not showing for pages on the same domain loaded in the same tab
+
+### Versions
+
+- Electron 41.2.0 (unchanged)
+- Chromium 146.0.7680.179 (unchanged)
+
 ## [12.8.0](https://github.com/Jelmerro/Vieb/compare/12.7.0...12.8.0) - 2026-04-09
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.7.0...12.8.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.8.0)
