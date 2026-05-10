@@ -902,7 +902,7 @@ colearn.id##+js(json-prune, *.tanya_video_ads)
 ! https://github.com/AdguardTeam/AdguardFilters/issues/158583
 @@||imasdk.googleapis.com/js/sdkloader/ima3_dai.js$script,domain=gbnews.com
 @@||imasdk.googleapis.com/js/sdkloader/ima3.js$script,domain=gbnews.com
-||dailymail.co.uk/static/mol-adverts/$domain=gbnews.com
+||dailymail.*/static/mol-adverts/$domain=gbnews.com
 ||cmp.dmgprivacyint.co.uk/locationjson.html
 
 ! https://github.com/easylist/easylist/pull/15121
@@ -1165,12 +1165,16 @@ alternativeto.net##section#alternative-list > ol > li:has(> .bannerLink)
 alternativeto.net##section#alternative-list > ol > li:has(div[data-testid="adsense-wrapper"])
 alternativeto.net##section#alternative-list > div:not([class]):has(> div[data-testid="adsense-wrapper"])
 alternativeto.net##+js(json-prune, props.sponsoredAlternative)
+! https://github.com/uBlockOrigin/uAssets/issues/20358
+alternativeto.net##main > div.flex.justify-center > div.w-full.box-border.flex > div.w-full.container.wide-container
+alternativeto.net##.container > h2[class^="Heading-module-scss-module__"][class^="Heading-module-scss"]:has-text(supported by)
+alternativeto.net##main > section.container.wide-container > div.container > div.mt-10
+alternativeto.net##[href*="aff_c?"]
 
 ! helmiau. com anti adb
 @@||helmiau.com^$script,1p
 
 ! https://explorecams.com/photos/model/dmc-fh8 anti-adb
-explorecams.com##+js(aeld, np.detect)
 explorecams.com##+js(no-fetch-if, ad-delivery)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/17303
@@ -1678,9 +1682,6 @@ zefoy.com##^script:has-text(/'.adsbygoogle'|text-danger|warning|Adblock|_0x/)
 zefoy.com##+js(rmnt, script, /'.adsbygoogle'|text-danger|warning|Adblock|_0x/)
 !#endif
 
-! https://github.com/AdguardTeam/AdguardFilters/issues/140616
-alludemycourses.com##+js(aeld, DOMContentLoaded, adsBlocked)
-
 ! https://github.com/uBlockOrigin/uAssets/issues/17838
 unitystr.com##+js(no-fetch-if, googlesyndication)
 
@@ -1694,6 +1695,11 @@ bellesa.co##[href*="preroll"]:upward(2)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/17859
 satkurier.pl##+js(no-fetch-if, ads)
+satkurier.pl##+js(nostif, /getComputedStyle|bait/)
+satkurier.pl##+js(set, AController_3, noopFunc)
+satkurier.pl##+js(trusted-replace-argument, document.createElement, 0, json:"div", condition, ins)
+satkurier.pl###m_top_1_mainpage
+satkurier.pl###navbarMenu + div[style*="text-align:center;"]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/17872
 mailgen.biz##+js(rmnt, script, insertAdjacentHTML)
@@ -1760,17 +1766,19 @@ reshare.pm##+js(nowoif)
 ||googlesyndication.com^$script,redirect=noopjs,domain=flysas.com
 
 ! https://github.com/uBlockOrigin/uAssets/issues/21553
-gamedrive.org##+js(aost, document.querySelector, /showModal|chooseAction|doAction|callbackAdsBlocked/)
-gamedrive.org##+js(acs, eval, replace)
-gamedrive.org##+js(aopr, b2a)
-gamedrive.org##+js(aeld, DOMContentLoaded, window.open)
 gamedrive.org##.code-block a[href][target="_blank"] > img[data-recalc-dims]
 gamedrive.org##a[href][target="_blank"][rel="noopener noreferrer"] > img
 gamedrive.org##.netflix-banner
 gamedrive.org##.hbo-banner
-!gamedrive.org##+js(rmnt, script, isOwner)
-gamedrive.org##+js(aeld, click, _shouldProcessLink)
+gamedrive.org##[id^="gridlove-module-"] > .gridlove-text-module-content > div:is(:has([data-format]), [onclick*='window.open'])
+gamedrive.org##+js(aost, document.querySelector, /showModal|chooseAction|doAction|callbackAdsBlocked/)
 gamedrive.org##+js(acs,  String.fromCharCode, fetch)
+gamedrive.org##+js(acs, eval, replace)
+gamedrive.org##+js(aopr, b2a)
+!gamedrive.org##+js(rmnt, script, isOwner)
+gamedrive.org##+js(aeld, DOMContentLoaded, window.open)
+gamedrive.org##+js(aeld, click, _shouldProcessLink)
+gamedrive.org##+js(aeld, click, preventDefault)
 ! https://github.com/uBlockOrigin/uAssets/issues/31131
 cybar.xyz,cybar.to##+js(aeld, click, open)
 cybar.xyz,cybar.to##+js(nowoif, cpmecs)
@@ -2136,9 +2144,6 @@ dvdrev.com##+js(rmnt, #text, 関連動画)
 betweenjpandkr.blog##+js(rmnt, #text, PR:)
 ! https://nft-media.net/ interstitail
 nft-media.net##+js(rmnt, script, leave_recommend)
-
-! After article
-ghacks.net##+js(rmnt, #text, /Advertisement/)
 
 ! https://www.code-source.net ad
 ||images2.imgbox.com/67/0e/zUAgdBDk_o.gif$3p
@@ -2970,7 +2975,7 @@ money.cnn.com##section.column:has(> #moneySponsors)
 ||warnermediacdn.com/csm*conf_csid=$xhr,removeparam=conf_csid,domain=cnn.com
 ||warnermediacdn.com/csm*prof=$xhr,removeparam=prof,domain=cnn.com
 ! https://github.com/uBlockOrigin/uAssets/issues/17071
-||medium.ngtv.io/v2/media/*&ssaiProfile=$xhr,removeparam=ssaiProfile,domain=~cnn.com
+||medium.ngtv.io/v2/media/*&ssaiProfile=$xhr,removeparam=ssaiProfile,domain=~cnn.com|~adultswim.com
 ! https://github.com/uBlockOrigin/uBOL-home/issues/208
 cnn.com##+js(set, FAVE.settings.ads.ssai.prod.clips.enabled, false)
 cnn.com##+js(set, FAVE.settings.ads.ssai.prod.liveAuth.enabled, false)
@@ -3124,6 +3129,7 @@ history.com##+js(no-xhr-if, time-events)
 @@||aetnd.com^$ghide
 @@||imasdk.googleapis.com/js/sdkloader/ima3_dai.js$domain=play.aetv.com|play.mylifetime.com
 @@||play.*.com/vendor/VisitorAPI.js$script,1p,domain=play.aetv.com|play.mylifetime.com
+@@||pubads.g.doubleclick.net/ondemand/hls/content/$domain=play.aetv.com
 ||play.*.com/vendor/$domain=play.aetv.com|play.mylifetime.com
 ||dai.google.com/ondemand/hls/content/*/time-events.json$domain=play.aetv.com|play.mylifetime.com
 ! https://github.com/uBlockOrigin/uAssets/issues/30633
@@ -3257,18 +3263,19 @@ thestar.com###site-navbar-container, #site-top-nav-container:style(padding-top: 
 ! https://github.com/uBlockOrigin/uAssets/issues/17713
 ! https://github.com/uBlockOrigin/uAssets/issues/16632
 dailymail.co.uk,~games.dailymail.co.uk##+js(aopr, Notification)
-@@||cmp.dmgmediaprivacy.co.uk^$script,domain=dailymail.co.uk
+dailymail.com,~games.dailymail.com##+js(aopr, Notification)
+@@||cmp.dmgmediaprivacy.co.uk^$script,domain=dailymail.co.uk|dailymail.com
 ! dailymail.co.uk##+js(set, atob, trueFunc)
-||dailymail.co.uk/static/mol-adverts/demo/
+||dailymail.*/static/mol-adverts/demo/
 ! https://github.com/NanoMeow/QuickReports/issues/1616
-dailymail.co.uk##.pufftext > .sponsored:upward(3)
-dailymail.co.uk##.pufftext:has-text(/SPONSORED/):upward(2)
-dailymail.co.uk##.mol-ads-label-container
+dailymail.co.uk,dailymail.com##.pufftext > .sponsored:upward(3)
+dailymail.co.uk,dailymail.com##.pufftext:has-text(/SPONSORED/):upward(2)
+dailymail.co.uk,dailymail.com##.mol-ads-label-container
 ! https://www.reddit.com/r/uBlockOrigin/comments/135ix4x/
-||dailymail.co.uk/feeds/commercial/topVideos.json
-||dailymail.co.uk/*/client/sync/fpc?$image
+||dailymail.*/feeds/commercial/topVideos.json
+||dailymail.*/*/client/sync/fpc?$image
 ! https://github.com/uBlockOrigin/uAssets/issues/28129
-dailymail.co.uk##ad-slot
+dailymail.co.uk,dailymail.com##ad-slot
 
 ! https://m.baomoi.com/the-gioi.epi - sponsored posts
 m.baomoi.com###content-main a[title][href*="?staticParams="]:upward(span)
@@ -4003,9 +4010,6 @@ hextank.io###preroll
 ! https://github.com/uBlockOrigin/uAssets/issues/20508
 tomarnarede.pt##+js(rmnt, script, deblocker)
 
-! https://github.com/uBlockOrigin/uAssets/issues/20513
-minecraft.buzz##+js(aeld, np.detect)
-
 ! https://github.com/uBlockOrigin/uAssets/issues/20537
 terrylove.com##+js(nostif, prompt, 1000)
 
@@ -4167,7 +4171,8 @@ twitter.com,x.com,~platform.twitter.com##+js(json-prune-xhr-response, data.user.
 twitter.com,x.com,~platform.twitter.com##+js(json-prune-xhr-response, data.immersiveMedia.timeline.instructions.[].entries.[-].content.itemContent.promotedMetadata, , propsToMatch, url:/ImmersiveMedia)
 ! https://github.com/uBlockOrigin/uAssets/issues/29749#issuecomment-3277237498
 x.com##article[data-testid="tweet"] a[href^="https://linkneverdiel.com"]
-x.com##+js(nowoif, /\.php\b.*_blank/)
+! https://github.com/uBlockOrigin/uAssets/issues/32488
+! x.com##+js(nowoif, /\.php\b.*_blank/)
 ! https://github.com/uBlockOrigin/uAssets/issues/29749#issuecomment-3281040355
 ! https://github.com/uBlockOrigin/uAssets/issues/32060
 ! x.com##+js(trusted-json-edit, .[?.media_entities.*.video_info.variants]..url_data.url="https://twitter.undefined")
@@ -4246,12 +4251,6 @@ fplstatistics.co.uk##+js(no-fetch-if, googlesyndication)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/20971
 @@||mrfreemium.blogspot.com^$ghide
-
-! https://github.com/uBlockOrigin/uAssets/issues/20975
-! https://github.com/uBlockOrigin/uAssets/issues/26020
-btvplus.bg##+js(rmnt, script, onerror)
-btvplus.bg##+js(set, playerEnhancedConfig.run, throwFunc)
-||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=google-ima.js,domain=btvplus.bg
 
 ! https://github.com/uBlockOrigin/uAssets/issues/20981
 sagewater.com##+js(set, aoAdBlockDetected, false)
@@ -4493,9 +4492,6 @@ receitasdaora.online##+js(rmnt, script, /hasAdblock|detect/)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/21406
 nodo313.net##+js(rmnt, script, /adbl/i)
-
-! https://github.com/uBlockOrigin/uAssets/issues/21410
-relampagomovies.com##+js(nostif, nextFunction)
 
 ! msmorristown .com anti-adb
 msmorristown.com##+js(acs, document.getElementById, fakeElement)
