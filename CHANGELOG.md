@@ -15,12 +15,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Favicons not showing for pages on the same domain loaded in the same tab
+- Favicons not showing for pages on the same domain loaded in the same tab since last release
 
 ### Versions
 
-- Electron 41.2.0 (unchanged)
-- Chromium 146.0.7680.179 (unchanged)
+- Electron 42.0.1 (was 41.2.0)
+- Chromium 148.0.7778.97 (was 146.0.7680.179)
 
 ## [12.8.0](https://github.com/Jelmerro/Vieb/compare/12.7.0...12.8.0) - 2026-04-09
 
