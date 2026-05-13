@@ -52,8 +52,20 @@ const clickInputs = [
     "input[type=\"image\"]",
     "input[type=\"reset\"]",
     "*[role=\"button\"]",
+    "*[role=\"gridcell\"]",
+    "*[role=\"link\"]",
+    "*[role=\"menuitem\"]",
+    "*[role=\"menuitemcheckbox\"]",
+    "*[role=\"menuitemradio\"]",
+    "*[role=\"menubutton\"]",
+    "*[role=\"option\"]",
     "*[role=\"radio\"]",
     "*[role=\"checkbox\"]",
+    "*[role=\"scrollbar\"]",
+    "*[role=\"slider\"]",
+    "*[role=\"switch\"]",
+    "*[role=\"tab\"]",
+    "*[role=\"treeitem\"]",
     "summary"
 ].join(",")
 const textlikeInputs = [
@@ -61,6 +73,8 @@ const textlikeInputs = [
     + ":not([type=\"submit\"]):not([type=\"button\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
     "[role=\"textbox\"]",
+    "[role=\"combobox\"]",
+    "[role=\"spinbutton\"]",
     "[contenteditable=\"true\"]",
     "[contenteditable=\"\"]",
     "textarea",
@@ -119,24 +133,12 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
             "mouseover",
             "contextmenu"
         ]
-        const interactableRoles = [
-            "button",
-            "menuitem",
-            "menubutton",
-            "link",
-            "option",
-        ]
         return allElements?.reduce((elementsWithListeners, el) => {
             if (clickEvents.some(t => el.hasAttribute(`on${t}`)
             // @ts-expect-error Only HTMLElements can have them as property.
                 || !!el[`on${t}`] || el.hasAttribute("jsaction"))) {
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "onclick"})
-            }
-            // @ts-expect-error If it is null includes will return false, not throw an error TS, so shut up please.
-            if (interactableRoles.includes(el.getAttribute("role"))) {
-                // @ts-expect-error Reduce types are broken in TS.
-                elementsWithListeners.push({el, "type": "role"})
             }
             if (otherEvents.some(t => el.hasAttribute(`on${t}`)
             // @ts-expect-error Only HTMLElements can have them as property.
@@ -155,7 +157,7 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
             }
             return elementsWithListeners
         },
-        /** @type {{el: Element, "type": "onclick"|"other"|"role"}[]} */
+        /** @type {{el: Element, "type": "onclick"|"other"}[]} */
         [])
     }
 })
