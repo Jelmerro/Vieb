@@ -119,12 +119,24 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
             "mouseover",
             "contextmenu"
         ]
+        const interactableRoles = [
+            "button",
+            "menuitem",
+            "menubutton",
+            "link",
+            "option",
+        ]
         return allElements?.reduce((elementsWithListeners, el) => {
             if (clickEvents.some(t => el.hasAttribute(`on${t}`)
             // @ts-expect-error Only HTMLElements can have them as property.
                 || !!el[`on${t}`] || el.hasAttribute("jsaction"))) {
                 // @ts-expect-error Reduce types are broken in TS.
                 elementsWithListeners.push({el, "type": "onclick"})
+            }
+            // @ts-expect-error If it is null includes will return false, not throw an error TS, so shut up please.
+            if (interactableRoles.includes(el.getAttribute("role"))) {
+                // @ts-expect-error Reduce types are broken in TS.
+                elementsWithListeners.push({el, "type": "role"})
             }
             if (otherEvents.some(t => el.hasAttribute(`on${t}`)
             // @ts-expect-error Only HTMLElements can have them as property.
@@ -143,7 +155,7 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
             }
             return elementsWithListeners
         },
-        /** @type {{el: Element, "type": "onclick"|"other"}[]} */
+        /** @type {{el: Element, "type": "onclick"|"other"|"role"}[]} */
         [])
     }
 })
@@ -376,7 +388,20 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     })
     const inputfocusalignment = getSetting("inputfocusalignment")
         ?? "rememberend"
-    focusEl.click()
+    const rect = focusEl.getBoundingClientRect()
+    const eventOptions = {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+    }
+
+    focusEl.dispatchEvent(new MouseEvent("pointerdown", eventOptions));
+    focusEl.dispatchEvent(new MouseEvent("mousedown", eventOptions));
+    focusEl.dispatchEvent(new MouseEvent("pointerup", eventOptions));
+    focusEl.dispatchEvent(new MouseEvent("mouseup", eventOptions));
+    focusEl.dispatchEvent(new MouseEvent("click", eventOptions));
+
     focusEl.focus()
     if (previouslyFocussedElements.includes(focusEl)
         && !inputfocusalignment.includes("always")) {
