@@ -390,20 +390,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     })
     const inputfocusalignment = getSetting("inputfocusalignment")
         ?? "rememberend"
-    const rect = focusEl.getBoundingClientRect()
-    const eventOptions = {
-        bubbles: true,
-        cancelable: true,
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2,
-    }
-
-    focusEl.dispatchEvent(new MouseEvent("pointerdown", eventOptions));
-    focusEl.dispatchEvent(new MouseEvent("mousedown", eventOptions));
-    focusEl.dispatchEvent(new MouseEvent("pointerup", eventOptions));
-    focusEl.dispatchEvent(new MouseEvent("mouseup", eventOptions));
-    focusEl.dispatchEvent(new MouseEvent("click", eventOptions));
-
+    focusEl.click()
     focusEl.focus()
     if (previouslyFocussedElements.includes(focusEl)
         && !inputfocusalignment.includes("always")) {
