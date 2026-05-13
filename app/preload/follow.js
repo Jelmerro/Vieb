@@ -52,8 +52,13 @@ const clickInputs = [
     "input[type=\"image\"]",
     "input[type=\"reset\"]",
     "*[role=\"button\"]",
+    "*[role^=\"menu\"]",
+    "*[role=\"option\"]",
     "*[role=\"radio\"]",
     "*[role=\"checkbox\"]",
+    "*[role=\"switch\"]",
+    "*[role=\"tab\"]",
+    "*[role=\"treeitem\"]",
     "summary"
 ].join(",")
 const textlikeInputs = [
@@ -61,7 +66,10 @@ const textlikeInputs = [
     + ":not([type=\"submit\"]):not([type=\"button\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
     "[role=\"textbox\"]",
+    "[role=\"combobox\"]",
+    "[role=\"spinbutton\"]",
     "[contenteditable=\"true\"]",
+    "*[role=\"slider\"]",
     "[contenteditable=\"\"]",
     "textarea",
     "select"
