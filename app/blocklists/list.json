@@ -1,6 +1,6 @@
 {
-    "easylist": "https://easylist-downloads.adblockplus.org/easylist.txt",
-    "easyprivacy": "https://easylist-downloads.adblockplus.org/easyprivacy.txt",
+    "easylist": "https://easylist.to/easylist/easylist.txt",
+    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt",
     "ublockfilters": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
     "ublockfilters2020": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2020.txt",
     "ublockfilters2021": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters-2021.txt",
