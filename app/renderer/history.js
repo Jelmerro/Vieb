@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ const {
     getSetting,
     hasProtocol,
     isFile,
+    isObject,
     joinPath,
     pathToSpecialPageName,
     readJSON,
@@ -32,19 +33,42 @@ const {
     writeJSONAsync
 } = require("../util")
 
+/** @typedef {{visits: string[], title: string}} HistItem */
+
 const histFile = joinPath(appData(), "hist")
 /** @type {{[url: string]: string}} */
 const simpleUrls = {}
 /** @type {{[url: string]: string}} */
 const simpleTitles = {}
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let histWriteTimeout = null
-/** @type {{[url: string]: {visits: string[], title: string}}} */
-let groupedHistory = {}
+/** @type {{[url: string]: HistItem}} */
+const groupedHistory = {}
+
+/**
+ * Validate if an entry in the history is a valid history item.
+ * @param {import("../util").PartialJSON|undefined} item
+ * @returns {item is HistItem}
+ */
+const isValidHistItem = item => {
+    if (isObject(item) && "title" in item && typeof item.title === "string"
+        && "visits" in item && Array.isArray(item.visits)) {
+        return item.visits.every(v => typeof v === "string")
+    }
+    return false
+}
 
 /** Load the history file from disk to memory. */
 const init = () => {
-    groupedHistory = readJSON(histFile) || {}
+    const allHist = readJSON(histFile) || {}
+    if (isObject(allHist)) {
+        for (const key of Object.keys(allHist)) {
+            const histItem = allHist[key]
+            if (isValidHistItem(histItem)) {
+                groupedHistory[key] = histItem
+            }
+        }
+    }
 }
 
 /**
@@ -99,7 +123,7 @@ const suggestHist = (searchStr, order, count) => {
     // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
     const search = searchStr.toLowerCase().trim()
-    const simpleSearch = search.split(specialChars).filter(w => w)
+    const simpleSearch = search.split(specialChars).filter(Boolean)
     if (!isFile(histFile)) {
         // No need to suggest history if it's not stored
         return
@@ -120,7 +144,7 @@ const suggestHist = (searchStr, order, count) => {
         if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
             return {
                 "icon": url,
-                "last": new Date(groupedHistory[url]?.visits?.slice(-1)[0]),
+                "last": new Date(groupedHistory[url]?.visits?.at(-1) ?? ""),
                 "title": name,
                 "top": relevance * visitCount(url),
                 url
@@ -148,7 +172,9 @@ const suggestHist = (searchStr, order, count) => {
         entries.sort((a, b) => b.top - a.top)
     }
     const {addExplore} = require("./suggest")
-    entries.slice(0, count).forEach(addExplore)
+    for (const entry of entries.slice(0, count)) {
+        addExplore(entry)
+    }
 }
 
 /**
@@ -156,18 +182,18 @@ const suggestHist = (searchStr, order, count) => {
  * @param {boolean} now
  */
 const writeHistToFile = (now = false) => {
-    window.clearTimeout(histWriteTimeout ?? undefined)
+    clearTimeout(histWriteTimeout ?? undefined)
     if (!now) {
-        histWriteTimeout = window.setTimeout(() => {
+        histWriteTimeout = setTimeout(() => {
             writeHistToFile(true)
         }, 5000)
         return true
     }
-    Object.keys(groupedHistory).forEach(url => {
+    for (const url of Object.keys(groupedHistory)) {
         if (visitCount(url) === 0) {
             delete groupedHistory[url]
         }
-    })
+    }
     if (Object.keys(groupedHistory).length === 0) {
         return deleteFile(histFile)
     }
@@ -219,10 +245,10 @@ const addToHist = url => {
  * @param {Date} date
  */
 const removeOldHistory = date => {
-    Object.keys(groupedHistory).forEach(url => {
+    for (const url of Object.keys(groupedHistory)) {
         groupedHistory[url].visits = groupedHistory[url].visits
             .filter(d => new Date(d) > date)
-    })
+    }
     return writeHistToFile(true)
 }
 
@@ -231,10 +257,10 @@ const removeOldHistory = date => {
  * @param {Date} date
  */
 const removeRecentHistory = date => {
-    Object.keys(groupedHistory).forEach(url => {
+    for (const url of Object.keys(groupedHistory)) {
         groupedHistory[url].visits = groupedHistory[url].visits
             .filter(d => new Date(d) < date)
-    })
+    }
     return writeHistToFile(true)
 }
 
@@ -243,11 +269,11 @@ const removeRecentHistory = date => {
  * @param {string} urlSnippet
  */
 const removeHistoryByPartialUrl = urlSnippet => {
-    Object.keys(groupedHistory).forEach(url => {
+    for (const url of Object.keys(groupedHistory)) {
         if (url.includes(urlSnippet)) {
             groupedHistory[url].visits = []
         }
-    })
+    }
     return writeHistToFile(true)
 }
 
@@ -256,13 +282,13 @@ const removeHistoryByPartialUrl = urlSnippet => {
  * @param {{date: string, url: string}[]} entries
  */
 const removeFromHistory = entries => {
-    entries.forEach(entry => {
-        const {url} = entry
+    for (const entry of entries) {
+        const {date, url} = entry
         if (groupedHistory[url]) {
             groupedHistory[url].visits = groupedHistory[url].visits
-                .filter(d => d !== entry.date)
+                .filter(d => d !== date)
         }
-    })
+    }
     return writeHistToFile(true)
 }
 
@@ -296,8 +322,8 @@ const handleRequest = async(webview, action = null, entries = []) => {
     /** @type {historyItem[]} */
     let history = []
     const {forSite} = require("./favicons")
-    Object.keys(groupedHistory).forEach(site => {
-        groupedHistory[site].visits.forEach(visit => {
+    for (const site of Object.keys(groupedHistory)) {
+        for (const visit of groupedHistory[site].visits) {
             history.push({
                 "date": new Date(visit),
                 "icon": forSite(site),
@@ -305,9 +331,9 @@ const handleRequest = async(webview, action = null, entries = []) => {
                 "url": site,
                 "visits": groupedHistory[site].visits.length
             })
-        })
-    })
-    history = history.sort((a, b) => b.date.getTime() - a.date.getTime())
+        }
+    }
+    history = history.toSorted((a, b) => b.date.getTime() - a.date.getTime())
     webview.send("history-list", history)
     updateMappings()
 }
@@ -316,7 +342,7 @@ const handleRequest = async(webview, action = null, entries = []) => {
 const suggestTopSites = () => {
     const {forSite} = require("./favicons")
     return Object.keys(groupedHistory).filter(g => groupedHistory[g])
-        .sort((a, b) => visitCount(b) - visitCount(a))
+        .toSorted((a, b) => visitCount(b) - visitCount(a))
         .slice(0, getSetting("suggesttopsites")).map(site => ({
             "icon": forSite(site),
             "name": groupedHistory[site]?.title,

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2023-2025 Jelmer van Arnhem
+* Copyright (C) 2023-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 "use strict"
-/* eslint-disable max-depth */
 
 const {
     joinPath, listDir, readJSON, writeFile, writeJSON
@@ -32,7 +31,7 @@ for (const f of files) {
 
 /**
  * Recursively traverse objects and list all keys as dot-separated values.
- * @param {import("./app/translate").StringOrObject} obj
+ * @param {import("./app/util").StringOrObject} obj
  * @param {string} folder
  */
 const listKeys = (obj, folder = "") => {
@@ -105,7 +104,7 @@ const writeTranslations = () => {
                 if (typeof value !== "object" || Array.isArray(value)) {
                     return value
                 }
-                return Object.keys(value).sort().reduce((sorted, k) => {
+                return Object.keys(value).toSorted().reduce((sorted, k) => {
                     sorted[k] = value[k]
                     return sorted
                 }, {})
@@ -136,6 +135,7 @@ if (args[0] === "lint") {
         for (const key of listKeys(translations[lang])) {
             const val = getVal(lang, key)
             if (!val) {
+                /* eslint-disable-next-line max-depth */
                 if (getVal("en", key)) {
                     console.warn(`Empty value for ${key} in lang file ${lang}`)
                 } else if (key !== "util.none") {

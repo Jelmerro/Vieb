@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {clipboard, ipcRenderer} = require("electron")
+const {ipcRenderer} = require("electron")
 const {getSetting} = require("../util")
 const {
     currentMode,
@@ -141,18 +141,16 @@ const followChars = () => {
     }
     const setName = getSetting("followchars")
     let allKeys = setName.replace("custom:", "")
-
     /**
      * Check if a provided set name is a built-in one or a custom one.
      * @param {string} set
      * @returns {set is keyof typeof keys}
      */
     const validFollowSet = set => set in keys
-
     if (validFollowSet(setName)) {
         allKeys = keys[setName]
     }
-    return allKeys.split("")
+    return [...allKeys]
 }
 
 /**
@@ -243,28 +241,28 @@ const clickAtLink = async(link, src = "user") => {
 
 /** Apply the new order of links after changing them through rotation. */
 const applyIndexedOrder = () => {
-    savedOrder.forEach((type, index) => {
-        [...document.querySelectorAll(`.follow-${type}`)].forEach(e => {
+    for (const [index, type] of savedOrder.entries()) {
+        for (const e of document.querySelectorAll(`.follow-${type}`)) {
             if (e instanceof HTMLElement) {
                 e.style.zIndex = `${index + 10 + savedOrder.length}`
             }
-        })
-        ;[...document.querySelectorAll(`.follow-${type}-border`)].forEach(e => {
+        }
+        for (const e of document.querySelectorAll(`.follow-${type}-border`)) {
             if (e instanceof HTMLElement) {
                 e.style.zIndex = `${index + 9}`
             }
-        })
-    })
-    ;[...document.querySelectorAll(`.follow-other`)].forEach(e => {
+        }
+    }
+    for (const e of document.querySelectorAll(`.follow-other`)) {
         if (e instanceof HTMLElement) {
             e.style.zIndex = "8"
         }
-    })
-    ;[...document.querySelectorAll(`.follow-other-border`)].forEach(e => {
+    }
+    for (const e of document.querySelectorAll(`.follow-other-border`)) {
         if (e instanceof HTMLElement) {
             e.style.zIndex = "7"
         }
-    })
+    }
 }
 
 /** Rotate the display order of follow links by type. */
@@ -277,8 +275,9 @@ const reorderDisplayedLinks = () => {
 const emptyHoverLink = () => {
     hoverLink = null
     if (alreadyFollowing) {
-        [...document.querySelectorAll(`#follow .hover`)]
-            .forEach(el => el.classList.remove("hover"))
+        for (const el of document.querySelectorAll(`#follow .hover`)) {
+            el.classList.remove("hover")
+        }
     }
 }
 
@@ -291,6 +290,164 @@ const getWritableDOMRect = el => {
         bottom, height, left, right, top, width, x, y
     } = el?.getBoundingClientRect() ?? {}
     return {bottom, height, left, right, top, width, x, y}
+}
+
+/**
+ * Add an onclick listener to mouseup events to click on the links.
+ * @param {MouseEvent} e
+ * @param {FollowLink} link
+ */
+const onclickListener = async(e, link) => {
+    if (!getMouseConf("follow")) {
+        return
+    }
+    const {isUrl} = require("../util")
+    const {setMode} = require("./modes")
+    if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
+        setMode(modeBeforeFollow)
+        const {addTab} = require("./tabs")
+        addTab({
+            "src": "user",
+            "switchTo": getSetting("mousenewtabswitch"),
+            "url": link.url
+        })
+    } else {
+        await clickAtLink(link)
+        if (link.type !== "inputs-insert") {
+            if (e.button === 0) {
+                setMode(modeBeforeFollow)
+            } else {
+                startFollow()
+            }
+        }
+    }
+}
+
+/**
+ * Update the link element with alignment CSS styling based on position setting.
+ * @param {{
+ *   x: number,
+ *   y: number,
+ *   width: number,
+ *   height: number,
+ *   baseDims: import("../util").DOMRectJSON,
+ *   elWidth: number,
+ *   followlabelposition: string,
+ *   linkElement: HTMLSpanElement
+ * }} link
+ */
+const alignLink = ({
+    baseDims, elWidth, followlabelposition, height, linkElement, width, x, y
+}) => {
+    /**
+     * @type {{[alignment: string]: {
+     *   left?: number,
+     *   right?: number,
+     *   top?: number,
+     *   bottom?: number,
+     *   transform?: string
+     * }}}
+     */
+    const alignmentDict = {
+        "center": {
+            "left": x + width / 2,
+            "top": y + height / 2,
+            "transform": "translateX(-50%) translateY(-50%)"
+        },
+        "cornerbottomleft": {"right": x, "top": y + height},
+        "cornerbottomright": {"left": x + width, "top": y + height},
+        "cornertopleft": {"bottom": y, "right": x},
+        "cornertopright": {"bottom": y, "left": x + width},
+        "insidebottomcenter": {
+            "bottom": y + height,
+            "left": x + width / 2,
+            "transform": "translateX(-50%)"
+        },
+        "insidebottomleft": {"bottom": y + height, "left": x},
+        "insidebottomright": {"bottom": y + height, "right": x + width},
+        "insideleftcenter": {
+            "left": x,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "insiderightcenter": {
+            "right": x + width,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "insidetopcenter": {
+            "left": x + width / 2,
+            "top": y,
+            "transform": "translateX(-50%)"
+        },
+        "insidetopleft": {"left": x, "top": y},
+        "insidetopright": {"right": x + width, "top": y},
+        "outsidebottomcenter": {
+            "left": x + width / 2,
+            "top": y + height,
+            "transform": "translateX(-50%)"
+        },
+        "outsidebottomleft": {"left": x, "top": y + height},
+        "outsidebottomright": {"right": x + width, "top": y + height},
+        "outsideleftbottom": {"bottom": y + height, "right": x},
+        "outsideleftcenter": {
+            "right": x,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "outsidelefttop": {"right": x, "top": y},
+        "outsiderightbottom": {"bottom": y + height, "left": x + width},
+        "outsiderightcenter": {
+            "left": x + width,
+            "top": y + height / 2,
+            "transform": "translateY(-50%)"
+        },
+        "outsiderighttop": {"left": x + width, "top": y},
+        "outsidetopcenter": {
+            "bottom": y,
+            "left": x + width / 2,
+            "transform": "translateX(-50%)"
+        },
+        "outsidetopleft": {"bottom": y, "left": x},
+        "outsidetopright": {"bottom": y, "right": x + width}
+    }
+    const alignment = alignmentDict[followlabelposition]
+    /** @type {("left"|"top"|"right"|"bottom"|"transform")[]} */
+    const alignmentProps = ["left", "top", "right", "bottom", "transform"]
+    for (const align of alignmentProps) {
+        if (alignment[align] !== undefined) {
+            let value = alignment[align]
+            if (align === "left" && elWidth && typeof value === "number"
+                && value > baseDims.width + baseDims.right - elWidth) {
+                value = baseDims.width + baseDims.right
+                linkElement.style.transform += "translateX(-100%) "
+            }
+            if (align === "top" && elWidth && typeof value === "number"
+                && value > baseDims.height + baseDims.bottom - elWidth) {
+                value = baseDims.height + baseDims.bottom
+                linkElement.style.transform += "translateY(-100%) "
+            }
+            if (align === "right" && typeof value === "number") {
+                if (elWidth && value + baseDims.left < elWidth) {
+                    value = 0
+                    linkElement.style.transform += "translateX(100%) "
+                }
+                value = baseDims.width - value
+            }
+            if (align === "bottom" && typeof value === "number") {
+                if (elWidth && value + baseDims.top < elWidth) {
+                    value = 0
+                    linkElement.style.transform += "translateY(100%) "
+                }
+                value = baseDims.height - value
+            }
+            if (align === "transform" && value) {
+                linkElement.style.transform += value
+            } else if (typeof value === "number") {
+                linkElement.style[align] = `${value.toFixed(2)}px`
+            }
+        }
+    }
 }
 
 /**
@@ -318,74 +475,40 @@ const parseAndDisplayLinks = receivedLinks => {
             return {...link, "type": "url"}
         })
     }
-    if (links.length) {
+    if (links.length > 0) {
         for (let i = 0; i < links.length; i++) {
             if (!linkInList(newLinks, links[i])) {
                 links[i] = null
             }
         }
-        newLinks.filter(l => !linkInList(links, l)).forEach(newLink => {
+        for (const newLink of newLinks.filter(l => !linkInList(links, l))) {
             for (let i = 0; i < links.length; i++) {
                 if (!links[i]) {
                     links[i] = newLink
-                    return
+                    break
                 }
             }
             if (!linkInList(links, newLink)) {
                 links.push(newLink)
             }
-        })
+        }
     } else {
         links = newLinks
     }
-    while (!links[links.length - 1] && links.length) {
+    while (!links.at(-1) && links.length > 0) {
         links.pop()
     }
     const baseDims = getWritableDOMRect(followEl)
     baseDims.right = window.innerWidth - baseDims.left - baseDims.width
     baseDims.bottom = window.innerHeight - baseDims.top - baseDims.height
-    const elWidth = document.querySelector("#follow [link-id]")
-        ?.getBoundingClientRect()?.width ?? 0
     const factor = currentPage()?.getZoomFactor() ?? 1
     /** @type {HTMLSpanElement[]} */
     const followChildren = []
     const neededLength = numberToKeys(links.length).length
-    const followlabelposition = getSetting("followlabelposition")
-    links.forEach((link, index) => {
+    for (const [index, link] of links.entries()) {
         if (!link) {
-            return
+            continue
         }
-
-        /**
-         * Add an onclick listener to mouseup events to click on the links.
-         * @param {MouseEvent} e
-         */
-        const onclickListener = async e => {
-            if (!getMouseConf("follow")) {
-                return
-            }
-            const {isUrl} = require("../util")
-            const {setMode} = require("./modes")
-            if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
-                setMode(modeBeforeFollow)
-                const {addTab} = require("./tabs")
-                addTab({
-                    "src": "user",
-                    "switchTo": getSetting("mousenewtabswitch"),
-                    "url": link.url
-                })
-            } else {
-                await clickAtLink(link)
-                if (link.type !== "inputs-insert") {
-                    if (e.button === 0) {
-                        setMode(modeBeforeFollow)
-                    } else {
-                        startFollow()
-                    }
-                }
-            }
-        }
-
         // Show a border around the link
         const borderElement = document.createElement("span")
         borderElement.className = `follow-${link.type}-border`
@@ -400,7 +523,7 @@ const parseAndDisplayLinks = receivedLinks => {
         borderElement.style.top = `${y}px`
         borderElement.style.width = `${width}px`
         borderElement.style.height = `${height}px`
-        borderElement.addEventListener("mouseup", onclickListener)
+        borderElement.addEventListener("mouseup", e => onclickListener(e, link))
         borderElement.addEventListener("mousemove", () => {
             if (!getMouseConf("follow")) {
                 hoverLink = null
@@ -410,9 +533,12 @@ const parseAndDisplayLinks = receivedLinks => {
             hoverLink = link
             borderElement.classList.add("hover")
             if (alreadyFollowing) {
-                [...document.querySelectorAll(`#follow .hover`)]
-                    .filter(el => el !== borderElement)
-                    .forEach(el => el.classList.remove("hover"))
+                const hoveredFollowElements = [
+                    ...document.querySelectorAll(`#follow .hover`)
+                ].filter(el => el !== borderElement)
+                for (const el of hoveredFollowElements) {
+                    el.classList.remove("hover")
+                }
             }
         })
         followChildren.push(borderElement)
@@ -420,122 +546,24 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        /**
-         * @type {{[alignment: string]: {
-         *   left?: number,
-         *   right?: number,
-         *   top?: number,
-         *   bottom?: number,
-         *   transform?: string
-         * }}}
-         */
-        const alignmentDict = {
-            "center": {
-                "left": x + width / 2,
-                "top": y + height / 2,
-                "transform": "translateX(-50%) translateY(-50%)"
-            },
-            "cornerbottomleft": {"right": x, "top": y + height},
-            "cornerbottomright": {"left": x + width, "top": y + height},
-            "cornertopleft": {"bottom": y, "right": x},
-            "cornertopright": {"bottom": y, "left": x + width},
-            "insidebottomcenter": {
-                "bottom": y + height,
-                "left": x + width / 2,
-                "transform": "translateX(-50%)"
-            },
-            "insidebottomleft": {"bottom": y + height, "left": x},
-            "insidebottomright": {"bottom": y + height, "right": x + width},
-            "insideleftcenter": {
-                "left": x,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "insiderightcenter": {
-                "right": x + width,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "insidetopcenter": {
-                "left": x + width / 2,
-                "top": y,
-                "transform": "translateX(-50%)"
-            },
-            "insidetopleft": {"left": x, "top": y},
-            "insidetopright": {"right": x + width, "top": y},
-            "outsidebottomcenter": {
-                "left": x + width / 2,
-                "top": y + height,
-                "transform": "translateX(-50%)"
-            },
-            "outsidebottomleft": {"left": x, "top": y + height},
-            "outsidebottomright": {"right": x + width, "top": y + height},
-            "outsideleftbottom": {"bottom": y + height, "right": x},
-            "outsideleftcenter": {
-                "right": x,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "outsidelefttop": {"right": x, "top": y},
-            "outsiderightbottom": {"bottom": y + height, "left": x + width},
-            "outsiderightcenter": {
-                "left": x + width,
-                "top": y + height / 2,
-                "transform": "translateY(-50%)"
-            },
-            "outsiderighttop": {"left": x + width, "top": y},
-            "outsidetopcenter": {
-                "bottom": y,
-                "left": x + width / 2,
-                "transform": "translateX(-50%)"
-            },
-            "outsidetopleft": {"bottom": y, "left": x},
-            "outsidetopright": {"bottom": y, "right": x + width}
-        }
-        const alignment = alignmentDict[followlabelposition]
-        /** @type {("left"|"top"|"right"|"bottom"|"transform")[]} */
-        const alignmentProps = ["left", "top", "right", "bottom", "transform"]
-        for (const align of alignmentProps) {
-            if (alignment[align] !== undefined) {
-                let value = alignment[align]
-                if (align === "left" && elWidth && typeof value === "number") {
-                    if (value > baseDims.width + baseDims.right - elWidth) {
-                        value = baseDims.width + baseDims.right
-                        linkElement.style.transform += "translateX(-100%) "
-                    }
-                }
-                if (align === "top" && elWidth && typeof value === "number") {
-                    if (value > baseDims.height + baseDims.bottom - elWidth) {
-                        value = baseDims.height + baseDims.bottom
-                        linkElement.style.transform += "translateY(-100%) "
-                    }
-                }
-                if (align === "right" && typeof value === "number") {
-                    if (elWidth && value + baseDims.left < elWidth) {
-                        value = 0
-                        linkElement.style.transform += "translateX(100%) "
-                    }
-                    value = baseDims.width - value
-                }
-                if (align === "bottom" && typeof value === "number") {
-                    if (elWidth && value + baseDims.top < elWidth) {
-                        value = 0
-                        linkElement.style.transform += "translateY(100%) "
-                    }
-                    value = baseDims.height - value
-                }
-                if (align === "transform" && value) {
-                    linkElement.style.transform += value
-                } else if (typeof value === "number") {
-                    linkElement.style[align] = `${value.toFixed(2)}px`
-                }
-            }
-        }
+        const followlabelposition = getSetting("followlabelposition")
+        const elWidth = followEl.querySelector(`[link-id='${index}']`)
+            ?.getBoundingClientRect()?.width ?? 0
+        alignLink({
+            baseDims,
+            elWidth,
+            followlabelposition,
+            height,
+            linkElement,
+            width,
+            x,
+            y
+        })
         if (linkInList([link], hoverLink)) {
             borderElement.classList.add("hover")
         }
         linkElement.setAttribute("link-id", `${index}`)
-        linkElement.addEventListener("mouseup", onclickListener)
+        linkElement.addEventListener("mouseup", e => onclickListener(e, link))
         linkElement.addEventListener("mousemove", () => {
             if (!getMouseConf("follow")) {
                 hoverLink = null
@@ -545,13 +573,16 @@ const parseAndDisplayLinks = receivedLinks => {
             hoverLink = link
             borderElement.classList.add("hover")
             if (alreadyFollowing) {
-                [...document.querySelectorAll(`#follow .hover`)]
-                    .filter(el => el !== borderElement)
-                    .forEach(el => el.classList.remove("hover"))
+                const hoveredFollowElements = [
+                    ...document.querySelectorAll(`#follow .hover`)
+                ].filter(el => el !== borderElement)
+                for (const el of hoveredFollowElements) {
+                    el.classList.remove("hover")
+                }
             }
         })
         followChildren.push(linkElement)
-    })
+    }
     followEl.replaceChildren(...followChildren)
     applyIndexedOrder()
 }
@@ -591,7 +622,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
         const filterText = url?.value.toLowerCase()
         /** @type {HTMLSpanElement[]} */
         const visibleLinks = []
-        allLinkKeys.forEach(linkKey => {
+        for (const linkKey of allLinkKeys) {
             const link = links[Number(linkKey.getAttribute("link-id") ?? -1)]
             if (filterText !== undefined
                 && (link?.text.toLowerCase().includes(filterText)
@@ -601,16 +632,16 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             } else {
                 linkKey.style.display = "none"
             }
-        })
+        }
         const neededLength = numberToKeys(visibleLinks.length).length
-        visibleLinks.forEach((linkKey, index) => {
+        for (const [index, linkKey] of visibleLinks.entries()) {
             linkKey.textContent = numberToKeys(index, neededLength)
-        })
+        }
         return
     }
     /** @type {HTMLSpanElement[]} */
     const matches = []
-    allLinkKeys.forEach(linkKey => {
+    for (const linkKey of allLinkKeys) {
         if (linkKey.textContent?.toLowerCase().startsWith(code.toLowerCase())) {
             if (linkKey.computedStyleMap().get(
                 "display")?.toString() !== "none") {
@@ -620,7 +651,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
         } else {
             linkKey.remove()
         }
-    })
+    }
     if (matches.length === 0) {
         if (fallbackAction === "exit") {
             setMode(modeBeforeFollow)
@@ -650,7 +681,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                     "url": link.url
                 })
             } else if (followLinkDestination === "copylink") {
-                clipboard.writeText(link.url)
+                ipcRenderer.invoke("write-clipboard", link.url)
             } else {
                 const currentTabId = currentTab()?.getAttribute("link-id")
                 addTab({

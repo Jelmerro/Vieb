@@ -13,19 +13,77 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- More ARIA role attributes to follow mode input click and insert types
+
+### Versions
+
+- Electron 42.0.1 (unchanged)
+- Chromium 148.0.7778.97 (unchanged)
+
+## [12.9.0](https://github.com/Jelmerro/Vieb/compare/12.8.0...12.9.0) - 2026-05-10
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/12.8.0...12.9.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.9.0)
+
+### Fixed
+
+- Favicons not showing for pages on the same domain loaded in the same tab since last release
+
+### Versions
+
+- Electron 42.0.1 (was 41.2.0)
+- Chromium 148.0.7778.97 (was 146.0.7680.179)
+
+## [12.8.0](https://github.com/Jelmerro/Vieb/compare/12.7.0...12.8.0) - 2026-04-09
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/12.7.0...12.8.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.8.0)
+
+### Added
+
+- 2026 edition of ublock to the default adblocker lists
+- Setting "useragentsys" to control the operating system platform for useragent etc.
+
+### Changed
+
+- Useragent system variable to be dynamic based on "useragentsys"
+
+### Fixed
+
+- Useragent for Windows being slightly off if using "%sys"
+- Readerview showing an error dialog for non-html pages instead of blocking them with an inline notice
+
+### Versions
+
+- Electron 41.2.0 (was 40.6.1)
+- Chromium 146.0.7680.179 (was 144.0.7559.220)
+
+## [12.7.0](https://github.com/Jelmerro/Vieb/compare/12.6.0...12.7.0) - 2026-02-27
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/12.6.0...12.7.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.7.0)
+
+### Added
+
+- New "totalblack" theme that has completely black backgrounds, good for OLED
+- Feature "historyswipe" to the "mouse" setting for swiping to go back and forward in history
+
 ### Changed
 
 - Default markdownviewer colors to highlight code blocks better
+- Mouse back and forward button to target the (split) page it is forwarded from
 
 ### Fixed
 
 - URLs being requested for suggestions if the favicon url is not set for a page
 - Empty URLs from being opened if a new window is attempted to be opened
+- Mouse option "history" always being on for events forwarded from inside the page
+- Wayland window sizes not being stored as the position is always 0,0 in Wayland
+- Action exchangeSplitWindow not working well when the first split is selected
 
 ### Versions
 
-- Electron 39.2.6 (was 39.0.0)
-- Chromium 142.0.7444.226 (was 142.0.7444.52)
+- Electron 40.6.1 (was 39.0.0)
+- Chromium 144.0.7559.220 (was 142.0.7444.52)
 
 ## [12.6.0](https://github.com/Jelmerro/Vieb/compare/12.5.0...12.6.0) - 2025-11-02
 

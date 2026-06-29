@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -97,7 +97,9 @@ const updateCurrentView = (user = true) => {
         })
         pages.append(pageEl)
     }
-    [...pages.children].slice(pageCount).forEach(p => p.remove())
+    for (const p of [...pages.children].slice(pageCount)) {
+        p.remove()
+    }
     pages.querySelector(`[page-number="${pageNumber}"]`)
         ?.classList.add("current")
     if (user) {
@@ -161,7 +163,6 @@ const receiveHistory = history => {
     removeAllEl.style.display = ""
     const goal = history.length - 1
     let lineNumber = 0
-
     /**
      * Add an item to the history list on a timeout based on previous duration.
      * @param {import("../renderer/history").historyItem} hist
@@ -189,7 +190,6 @@ const receiveHistory = history => {
             addHistTimeout(history[lineNumber])
         }, 0)
     }
-
     addHistTimeout(history[lineNumber])
 }
 
@@ -228,7 +228,7 @@ const clearHistory = () => {
             return {date, url}
         }
         return null
-    }).filter(h => h)
+    }).filter(Boolean)
     updateCurrentView()
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
@@ -266,7 +266,7 @@ window.addEventListener("DOMContentLoaded", () => {
     perpage?.addEventListener("input", () => {
         if (perpage instanceof HTMLInputElement) {
             const count = Number(perpage.value)
-            if (!count || isNaN(count) || count < 1) {
+            if (!count || Number.isNaN(count) || count < 1) {
                 viewItemCount = getSetting("historyperpage") ?? 100
             } else {
                 viewItemCount = count
@@ -278,13 +278,13 @@ window.addEventListener("DOMContentLoaded", () => {
 })
 ipcRenderer.on("history-list", (_, h) => receiveHistory(h))
 ipcRenderer.on("history-removal-status", success => {
-    [...virtualList.querySelectorAll(".marked")].forEach(m => {
+    for (const m of virtualList.querySelectorAll(".marked")) {
         if (success) {
             m.remove()
         } else {
             m.classList.remove("marked")
         }
-    })
+    }
     currentlyRemoving = false
     updateCurrentView()
 })

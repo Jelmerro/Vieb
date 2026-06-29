@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -120,9 +120,9 @@ const previous = () => {
     } else {
         originalValue = url?.value ?? ""
     }
-    list.forEach(l => {
+    for (const l of list) {
         l.className = ""
-    })
+    }
     if (id === 0) {
         setUrlValue(originalValue)
         return
@@ -158,9 +158,9 @@ const next = () => {
     } else {
         originalValue = url?.value ?? ""
     }
-    list.forEach(l => {
+    for (const l of list) {
         l.className = ""
-    })
+    }
     if (id === list.length - 1) {
         setUrlValue(originalValue)
         return
@@ -261,11 +261,10 @@ const addExplore = explore => {
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
-            if (getMouseConf("suggestselect")) {
-                if (["both", "explore"].includes(getSetting("menusuggest"))) {
-                    const {linkMenu} = require("./contextmenu")
-                    linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
-                }
+            if (getMouseConf("suggestselect")
+                && ["both", "explore"].includes(getSetting("menusuggest"))) {
+                const {linkMenu} = require("./contextmenu")
+                linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
             }
         } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
@@ -321,19 +320,19 @@ const suggestExplore = search => {
         return
     }
     const {suggestHist} = require("./history")
-    getSetting("suggestorder").filter(s => s).forEach(suggest => {
+    for (const suggest of getSetting("suggestorder").filter(Boolean)) {
         const args = suggest.split("~")
         const type = args.shift()
         let count = 10
         let order = null
-        args.forEach(arg => {
+        for (const arg of args) {
             const potentialCount = Number(arg)
             if (potentialCount > 0 && potentialCount <= 9000000000000000) {
                 count = potentialCount
             } else {
                 order = arg
             }
-        })
+        }
         if (type === "history") {
             if (!order) {
                 order = "relevance"
@@ -341,7 +340,9 @@ const suggestExplore = search => {
             suggestHist(search, order, count)
         }
         if (type === "file") {
-            suggestFiles(search).slice(0, count).forEach(f => addExplore(f))
+            for (const f of suggestFiles(search).slice(0, count)) {
+                addExplore(f)
+            }
         }
         if (type === "searchword") {
             if (!order) {
@@ -367,11 +368,13 @@ const suggestExplore = search => {
                     return 0
                 })
             }
-            const searchStr = `${search.split(" ").filter(s => s)[0].trim()}`
-            words.filter(s => s.title.startsWith(searchStr))
-                .forEach(s => addExplore(s))
+            const searchStr = search.split(" ").find(Boolean)?.trim() ?? ""
+            for (const word of words.filter(
+                s => s.title.startsWith(searchStr))) {
+                addExplore(word)
+            }
         }
-    })
+    }
 }
 
 /**
@@ -396,11 +399,10 @@ const addCommand = (
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
-            if (getMouseConf("suggestselect")) {
-                if (["both", "command"].includes(getSetting("menusuggest"))) {
-                    const {commandMenu} = require("./contextmenu")
-                    commandMenu("user", {command, "x": e.x, "y": e.y})
-                }
+            if (getMouseConf("suggestselect")
+                && ["both", "command"].includes(getSetting("menusuggest"))) {
+                const {commandMenu} = require("./contextmenu")
+                commandMenu("user", {command, "x": e.x, "y": e.y})
             }
         } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
@@ -449,7 +451,7 @@ const suggestCommand = searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
-    const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
+    const search = searchStr.replace(/^[\s:|]*/, "").replace(/ +/g, " ")
     const {parseAndValidateArgs} = require("./command")
     const {
         args, command, confirm, range, valid
@@ -474,8 +476,9 @@ const suggestCommand = searchStr => {
     const {
         commandList, customCommandsAsCommandList, rangeToTabIdxs
     } = require("./command")
-    commandList().filter(
-        c => c.startsWith(search)).forEach(c => addCommand(c))
+    for (const cmd of commandList().filter(c => c.startsWith(search))) {
+        addCommand(cmd)
+    }
     const {validOptions} = require("./settings")
     // Command: screenshot and screencopy
     if (command.startsWith("screen")
@@ -486,12 +489,12 @@ const suggestCommand = searchStr => {
         }
         let [dims, location] = args
         let dimsFirst = true
-        if (!dims?.match(/^[0-9,]+$/g)
-            || location && !dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+        if (!dims?.match(/^[\d,]+$/g)
+            || location && !dims?.match(/^(?:\d+,){3}\d+$/g)) {
             [location, dims] = args
             dimsFirst = false
         }
-        if (dims && !dims?.match(/^[0-9,]+$/g)) {
+        if (dims && !dims?.match(/^[\d,]+$/g)) {
             return
         }
         const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
@@ -514,7 +517,7 @@ const suggestCommand = searchStr => {
             addCommand(`${fullCommand} ${dimsSuggest}`)
         } else if (location) {
             const fileSuggestions = suggestFiles(location)
-            fileSuggestions.forEach(l => {
+            for (const l of fileSuggestions) {
                 let loc = l.path
                 if (l.path.includes(" ")) {
                     loc = `"${loc}"`
@@ -527,8 +530,8 @@ const suggestCommand = searchStr => {
                     addCommand(`${fullCommand} ${loc}`)
                     addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
                 }
-            })
-            if (!fileSuggestions.length) {
+            }
+            if (fileSuggestions.length === 0) {
                 if (dimsFirst) {
                     addCommand(`${fullCommand} ${dimsSuggest} ${location}`)
                 } else if (dims) {
@@ -560,24 +563,28 @@ const suggestCommand = searchStr => {
     // Command: set
     const {settingsWithDefaults, suggestionList} = require("./settings")
     if ("set".startsWith(command) && !confirm && !range) {
-        if (args.length) {
-            suggestionList().filter(s => s.startsWith(args[args.length - 1]))
-                .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`
-                    .replace(/ +/g, " "))
-                .forEach(c => addCommand(c))
+        if (args.length > 0) {
+            for (const c of suggestionList().filter(
+                s => s.startsWith(args.at(-1) ?? "")).map(s => `${command} ${
+                args.slice(0, -1).join(" ")} ${s}`.replace(/ +/g, " "))) {
+                addCommand(c)
+            }
         } else {
-            suggestionList().map(s => `${command} ${s}`)
-                .forEach(c => addCommand(c))
+            for (const c of suggestionList().map(s => `${command} ${s}`)) {
+                addCommand(c)
+            }
         }
     }
     // Command: source
     if ("source".startsWith(command) && !confirm && args.length < 2 && !range) {
         let location = expandPath(search.replace("source ", "") || "")
         if (location.startsWith("\"") && location.endsWith("\"")) {
-            location = location.slice(1, location.length - 1)
+            location = location.slice(1, -1)
         }
         if (isAbsolutePath(location)) {
-            suggestFiles(location).forEach(l => addCommand(`source ${l.path}`))
+            for (const l of suggestFiles(location)) {
+                addCommand(`source ${l.path}`)
+            }
         }
     }
     // Command: write
@@ -628,7 +635,7 @@ const suggestCommand = searchStr => {
                 path = joinPath(downloadPath(), path)
             }
             const fileSuggestions = suggestFiles(path)
-            fileSuggestions.forEach(l => {
+            for (const l of fileSuggestions) {
                 let loc = l.path
                 if (l.path.includes(" ")) {
                     loc = `"${loc}"`
@@ -646,8 +653,8 @@ const suggestCommand = searchStr => {
                     addCommand(`write html ${loc}`)
                     addCommand(`write mtml ${loc}`)
                 }
-            })
-            if (!fileSuggestions.length) {
+            }
+            if (fileSuggestions.length === 0) {
                 if (type && args[0] === type) {
                     addCommand(`write ${typeSuggest} ${path}`)
                 } else if (type) {
@@ -668,7 +675,8 @@ const suggestCommand = searchStr => {
                 addCommand(`${range}write mhtml`)
             }
             const tabs = listTabs()
-            rangeToTabIdxs("user", range, true).tabs.map(num => {
+            const indexes = rangeToTabIdxs("user", range, true)
+            const cmds = indexes.tabs.map(num => {
                 const tab = tabs.at(num)
                 if (!tab) {
                     return null
@@ -680,11 +688,10 @@ const suggestCommand = searchStr => {
                     "title": tab.querySelector("span")?.textContent ?? "",
                     "url": pageForTab(tab)?.getAttribute("src") ?? ""
                 }
-            }).forEach(t => {
-                if (t) {
-                    addCommand(t.command, t.title, t.url, t.icon, true)
-                }
-            })
+            }).filter(Boolean)
+            for (const c of cmds) {
+                addCommand(c.command, c.title, c.url, c.icon, true)
+            }
         }
     }
     // Command: mkviebrc
@@ -694,11 +701,11 @@ const suggestCommand = searchStr => {
     // Command: devtools
     if ("devtools".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        validOptions.devtoolsposition.forEach(option => {
+        for (const option of validOptions.devtoolsposition) {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`devtools ${option}`)
             }
-        })
+        }
     }
     // Command: colorscheme
     if ("colorscheme".startsWith(command) && !range) {
@@ -707,37 +714,39 @@ const suggestCommand = searchStr => {
         }
         /** @type {{[theme: string]: string}} */
         const themes = {}
-        listDir(joinPath(getAppRootDir(), "colors"))?.forEach(p => {
-            themes[p.replace(/\.css$/g, "")] = "built-in"
-        })
+        for (const part of listDir(joinPath(getAppRootDir(), "colors")) ?? []) {
+            themes[part.replace(/\.css$/g, "")] = "built-in"
+        }
         const customDirs = [
             joinPath(appData(), "colors"),
             expandPath("~/.vieb/colors")
         ]
-        customDirs.forEach(dir => {
-            listDir(dir)?.filter(p => p.endsWith(".css")).forEach(p => {
-                const location = joinPath(dir, p)
-                if (p === "default.css" || !readFile(location)) {
-                    return
+        for (const dir of customDirs) {
+            for (const part of listDir(dir)
+                ?.filter(p => p.endsWith(".css")) ?? []) {
+                const location = joinPath(dir, part)
+                if (part === "default.css" || !readFile(location)) {
+                    continue
                 }
-                themes[p.replace(/\.css$/g, "")] = location
-            })
-        })
-        Object.keys(themes).forEach(t => {
+                themes[part.replace(/\.css$/g, "")] = location
+            }
+        }
+        for (const t of Object.keys(themes)) {
             if (t.startsWith(args[0] || "")) {
                 addCommand(`colorscheme ${t}`, themes[t])
             }
-        })
+        }
     }
     // Command: command and delcommand
     for (const custom of ["command", "command!", "delcommand"]) {
         if (custom.startsWith(command)
         && (custom.endsWith("!") || !confirm) && !range) {
-            customCommandsAsCommandList().split("\n")
-                .filter(cmd => cmd.split(" ")[0] === "command")
-                .map(cmd => cmd.split(" ")[1])
-                .filter(cmd => !args[0] || cmd.startsWith(args[0]))
-                .forEach(cmd => addCommand(`${custom} ${cmd}`))
+            for (const cmd of customCommandsAsCommandList().split("\n")
+                .filter(c => c.split(" ")[0] === "command")
+                .map(c => c.split(" ")[1])
+                .filter(c => !args[0] || c.startsWith(args[0]))) {
+                addCommand(`${custom} ${cmd}`)
+            }
         }
     }
     // Command: help
@@ -799,41 +808,41 @@ const suggestCommand = searchStr => {
             ...listMappingsAsCommandList("user", null, true).split("\n")
                 .map(m => m.split(" ")[1])
         ]
-        listMappingsAsCommandList("user", null, true).split("\n")
-            .forEach(map => {
-                const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
-                const [, keys] = map.split(" ")
-                if (mode) {
-                    sections.push(`${mode}_${keys}`)
-                } else {
-                    "nicsefpvm".split("").forEach(m => {
-                        sections.push(`${m}_${keys}`)
-                    })
+        const mapCommandString = listMappingsAsCommandList("user", null, true)
+        for (const map of mapCommandString.split("\n")) {
+            const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
+            const [, keys] = map.split(" ")
+            if (mode) {
+                sections.push(`${mode}_${keys}`)
+            } else {
+                for (const m of "nicsefpvm") {
+                    sections.push(`${m}_${keys}`)
                 }
-            })
+            }
+        }
         const simpleSearch = args.join(" ").replace(/^#?:?/, "")
             .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
             .replace(/^a\w*\./, "").replace(/^p\w*\./, "p.")
-        sections.filter(section => {
-            const simpleSection = section.replace(/^#?:?/, "")
+        for (const section of sections.filter(s => {
+            const simpleSection = s.replace(/^#?:?/, "")
                 .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
             return `${command} ${simpleSection.replace(/^pointer\./, "p.")}`
                 .startsWith(`${command} ${simpleSearch}`.trim())
             || `${command} ${simpleSection}`.startsWith(
                 `${command} ${simpleSearch}`.trim())
-        }).forEach(section => addCommand(`help${confirmChar} ${section}`))
+        })) { addCommand(`help${confirmChar} ${section}`) }
     }
     // Command: translatepage
     if ("translatepage".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        validOptions.translatelang.forEach(option => {
+        for (const option of validOptions.translatelang) {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`translatepage ${option}`)
             }
-        })
+        }
     }
     // Command: buffer, hide, Vexplore, Sexplore, split, vsplit etc.
-    [
+    for (const bufferCommand of [
         "buffer",
         "hide",
         "mute",
@@ -844,16 +853,16 @@ const suggestCommand = searchStr => {
         "suspend",
         "vsplit",
         "close"
-    ].forEach(bufferCommand => {
+    ]) {
         if (bufferCommand.startsWith(command)) {
-            const acceptsConfirm = ["close", "mute", "pin"]
-            if (!acceptsConfirm.includes(bufferCommand) && confirm) {
-                return
+            const acceptsConfirm = new Set(["close", "mute", "pin"])
+            if (!acceptsConfirm.has(bufferCommand) && confirm) {
+                continue
             }
             if (range) {
-                if (!confirm || !args.length) {
+                if (!confirm || args.length === 0) {
                     addCommand(`${range}${bufferCommand}${confirmChar}`)
-                    if (acceptsConfirm.includes(bufferCommand) && !confirm) {
+                    if (acceptsConfirm.has(bufferCommand) && !confirm) {
                         addCommand(`${range}${bufferCommand}!`)
                     }
                 }
@@ -865,11 +874,12 @@ const suggestCommand = searchStr => {
                     if (args.join("").trim().startsWith("f")) {
                         a = " false"
                     }
-                } else if (args.length) {
-                    return
+                } else if (args.length > 0) {
+                    continue
                 }
                 const tabs = listTabs()
-                rangeToTabIdxs("user", range, true).tabs.map(num => {
+                const indexes = rangeToTabIdxs("user", range, true)
+                const cmds = indexes.tabs.map(num => {
                     const tab = tabs.at(num)
                     if (!tab) {
                         return null
@@ -881,21 +891,20 @@ const suggestCommand = searchStr => {
                         "title": tab.querySelector("span")?.textContent ?? "",
                         "url": pageForTab(tab)?.getAttribute("src") ?? ""
                     }
-                }).forEach(t => {
-                    if (t) {
-                        addCommand(t.command, t.title, t.url, t.icon, true)
-                    }
-                })
-                return
+                }).filter(Boolean)
+                for (const c of cmds) {
+                    addCommand(c.command, c.title, c.url, c.icon, true)
+                }
+                continue
             }
             if (["mute", "pin"].includes(bufferCommand) && confirm) {
                 addCommand(`${bufferCommand}${confirmChar} true`)
                 addCommand(`${bufferCommand}${confirmChar} false`)
-                return
+                continue
             }
             const {allTabsForBufferArg} = require("./command")
             const tabs = listTabs()
-            allTabsForBufferArg(args).map(b => {
+            for (const t of allTabsForBufferArg(args).map(b => {
                 if (!b?.tab) {
                     return null
                 }
@@ -906,13 +915,13 @@ const suggestCommand = searchStr => {
                     "title": b.title,
                     "url": b.url
                 }
-            }).forEach(t => {
+            })) {
                 if (t) {
                     addCommand(t.command, t.title, t.url, t.icon)
                 }
-            })
+            }
         }
-    })
+    }
     // Command: clear
     if ("clear".startsWith(command) && !range && !confirm && args.length < 3) {
         const argStr = `clear ${search.split(" ").slice(1).join(" ")}`

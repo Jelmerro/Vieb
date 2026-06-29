@@ -1,6 +1,6 @@
 {
     "name": "vieb",
-    "version": "12.6.1-dev",
+    "version": "12.10.0-dev",
     "description": "Vim Inspired Electron Browser",
     "keywords": [
         "Vim",
@@ -9,6 +9,7 @@
         "Internet"
     ],
     "homepage": "https://vieb.dev",
+    "bugs": "https://github.com/Jelmerro/Vieb/issues/",
     "repository": {
         "url": "https://github.com/Jelmerro/Vieb",
         "type": "git"
@@ -17,7 +18,8 @@
     "license": "GPL-3.0-or-later",
     "author": "Jelmer van Arnhem",
     "type": "commonjs",
-    "main": "app/index.js",
+    "exports": "./app/*",
+    "main": "./app/index.js",
     "scripts": {
         "dev": "electron app --datafolder=./ViebData/ --config-order=datafolder-only",
         "eslint": "eslint",
@@ -30,27 +32,30 @@
         "update": "npx -y jelmerro/nus"
     },
     "dependencies": {
-        "@ghostery/adblocker-electron": "2.13.0",
-        "@ghostery/adblocker-electron-preload": "2.13.0",
+        "@ghostery/adblocker-electron": "2.17.0",
+        "@ghostery/adblocker-electron-preload": "2.17.0",
         "@mozilla/readability": "0.6.0",
         "darkreader": "4.9.96",
         "highlight.js": "11.11.1",
         "linkedom": "0.18.12",
         "marked": "15.0.12",
-        "marked-base-url": "1.1.8",
-        "marked-highlight": "2.2.3",
-        "picomatch": "4.0.3"
+        "marked-base-url": "1.1.9",
+        "marked-highlight": "2.2.4",
+        "picomatch": "4.0.4"
     },
     "devDependencies": {
-        "@electron/asar": "4.0.1",
-        "@types/picomatch": "4.0.2",
-        "electron": "39.2.6",
-        "electron-builder": "26.3.5",
+        "@electron/asar": "4.2.0",
+        "@types/picomatch": "4.0.3",
+        "electron": "42.0.1",
+        "electron-builder": "26.8.1",
         "eslint-config": "github:Jelmerro/eslint-config",
-        "glob": "13.0.0",
-        "terser-webpack-plugin": "5.3.15",
+        "glob": "13.0.6",
+        "terser-webpack-plugin": "5.6.0",
         "type-config": "github:Jelmerro/type-config",
-        "webpack": "5.103.0",
+        "webpack": "5.106.2",
         "webpack-node-externals": "3.0.0"
+    },
+    "engines": {
+        "node": ">=22"
     }
 }

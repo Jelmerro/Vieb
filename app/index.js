@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,13 +17,14 @@
 */
 "use strict"
 
-const {randomUUID} = require("crypto")
 const {
     app,
     BrowserWindow,
+    clipboard,
     desktopCapturer,
     dialog,
     ipcMain,
+    nativeImage,
     nativeTheme,
     net,
     screen,
@@ -31,6 +32,7 @@ const {
     shell,
     webContents
 } = require("electron")
+const {randomUUID} = require("node:crypto")
 const {translate} = require("./translate")
 const {
     basePath,
@@ -45,6 +47,7 @@ const {
     isAbsolutePath,
     isDir,
     isFile,
+    isFlatStringObject,
     joinPath,
     listDir,
     makeDir,
@@ -52,6 +55,7 @@ const {
     readJSON,
     rm,
     specialChars,
+    userAgentResolvedSystem,
     watchFile,
     writeFile,
     writeJSON
@@ -255,14 +259,14 @@ let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
 let argInterfaceScale = Number(
-    process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
+    process.env.VIEB_INTERFACE_SCALE?.trim() || 1) || 1
 let argDevtoolsTheme = process.env.VIEB_DEVTOOLS_THEME?.trim().toLowerCase()
     || "dark"
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
 let DRM = false
-args.forEach(a => {
+for (const a of args) {
     const arg = a.trim()
     if (arg.startsWith("-")) {
         if (arg === "--help") {
@@ -355,7 +359,7 @@ args.forEach(a => {
     } else {
         urls.push(arg)
     }
-})
+}
 if (argAutoplayMedia !== "user" && argAutoplayMedia !== "always") {
     console.warn("The 'autoplay-media' argument only accepts:\n"
         + "'user' or 'always'\n")
@@ -381,7 +385,7 @@ const validConfigOrders = [
 if (!validConfigOrders.includes(argConfigOrder)) {
     console.warn(`The 'config-order' argument only accepts:\n${
         validConfigOrders.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
-        validConfigOrders.slice(-1)[0]}'\n`)
+        validConfigOrders.at(-1)}'\n`)
     printUsage()
 }
 if (argConfigOverride) {
@@ -397,7 +401,7 @@ if (argConfigOverride) {
 if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
-if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
+if (Number.isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
     console.warn(
         "The 'interface-scale' argument only accepts positive numbers\n")
     printUsage()
@@ -406,11 +410,11 @@ if (argInterfaceScale !== 1) {
     app.commandLine.appendSwitch(
         "force-device-scale-factor", `${argInterfaceScale}`)
 }
-if (isNaN(argExecuteDur) || argExecuteDur < 0) {
+if (Number.isNaN(argExecuteDur) || argExecuteDur < 0) {
     console.warn("The 'execute-dur' argument only accepts positive numbers\n")
     printUsage()
 }
-if (isNaN(argExecuteCount) || argExecuteCount < 0) {
+if (Number.isNaN(argExecuteCount) || argExecuteCount < 0) {
     console.warn("The 'execute-count' argument only accepts positive numbers\n")
     printUsage()
 }
@@ -419,7 +423,7 @@ if (argExecuteDur === 0 && argExecuteCount === 0) {
         "The 'execute-dur' and 'execute-count' arguments cannot both be zero\n")
     printUsage()
 }
-if (urls.length && argExecute) {
+if (urls.length > 0 && argExecute) {
     console.warn(
         "The 'execute' argument cannot be combined with opening urls\n")
     printUsage()
@@ -432,7 +436,22 @@ if (urls.length && argExecute) {
  */
 const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
-    const preferences = readJSON(prefFile) || {}
+    /**
+     * @type {Partial<{electron: {devtools?: {preferences?: {
+     *   cssSourceMapsEnabled?: "true"|"false",
+     *   consoleTimestampsEnabled?: "true"|"false",
+     *   disablePausedStateOverlay?: "true"|"false",
+     *   currentDockState?: `"left"`|`"right"`|`"bottom"`|`"undocked"`,
+     *   "help.show-release-note"?: "true"|"false",
+     *   jsSourceMapsEnabled?: "true"|"false",
+     *   "ui-theme"?: `"dark"`|`"light"`|`"system"`,
+     *   uiTheme?: `"dark"`|`"light"`|`"system"`
+     * }}}}>&import("./util").PartialJSON}
+     */
+    const preferences = readJSON(prefFile) ?? {}
+    if (!("electron" in preferences)) {
+        preferences.electron = {}
+    }
     preferences.electron ||= {}
     preferences.electron.devtools ||= {}
     preferences.electron.devtools.preferences ||= {}
@@ -452,6 +471,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     // Disable the paused overlay which prevents interaction with other pages
     preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
     // Style the devtools based on the system theme
+    /** @type {`"dark"`|`"light"`} */
     let theme = `"dark"`
     if (argDevtoolsTheme === "light") {
         theme = `"light"`
@@ -461,15 +481,17 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     writeJSON(prefFile, preferences)
 }
 
-// https://github.com/electron/electron/issues/30201
 if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 const partitionDir = joinPath(argDatafolder, "Partitions")
-listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
-    .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+for (const part of listDir(partitionDir, false, true)
+    ?.filter(p => p.startsWith("temp"))
+    .map(p => joinPath(partitionDir, p)) ?? []) {
+    rm(part)
+}
 rm(joinPath(argDatafolder, "erwicmode"))
 app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
@@ -477,13 +499,13 @@ applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
     argErwic = expandPath(argErwic)
     /**
-     * @type {{
+     * @type {Partial<{
      *   name?: unknown, icon?: unknown, apps: {
      *     container?: unknown, script?: unknown, url?: unknown
      *   }[]
-     * }}
+     * }>&import("./util").PartialJSON}
      */
-    const config = readJSON(argErwic)
+    const config = readJSON(argErwic) ?? {}
     if (!config) {
         console.warn("Erwic config file could not be read\n")
         printUsage()
@@ -510,28 +532,27 @@ if (argErwic) {
         console.warn("Erwic config file requires a list of 'apps'\n")
         printUsage()
     }
-    config.apps = config.apps.map(a => {
+    config.apps = config.apps?.map(a => {
         if (typeof a.url !== "string" || typeof a.container !== "string") {
             return null
         }
         const simpleContainerName = a.container.replace(/_/g, "")
-        if (simpleContainerName.match(specialChars)) {
+        if (specialChars.test(simpleContainerName)) {
             console.warn("Container names are not allowed to have "
                 + "special characters besides underscores\n")
             printUsage()
         }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
-            if (typeof a.script === "string") {
-                if (a.script !== joinPath(a.script)) {
-                    a.script = joinPath(dirname(argErwic), a.script)
-                }
+            if (typeof a.script === "string"
+                && a.script !== joinPath(a.script)) {
+                a.script = joinPath(dirname(argErwic), a.script)
             }
         } else {
             a.script = null
         }
         return a
-    }).flatMap(a => a ?? [])
+    }).flatMap(a => a ?? []) ?? []
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")
@@ -560,13 +581,12 @@ const currentInputMatches = key => {
         return true
     }
     return blockedInsertMappings.some(mapping => {
-        if (!!mapping.alt === key.alt && !!mapping.control === key.control) {
-            if (!!mapping.meta === key.meta && !!mapping.shift === key.shift) {
-                if (key.location === 3) {
-                    return mapping.key === `k${key.key}`
-                }
-                return mapping.key === key.key
+        if (!!mapping.alt === key.alt && !!mapping.control === key.control
+            && !!mapping.meta === key.meta && !!mapping.shift === key.shift) {
+            if (key.location === 3) {
+                return mapping.key === `k${key.key}`
             }
+            return mapping.key === key.key
         }
         return false
     })
@@ -585,7 +605,7 @@ const notify = opts => mainWindow?.webContents.send("notify", opts)
  * })[]} paths
  * @param {string|null} cwd
  */
-const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
+const resolveLocalPaths = (paths, cwd = null) => paths.map(u => {
     let url = ""
     if (typeof u === "string") {
         url = String(u)
@@ -612,7 +632,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
         return {...u, url}
     }
     return {url}
-}).filter(u => u)
+}).filter(Boolean)
 
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
@@ -631,7 +651,7 @@ let permissions = {}
  * Main check if a permission should be allowed or declined.
  * @param {Electron.WebContents|null} _
  * @param {string} pm
- * @param {null|((_: any) => void)} callback
+ * @param {null|((allowed: boolean) => void)} callback
  * @param {{
  *   mediaTypes?: ("video"|"audio"|"unknown")[],
  *   mediaType?: "video"|"audio"|"unknown",
@@ -663,11 +683,10 @@ const permissionHandler = (_, pm, callback, details) => {
         }
     }
     let permissionName = `permission${permission}`
-    if (permission === "openexternal" && details.externalURL) {
-        if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
-            mainWindow.webContents.send("navigate-to", details.externalURL)
-            return false
-        }
+    if (permission === "openexternal" && details.externalURL
+        && details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
+        mainWindow.webContents.send("navigate-to", details.externalURL)
+        return false
     }
     let setting = permissions[permissionName]
     if (!setting) {
@@ -685,22 +704,20 @@ const permissionHandler = (_, pm, callback, details) => {
                 continue
             }
             const [match, ...names] = rule.split("~")
-            if (names.some(p => permissionName.endsWith(p))) {
-                if (details.requestingUrl?.match(match)) {
-                    settingRule = override
+            if (names.some(p => permissionName.endsWith(p))
+                && details.requestingUrl?.match(match)) {
+                settingRule = override
+                break
+            }
+            if (permissionName.includes("mediadevices")
+                && details.requestingUrl?.match(match)) {
+                if (names.some(p => p.endsWith("mediadeviceskind"))) {
+                    settingRule = "allow"
                     break
                 }
-            }
-            if (permissionName.includes("mediadevices")) {
-                if (details.requestingUrl?.match(match)) {
-                    if (names.some(p => p.endsWith("mediadeviceskind"))) {
-                        settingRule = "allow"
-                        break
-                    }
-                    if (names.some(p => p.endsWith("mediadevicesfull"))) {
-                        settingRule = "allow"
-                        break
-                    }
+                if (names.some(p => p.endsWith("mediadevicesfull"))) {
+                    settingRule = "allow"
+                    break
                 }
             }
         }
@@ -710,18 +727,16 @@ const permissionHandler = (_, pm, callback, details) => {
         return setting !== "block"
     }
     const domain = domainName(details.requestingUrl ?? "") ?? ""
-    if (permission === "certificateerror") {
-        if (allowedFingerprints[domain]
-            ?.includes(details.cert?.fingerprint ?? "")) {
-            notify({
-                "fields": [permission, details.requestingUrl ?? ""],
-                "id": "permissions.domainCachedAllowed",
-                "src": "user",
-                "type": "permission"
-            })
-            callback(true)
-            return true
-        }
+    if (permission === "certificateerror" && allowedFingerprints[domain]
+        ?.includes(details.cert?.fingerprint ?? "")) {
+        notify({
+            "fields": [permission, details.requestingUrl ?? ""],
+            "id": "permissions.domainCachedAllowed",
+            "src": "user",
+            "type": "permission"
+        })
+        callback(true)
+        return true
     }
     if (setting === "ask") {
         let url = details.requestingUrl ?? ""
@@ -729,7 +744,7 @@ const permissionHandler = (_, pm, callback, details) => {
             url = url.replace(/.{50}/g, "$&\n")
         }
         if (url.length > 1000) {
-            url = `${url.split("").slice(0, 1000).join("")}...`
+            url = `${[...url].slice(0, 1000).join("")}...`
         }
         let message = translate("permissions.ask.body", {
             "fields": [permission, permissionName, url]
@@ -753,7 +768,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
             }
             if (exturl.length > 1000) {
-                exturl = `${exturl.split("").slice(0, 1000).join("")}...`
+                exturl = `${[...exturl].slice(0, 1000).join("")}...`
             }
             message = translate("permissions.ask.bodyExternal", {
                 "fields": [url, exturl]
@@ -863,6 +878,7 @@ const permissionHandler = (_, pm, callback, details) => {
     return false
 }
 
+const minWindowSize = 500
 app.whenReady().then(async() => {
     app.userAgentFallback = defaultUseragent()
     const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
@@ -911,7 +927,7 @@ app.whenReady().then(async() => {
                 if (parts.at(-1) === "") {
                     parts.pop()
                 }
-                if (fileContents !== null && parts.length) {
+                if (fileContents !== null && parts.length > 0) {
                     console.info(parts.join("\n"))
                 }
                 deleteFile(executeOut)
@@ -972,8 +988,8 @@ app.whenReady().then(async() => {
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(
-        Math.floor(Math.min(500 / argInterfaceScale, 500)),
-        Math.floor(Math.min(500 / argInterfaceScale, 500)))
+        Math.floor(Math.min(minWindowSize / argInterfaceScale, minWindowSize)),
+        Math.floor(Math.min(minWindowSize / argInterfaceScale, minWindowSize)))
     mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
     mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
@@ -1306,9 +1322,9 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   total: number,
  *   url: string
  *   uuid: string,
- * }} downloadItem
+ * }} DownloadItem
  */
-/** @type {downloadItem[]} */
+/** @type {DownloadItem[]} */
 let downloads = []
 /** @type {string[]} */
 let redirects = []
@@ -1345,6 +1361,32 @@ const updateRequestHeaders = (_, headers) => {
 ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
 
+/** Cancel all downloads immediately. */
+const cancellAllDownloads = () => {
+    for (const download of downloads) {
+        try {
+            if (download.state !== "completed") {
+                download.state = "cancelled"
+            }
+            download.item.cancel()
+        } catch {
+            // Download was already removed or is already done
+        }
+    }
+}
+
+/**
+ * Check if an element in the download file is actually a download info object.
+ * @param {import("./util").PartialJSON|undefined} d
+ * @returns {d is DownloadItem}
+ */
+const isDownloadObject = d => {
+    if (!d || typeof d !== "object") {
+        return false
+    }
+    return "state" in d
+}
+
 /**
  * Update download settings.
  * @param {Electron.IpcMainInvokeEvent} _
@@ -1361,14 +1403,12 @@ const setDownloadSettings = (_, settings) => {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            /** @type {downloadItem[]} */
+            /** @type {Partial<DownloadItem[]>|import("./util").PartialJSON} */
             const downloadsFile = readJSON(dlsFile) ?? []
-            downloads = downloadsFile.map(d => {
-                if (d.state !== "completed") {
-                    d.state = "cancelled"
-                }
-                return d
-            }) || []
+            if (Array.isArray(downloadsFile)) {
+                downloads = downloadsFile.filter(v => isDownloadObject(v))
+                cancellAllDownloads()
+            }
         }
     }
     downloadSettings = settings
@@ -1384,7 +1424,7 @@ const writeDownloadsToFile = () => {
     if (!downloadSettings.downloadmethod) {
         return
     }
-    downloads.forEach(d => {
+    for (const d of downloads) {
         // Update downloads that are stuck on waiting to start,
         // but have already been destroyed by electron.
         try {
@@ -1394,7 +1434,7 @@ const writeDownloadsToFile = () => {
                 d.state = "completed"
             }
         }
-    })
+    }
     if (downloadSettings.cleardownloadsonquit || downloads.length === 0) {
         deleteFile(dlsFile)
     } else {
@@ -1406,13 +1446,13 @@ ipcMain.handle("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadUuid) => {
     const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
-        downloads.forEach(d => {
+        for (const d of downloads) {
             try {
                 d.item.cancel()
             } catch {
                 // Download was already removed or is already done
             }
-        })
+        }
         downloads = []
     }
     if (action === "pause") {
@@ -1471,10 +1511,10 @@ const setSpelllangs = (_, langs) => {
         }
         return lang
     }).flatMap(lang => lang ?? [])
-    sessionList.forEach(ses => {
+    for (const ses of sessionList) {
         session.fromPartition(ses).setSpellCheckerLanguages(parsedLangs)
         session.defaultSession.setSpellCheckerLanguages(parsedLangs)
-    })
+    }
 }
 
 ipcMain.on("set-spelllang", setSpelllangs)
@@ -1506,11 +1546,13 @@ const disableAdblocker = () => {
     if (!blocker) {
         return
     }
-    sessionList.forEach(part => {
+    for (const part of sessionList) {
         const ses = session.fromPartition(part)
-        ses.getPreloadScripts().filter(p => p.id === "adblock-preload")
-            .forEach(p => ses.unregisterPreloadScript(p.id))
-    })
+        for (const preload of ses.getPreloadScripts()
+            .filter(p => p.id === "adblock-preload")) {
+            ses.unregisterPreloadScript(preload.id)
+        }
+    }
     ipcMain.removeHandler("@ghostery/adblocker/inject-cosmetic-filters")
     ipcMain.removeHandler("@ghostery/adblocker/is-mutation-observer-enabled")
     blocker = null
@@ -1527,11 +1569,11 @@ const reloadAdblocker = () => {
     ]
     let filters = ""
     for (const blocklistsFolder of blocklistsFolders) {
-        listDir(blocklistsFolder, true)?.forEach(file => {
+        for (const file of listDir(blocklistsFolder, true) ?? []) {
             if (file.endsWith(".txt")) {
                 filters += loadBlocklist(file)
             }
-        })
+        }
     }
     let ElectronBlocker = null
     try {
@@ -1553,14 +1595,14 @@ const reloadAdblocker = () => {
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
     }
-    sessionList.forEach(part => {
+    for (const part of sessionList) {
         const ses = session.fromPartition(part)
         ses.registerPreloadScript({
             "filePath": adblockerPreload,
             "id": "adblock-preload",
             "type": "frame"
         })
-    })
+    }
     ipcMain.handle("@ghostery/adblocker/inject-cosmetic-filters",
         blocker.onInjectCosmeticFilters)
     ipcMain.handle("@ghostery/adblocker/is-mutation-observer-enabled",
@@ -1573,8 +1615,13 @@ const reloadAdblocker = () => {
  */
 const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
-    const blocklists = readJSON(joinPath(
-        __dirname, "blocklists/list.json")) || {}
+    /** @type {{[property: string]: string}} */
+    let blocklists = {}
+    const blocklistFileData = readJSON(joinPath(
+        __dirname, "blocklists/list.json"))
+    if (isFlatStringObject(blocklistFileData)) {
+        blocklists = blocklistFileData
+    }
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
@@ -1587,7 +1634,13 @@ const enableAdblocker = type => {
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
         const adblockerNotify = getSetting("adblockernotifications")
-        const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
+        /** @type {{[property: string]: string}} */
+        let extraLists = {}
+        const extralistFileData = readJSON(joinPath(
+            blocklistDir, "list.json")) ?? {}
+        if (isFlatStringObject(extralistFileData)) {
+            extraLists = extralistFileData
+        }
         const allBlocklists = {...blocklists, ...extraLists}
         for (const list of Object.keys(allBlocklists)) {
             const url = allBlocklists[list]
@@ -1640,6 +1693,11 @@ const enableAdblocker = type => {
     }
 }
 
+/** Return the system matching sec-ch-ua-platform client hint platform. */
+const clientHintPlatform = () => ({
+    "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
+}[userAgentResolvedSystem()])
+
 ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
@@ -1649,7 +1707,7 @@ ipcMain.on("adblock-enable", (_, type) => {
 ipcMain.on("adblock-disable", disableAdblocker)
 ipcMain.on("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
-    sessionList.forEach(ses => {
+    for (const ses of sessionList) {
         const {protocol} = session.fromPartition(ses)
         if (pdfbehavior === "view") {
             if (protocol.isProtocolHandled("chrome-extension")) {
@@ -1658,7 +1716,7 @@ ipcMain.on("update-pdf-option", (_, newPdfValue) => {
         } else if (!protocol.isProtocolHandled("chrome-extension")) {
             protocol.handle("chrome-extension", blockPdf)
         }
-    })
+    }
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
@@ -1668,6 +1726,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
+    newSess.setUserAgent(app.userAgentFallback)
     newSess.registerPreloadScript({
         "filePath": joinPath(__dirname, "preload/index.js"),
         "type": "service-worker"
@@ -1712,8 +1771,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             let tabImg = null
             if (tabId) {
                 try {
-                    tabImg = (await webContents.fromId(tabId)?.capturePage())
-                        ?.resize({"width": 20 * fontsize})?.toDataURL() ?? null
+                    const img = await webContents.fromId(tabId)?.capturePage()
+                    tabImg = img?.resize({"width": 20 * fontsize})?.toDataURL()
                 } catch {
                     // No tab preview, not a huge problem
                 }
@@ -1790,40 +1849,49 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
-        redirects.forEach(r => {
+        for (const r of redirects) {
             if (r.trim()) {
                 const [match, replace] = r.split("~")
-                url = url.replace(RegExp(match), replace)
+                url = url.replace(new RegExp(match), replace)
             }
-        })
+        }
         if (details.url !== url) {
             return callback({"cancel": false, "redirectURL": url})
         }
         if (resourceTypes && (url.startsWith("http") || url.startsWith("ws"))) {
             let allow = null
             for (const r of resourcesBlocked) {
-                const [match, ...names] = r.split("~")
-                if (!names?.length || names.includes(details.resourceType)) {
-                    if (url.match(match) || details.frame?.url.match(match)) {
+                const [pattern, ...names] = r.split("~")
+                const expression = new RegExp(pattern)
+                const urlMatch = expression.test(url)
+                    && (!details.frame || expression.test(details.frame?.url))
+                if (urlMatch) {
+                    const nameMatch = !names?.length
+                        || names.includes(details.resourceType)
+                    if (nameMatch) {
                         allow = false
                         break
                     }
                 }
             }
             for (const r of resourcesAllowed) {
-                const [match, ...names] = r.split("~")
-                if (!names?.length || names.includes(details.resourceType)) {
-                    if (url.match(match) || details.frame?.url.match(match)) {
+                const [pattern, ...names] = r.split("~")
+                const expression = new RegExp(pattern)
+                const urlMatch = expression.test(url)
+                    && (!details.frame || expression.test(details.frame?.url))
+                if (urlMatch) {
+                    const nameMatch = !names?.length
+                        || names.includes(details.resourceType)
+                    if (nameMatch) {
                         allow = true
                         break
                     }
                 }
             }
-            if (typeof allow === "boolean") {
-                if (!["cspReport", "mainFrame", "other", "subFrame"]
-                    .includes(details.resourceType)) {
-                    return callback({"cancel": !allow})
-                }
+            const internals = ["cspReport", "mainFrame", "other", "subFrame"]
+            if (typeof allow === "boolean"
+                && !internals.includes(details.resourceType)) {
+                return callback({"cancel": !allow})
             }
             if (!resourceTypes.includes(details.resourceType.toLowerCase())) {
                 return callback({"cancel": true})
@@ -1849,6 +1917,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 headers[head] = requestHeaders[head]
             }
         }
+        for (const head of Object.keys(headers)) {
+            if (head.toLowerCase() === "sec-ch-ua-platform") {
+                headers[head] = clientHintPlatform()
+            }
+        }
         return callback({"cancel": false, "requestHeaders": headers})
     })
     newSess.on("will-download", (e, item) => {
@@ -1865,19 +1938,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         const filename = item.getFilename()
         let save = joinPath(downloadSettings.downloadpath, filename)
-        let duplicateNumber = 0
+        let duplicateId = 0
         let newFilename = item.getFilename()
         while (isFile(save)) {
-            duplicateNumber += 1
+            duplicateId += 1
             let extStart = filename.lastIndexOf(".tar.")
             if (extStart === -1) {
                 extStart = filename.lastIndexOf(".")
             }
             if (extStart === -1) {
-                newFilename = `${filename} (${duplicateNumber})`
+                newFilename = `${filename} (${duplicateId})`
             } else {
-                newFilename = `${filename.substring(0, extStart)} (${
-                    duplicateNumber}).${filename.substring(extStart + 1)}`
+                newFilename = `${filename.slice(0, Math.max(0, extStart))} (${
+                    duplicateId}).${filename.slice(Math.max(0, extStart + 1))}`
             }
             save = joinPath(downloadSettings.downloadpath, newFilename)
         }
@@ -1887,7 +1960,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (downloadSettings.downloadmethod === "confirm") {
             let wrappedFileName = filename.replace(/.{50}/g, "$&\n")
             if (wrappedFileName.length > 1000) {
-                wrappedFileName = `${wrappedFileName.split("")
+                wrappedFileName = `${[...wrappedFileName]
                     .slice(0, 1000).join("")}...`
             }
             let wrappedUrl = item.getURL()
@@ -1898,8 +1971,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
             wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
             if (wrappedUrl.length > 1000) {
-                wrappedUrl = `${wrappedUrl.split("")
-                    .slice(0, 1000).join("")}...`
+                wrappedUrl = `${[...wrappedUrl].slice(0, 1000).join("")}...`
             }
             const button = dialog.showMessageBoxSync(mainWindow, {
                 "buttons": ["Allow", "Deny"],
@@ -1916,7 +1988,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 return
             }
         }
-        /** @type {downloadItem} */
+        /** @type {DownloadItem} */
         const info = {
             "current": 0,
             "date": new Date(),
@@ -2118,8 +2190,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                  * @param {string} code
                  * @param {string|undefined} lang
                  */
-                "highlight": (code, lang) => {
-                    let language = lang ?? "plaintext"
+                "highlight": (code, lang = "plaintext") => {
+                    let language = lang
                     if (!hljs.getLanguage(language)) {
                         language = "plaintext"
                     }
@@ -2139,7 +2211,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
          */
         mdRenderer.html = ({text}) => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
-            .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+            .replace(/ src="([\dA-Za-z])]/g, ` src="${urlFolder}/$1`)
         /**
          * Add md-uuid to the url to allow requests to markdownfiles protocol.
          * @param {import("marked").Tokens.Image} image
@@ -2278,12 +2350,26 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         return
                     }
                     const dom = parseHTML(body).document
-                    ;[...dom.getElementsByTagName("img")].forEach(link => {
+                    if (!dom?.documentElement || !dom?.firstChild) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style id="default-styling">${defaultCSS}</style>
+                            <style id="custom-styling">${customCSS}</style>
+                            <title>${decodeURI(req.url)}</title>
+                            </head><body>
+                                Reader view not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
+                        return
+                    }
+                    for (const link of dom.getElementsByTagName("img")) {
                         link.src = new URL(link.src, url).href
-                    })
-                    ;[...dom.getElementsByTagName("a")].forEach(link => {
+                    }
+                    for (const link of dom.getElementsByTagName("a")) {
                         link.href = new URL(link.href, url).href
-                    })
+                    }
                     const out = new Readability(dom).parse()?.content ?? ""
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
@@ -2305,22 +2391,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         })
     })
 })
-
-/** Cancel all downloads immediately. */
-const cancellAllDownloads = () => {
-    downloads.forEach(download => {
-        try {
-            if (download.state !== "completed") {
-                download.state = "cancelled"
-            }
-            download.item.cancel()
-        } catch {
-            // Download was already removed or is already done
-        }
-    })
-    writeDownloadsToFile()
-}
-
 ipcMain.on("download-favicon", (_, options) => {
     const customSession = webContents.fromId(options.webId)?.session
         ?? session.defaultSession
@@ -2361,13 +2431,31 @@ ipcMain.on("download-favicon", (_, options) => {
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 
 /**
+ * @typedef {Electron.Rectangle&{
+ *   fullscreen: boolean, maximized: boolean
+ * }} WindowState
+ */
+
+/**
  * Save the current window state, optionally just the maximize/fullscreen state.
  * @param {boolean} statesOnly
  */
 const saveWindowState = (statesOnly = false) => {
     try {
         mainWindow?.webContents?.send("window-update-gui")
-        let state = readJSON(windowStateFile) || {}
+        /** @type {Partial<WindowState>&import("./util").PartialJSON} */
+        const oldState = readJSON(windowStateFile) ?? {}
+        /** @type {Partial<WindowState>} */
+        let state = {}
+        if (typeof oldState.x === "number" && typeof oldState.y === "number") {
+            state.x = oldState.x
+            state.y = oldState.y
+        }
+        if (oldState.width && oldState.width >= minWindowSize
+            && oldState.height && oldState.height >= minWindowSize) {
+            state.width = oldState.width
+            state.height = oldState.height
+        }
         if (!statesOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
             const currentScreen = screen.getDisplayMatching(newBounds).workArea
@@ -2376,13 +2464,15 @@ const saveWindowState = (statesOnly = false) => {
             const halfW = newBounds.width === currentScreen.width / 2
             const halfH = newBounds.height === currentScreen.height / 2
             const halfX = newBounds.x === currentScreen.x / 2
+                && newBounds.x !== 0
             const halfY = newBounds.y === currentScreen.y / 2
+                && newBounds.y !== 0
             if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
                 state = newBounds
             }
         }
-        state.maximized = mainWindow?.isMaximized()
-        state.fullscreen = mainWindow?.fullScreen
+        state.maximized = mainWindow?.isMaximized() ?? false
+        state.fullscreen = mainWindow?.fullScreen ?? false
         writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
@@ -2411,18 +2501,10 @@ ipcMain.on("window-state-init", (_, restore) => {
     if (!mainWindow) {
         return
     }
-    const bounds = {}
-    const parsed = readJSON(windowStateFile)
-    if (parsed) {
-        bounds.x = Number(parsed.x)
-        bounds.y = Number(parsed.y)
-        bounds.width = Number(parsed.width)
-        bounds.height = Number(parsed.height)
-        bounds.maximized = !!parsed.maximized
-        bounds.fullscreen = !!parsed.fullscreen
-    }
+    /** @type {Partial<WindowState>&import("./util").PartialJSON} */
+    const bounds = readJSON(windowStateFile) ?? {}
     if (restore.pos === "restore") {
-        if (bounds.x > 0 && bounds.y > 0) {
+        if (typeof bounds.x === "number" && typeof bounds.y === "number") {
             mainWindow.setPosition(bounds.x, bounds.y)
         }
     } else if (restore.pos !== "default") {
@@ -2430,7 +2512,8 @@ ipcMain.on("window-state-init", (_, restore) => {
         mainWindow.setPosition(nums[0], nums[1])
     }
     if (restore.size === "restore") {
-        if (bounds.width > 500 && bounds.height > 500) {
+        if (bounds.width && bounds.width >= minWindowSize
+            && bounds.height && bounds.height >= minWindowSize) {
             mainWindow.setSize(bounds.width, bounds.height)
         }
     } else if (restore.size !== "default") {
@@ -2506,6 +2589,7 @@ ipcMain.on("open-internal-devtools",
     () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
+    writeDownloadsToFile()
     mainWindow?.destroy()
 })
 ipcMain.handle("run-isolated-js-head-check", (_, id) => webContents.fromId(id)
@@ -2551,9 +2635,30 @@ ipcMain.handle("make-default-app", () => {
     app.setAsDefaultProtocolClient("http")
     app.setAsDefaultProtocolClient("https")
 })
-// Operations below are sync
+ipcMain.on("clear-clipboard", e => {
+    e.returnValue = clipboard.clear()
+})
+ipcMain.on("read-clipboard", e => {
+    e.returnValue = clipboard.readText()
+})
+ipcMain.handle("write-clipboard", (_, data, type = "text") => {
+    if (type === "dataurl") {
+        clipboard.writeImage(nativeImage.createFromDataURL(data))
+    } else if (type === "buffer") {
+        clipboard.writeImage(nativeImage.createFromBuffer(data))
+    } else if (type === "image") {
+        clipboard.writeImage(data)
+    } else if (type === "selection") {
+        clipboard.writeText(data, "selection")
+    } else {
+        clipboard.writeText(data)
+    }
+})
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
+    for (const ses of sessionList) {
+        session.fromPartition(ses).setUserAgent(app.userAgentFallback)
+    }
     e.returnValue = null
 })
 ipcMain.on("app-config", e => {
@@ -2636,31 +2741,32 @@ let allLinks = []
 const frameInfo = {}
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of webContents.fromId(id)
+            ?.mainFrame.framesInSubtree ?? []) {
             try {
                 f.send("follow-mode-start", followTypeFilter)
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
+        }
         if (switchTo) {
             allLinks = []
         }
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("follow-mode-stop", e => {
     try {
-        e.sender.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of e.sender.mainFrame.framesInSubtree) {
             try {
                 f.send("follow-mode-stop")
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 
@@ -2686,8 +2792,8 @@ const handleFrameDetails = (e, details) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
         return
     }
     if (!frameInfo[frameId]) {
@@ -2695,8 +2801,8 @@ const handleFrameDetails = (e, details) => {
     }
     frameInfo[frameId].id = frameId
     frameInfo[frameId].url = details.url
-    details.subframes.forEach(subframe => {
-        Object.keys(frameInfo).forEach(id => {
+    for (const subframe of details.subframes) {
+        for (const id of Object.keys(frameInfo)) {
             const url = frameInfo[id].url?.replace(/^about:srcdoc$/g, "") ?? ""
             if (url === subframe.url && id !== frameId) {
                 frameInfo[id].x = subframe.x
@@ -2719,8 +2825,8 @@ const handleFrameDetails = (e, details) => {
                 frameInfo[id].pagey = details.pagey
                 frameInfo[id].parent = frameId
             }
-        })
-    })
+        }
+    }
 }
 
 ipcMain.on("frame-details", handleFrameDetails)
@@ -2736,8 +2842,8 @@ const handleFollowResponse = (e, rawLinks) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
         return
     }
     const info = frameInfo[frameId]
@@ -2783,13 +2889,13 @@ const handleFollowResponse = (e, rawLinks) => {
                 } catch {
                     return null
                 }
-            }).filter(f => f)
+            }).filter(Boolean)
         allLinks = allLinks.filter(l => l.frameId !== frameId
             && allFramesIds?.includes(l.frameId))
-        allLinks = allLinks.concat(frameLinks)
+        allLinks = [...allLinks, ...frameLinks]
         mainWindow?.webContents.send("follow-response", allLinks)
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
 }
 
@@ -2834,31 +2940,23 @@ const findRelevantSubFrame = (wc, x, y) => {
         })
         /** @type {frameDetails & {absY: number, absX: number}|null} */
         let relevantFrame = null
-        absoluteFrames.forEach(info => {
+        for (const info of absoluteFrames) {
             if (!info || !info.absX || !info.absY) {
-                return
+                continue
             }
-            if (info.absX < x && info.absY < y
-                && info.width !== undefined && info.height !== undefined) {
-                if (info.absX + info.width > x && info.absY + info.height > y) {
-                    if (relevantFrame?.width) {
-                        if (relevantFrame.width > info.width) {
-                            // A smaller frame means a subframe, use it
-                            relevantFrame = {
-                                ...info, "absX": info.absX, "absY": info.absY
-                            }
-                        }
-                    } else {
-                        relevantFrame = {
-                            ...info, "absX": info.absX, "absY": info.absY
-                        }
-                    }
+            if (info.absX < x && info.absY < y && info.width !== undefined
+                && info.height !== undefined && info.absX + info.width > x
+                && info.absY + info.height > y && (!relevantFrame?.width
+                || relevantFrame.width > info.width)) {
+                // A smaller frame means a subframe, use it
+                relevantFrame = {
+                    ...info, "absX": info.absX, "absY": info.absY
                 }
             }
-        })
+        }
         return relevantFrame
-    } catch(ex) {
-        return errToMain(ex)
+    } catch(error) {
+        return errToMain(error)
     }
 }
 
@@ -2886,22 +2984,22 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
                 }
                 frameRef?.send("action", actionName, opts[0] - subframe.absX,
                     opts[1] - subframe.absY, ...opts.slice(2))
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
             return
         }
     }
     try {
-        wc.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of wc.mainFrame.framesInSubtree) {
             try {
                 f.send("action", actionName, ...opts)
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
@@ -2926,8 +3024,8 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
                 "x": info.x - subframe.absX,
                 "y": info.y - subframe.absY
             })
-        } catch(ex) {
-            errToMain(ex)
+        } catch(error) {
+            errToMain(error)
         }
         return
     }
@@ -2935,15 +3033,16 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
 })
 ipcMain.on("contextmenu", (_, id) => {
     try {
-        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+        for (const f of webContents.fromId(id)
+            ?.mainFrame.framesInSubtree ?? []) {
             try {
                 f.send("contextmenu")
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("focus-input", (_, id, location = null) => {
@@ -2967,8 +3066,8 @@ ipcMain.on("focus-input", (_, id, location = null) => {
                     "x": location.x - subframe.absX,
                     "y": location.y - subframe.absY
                 })
-            } catch(ex) {
-                errToMain(ex)
+            } catch(error) {
+                errToMain(error)
             }
             return
         }
@@ -2993,8 +3092,8 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
             return
         }
         wc.send("replace-input-field", correction, inputField)
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
 })
 
@@ -3015,8 +3114,8 @@ const translateMouseEvent = (e, clickInfo = null) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
-    } catch(ex) {
-        return errToMain(ex)
+    } catch(error) {
+        return errToMain(error)
     }
     const info = frameInfo[frameId]
     let frameX = info?.x ?? 0
@@ -3049,8 +3148,8 @@ const translateMouseEvent = (e, clickInfo = null) => {
                 return false
             }
         })?.id ?? null
-    } catch(ex) {
-        errToMain(ex)
+    } catch(error) {
+        errToMain(error)
     }
     return {
         ...clickInfo,
@@ -3105,21 +3204,21 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
             wc.sendInputEvent({keyCode, modifiers, "type": "char"})
         }
         wc.sendInputEvent({keyCode, modifiers, "type": "keyUp"})
-        wc.mainFrame.framesInSubtree.filter(f => {
+        for (const frame of wc.mainFrame.framesInSubtree.filter(f => {
             try {
                 return f.routingId !== wc.mainFrame.routingId
             } catch {
                 return false
             }
-        }).forEach(f => {
+        })) {
             try {
-                f.send("keyboard-type-event", keyOptions)
-            } catch(ex) {
-                errToMain(ex)
+                frame.send("keyboard-type-event", keyOptions)
+            } catch(error) {
+                errToMain(error)
             }
-        })
-    } catch(ex) {
-        errToMain(ex)
+        }
+    } catch(error) {
+        errToMain(error)
     }
 })
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
@@ -3169,8 +3268,8 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                     "x": X - subframe.absX, "y": Y - subframe.absY
                 })
             }
-        } catch(ex) {
-            errToMain(ex)
+        } catch(error) {
+            errToMain(error)
         }
         return
     }

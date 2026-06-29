@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -183,10 +183,9 @@ const setMode = mode => {
     if (!modes[mode] || currentMode() === mode || !page) {
         return
     }
-    if (page.getAttribute("dom-ready")) {
-        if (page.isCrashed() && "fipv".includes(mode[0])) {
-            return
-        }
+    if (page.getAttribute("dom-ready")
+        && page.isCrashed() && "fipv".includes(mode[0])) {
+        return
     }
     modes[currentMode()].onLeave?.(mode)
     const modeEl = document.getElementById("mode")
@@ -203,7 +202,7 @@ const setMode = mode => {
 /** Generate the mode suggestions dropdown with click actions. */
 const init = () => {
     const modeList = document.getElementById("mode-suggestions")
-    Object.keys(modes).forEach(mode => {
+    for (const mode of Object.keys(modes)) {
         const modeEntry = document.createElement("div")
         modeEntry.textContent = mode
         modeEntry.className = `no-focus-reset ${mode}`
@@ -229,7 +228,7 @@ const init = () => {
             e.preventDefault()
         })
         modeList?.append(modeEntry)
-    })
+    }
 }
 
 module.exports = {init, setMode}

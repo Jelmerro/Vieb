@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Add a download to the list.
- * @param {import("../index").downloadItem} download
+ * @param {import("../index").DownloadItem} download
  */
 const addDownload = download => {
     const element = document.createElement("div")
@@ -146,7 +146,7 @@ const addDownload = download => {
 
 /**
  * Update a download element with new data.
- * @param {import("../index").downloadItem} download
+ * @param {import("../index").DownloadItem} download
  * @param {Element} element
  */
 const updateDownload = (download, element) => {
@@ -162,7 +162,7 @@ const updateDownload = (download, element) => {
         return
     }
     // Speed
-    const timeSinceUpdate = (new Date().getTime() - lastUpdate.getTime()) / 1000
+    const timeSinceUpdate = (Date.now() - lastUpdate.getTime()) / 1000
     const speed = formatSize(
         (download.current - progress.value) / timeSinceUpdate)
     const done = download.state === "completed"
@@ -250,8 +250,8 @@ const updateDownload = (download, element) => {
  * @param {string} l
  */
 const generateDownloadList = (_, l) => {
-    /** @type {import("../index").downloadItem[]} */
-    const list = JSON.parse(l).reverse()
+    /** @type {import("../index").DownloadItem[]} */
+    const list = JSON.parse(l).toReversed()
     // List
     if (list.length === 0) {
         const listEl = document.getElementById("list")
@@ -276,8 +276,8 @@ const generateDownloadList = (_, l) => {
         }
     }
     if (listOnPage.length === list.length) {
-        for (let i = 0; i < listOnPage.length; i++) {
-            updateDownload(list[i], listOnPage[i])
+        for (const [i, element] of listOnPage.entries()) {
+            updateDownload(list[i], element)
         }
     } else {
         const listEl = document.getElementById("list")

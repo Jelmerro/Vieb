@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2025 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,14 @@
 
 const {contextBridge, ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {getSetting} = require("../util")
+const {
+    getSetting, userAgentPlatform, userAgentResolvedSystem
+} = require("../util")
 
-let firefoxPlatformString = "Linux x86_64"
-if (process.platform === "win32") {
-    firefoxPlatformString = "Win32"
-}
-if (process.platform === "darwin") {
-    firefoxPlatformString = "MacIntel"
-}
+const platformString = userAgentPlatform()
+const oscpuString = {
+    "linux": "Linux x86_64", "mac": "MacIntel", "windows": "Win32"
+}[userAgentResolvedSystem()]
 
 /**
  * Send a notification to the renderer thread.
@@ -114,7 +113,6 @@ const alertOverride = text => {
             "type": "question"
         })
     }
-    return undefined
 }
 
 contextBridge.executeInMainWorld({
@@ -134,9 +132,10 @@ contextBridge.executeInMainWorld({
 
 /**
  * Run privacy overrides function inside the main window.
+ * @param {string} oscpu
  * @param {string} platform
  */
-const privacyOverrides = platform => {
+const privacyOverrides = (oscpu, platform) => {
     /**
      * Override privacy sensitive APIs with empty or simple defaults.
      * @param {(Window & typeof globalThis)|null} customScope
@@ -180,15 +179,19 @@ const privacyOverrides = platform => {
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "doNotTrack", {"get": (() => "unspecified").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
-                "oscpu", {"get": (() => platform).bind(null)})
+                "oscpu", {"get": (() => oscpu).bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "productSub", {"get": (() => "20100101").bind(null)})
             scope.Object.defineProperty(scope.Navigator.prototype,
                 "vendor", {"get": (() => "").bind(null)})
             scope.Object.defineProperty(scope, "chrome", {})
         }
+        // Override the system platform to one set by useragentsys
+        scope.Object.defineProperty(scope.Navigator.prototype,
+            "platform", {"get": (() => platform).bind(null)})
         // Don't share the connection information
         scope.Object.defineProperty(scope.Navigator.prototype,
+            // eslint-disable-next-line unicorn/no-useless-undefined
             "connection", {"get": (() => undefined).bind(null)})
         try {
             delete scope.Object.getPrototypeOf(scope.navigator).connection
@@ -197,6 +200,7 @@ const privacyOverrides = platform => {
         }
         // Disable the experimental keyboard API, which exposes every mapping
         scope.Object.defineProperty(scope.Navigator.prototype,
+            // eslint-disable-next-line unicorn/no-useless-undefined
             "keyboard", {"get": (() => undefined).bind(null)})
         try {
             delete scope.Object.getPrototypeOf(scope.navigator).keyboard
@@ -205,6 +209,7 @@ const privacyOverrides = platform => {
         }
         // Disable redundant userAgentData API, which exposes extra version info
         scope.Object.defineProperty(scope.Navigator.prototype,
+            // eslint-disable-next-line unicorn/no-useless-undefined
             "userAgentData", {"get": (() => undefined).bind(null)})
         try {
             delete scope.Object.getPrototypeOf(scope.navigator).userAgentData
@@ -242,10 +247,9 @@ const privacyOverrides = platform => {
         }
         /* eslint-enable jsdoc/require-jsdoc */
     }
-
     const observer = new MutationObserver(mutations => {
-        const iframes = mutations.map(m => [...m.addedNodes]
-            .filter(n => n.nodeName.toLowerCase() === "iframe")).flat()
+        const iframes = mutations.flatMap(m => [...m.addedNodes]
+            .filter(n => n.nodeName.toLowerCase() === "iframe"))
         for (const frame of iframes) {
             if ("contentWindow" in frame) {
                 // @ts-expect-error contentWindow is not compatible with window
@@ -263,7 +267,7 @@ const privacyOverrides = platform => {
 }
 
 contextBridge.executeInMainWorld({
-    "args": [firefoxPlatformString],
+    "args": [oscpuString, platformString],
     "func": privacyOverrides
 })
 
@@ -271,7 +275,6 @@ contextBridge.executeInMainWorld({
 const deviceEnumeratePermissionHandler = () => {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
-
     /**
      * Get the media devices with or without labels, or throw permission error.
      * @param {string} action
@@ -312,7 +315,6 @@ const deviceEnumeratePermissionHandler = () => {
             "toJSON": () => ({deviceId, groupId, kind, "label": ""})
         }))
     }
-
     /** Override the device list based on permission settings. */
     return () => {
         let setting = getSetting("permissionmediadevices") ?? "block"
@@ -332,24 +334,21 @@ const deviceEnumeratePermissionHandler = () => {
                 if (!r.trim() || settingRule) {
                     continue
                 }
-                const [match, ...names] = r.split("~")
-                if (names.some(p => p.endsWith("mediadevices"))) {
-                    if (url.match(match)) {
-                        settingRule = type
-                        break
-                    }
+                const [pattern, ...names] = r.split("~")
+                const urlMatch = new RegExp(pattern).test(url)
+                if (names.some(p => p.endsWith("mediadevices")) && urlMatch) {
+                    settingRule = type
+                    break
                 }
-                if (names.some(p => p.endsWith("mediadevicesfull"))) {
-                    if (url.match(match) && type === "allow") {
-                        settingRule = "allowfull"
-                        break
-                    }
+                if (names.some(p => p.endsWith("mediadevicesfull"))
+                    && urlMatch && type === "allow") {
+                    settingRule = "allowfull"
+                    break
                 }
-                if (names.some(p => p.endsWith("mediadeviceskind"))) {
-                    if (url.match(match) && type === "allow") {
-                        settingRule = "allowkind"
-                        break
-                    }
+                if (names.some(p => p.endsWith("mediadeviceskind"))
+                    && urlMatch && type === "allow") {
+                    settingRule = "allowkind"
+                    break
                 }
             }
         }

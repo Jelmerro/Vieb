@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@ const filterList = () => {
     }
     const cookieElements = [...document.getElementsByClassName("cookie")]
     let anyResult = false
-    cookieElements.forEach(cookie => {
+    for (const cookie of cookieElements) {
         if (!(cookie instanceof HTMLElement)) {
-            return
+            continue
         }
         if (cookie.getAttribute("cookie-url")?.includes(filter)) {
             cookie.style.display = ""
@@ -40,7 +40,7 @@ const filterList = () => {
         } else {
             cookie.style.display = "none"
         }
-    })
+    }
     const removeAll = document.getElementById("remove-all")
     const noResults = document.getElementById("no-results")
     if (!removeAll || !noResults) {
@@ -79,7 +79,7 @@ const cookieToUrl = cookie => {
 const refreshList = async() => {
     /** @type {Electron.Cookie[]} */
     const cookieList = await ipcRenderer.invoke("list-cookies")
-    const cookies = cookieList.sort((a, b) => (a.domain?.replace(/\W/, "")
+    const cookies = cookieList.toSorted((a, b) => (a.domain?.replace(/\W/, "")
         ?? "").localeCompare(b.domain?.replace(/\W/, "") ?? ""))
     const listEl = document.getElementById("list")
     if (listEl) {
@@ -89,7 +89,7 @@ const refreshList = async() => {
     if (cookies.length === 0 && removeAll) {
         removeAll.style.display = "none"
     }
-    cookies.forEach(cookie => {
+    for (const cookie of cookies) {
         const cookieElement = document.createElement("div")
         cookieElement.className = "cookie"
         cookieElement.setAttribute("cookie-url", cookieToUrl(cookie))
@@ -113,18 +113,18 @@ const refreshList = async() => {
         })
         cookieElement.append(remove)
         listEl?.append(cookieElement)
-    })
+    }
     filterList()
 }
 
 /** Remove all cookies either based on filter or completely. */
-const removeAllCookies = () => {
+const removeAllCookies = async() => {
     const cookieElements = [...document.getElementsByClassName("cookie")]
     const removeAll = document.getElementById("remove-all")
     if (removeAll) {
         removeAll.style.display = "none"
     }
-    cookieElements.forEach(async cookie => {
+    for (const cookie of cookieElements) {
         if (!(cookie instanceof HTMLElement)) {
             return
         }
@@ -133,7 +133,7 @@ const removeAllCookies = () => {
                 cookie.getAttribute("cookie-url"),
                 cookie.getAttribute("cookie-name"))
         }
-    })
+    }
     refreshList()
 }
 

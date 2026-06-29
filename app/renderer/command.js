@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ const isValidSettingName = name => {
 
 /**
  * Check if an unknown or any value is an array of strings.
- * @param {unknown|any} value
+ * @param {unknown} value
  * @returns {value is string[]}
  */
 const isStringArray = value => Array.isArray(value)
@@ -118,7 +118,7 @@ const isStringArray = value => Array.isArray(value)
 /**
  * Check if an unknown or any value is an array of arrays each having strings,
  * at least one, maybe two, but no more.
- * @param {unknown|any} value
+ * @param {unknown} value
  * @returns {value is string[][]}
  */
 const isStringArrayArray = value => Array.isArray(value)
@@ -128,11 +128,11 @@ const isStringArrayArray = value => Array.isArray(value)
 
 /**
  * Check if an unknown or any value is an object containing only string values.
- * @param {unknown|any} value
+ * @param {unknown} value
  * @returns {value is {[key: string]: string}}
  */
 const isStringObject = value => typeof value === "object"
-    && Object.values(value).every(s => typeof s === "string")
+    && value !== null && Object.values(value).every(s => typeof s === "string")
     && !isStringArray(value)
 
 /**
@@ -175,17 +175,17 @@ const modifyListOrObject = (src, setting, value, method) => {
         if (isStringObject(addition)) {
             /** @type {string[]} */
             const additionList = []
-            Object.entries(addition).forEach(([key, val]) => {
+            for (const [key, val] of Object.entries(addition)) {
                 additionList.push(`${key}~${val}`)
-            })
+            }
             addition = additionList
         }
         if (isStringArrayArray(addition)) {
             /** @type {string[]} */
             const additionList = []
-            addition.forEach(([key, val]) => {
+            for (const [key, val] of addition) {
                 additionList.push(`${key}~${val}`)
-            })
+            }
             addition = additionList
         }
         let current = getSetting(setting)
@@ -219,18 +219,18 @@ const modifyListOrObject = (src, setting, value, method) => {
         if (isStringArray(addition)) {
             /** @type {{[key: string]: string}} */
             const additionObj = {}
-            addition.forEach(val => {
+            for (const val of addition) {
                 additionObj[val.split("~")[0]] = val
                     .split("~").slice(1).join("~") ?? ""
-            })
+            }
             addition = additionObj
         }
         if (isStringArrayArray(addition)) {
             /** @type {{[key: string]: string}} */
             const additionObj = {}
-            addition.forEach(([key, val]) => {
+            for (const [key, val] of addition) {
                 additionObj[key] = val ?? ""
-            })
+            }
             addition = additionObj
         }
         if (method === "replace") {
@@ -239,14 +239,14 @@ const modifyListOrObject = (src, setting, value, method) => {
         }
         const newValue = getSetting(setting)
         if (method === "append") {
-            Object.entries(addition).forEach(([key, val]) => {
+            for (const [key, val] of Object.entries(addition)) {
                 newValue[key] = val
-            })
+            }
         }
         if (method === "remove") {
-            Object.entries(addition).forEach(([key]) => {
+            for (const [key] of Object.entries(addition)) {
                 delete newValue[key]
-            })
+            }
         }
         if (method === "special") {
             notify({
@@ -668,8 +668,8 @@ const source = (src, origin, args) => {
  */
 const translateSearchRangeToIdx = (src, range, silent) => {
     const [flags] = range.split("/")
-    const allFlags = "giaszrtupn".split("")
-    if (!flags.split("").every(f => allFlags.includes(f))) {
+    const allFlags = new Set("giaszrtupn")
+    if (![...flags].every(f => allFlags.has(f))) {
         if (!silent) {
             notify({
                 "fields": [range],
@@ -736,12 +736,12 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
     const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
     const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
     /** @type {(string | number)[]} */
-    let [charOrNum] = rangePart.split(/[-+]/g)
+    let [charOrNum] = rangePart.split(/[+-]/g)
     if (rangePart.split("/").length > 2) {
         const searchResult = translateSearchRangeToIdx(src, rangePart, silent)
-        ;[charOrNum] = searchResult.tabs.filter(i => i >= start)
-        if (typeof charOrNum !== "number" || !searchResult.valid) {
-            return {"num": NaN, "valid": searchResult.valid}
+        charOrNum = searchResult.tabs.find(i => i >= start) ?? -1
+        if (charOrNum < 0 || !searchResult.valid) {
+            return {"num": Number.NaN, "valid": searchResult.valid}
         }
     }
     let number = Number(charOrNum)
@@ -773,7 +773,7 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
             number = currentTabIdx - Number(minus)
         }
     }
-    const valid = !isNaN(number)
+    const valid = !Number.isNaN(number)
     if (!valid && !silent) {
         notify({
             "fields": [rangePart],
@@ -808,7 +808,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
             }
             return {"tabs": [], "valid": false}
         }
-        if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
+        if (/^.*g.*\/.*\/[+-]?\d?$/.test(start) || /^.*g.*\/.*\/[+-]?\d?$/.test(end)) {
             if (!silent) {
                 notify({
                     "fields": [range],
@@ -850,7 +850,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
         }
     }
     if (range.split("/").length > 2) {
-        const flags = range.split("/")[0].split("")
+        const flags = [...range.split("/")[0]]
         if (flags.includes("g")) {
             return translateSearchRangeToIdx(src, range, silent)
         }
@@ -870,7 +870,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
 const allTabsForBufferArg = (args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
-        if (!isNaN(number)) {
+        if (!Number.isNaN(number)) {
             const tabs = listTabs()
             if (number >= tabs.length) {
                 const tab = tabs.pop()
@@ -902,7 +902,7 @@ const allTabsForBufferArg = (args, filter = null) => {
                     return null
                 }
                 return tab
-            }).find(t => t) ?? currentTab()
+            }).find(Boolean) ?? currentTab()
             const tab = lastTab ?? listTabs()[0]
             return [{
                 tab,
@@ -920,8 +920,7 @@ const allTabsForBufferArg = (args, filter = null) => {
      */
     const allWordsAnywhere = (search, simpleUrl, name) => search.every(
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
-
-    const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
+    const simpleSearch = args.join(" ").split(specialChars).filter(Boolean)
     return listTabs().filter(t => !filter || filter(t)).map(t => {
         const url = pageForTab(t)?.getAttribute("src") ?? ""
         const simpleUrl = getSimpleUrl(url)
@@ -937,7 +936,7 @@ const allTabsForBufferArg = (args, filter = null) => {
             return {"tab": t, "title": name, "top": relevance, url}
         }
         return null
-    }).filter(h => h).sort((a, b) => (b?.top ?? 0) - (a?.top ?? 0))
+    }).filter(Boolean).toSorted((a, b) => (b?.top ?? 0) - (a?.top ?? 0))
 }
 
 /**
@@ -957,8 +956,13 @@ const tabForBufferArg = (args, filter = null) => {
 const quitall = async() => {
     ipcRenderer.send("hide-window")
     const keepQuickmarkNames = getSetting("quickmarkpersistence")
-    const clearMark = ["scroll", "marks", "pointer"]
-        .filter(t => !keepQuickmarkNames.includes(t))
+    /** @type {("scroll"|"marks"|"pointer")[]} */
+    let clearMark = ["scroll", "marks", "pointer"]
+    clearMark = clearMark.filter(t => !keepQuickmarkNames.includes(t))
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     for (const markType of clearMark) {
         delete qm[markType]
@@ -1007,7 +1011,9 @@ const quitall = async() => {
 const quit = (src, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => closeTab(src, t))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            closeTab(src, t)
+        }
         return
     }
     if (document.getElementById("tabs")?.classList.contains("multiple")) {
@@ -1181,12 +1187,12 @@ const reloadconfig = () => {
  */
 const hardcopy = (src, range) => {
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => {
+        for (const t of rangeToTabIdxs(src, range).tabs) {
             const page = pageForTab(listTabs()[t])
             if (!(page instanceof HTMLDivElement)) {
                 page?.send("action", "print")
             }
-        })
+        }
         return
     }
     currentPage()?.send("action", "print")
@@ -1267,9 +1273,9 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
             src,
             "type": "success"
         })
-    }).catch(err => {
+    }).catch(error => {
         notify({
-            "fields": [err],
+            "fields": [error],
             "id": "commands.write.failed",
             src,
             "type": "error"
@@ -1356,7 +1362,7 @@ const screencopy = (src, args) => {
         notify({"id": "commands.screencopy.argCount", src, "type": "warning"})
         return
     }
-    if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
+    if (args[0] && !/^(?:\d+,){3}\d+$/g.test(args[0])) {
         notify({"id": "commands.screencopy.dimensions", src, "type": "warning"})
         return
     }
@@ -1366,8 +1372,7 @@ const screencopy = (src, args) => {
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            const {clipboard, nativeImage} = require("electron")
-            clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
+            ipcRenderer.invoke("write-clipboard", img.toPNG(), "buffer")
         })
     }, 20)
 }
@@ -1417,10 +1422,10 @@ const screenshot = (src, args) => {
         return
     }
     let [dims, location] = args
-    if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+    if (!dims?.match(/^(?:\d+,){3}\d+$/g)) {
         [location, dims] = args
     }
-    if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
+    if (dims && !/^(?:\d+,){3}\d+$/g.test(dims)) {
         notify({"id": "commands.screenshot.dimensions", src, "type": "warning"})
         return
     }
@@ -1510,12 +1515,14 @@ const open = (src, args) => {
  * @param {string|null} range
  */
 const suspend = (src, args, range = null) => {
-    if (range && args.length) {
+    if (range && args.length > 0) {
         notify({"id": "commands.suspend.range", src, "type": "warning"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => suspend(src, [`${t}`]))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            suspend(src, [`${t}`])
+        }
         return
     }
     let tab = null
@@ -1542,12 +1549,14 @@ const suspend = (src, args, range = null) => {
  * @param {string|null} range
  */
 const hideCommand = (src, args, range = null) => {
-    if (range && args.length) {
+    if (range && args.length > 0) {
         notify({"id": "commands.hide.range", src, "type": "warning"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => hideCommand(src, [`${t}`]))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            hideCommand(src, [`${t}`])
+        }
         return
     }
     let tab = null
@@ -1585,7 +1594,7 @@ const setMute = (src, args, range) => {
         const tabs = listTabs()
         targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
     }
-    targets.forEach(tab => {
+    for (const tab of targets) {
         if (args[0] === "true") {
             tab?.setAttribute("muted", "muted")
         } else {
@@ -1595,7 +1604,7 @@ const setMute = (src, args, range) => {
         if (page && !(page instanceof HTMLDivElement)) {
             page.setAudioMuted(!!tab?.getAttribute("muted"))
         }
-    })
+    }
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
@@ -1607,12 +1616,14 @@ const setMute = (src, args, range) => {
  * @param {string|null} range
  */
 const mute = (src, args, range = null) => {
-    if (range && args.length) {
+    if (range && args.length > 0) {
         notify({"id": "commands.mute.range", src, "type": "warning"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(t => mute(src, [`${t}`]))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            mute(src, [`${t}`])
+        }
         return
     }
     let tab = currentTab()
@@ -1653,7 +1664,7 @@ const setPin = (src, args, range) => {
         targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
     }
     const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
-    targets.forEach(tab => {
+    for (const tab of targets) {
         const tabContainer = document.getElementById("tabs")
         if (args[0] === "true") {
             if (tab && !tab.classList.contains("pinned")) {
@@ -1665,7 +1676,7 @@ const setPin = (src, args, range) => {
             tabContainer?.insertBefore(tab, firstUnpinned ?? null)
             tab.classList.remove("pinned")
         }
-    })
+    }
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
@@ -1677,7 +1688,7 @@ const setPin = (src, args, range) => {
  * @param {string} range
  */
 const pin = (src, args, range) => {
-    if (range && args.length) {
+    if (range && args.length > 0) {
         notify({"id": "commands.pin.range", src, "type": "warning"})
         return
     }
@@ -1685,7 +1696,8 @@ const pin = (src, args, range) => {
         const tabs = listTabs()
         const tabContainer = document.getElementById("tabs")
         const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
-        rangeToTabIdxs(src, range).tabs.map(id => tabs[id]).forEach(target => {
+        for (const target of rangeToTabIdxs(
+            src, range).tabs.map(id => tabs[id])) {
             if (target.classList.contains("pinned")) {
                 tabContainer?.insertBefore(target, firstUnpinned ?? null)
                 target.classList.remove("pinned")
@@ -1694,7 +1706,7 @@ const pin = (src, args, range) => {
                     tabs.find(t => !t.classList.contains("pinned")) ?? null)
                 target.classList.add("pinned")
             }
-        })
+        }
         return
     }
     let tab = currentTab()
@@ -1729,13 +1741,14 @@ const pin = (src, args, range) => {
  * @param {string|null} range
  */
 const addSplit = (src, method, leftOrAbove, args, range = null) => {
-    if (range && args.length) {
+    if (range && args.length > 0) {
         notify({"id": "commands.split.range", src, "type": "warning"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(
-            t => addSplit(src, method, leftOrAbove, [`${t}`]))
+        for (const t of rangeToTabIdxs(src, range).tabs) {
+            addSplit(src, method, leftOrAbove, [`${t}`])
+        }
         return
     }
     const {add} = require("./pagelayout")
@@ -1778,16 +1791,18 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
  * @param {string} range
  */
 const close = (src, force, args, range) => {
-    if (range && args.length) {
+    if (range && args.length > 0) {
         notify({"id": "commands.close.range", src, "type": "warning"})
         return
     }
     const {closeTab} = require("./tabs")
     if (range) {
         const tabs = listTabs()
-        rangeToTabIdxs(src, range).tabs.map(id => tabs[id]).forEach(target => {
-            closeTab(src, listTabs().indexOf(target), force)
-        })
+        const rangeSelectedTabs = rangeToTabIdxs(
+            src, range).tabs.map(id => tabs[id])
+        for (const tab of rangeSelectedTabs) {
+            closeTab(src, listTabs().indexOf(tab), force)
+        }
         return
     }
     if (args.length === 0) {
@@ -1917,12 +1932,12 @@ const runjsinpage = (src, raw, range) => {
         javascript = readFile(filePath) || javascript
     }
     if (range) {
-        rangeToTabIdxs(src, range).tabs.forEach(tabId => {
+        for (const tabId of rangeToTabIdxs(src, range).tabs) {
             const page = pageForTab(listTabs()[tabId])
             if (page && !(page instanceof HTMLDivElement)) {
                 page.executeJavaScript(javascript, true)
             }
-        })
+        }
     } else {
         currentPage()?.executeJavaScript(javascript, true)
     }
@@ -1975,7 +1990,14 @@ const marks = (src, args) => {
         }
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!("marks" in qm) || !qm.marks) {
+        qm.marks = {}
+    }
     const relevantMarks = []
     const longest = Object.keys(qm.marks ?? {}).reduce((prev, curr) => {
         if (curr.length > prev) {
@@ -1994,7 +2016,7 @@ const marks = (src, args) => {
         }
     }
     if (relevantMarks.length === 0) {
-        if (args.length && Object.keys(qm.marks ?? {}).length) {
+        if (args.length > 0 && Object.keys(qm.marks ?? {}).length > 0) {
             notify({
                 "fields": args,
                 "id": "commands.marks.noKey",
@@ -2031,7 +2053,6 @@ const restoremark = (src, args) => {
     const {restoreMark} = require("./actions")
     const {validOptions} = require("./settings")
     const [key, position] = args
-
     /**
      * Check if a mark position is valid.
      * @param {string} pos
@@ -2039,7 +2060,6 @@ const restoremark = (src, args) => {
      */
     const isValidPosition = pos => pos === undefined
         || validOptions.markposition.includes(pos)
-
     if (isValidPosition(position)) {
         restoreMark({key, position, src})
     } else {
@@ -2061,10 +2081,14 @@ const restoremark = (src, args) => {
  * @param {string[]} args
  */
 const delmarks = (src, all, args) => {
-    if (all && args.length) {
+    if (all && args.length > 0) {
         notify({"id": "commands.delmarks.argCount", src, "type": "warning"})
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (all) {
         qm.marks = {}
@@ -2098,11 +2122,11 @@ const scrollpos = (src, args) => {
         let pixels = Number(pathOrPixels)
         let path = pixelsOrPath
         if (pixels !== undefined) {
-            if (isNaN(pixels)) {
+            if (Number.isNaN(pixels)) {
                 pixels = Number(pixelsOrPath)
                 path = pathOrPixels
             }
-            if (isNaN(pixels)) {
+            if (Number.isNaN(pixels)) {
                 notify({
                     "fields": [pixelsOrPath],
                     "id": "commands.scrollpos.pixels",
@@ -2118,6 +2142,10 @@ const scrollpos = (src, args) => {
         storeScrollPos({key, path, pixels, src})
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
@@ -2125,8 +2153,7 @@ const scrollpos = (src, args) => {
     const relevantPos = []
     const longest = [
         ...Object.keys(qm.scroll.global),
-        ...Object.values(qm.scroll.local).reduce(
-            (prev, curr) => prev.concat(Object.keys(curr)), [])
+        ...Object.values(qm.scroll.local).flatMap(v => Object.keys(v))
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
@@ -2156,9 +2183,9 @@ const scrollpos = (src, args) => {
         }
     }
     if (relevantPos.length === 0) {
-        const notEmpty = Object.keys(qm.scroll.global).length
-            || Object.keys(qm.scroll.local).length
-        if (args.length && notEmpty) {
+        const notEmpty = Object.keys(qm.scroll.global).length > 0
+            || Object.keys(qm.scroll.local).length > 0
+        if (args.length > 0 && notEmpty) {
             notify({
                 "fields": args,
                 "id": "commands.scrollpos.noKey",
@@ -2207,6 +2234,10 @@ const restorescrollpos = (src, args) => {
  * @param {string[]} args
  */
 const delscrollpos = (src, all, args) => {
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
@@ -2232,9 +2263,9 @@ const delscrollpos = (src, all, args) => {
         if (args[0] === "*") {
             delete qm.scroll
         } else if (args[0] === "global") {
-            delete qm.scroll.global
+            qm.scroll.global = {}
         } else if (args[0] === "local") {
-            delete qm.scroll.local
+            qm.scroll.local = {}
         } else if (args[0]) {
             if (qm.scroll.local[args[0]]) {
                 delete qm.scroll.local[args[0]]
@@ -2278,10 +2309,9 @@ const delscrollpos = (src, all, args) => {
     if (qm.scroll.global[args[0]] !== undefined) {
         delete qm.scroll.global[args[0]]
     }
-    if (Object.keys(qm.scroll.local).length === 0) {
-        if (Object.keys(qm.scroll.global).length === 0) {
-            delete qm.scroll
-        }
+    if (Object.keys(qm.scroll.local).length === 0
+        && Object.keys(qm.scroll.global).length === 0) {
+        delete qm.scroll
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
@@ -2300,7 +2330,7 @@ const pointerpos = (src, args) => {
         const {storePos} = require("./pointer")
         const [key, x, y, path] = args
         const location = {"x": Number(x), "y": Number(y)}
-        if (isNaN(location.x) || isNaN(location.y)) {
+        if (Number.isNaN(location.x) || Number.isNaN(location.y)) {
             notify({
                 "id": "commands.pointerpos.location", src, "type": "warning"
             })
@@ -2309,6 +2339,10 @@ const pointerpos = (src, args) => {
         storePos({key, location, path})
         return
     }
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
@@ -2316,8 +2350,7 @@ const pointerpos = (src, args) => {
     const relevantPos = []
     const longest = [
         ...Object.keys(qm.pointer.global),
-        ...Object.values(qm.pointer.local).reduce(
-            (prev, curr) => prev.concat(Object.keys(curr)), [])
+        ...Object.values(qm.pointer.local).flatMap(v => Object.keys(v))
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
@@ -2353,9 +2386,9 @@ const pointerpos = (src, args) => {
         }
     }
     if (relevantPos.length === 0) {
-        const notEmpty = Object.keys(qm.pointer.global).length
-            || Object.keys(qm.pointer.local).length
-        if (args.length && notEmpty) {
+        const notEmpty = Object.keys(qm.pointer.global).length > 0
+            || Object.keys(qm.pointer.local).length > 0
+        if (args.length > 0 && notEmpty) {
             notify({
                 "fields": args,
                 "id": "commands.pointerpos.noKey",
@@ -2404,6 +2437,10 @@ const restorepointerpos = (src, args) => {
  * @param {string[]} args
  */
 const delpointerpos = (src, all, args) => {
+    /**
+     * @type {import("../util").PartialJSON
+     *   &Partial<import("./actions").Quickmarks>}
+     */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
@@ -2429,9 +2466,9 @@ const delpointerpos = (src, all, args) => {
         if (args[0] === "*") {
             delete qm.pointer
         } else if (args[0] === "global") {
-            delete qm.pointer.global
+            qm.pointer.global = {}
         } else if (args[0] === "local") {
-            delete qm.pointer.local
+            qm.pointer.local = {}
         } else if (args[0]) {
             if (qm.pointer.local[args[0]]) {
                 delete qm.pointer.local[args[0]]
@@ -2475,10 +2512,9 @@ const delpointerpos = (src, all, args) => {
     if (qm.pointer.global[args[0]] !== undefined) {
         delete qm.pointer.global[args[0]]
     }
-    if (Object.keys(qm.pointer.local).length === 0) {
-        if (Object.keys(qm.pointer.global).length === 0) {
-            delete qm.pointer
-        }
+    if (Object.keys(qm.pointer.local).length === 0
+        && Object.keys(qm.pointer.global).length === 0) {
+        delete qm.pointer
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
@@ -2709,7 +2745,9 @@ const commands = {
     "mute": ({args, range, src}) => mute(src, args, range),
     "mute!": ({args, range, src}) => setMute(src, args, range),
     "nohlsearch": () => {
-        listRealPages().forEach(page => page.stopFindInPage("clearSelection"))
+        for (const page of listRealPages()) {
+            page.stopFindInPage("clearSelection")
+        }
     },
     "notifications": ({src}) => openSpecialPage(src, "notifications", false),
     "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
@@ -2756,7 +2794,7 @@ const commands = {
             notify({"fields": [names], "id": "util.untranslated", src})
         } else if (args.length === 1) {
             const number = Number(args[0])
-            if (isNaN(number)) {
+            if (Number.isNaN(number)) {
                 notify({
                     "id": "commands.scriptnames.argType", src, "type": "warning"
                 })
@@ -2815,8 +2853,10 @@ const commands = {
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
+
 const {clearmap, mapOrList, unmap} = require("./input")
-" nicsefpvm".split("").forEach(prefix => {
+
+for (const prefix of " nicsefpvm") {
     commands[`${prefix.trim()}map!`] = ({args, src}) => {
         mapOrList(src, prefix.trim(), args, false, true)
     }
@@ -2847,7 +2887,7 @@ const {clearmap, mapOrList, unmap} = require("./input")
     commands[`${prefix.trim()}mapclear!`] = ({src}) => {
         clearmap(src, prefix.trim(), true)
     }
-})
+}
 /* eslint-enable jsdoc/require-jsdoc */
 
 /**
@@ -2874,7 +2914,7 @@ const addCommand = (src, overwrite, args) => {
         }
         return
     }
-    const command = args[0].replace(/^[:'" ]*/, "")
+    const command = args[0].replace(/^[ "':]*/, "")
     if (command.includes("/") || command.includes("\\")) {
         notify({"id": "commands.command.slashes", src, "type": "warning"})
         return
@@ -2933,7 +2973,7 @@ const deleteCommand = (src, args) => {
         notify({"id": "commands.delcommand.argCount", src, "type": "warning"})
         return
     }
-    const command = args[0].replace(/^[:'" ]*/, "")
+    const command = args[0].replace(/^[ "':]*/, "")
     if (userCommands[command]) {
         delete userCommands[args[0]]
     } else {
@@ -3039,8 +3079,8 @@ const parseAndValidateArgs = commandStr => {
                 try {
                     JSON.parse(value)
                     return false
-                } catch(e) {
-                    parsingError = String(e)
+                } catch(error) {
+                    parsingError = String(error)
                     return true
                 }
             }
@@ -3093,7 +3133,7 @@ const execute = (com, opts = {}) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
-    let commandStr = com.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
+    let commandStr = com.replace(/^[\s:|]*/, "").trim().replace(/ +/g, " ")
     if (!commandStr) {
         return
     }
@@ -3165,8 +3205,9 @@ const execute = (com, opts = {}) => {
         }
         return
     }
-    const matches = Object.keys(commands).concat(Object.keys(userCommands))
-        .filter(c => c.startsWith(command) && !c.endsWith("!"))
+    const matches = [
+        ...Object.keys(commands), ...Object.keys(userCommands)
+    ].filter(c => c.startsWith(command) && !c.endsWith("!"))
     if (matches.length === 1 || commands[command] || userCommands[command]) {
         if (matches.length === 1) {
             [command] = matches
@@ -3233,8 +3274,10 @@ const execute = (com, opts = {}) => {
  */
 const commandList = (includeCustom = true) => {
     if (includeCustom) {
-        return Object.keys(commands).filter(c => c.length > 2)
-            .concat(Object.keys(userCommands))
+        return [
+            ...Object.keys(commands).filter(c => c.length > 2),
+            ...Object.keys(userCommands)
+        ]
     }
     return Object.keys(commands).filter(c => c.length > 2)
 }

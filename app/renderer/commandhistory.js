@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ let storeCommands = false
 
 /** Load the command hist of the previous session if stored. */
 const init = () => {
-    previousCommands = readFile(commandsFile)?.split("\n").filter(s => s) || []
+    previousCommands = readFile(commandsFile)?.split("\n").filter(Boolean) || []
 }
 
 /** Pause the collection of commands to the history. */
@@ -102,10 +102,8 @@ const push = (command, user) => {
     if (!user && setting.includes("useronly")) {
         return
     }
-    if (previousCommands.length) {
-        if (previousCommands[previousCommands.length - 1] === command) {
-            return
-        }
+    if (previousCommands.length > 0 && previousCommands.at(-1) === command) {
+        return
     }
     previousCommands.push(command)
     if (setting.includes("persist")) {

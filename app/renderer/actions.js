@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,21 @@
  * }} ActionParam
  */
 
-const {clipboard, ipcRenderer} = require("electron")
+/**
+ * @typedef {{
+ *   marks: {[key: string]: string},
+ *   pointer: {
+ *     "local": {[key: string]: {[path: string]: {x: number, y: number}}},
+ *     "global": {[key: string]: {x: number, y: number}},
+ *   },
+ *   scroll: {
+ *     "local": {[key: string]: {[path: string]: string}},
+ *     "global": {[key: string]: string},
+ *   }
+ * }} Quickmarks
+ */
+
+const {ipcRenderer} = require("electron")
 const {
     appData,
     domainName,
@@ -34,6 +48,7 @@ const {
     getSetting,
     isDir,
     isFile,
+    isFlatStringObject,
     isUrl,
     joinPath,
     makeDir,
@@ -83,10 +98,10 @@ const emptySearch = args => {
         pages = listRealPages()
         globalSearch = ""
     }
-    pages.forEach(page => {
+    for (const page of pages) {
         tabForPage(page)?.removeAttribute("search-results")
         page?.stopFindInPage("clearSelection")
-    })
+    }
     const searchResultsEl = document.getElementById("search-results")
     if (searchResultsEl) {
         searchResultsEl.style.display = "none"
@@ -135,10 +150,12 @@ const nextSearchMatch = () => {
             return p?.classList.contains("visible-page")
         })
     }
-    pages.forEach(p => p?.findInPage(search, {
-        "forward": searchDirection === "forward",
-        "matchCase": matchCase(search)
-    }))
+    for (const p of pages) {
+        p?.findInPage(search, {
+            "forward": searchDirection === "forward",
+            "matchCase": matchCase(search)
+        })
+    }
 }
 
 /**
@@ -197,10 +214,12 @@ const previousSearchMatch = () => {
             return p?.classList.contains("visible-page")
         })
     }
-    pages.forEach(p => p?.findInPage(search, {
-        "forward": searchDirection === "backward",
-        "matchCase": matchCase(search)
-    }))
+    for (const p of pages) {
+        p?.findInPage(search, {
+            "forward": searchDirection === "backward",
+            "matchCase": matchCase(search)
+        })
+    }
 }
 
 /**
@@ -239,7 +258,9 @@ const incrementalSearch = args => {
     if (scope === "global") {
         pages = listRealPages()
         globalSearch = search
-        listTabs().forEach(t => t.removeAttribute("localsearch"))
+        for (const t of listTabs()) {
+            t.removeAttribute("localsearch")
+        }
     } else {
         currentTab()?.setAttribute("localsearch", search)
     }
@@ -259,11 +280,15 @@ const incrementalSearch = args => {
             return p?.classList.contains("visible-page")
         })
     }
-    pages.forEach(p => p?.stopFindInPage("clearSelection"))
+    for (const p of pages) {
+        p?.stopFindInPage("clearSelection")
+    }
     if (search) {
-        pages.forEach(p => p?.findInPage(search, {
-            "findNext": true, "matchCase": matchCase(search)
-        }))
+        for (const p of pages) {
+            p?.findInPage(search, {
+                "findNext": true, "matchCase": matchCase(search)
+            })
+        }
     } else {
         emptySearch({scope, "src": args?.src ?? "other"})
     }
@@ -311,7 +336,7 @@ const previousPageNewTab = () => sendToPageOrSubFrame(
  */
 const modifyUrl = (src, source, replacement) => {
     const url = currentPage()?.src || ""
-    const next = url.replace(RegExp(source), replacement)
+    const next = url.replace(new RegExp(source), replacement)
     if (next !== url) {
         const {navigateTo} = require("./tabs")
         navigateTo(src, next)
@@ -324,7 +349,7 @@ const modifyUrl = (src, source, replacement) => {
  * @param {number} movement
  */
 const moveFirstNumber = (src, movement) => modifyUrl(
-    src, "\\d+", (_, match) => {
+    src, String.raw`\d+`, (_, match) => {
         if (Number(match) + movement < 1) {
             return "1"
         }
@@ -337,7 +362,7 @@ const moveFirstNumber = (src, movement) => modifyUrl(
  * @param {number} movement
  */
 const moveLastNumber = (src, movement) => modifyUrl(
-    src, "(\\d+)(\\D*$)", (_, p1, p2) => {
+    src, String.raw`(\d+)(\D*$)`, (_, p1, p2) => {
         if (Number(p1) + movement < 1) {
             return `1${p2}`
         }
@@ -350,7 +375,7 @@ const moveLastNumber = (src, movement) => modifyUrl(
  * @param {number} movement
  */
 const movePageNumber = (src, movement) => modifyUrl(
-    src, "(\\?|&)p(age)?=(\\d+)", (_, p1, p2, p3) => {
+    src, String.raw`(\?|&)p(age)?=(\d+)`, (_, p1, p2, p3) => {
         if (Number(p3) + movement < 1) {
             return `${p1}p${p2}=1`
         }
@@ -386,9 +411,9 @@ const movePortNumber = (src, movement) => {
         port = 443
     }
     if (port) {
-        modifyUrl(src, "(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
+        modifyUrl(src, String.raw`(^[a-zA-Z\d]+:\/\/[.a-zA-Z\d-]+)(:\d+)?(.*$)`,
             (_, domain, _port, rest) => {
-                if (isNaN(port)) {
+                if (Number.isNaN(port)) {
                     return `${domain}${rest}`
                 }
                 port += movement
@@ -538,7 +563,7 @@ const toParentUrl = args => {
     const urlObj = new URL(url)
     const originalUrl = urlObj.href
     urlObj.pathname = urlObj.pathname.split("/")
-        .filter(p => p).slice(0, -1).join("/")
+        .filter(Boolean).slice(0, -1).join("/")
     urlObj.search = ""
     urlObj.hash = ""
     const {navigateTo} = require("./tabs")
@@ -908,7 +933,6 @@ const refreshTabWithoutCache = args => {
     }
 }
 
-
 /**
  * Open a new tab, switch to explore mode and have the current url ready.
  * @param {{
@@ -1056,7 +1080,7 @@ const editWithVim = args => {
     }
     const fileFolder = joinPath(appData(), "vimformedits")
     makeDir(fileFolder)
-    let tempFile = joinPath(fileFolder, String(Number(new Date())))
+    let tempFile = joinPath(fileFolder, String(Date.now()))
     const domain = domainName(urlToString(page.src)) || domainName(page.src)
     if (domain && typeOfEdit === "input") {
         tempFile = `${tempFile}_${domain}`
@@ -1152,7 +1176,7 @@ const setFocusCorrectly = () => {
     if (currentMode() === "insert") {
         urlElement?.blur()
         page?.focus()
-        if (!document.getElementById("context-menu")?.innerText) {
+        if (!document.getElementById("context-menu")?.children.length) {
             page?.click()
         }
     } else if ("sec".includes(currentMode()[0]) || followFiltering()) {
@@ -1424,16 +1448,16 @@ const pageRSSLinksList = async args => {
  * @param {ActionParam} args
  */
 const pageRSSLinkToClipboard = async args => {
-    const {key} = args
-    if (!key) {
+    if (!args.key) {
         return
     }
     const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
     }
-    const feedUrl = feedUrls[!isNaN(Number(key)) && Number(key) || 0] ?? ""
-    clipboard.writeText(feedUrl)
+    const feedkey = !Number.isNaN(Number(args.key)) && Number(args.key) || 0
+    const feedUrl = feedUrls[feedkey] ?? ""
+    ipcRenderer.invoke("write-clipboard", feedUrl)
     notify({
         "fields": [feedUrl],
         "id": "actions.rss.clipboard",
@@ -1443,46 +1467,48 @@ const pageRSSLinkToClipboard = async args => {
 }
 
 /** Copy the current page url to the system clipboard. */
-const pageToClipboard = () => clipboard.writeText(getPageUrl())
+const pageToClipboard = () => ipcRenderer.invoke(
+    "write-clipboard", getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
 const pageTitleToClipboard = () => {
     const {getPageTitle} = require("./command")
-    clipboard.writeText(getPageTitle())
+    ipcRenderer.invoke("write-clipboard", getPageTitle())
 }
 
 /** Copy the current page to the system clipboard formatted as HTML. */
 const pageToClipboardHTML = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`<a href="${url}">${title}</a>`)
+    ipcRenderer.invoke("write-clipboard", `<a href="${url}">${title}</a>`)
 }
 
 /** Copy the current page to the system clipboard formatted as Markdown. */
 const pageToClipboardMarkdown = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`[${title}](${url})`)
+    ipcRenderer.invoke("write-clipboard", `[${title}](${url})`)
 }
 
 /** Copy the current page to the system clipboard formatted as RST. */
 const pageToClipboardRST = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`\`${title} <${url}>\`_`)
+    ipcRenderer.invoke("write-clipboard", `\`${title} <${url}>\`_`)
 }
 
 /** Copy the current page to the system clipboard formatted as Emacs. */
 const pageToClipboardEmacs = () => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    clipboard.writeText(`[[${url}][${title}]]`)
+    ipcRenderer.invoke("write-clipboard", `[[${url}][${title}]]`)
 }
 
 /** Paste the contents of the clipboard into the page programmatically. */
 const pasteText = () => {
     if (currentMode() === "insert") {
-        sendToPageOrSubFrame("action", "paste", clipboard.readText())
+        sendToPageOrSubFrame("action", "paste",
+            ipcRenderer.sendSync("read-clipboard"))
     } else {
         const {typeCharacterIntoNavbar} = require("./input")
         typeCharacterIntoNavbar("<C-v>")
@@ -1494,9 +1520,10 @@ const pasteText = () => {
  * @param {ActionParam} args
  */
 const openFromClipboard = args => {
-    if (clipboard.readText().trim()) {
+    const text = ipcRenderer.sendSync("read-clipboard").trim()
+    if (text) {
         const {navigateTo} = require("./tabs")
-        navigateTo(args.src, stringToUrl(clipboard.readText()))
+        navigateTo(args.src, stringToUrl(text))
     }
 }
 
@@ -1505,19 +1532,19 @@ const openFromClipboard = args => {
  * @param {ActionParam&{path?: string, pixels?: number}} args
  */
 const storeScrollPos = async args => {
-    const {key} = args
-    if (!key) {
+    if (!args.key) {
         return
     }
     let scrollType = getSetting("scrollpostype")
     if (scrollType !== "local" && scrollType !== "global") {
         scrollType = "global"
-        if (key !== key.toUpperCase()) {
+        if (args.key !== args.key.toUpperCase()) {
             scrollType = "local"
         }
     }
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    if (!qm.scroll) {
+    if (!("scroll" in qm) || !qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
     let pixels = await currentPage()?.executeJavaScript("window.scrollY")
@@ -1543,9 +1570,9 @@ const storeScrollPos = async args => {
         if (!qm.scroll.local[path]) {
             qm.scroll.local[path] = {}
         }
-        qm.scroll.local[path][key] = args.pixels ?? pixels
+        qm.scroll.local[path][args.key] = args.pixels ?? pixels
     } else {
-        qm.scroll.global[key] = args.pixels ?? pixels
+        qm.scroll.global[args.key] = args.pixels ?? pixels
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
@@ -1569,7 +1596,8 @@ const restoreScrollPos = args => {
         path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     path = args.path ?? path
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
         currentPage()?.executeJavaScript(`
@@ -1586,15 +1614,15 @@ const restoreScrollPos = args => {
  * @param {ActionParam&{url?: string}} args
  */
 const makeMark = args => {
-    const {key} = args
-    if (!key) {
+    if (!args.key) {
         return
     }
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    if (!qm.marks) {
+    if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
-    qm.marks[key] = urlToString(args.url ?? currentPage()?.src ?? "")
+    qm.marks[args.key] = urlToString(args.url ?? currentPage()?.src ?? "")
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
@@ -1603,19 +1631,22 @@ const makeMark = args => {
  * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
  */
 const restoreMark = args => {
-    const {key} = args
-    if (!key) {
+    if (!args.key) {
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!("marks" in qm) || !qm.marks) {
+        qm.marks = {}
+    }
     const {commonAction} = require("./contextmenu")
     let position = getSetting("markposition")
     const shiftedPosition = getSetting("markpositionshifted")
-    if (key === key.toUpperCase() && shiftedPosition !== "default") {
+    if (args.key === args.key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
     position = args.position ?? position
-    commonAction(args.src, "link", position, {"link": qm?.marks?.[key]})
+    commonAction(args.src, "link", position, {"link": qm.marks[args.key]})
 }
 
 /**
@@ -1623,18 +1654,23 @@ const restoreMark = args => {
  * @param {ActionParam} args
  */
 const runRecording = args => {
-    const {key} = args
-    if (!key) {
+    if (!args.key) {
         return
     }
-    const recording = readJSON(joinPath(appData(), "recordings"))?.[key]
-    if (recording) {
-        setTimeout(() => {
-            const {executeMapString, sanitiseMapString} = require("./input")
-            executeMapString(sanitiseMapString(args.src, recording, true),
-                true, {"initial": true, "src": args.src})
-        }, 5)
+    const recordings = readJSON(joinPath(appData(), "recordings"))
+    if (!isFlatStringObject(recordings)) {
+        return
     }
+    const recording = recordings[args.key]
+    if (!recording) {
+        return
+    }
+    setTimeout(() => {
+        const {executeMapString, sanitiseMapString} = require("./input")
+        executeMapString(sanitiseMapString(
+            args.src, recording, true),
+        true, {"initial": true, "src": args.src})
+    }, 5)
 }
 
 /**
@@ -1642,12 +1678,11 @@ const runRecording = args => {
  * @param {ActionParam} args
  */
 const startRecording = args => {
-    const {key} = args
-    if (!key) {
+    if (!args.key) {
         return
     }
     const {"startRecording": start} = require("./input")
-    start(key, args.src)
+    start(args.key, args.src)
 }
 
 /** Stop the current macro recording if active. */
@@ -1657,7 +1692,12 @@ const stopRecording = () => {
     if (!record) {
         return
     }
-    const recordings = readJSON(joinPath(appData(), "recordings")) ?? {}
+    /** @type {{[property: string]: string}} */
+    let recordings = {}
+    const recordingFileData = readJSON(joinPath(appData(), "recordings"))
+    if (isFlatStringObject(recordingFileData)) {
+        recordings = recordingFileData
+    }
     recordings[record.name] = record.string
     writeJSON(joinPath(appData(), "recordings"), recordings)
 }

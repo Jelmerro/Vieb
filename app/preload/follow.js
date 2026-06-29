@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2025 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -52,8 +52,13 @@ const clickInputs = [
     "input[type=\"image\"]",
     "input[type=\"reset\"]",
     "*[role=\"button\"]",
+    "*[role^=\"menu\"]",
+    "*[role=\"option\"]",
     "*[role=\"radio\"]",
     "*[role=\"checkbox\"]",
+    "*[role=\"switch\"]",
+    "*[role=\"tab\"]",
+    "*[role=\"treeitem\"]",
     "summary"
 ].join(",")
 const textlikeInputs = [
@@ -61,7 +66,10 @@ const textlikeInputs = [
     + ":not([type=\"submit\"]):not([type=\"button\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
     "[role=\"textbox\"]",
+    "[role=\"combobox\"]",
+    "[role=\"spinbutton\"]",
     "[contenteditable=\"true\"]",
+    "*[role=\"slider\"]",
     "[contenteditable=\"\"]",
     "textarea",
     "select"
@@ -150,13 +158,13 @@ const elementsWithMouseListeners = els => contextBridge.executeInMainWorld({
 
 /**
  * @typedef {{
- * height: number
- * text: string
- * type: string
- * url: string
- * width: number
- * x: number
- * y: number
+ *   height: number,
+ *   text: string,
+ *   type: string,
+ *   url: string,
+ *   width: number,
+ *   x: number,
+ *   y: number
  * }} ParsedElement
  */
 
@@ -206,7 +214,7 @@ const parseElement = (element, type = null, bounds = null) => {
         }
         // Empty the href for links that require a specific data method to open
         // These will use clicks instead of direct navigation to work correctly
-        const dataMethod = element.getAttribute("data-method")?.toLowerCase()
+        const dataMethod = element.dataset.method?.toLowerCase()
         if (dataMethod && dataMethod !== "get") {
             href = ""
         }
@@ -220,6 +228,30 @@ const parseElement = (element, type = null, bounds = null) => {
         "x": dims.x,
         "y": dims.y
     }
+}
+
+/**
+ * Detect the type of input element, either insert or click.
+ * @param {Element} el
+ */
+const detectInputType = el => {
+    let type = "inputs-click"
+    if (el.tagName.toLowerCase() === "label") {
+        const labelFor = el.getAttribute("for")
+        if (labelFor) {
+            try {
+                const forEl = el.closest(`#${labelFor}`)
+                if (matchesQuery(forEl, textlikeInputs)) {
+                    type = "inputs-insert"
+                }
+            } catch {
+                // Invalid label, not a valid selector, assuming click
+            }
+        } else if (el.querySelector(textlikeInputs)) {
+            type = "inputs-insert"
+        }
+    }
+    return type
 }
 
 /**
@@ -239,8 +271,9 @@ const getAllFollowLinks = (filter = null) => {
     const relevantLinks = new Set()
     if (!filter || filter.includes("url")) {
         // A tags with href as the link, can be opened in new tab or current tab
-        allEls.filter(el => matchesQuery(el, "a")).forEach(
-            el => relevantLinks.add({el, "type": "url"}))
+        for (const element of allEls.filter(el => matchesQuery(el, "a"))) {
+            relevantLinks.add({"el": element, "type": "url"})
+        }
     }
     if (!filter || filter.some(f => f.startsWith("input"))) {
         // Input tags such as checkboxes, can be clicked but have no text input
@@ -252,45 +285,35 @@ const getAllFollowLinks = (filter = null) => {
                 }
                 return []
             }))
-        inputs.forEach(el => {
-            let type = "inputs-click"
-            if (el.tagName.toLowerCase() === "label") {
-                const labelFor = el.getAttribute("for")
-                if (labelFor) {
-                    try {
-                        const forEl = el.closest(`#${labelFor}`)
-                        if (matchesQuery(forEl, textlikeInputs)) {
-                            type = "inputs-insert"
-                        }
-                    } catch {
-                        // Invalid label, not a valid selector, assuming click
-                    }
-                } else if (el.querySelector(textlikeInputs)) {
-                    type = "inputs-insert"
-                }
-            }
-            relevantLinks.add({el, type})
-        })
+        for (const el of inputs) {
+            relevantLinks.add({el, "type": detectInputType(el)})
+        }
         // Input tags such as email and text, can have text inserted
-        allEls.filter(el => matchesQuery(el, textlikeInputs)).forEach(
-            el => relevantLinks.add({el, "type": "inputs-insert"}))
+        for (const el of allEls.filter(e => matchesQuery(e, textlikeInputs))) {
+            relevantLinks.add({el, "type": "inputs-insert"})
+        }
     }
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
-        elementsWithMouseListeners(allEls).forEach(e => relevantLinks.add(e))
+        for (const e of elementsWithMouseListeners(allEls)) {
+            relevantLinks.add(e)
+        }
     }
     if (!filter || filter.includes("media")) {
         // Get media elements, such as videos or music players
-        allEls.filter(el => matchesQuery(el, "video,audio"))
-            .forEach(el => relevantLinks.add({el, "type": "media"}))
+        for (const el of allEls.filter(e => matchesQuery(e, "video,audio"))) {
+            relevantLinks.add({el, "type": "media"})
+        }
     }
     if (!filter || filter.includes("image")) {
         // Get any images or background images
-        allEls.filter(el => matchesQuery(el, "img,svg"))
-            .forEach(el => relevantLinks.add({el, "type": "image"}))
-        allEls.filter(el => el.computedStyleMap().get(
-            "background-image")?.toString() !== "none").forEach(
-            el => relevantLinks.add({el, "type": "image"}))
+        for (const el of allEls.filter(e => matchesQuery(e, "img,svg"))) {
+            relevantLinks.add({el, "type": "image"})
+        }
+        for (const el of allEls.filter(e => e.computedStyleMap().get(
+            "background-image")?.toString() !== "none")) {
+            relevantLinks.add({el, "type": "image"})
+        }
     }
     return new Promise(res => {
         const observer = new IntersectionObserver(allEntries => {
@@ -300,18 +323,18 @@ const getAllFollowLinks = (filter = null) => {
                 && e.boundingClientRect.height > 0).map(e => [e.target, e]))
             /** @type {ParsedElement[]} */
             const parsedEls = []
-            relevantLinks.forEach(link => {
+            for (const link of relevantLinks) {
                 const entry = entries.get(link.el)
                 if (!entry) {
-                    return
+                    continue
                 }
                 link.bounds = entry.boundingClientRect
                 const parsed = parseElement(link.el, link.type, link.bounds)
                 if (parsed) {
                     parsedEls.push(parsed)
                 }
-            })
-            res(parsedEls.sort((el1, el2) => {
+            }
+            res(parsedEls.toSorted((el1, el2) => {
                 if (!el1 || !el2) {
                     return 0
                 }
@@ -324,14 +347,14 @@ const getAllFollowLinks = (filter = null) => {
             observer.disconnect()
         })
         let observingSomething = false
-        relevantLinks.forEach(link => {
+        for (const link of relevantLinks) {
             try {
                 observer.observe(link.el)
                 observingSomething = true
-            } catch(e) {
-                console.warn(e)
+            } catch(error) {
+                console.warn(error)
             }
-        })
+        }
         if (!observingSomething) {
             res([])
         }
@@ -394,7 +417,6 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
 /** Track updates to event listeners and write them down as a data attribute. */
 const trackEventListeners = () => {
     const mainWorldListenCounts = new Map()
-
     /**
      * Check if a node is an element, taking subframes into account.
      * @param {Node|EventTarget|null|undefined} el
@@ -409,7 +431,6 @@ const trackEventListeners = () => {
         }
         return el instanceof el.ownerDocument.defaultView.Element
     }
-
     /* eslint-disable no-restricted-syntax */
     const realAdd = EventTarget.prototype.addEventListener
     /**
@@ -420,7 +441,7 @@ const trackEventListeners = () => {
      */
     EventTarget.prototype.addEventListener = function(type, listener, opts) {
         try {
-            realAdd.apply(this, [type, listener, opts])
+            Reflect.apply(realAdd, this, [type, listener, opts])
         } catch {
             // This is a bug in the underlying website
         }
@@ -442,7 +463,7 @@ const trackEventListeners = () => {
      */
     EventTarget.prototype.removeEventListener = function(type, listener, opts) {
         try {
-            realRemove.apply(this, [type, listener, opts])
+            Reflect.apply(realRemove, this, [type, listener, opts])
         } catch {
             // This is a bug in the underlying website
         }
@@ -550,7 +571,7 @@ const sendMouseSelection = (selection, toinsert) => {
     })
 }
 
-/** @type {number|null} */
+/** @type {NodeJS.Timeout|null} */
 let doubleToTripleTimeout = null
 
 /**
@@ -576,11 +597,11 @@ const mouseUpListener = (e, frame = null) => {
             })
         }
     } else if (selection?.toString().trim() && e.detail === 2) {
-        doubleToTripleTimeout = window.setTimeout(() => {
+        doubleToTripleTimeout = setTimeout(() => {
             sendMouseSelection(selection, toinsert)
         }, 500)
     } else if (selection?.toString().trim() && e.detail > 2) {
-        window.clearTimeout(doubleToTripleTimeout ?? undefined)
+        clearTimeout(doubleToTripleTimeout ?? undefined)
         sendMouseSelection(selection, toinsert)
     }
 }
@@ -617,11 +638,11 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
 /**
  * Context menu listener that sends info to renderer via main.
  * @param {{
- *   isTrusted: boolean
- *   preventDefault?: () => void
- *   button?: number
- *   composedPath: () => EventTarget[]
- *   x: number
+ *   isTrusted: boolean,
+ *   preventDefault?: () => void,
+ *   button?: number,
+ *   composedPath: () => EventTarget[],
+ *   x: number,
  *   y: number
  * }} e
  * @param {Element|ShadowRoot|null} frame
@@ -643,7 +664,7 @@ const contextListener = (e, frame = null, extraData = null) => {
                 }
             }
             return null
-        }).find(url => url)
+        }).find(Boolean)
         const videoEl = e.composedPath().find(isHTMLVideoElement)
         const video = [
             videoEl,
@@ -689,7 +710,7 @@ const contextListener = (e, frame = null, extraData = null) => {
             extraData,
             "frame": iframe?.src,
             "hasElementListener": hasContextMenuListener(e.composedPath()[0]),
-            "hasGlobalListener": !!e.composedPath().find(
+            "hasGlobalListener": e.composedPath().some(
                 el => hasContextMenuListener(el)),
             "img": img?.src?.trim(),
             inputSel,
@@ -747,15 +768,16 @@ ipcRenderer.on("contextmenu", () => {
     if (!parsed || ["body", "iframe"].includes(el.tagName.toLowerCase())) {
         return
     }
-    let {x} = parsed
-    if (el.computedStyleMap().get("font")?.toString().includes("monospace")) {
-        if (isInputOrTextElement(el)) {
-            x = parsed.x + propPixels(el, "font-size")
+    let x = 0
+    if (el.computedStyleMap().get("font")?.toString().includes("monospace")
+        && isInputOrTextElement(el)) {
+        x = parsed.x + propPixels(el, "font-size")
                 * (el.selectionStart ?? 0) * 0.60191 - el.scrollLeft
-        }
+    } else {
+        ({x} = parsed)
     }
     let y = parsed.y + parsed.height
-    if (x > window.innerWidth || isNaN(x) || x === 0) {
+    if (x > window.innerWidth || Number.isNaN(x) || x === 0) {
         ({x} = parsed)
     }
     if (y > window.innerHeight) {
@@ -785,13 +807,13 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
     // but ideally this code shouldn't exist and only use sendInputEvent.
     // See https://github.com/electron/electron/issues/20333
     const input = activeElement()
-    if (matchesQuery(input, textlikeInputs) && keyOptions.key.length === 1) {
-        if (isInputOrTextElement(input)) {
-            const cur = Number(input.selectionStart)
-            input.value = `${input.value.substring(0, cur)}${keyOptions.key}${
-                input.value.substring(input.selectionEnd ?? cur)}`
-            input.setSelectionRange(cur + 1, cur + 1)
-        }
+    if (matchesQuery(input, textlikeInputs)
+        && keyOptions.key.length === 1 && isInputOrTextElement(input)) {
+        const cur = Number(input.selectionStart)
+        input.value = `${input.value.slice(0, Math.max(0, cur))}${
+            keyOptions.key}${
+            input.value.slice(Math.max(0, input.selectionEnd ?? cur))}`
+        input.setSelectionRange(cur + 1, cur + 1)
     }
 })
 
@@ -915,15 +937,16 @@ window.addEventListener("scroll", () => {
 })
 ipcRenderer.on("search-element-location", (_, pos) => {
     let {x} = pos
+    const {height, width} = pos
     const alignment = getSetting("searchpointeralignment")
     if (alignment === "center") {
-        x += pos.width / 2
+        x += width / 2
     } else if (alignment === "right") {
-        x += pos.width - 1
+        x += width - 1
     } else {
         x += 1
     }
-    let y = pos.y + pos.height / 2
+    let y = pos.y + height / 2
     if (y < 0 && justScrolled > 0
         || y > window.innerHeight && justScrolled < 0) {
         y += justScrolled * window.devicePixelRatio
@@ -942,6 +965,41 @@ ipcRenderer.on("search-element-location", (_, pos) => {
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
 })
+const wheelInfo = {
+    "lastevent": Date.now(),
+    /** @type {NodeJS.Timeout|null} */
+    "timeout": null,
+    "x": 0,
+    "y": 0
+}
+
+/**
+ * Wheel listener to detect swipe actions and send to main if detected.
+ * @param {{deltaX: number, deltaY: number}} event
+ */
+const wheelListener = event => {
+    if (wheelInfo.x === 0 && wheelInfo.y === 0) {
+        wheelInfo.lastevent = Date.now()
+    }
+    wheelInfo.x += event.deltaX
+    wheelInfo.y += Math.abs(event.deltaY)
+    clearTimeout(wheelInfo.timeout ?? undefined)
+    wheelInfo.timeout = setTimeout(() => {
+        if (wheelInfo.y === 0) {
+            const duration = Date.now() - wheelInfo.lastevent
+            const isFast = duration < 500
+            const isFar = Math.abs(wheelInfo.x) > 1000 * window.devicePixelRatio
+            const isAboveThresholdRatio = Math.abs(wheelInfo.x) / duration > 10
+            if (isFast && isFar && isAboveThresholdRatio) {
+                ipcRenderer.sendToHost("swipe", wheelInfo.x > 0)
+            }
+        }
+        wheelInfo.x = 0
+        wheelInfo.y = 0
+    }, 100)
+}
+
+window.addEventListener("wheel", wheelListener)
 
 /** The main info loop that populates the subframe data in the main thread. */
 const mainInfoLoop = () => {
@@ -952,33 +1010,38 @@ const mainInfoLoop = () => {
         }
         return []
     })
-    frames.forEach(f => {
+    for (const f of frames) {
         try {
             if (f.contentDocument) {
                 /**
                  * Handle click listener inside the frame, if allowed.
                  * @param {MouseEvent} e
                  */
+                // eslint-disable-next-line unicorn/prefer-add-event-listener
                 f.contentDocument.onclick = e => clickListener(e, f)
                 /**
                  * Handle contextmenu listener inside the frame, if allowed.
                  * @param {MouseEvent} e
                  */
+                // eslint-disable-next-line unicorn/prefer-add-event-listener
                 f.contentDocument.oncontextmenu = e => contextListener(e, f)
                 /**
                  * Handle mousedown listener inside the frame, if allowed.
                  * @param {MouseEvent} e
                  */
+                // eslint-disable-next-line unicorn/prefer-add-event-listener
                 f.contentDocument.onmousedown = e => mouseDownListener(e, f)
                 /**
                  * Handle mouseup listener inside the frame, if allowed.
                  * @param {MouseEvent} e
                  */
+                // eslint-disable-next-line unicorn/prefer-add-event-listener
                 f.contentDocument.onmouseup = e => mouseUpListener(e, f)
                 /**
                  * Handle mousemove listener inside the frame, if allowed.
                  * @param {MouseEvent} e
                  */
+                // eslint-disable-next-line unicorn/prefer-add-event-listener
                 f.contentDocument.onmousemove = e => {
                     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
                 }
@@ -986,7 +1049,7 @@ const mainInfoLoop = () => {
         } catch {
             // Not an issue, will be retried shortly, we also can't do much else
         }
-    })
+    }
     // Send details to main for iframes that run in a separate process
     if (!document.body) {
         return
@@ -1047,7 +1110,7 @@ window.addEventListener("DOMContentLoaded", () => {
     mainInfoLoop()
     const pdfbehavior = getSetting("pdfbehavior") ?? "block"
     if (pdfbehavior !== "view") {
-        querySelectorAll("embed").forEach(embed => {
+        for (const embed of querySelectorAll("embed")) {
             if (embed.getAttribute("type") === "application/pdf") {
                 if (pdfbehavior === "download") {
                     const src = embed.getAttribute("src")?.replace(
@@ -1060,7 +1123,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 }
                 embed.remove()
             }
-        })
+        }
     }
 })
 window.addEventListener("resize", mainInfoLoop)
