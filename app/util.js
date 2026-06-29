@@ -23,14 +23,14 @@ const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:
  * |"history"|"newtab"|"notifications"|"version"|"bookmarks"} SpecialPage
 /** @type {Set<SpecialPage>} */
 const specialPages = new Set([
+    "bookmarks",
     "cookies",
     "downloads",
     "help",
     "history",
     "newtab",
     "notifications",
-    "version",
-    "bookmarks"
+    "version"
 ])
 /**
  * @typedef {{
