@@ -356,15 +356,6 @@ const addBookmark = input => {
         bookmarkData.lastId += 1
         writeBookmarksToFile()
         notifyBookmarksPages()
-        notify({
-            "fields": [
-                newbookmark.name.slice(0, 20),
-                newbookmark.url.slice(0, 40)
-            ],
-            "id": "actions.bookmarks.added",
-            "src": "user",
-            "type": "success"
-        })
     }
 }
 
@@ -480,12 +471,6 @@ const loadBookmark = input => {
     } else if (selectedBookmarks.length === 1) {
         navigateTo("user", selectedBookmarks[0].url)
     } else {
-        notify({
-            "fields": [String(selectedBookmarks.length)],
-            "id": "actions.bookmarks.loaded",
-            "src": "user",
-            "type": "dialog"
-        })
         for (const e of selectedBookmarks) {
             addTab({
                 "src": "user",
@@ -510,11 +495,7 @@ const deleteFolder = input => {
             }
         }
         writeBookmarksToFile()
-        notify({
-            "id": "actions.bookmarks.folder.deleted",
-            "src": "user",
-            "type": "success"
-        })
+        notifyBookmarksPages()
     }
 }
 
@@ -533,12 +514,6 @@ const deleteBookmark = (input, bookmarkId) => {
     } else {
         selectedBookmarks = matchBookmarksToInput(input)
     }
-    notify({
-        "fields": [String(selectedBookmarks.length)],
-        "id": "actions.bookmarks.deleted",
-        "src": "user",
-        "type": "success"
-    })
     for (const sb of selectedBookmarks) {
         for (let x = 0; x < bookmarkData.bookmarks.length; x++) {
             if (sb.id === bookmarkData.bookmarks[x].id) {
@@ -547,6 +522,7 @@ const deleteBookmark = (input, bookmarkId) => {
         }
     }
     writeBookmarksToFile()
+    notifyBookmarksPages()
 }
 
 /**
@@ -637,12 +613,7 @@ const processBookmark = fileContent => {
         }
     }
     writeBookmarksToFile()
-    notify({
-        "fields": [String(newBookmarksCount)],
-        "id": "actions.bookmarks.import.success",
-        "src": "user",
-        "type": "success"
-    })
+    notifyBookmarksPages()
 }
 
 
