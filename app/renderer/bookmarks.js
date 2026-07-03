@@ -57,7 +57,7 @@ const {
  *  keywords: string[],
  *  bg?: string,
  *  fg?: string,
- *  [key: string]: number | string | string[] | undefined
+ *  tag?: string[],
  * }} Bookmark
  */
 
@@ -69,12 +69,14 @@ const {
  * }} BookmarkData
  */
 
-/** @type {BookmarkData} */
-let bookmarkData = {
+const emptyBookmarkData = {
     "bookmarks": [],
     "folders": [],
     "lastId": 0
 }
+
+/** @type {BookmarkData} */
+let bookmarkData = emptyBookmarkData
 let bookmarksFile = ""
 const validFoldersOptions = [
     "keywords",
@@ -89,7 +91,8 @@ const validBookmarkOptions = [
     "name",
     "path",
     "title",
-    "url"
+    "url",
+    "tag"
 ]
 
 /**
@@ -129,28 +132,35 @@ const notifyBookmarksPages = () => {
 }
 
 /**
- * Fix bookmarkData values based on the option type.
- * @param {string} option - The option to fix.
- * @param {string} value - The value to fix.
- */
-const fixBookmarkData = (option, value) => {
-    let correctFormat = ""
-    if (option === "path") {
-        if (value.startsWith("/")) {
-            correctFormat = value
-        } else {
-            correctFormat = `/${value}`
-        }
-        correctFormat = correctFormat.replace(/\s/g, "-").replace(/\/$/, "")
-    } else if (option === "keywords") {
-        correctFormat = [...value].map(k => k.replace(specialChars, ""))
-            .join("")
-    } else if (option === "name") {
-        correctFormat = value.replace(specialCharsAllowSpaces, "")
+ * Handle keywords option.
+ * @param {string} value
+*/
+const handleKeywords = value => {
+    return value.split(",").map(
+        item => item.trim()).filter(Boolean)
+}
+
+/**
+ * Handle name option.
+ * @param {string} value
+*/
+const handleName = value => {
+    return value.replace(specialCharsAllowSpaces, "")
+}
+
+/**
+ * Handle path option.
+ * @param {string} value
+*/
+const handlePath = value => {
+    let pathValue = ""
+    if (value.startsWith("/")) {
+        pathValue = value
     } else {
-        correctFormat = value
+        pathValue = `/${value}`
     }
-    return correctFormat
+    pathValue = pathValue.replace(/\s/g, "-").replace(/\/$/, "")
+    return pathValue
 }
 
 /**
@@ -173,19 +183,38 @@ const bookmarkObject = input => {
         const options = input.join(" ").split("~")
         for (const option of options) {
             // Get key and value: [0,1]
-            const [key, value] = option.split("=")
-            if (key === "keywords") {
-                const keywordList = value.split(",").map(
-                    item => item.trim()).filter(Boolean)
-                newbookmark[key] = keywordList
-            } else {
-                const allValue = option.split("=").slice(1).join("")
-                if (allValue?.trim()) {
-                    const correctData = fixBookmarkData(key,
-                        allValue)
-                    // @type {keyof Bookmark}
-                    newbookmark[key] = correctData
-                }
+            const [rawKey, value] = option.split("=")
+            // @type {keyof Bookmark}
+            const key = rawKey
+            switch(key) {
+                case "keywords":
+                    newbookmark[key] = handleKeywords(value)
+                    break
+                case "path":
+                    newbookmark[key] = handlePath(value)
+                    break
+                case "name":
+                    newbookmark[key] = handleName(value)
+                    break
+                case "bg":
+                    newbookmark[key] = value
+                    break
+                case "fg":
+                    newbookmark[key] = value
+                    break
+                case "id":
+                    newbookmark[key] = +value
+                    break
+                case "title":
+                    newbookmark[key] = value
+                    break
+                case "url":
+                    newbookmark[key] = value
+                    break
+                case "tag":
+                    newbookmark[key] = [value]
+                    break
+
             }
         }
     } else {
@@ -207,11 +236,11 @@ const isBookmarkValid = bookmark => {
         notify({
             "id": "commands.bookmarks.noname",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     }
     // Remove invalid options
-    for (const option in bookmark) {
+    for (const option of Object.keys(bookmark)) {
         if (!validBookmarkOptions.includes(option)) {
             badOptions.push(option)
             delete bookmark[option]
@@ -224,7 +253,7 @@ const isBookmarkValid = bookmark => {
             "fields": [bookmark.name],
             "id": "actions.bookmarks.exists",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     }
     // Color check
@@ -234,7 +263,7 @@ const isBookmarkValid = bookmark => {
             "fields": [bookmark.bg],
             "id": "commands.bookmarks.color.invalid",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     }
     if (bookmark?.fg && !isValidColor(bookmark.fg)) {
@@ -243,7 +272,7 @@ const isBookmarkValid = bookmark => {
             "fields": [bookmark.fg],
             "id": "commands.bookmarks.color.invalid",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     }
     // Path validation: should be slash-separate,
@@ -256,7 +285,7 @@ const isBookmarkValid = bookmark => {
             "fields": [bookmark.path],
             "id": "commands.bookmarks.path.invalid",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     }
     // Keyword validation: should be single words.
@@ -269,7 +298,7 @@ const isBookmarkValid = bookmark => {
                 "fields": [multiWordKeywords.join(", ")],
                 "id": "commands.bookmarks.keywords.multiword",
                 "src": "user",
-                "type": "dialog"
+                "type": "warning"
             })
         }
     }
@@ -288,7 +317,7 @@ const isBookmarkValid = bookmark => {
             "fields": [badOptions.join(", ")],
             "id": "commands.bookmarks.invalid.options",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     }
     return isValid
@@ -352,65 +381,70 @@ const setBookmarkSettings = () => {
         bookmarksFile = joinPath(appData(), setFile)
     }
     if (!isFile(bookmarksFile)) {
-        writeJSON(bookmarksFile, {"bookmarks": [],
-            "folders": [],
-            "lastId": 0})
+        writeJSON(bookmarksFile, emptyBookmarkData)
     }
-    // @ts-ignore
-    bookmarkData = readJSON(bookmarksFile) || {
-        "bookmarks": [],
-        "folders": [],
-        "lastId": 0
+    bookmarkData = /** @type {BookmarkData} */ (
+        readJSON(bookmarksFile) || emptyBookmarkData
+    )
+}
+
+/**
+ * @param {Bookmark} bookmark
+ * @param {string} value
+ */
+const matchKeywordsOption = (bookmark, value) => {
+    const values = value.split(",")
+    const matched = values.filter(v => v.startsWith("!")
+        ? !bookmark.keywords.includes(v.slice(1))
+        : bookmark.keywords.includes(v))
+    return matched.length === values.length ? 1 : 0
+}
+
+/**
+ * @param {Bookmark} bookmark
+ * @param {keyof Bookmark} key
+ * @param {string} value
+ */
+const matchGenericOption = (bookmark, key, value) => bookmark[key] === value ? 1 : 0
+
+/**
+ * @param {Bookmark} bookmark
+ * @param {string} optionString - A key=value pair.
+ */
+const matchOption = (bookmark, optionString) => {
+    const [key, value] = optionString.split("=")
+    if (key === "keywords") {
+        return matchKeywordsOption(bookmark, value)
     }
+    return matchGenericOption(bookmark, /** @type {keyof Bookmark} */ (key), value)
 }
 
 /**
  * Filter bookmarks based on input.
- * @param {string[]} input - The input to parse.
+ * @param {string[]} input
  */
 const matchBookmarksToInput = input => {
     const storedBookmarkData = bookmarkData.bookmarks
-    let selectedBookmarks = []
-    if (validBookmarkOptions.some(option => input.join(",")
-        .includes(`${option}=`))) {
-        const eachOption = input.join("").split("~")
-        selectedBookmarks = storedBookmarkData.filter(b => {
-            let matchedOptions = 0
-            for (const e of eachOption) {
-                const [key, value] = e.split("=")
-                if (key === "keywords") {
-                    const eachValue = value.split(",")
-                    let matchedValues = 0
-                    for (const v of eachValue) {
-                        if (v.startsWith("!") && !b[key].includes(v.slice(1))) {
-                            matchedValues += 1
-                        } else if (b[key].includes(v)) {
-                            matchedValues += 1
-                        }
-                    }
-                    if (eachValue.length === matchedValues) {
-                        matchedOptions += 1
-                    }
-                }
-                if (b[key] === value) {
-                    matchedOptions += 1
-                }
-            }
-            if (matchedOptions === eachOption.length) {
-                return true
-            }
-            return false
+    const inputString = input.join("")
+    const hasStructuredOptions = input.some(
+        s => validBookmarkOptions.some(opt => s.includes(`${opt}=`))
+    )
+    if (hasStructuredOptions) {
+        const eachOption = inputString.split("~")
+        return storedBookmarkData.filter(bookmark => {
+            const matched = eachOption.reduce(
+                (count, opt) => count + matchOption(bookmark, opt), 0
+            )
+            return matched === eachOption.length
         })
-    } else {
-        const individualBookmark = storedBookmarkData.filter(
-            e => e.name.replace(specialChars, "") === input.join(" ")
-                .replace(specialChars, ""))
-        const bookmarksSelectedByKeyword = storedBookmarkData.filter(
-            e => e.keywords.find(k => k === input.join("")))
-        selectedBookmarks
-            = [...individualBookmark, ...bookmarksSelectedByKeyword]
     }
-    return selectedBookmarks
+    const byName = storedBookmarkData.filter(
+        e => e.name.replace(specialChars, "") === input.join(" ").replace(specialChars, "")
+    )
+    const byKeyword = storedBookmarkData.filter(
+        e => e.keywords.find(k => k === inputString)
+    )
+    return [...byName, ...byKeyword]
 }
 
 /**
@@ -441,7 +475,7 @@ const loadBookmark = input => {
         notify({
             "id": "actions.bookmarks.notfound",
             "src": "user",
-            "type": "dialog"
+            "type": "warning"
         })
     } else if (selectedBookmarks.length === 1) {
         navigateTo("user", selectedBookmarks[0].url)
