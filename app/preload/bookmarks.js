@@ -19,32 +19,9 @@
 
 /**
  * @typedef {{
- *   bookmarks: Bookmark[],
- *   folders: {path: string}[],
- *   lastId: number,
- *   tags: object[]
- * }} BookmarkData
- */
-
-/**
- * @typedef {{
  *  children: FolderNode[],
  *  folderName: string
  * }} FolderNode
- */
-
-/**
- * @typedef {{
- *  id: number,
- *  name: string,
- *  title: string,
- *  url: string,
- *  path: string,
- *  tag: string[],
- *  keywords: string[],
- *  bg?: string,
- *  fg?: string
- * }} Bookmark
  */
 
 const {ipcRenderer} = require("electron")
@@ -73,7 +50,6 @@ const clearTree = () => {
  * Build a path from parent path and folder name.
  * @param {string} parentPath
  * @param {string} folderName
- * @returns {string}
  */
 const buildPath = (parentPath, folderName) => {
     const parts = parentPath.split("/").filter(Boolean)
@@ -152,7 +128,7 @@ window.addEventListener("load", init)
 
 /**
  * Add a bookmark to the page.
- * @param {Bookmark} bookmark - The bookmark object to add.
+ * @param {import("../renderer/bookmarks").Bookmark} bookmark - The bookmark object to add.
  */
 const addBookmarkToPage = bookmark => {
     const bookmarkElement = document.createElement("li")
@@ -195,7 +171,6 @@ const addBookmarkToPage = bookmark => {
  * Create the HTML for a folder.
  * @param {string} folderName
  * @param {string} path
- * @returns {HTMLLIElement} - The folder element.
  */
 const createFolderHtml = (folderName, path) => {
     const folderElement = document.createElement("li")
@@ -223,7 +198,6 @@ const createFolderHtml = (folderName, path) => {
  * @param {string} folderName
  * @param {FolderNode} parentFolder
  * @param {string} parentPath
- * @returns {{folder: FolderNode, path: string}} - The folder object
  * and its path.
  */
 const findOrCreateFolder = (folderName, parentFolder, parentPath) => {
@@ -261,7 +235,7 @@ const processFolderPath = folderPath => {
 
 /**
  * Create the folder structure and add the bookmarks to the page.
- * @param {BookmarkData} bookmarkData - The bookmark data object.
+ * @param {import("../renderer/bookmarks").BookmarkData} bookmarkData - The bookmark data object.
  */
 const createFolderStructure = bookmarkData => {
     const {bookmarks, folders} = bookmarkData

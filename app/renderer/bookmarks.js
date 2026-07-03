@@ -94,7 +94,6 @@ const validBookmarkOptions = [
 
 /**
  * Returns bookmarkData object.
- * @returns {BookmarkData}
  */
 const getBookmarkData = () => bookmarkData
 
@@ -157,7 +156,6 @@ const fixBookmarkData = (option, value) => {
 /**
  * Prepare bookmark's object.
  * @param {string[]} input - The input to parse.
- * @returns {Bookmark}
  */
 const bookmarkObject = input => {
     /** @type {Bookmark} */
@@ -185,6 +183,7 @@ const bookmarkObject = input => {
                 if (allValue?.trim()) {
                     const correctData = fixBookmarkData(key,
                         allValue)
+                    // @type {keyof Bookmark}
                     newbookmark[key] = correctData
                 }
             }
@@ -199,7 +198,6 @@ const bookmarkObject = input => {
 /**
  * Check if bookmark is valid.
  * @param {Bookmark} bookmark - The bookmark object to validate.
- * @returns {boolean} - True if the bookmark is valid.
  */
 const isBookmarkValid = bookmark => {
     let isValid = true
@@ -358,6 +356,7 @@ const setBookmarkSettings = () => {
             "folders": [],
             "lastId": 0})
     }
+    // @ts-ignore
     bookmarkData = readJSON(bookmarksFile) || {
         "bookmarks": [],
         "folders": [],
@@ -417,7 +416,6 @@ const matchBookmarksToInput = input => {
 /**
  * Filter folders based on input.
  * @param {string[]} input - The input to parse.
- * @returns {Folder | null | undefined}
  */
 const matchFoldersToInput = input => {
     /** @type {Folder | null | undefined} */
