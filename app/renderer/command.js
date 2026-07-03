@@ -2688,7 +2688,7 @@ const commands = {
     },
     "bmdel": ({args}) => {
         const {deleteBookmark} = require("./bookmarks")
-        deleteBookmark(args, undefined)
+        deleteBookmark(args)
     },
     "bmload": ({args}) => {
         const {loadBookmark} = require("./bookmarks")

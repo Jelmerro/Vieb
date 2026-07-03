@@ -935,7 +935,7 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "delete-bookmark") {
             const {deleteBookmark} = require("./bookmarks")
-            deleteBookmark([], e.args[0])
+            deleteBookmark([`url=${e.args[0]}`])
         }
         if (e.channel === "swipe" && getMouseConf("historyswipe")) {
             if (e.args[0]) {

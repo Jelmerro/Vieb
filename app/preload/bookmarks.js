@@ -76,15 +76,15 @@ const deleteFolderClick = e => {
 }
 
 /**
- * Trigger bookmark delete by id.
+ * Trigger bookmark delete by url.
  * @param {PointerEvent} e - HTML onclick event.
  */
 const deleteBookmarkClick = e => {
     e.stopPropagation()
     if (e.target instanceof HTMLElement) {
-        const {bookmarkId} = e.target.dataset
-        if (bookmarkId) {
-            ipcRenderer.sendToHost("delete-bookmark", Number(bookmarkId))
+        const {bookmarkUrl} = e.target.dataset
+        if (bookmarkUrl) {
+            ipcRenderer.sendToHost("delete-bookmark", bookmarkUrl)
         }
         clearTree()
         update()
@@ -152,7 +152,7 @@ const addBookmarkToPage = bookmark => {
     }
     const removeButton = document.createElement("button")
     removeButton.textContent = "Remove"
-    removeButton.dataset.bookmarkId = String(bookmark.id)
+    removeButton.dataset.bookmarkUrl = bookmark.url
     removeButton.addEventListener("click", e => deleteBookmarkClick(e))
     bookmarkDiv.append(bookmarkLink)
     bookmarkDiv.append(removeButton)

@@ -49,7 +49,6 @@ const {
 
 /**
  * @typedef {{
- *  id: number,
  *  name: string,
  *  title: string,
  *  url: string,
@@ -65,14 +64,12 @@ const {
  * @typedef {{
  *   bookmarks: Bookmark[],
  *   folders: Folder[],
- *   lastId: number,
  * }} BookmarkData
  */
 
 const emptyBookmarkData = {
     "bookmarks": [],
-    "folders": [],
-    "lastId": 0
+    "folders": []
 }
 
 /** @type {BookmarkData} */
@@ -86,7 +83,6 @@ const validFoldersOptions = [
 const validBookmarkOptions = [
     "bg",
     "fg",
-    "id",
     "keywords",
     "name",
     "path",
@@ -170,7 +166,6 @@ const handlePath = value => {
 const bookmarkObject = input => {
     /** @type {Bookmark} */
     const newbookmark = {
-        "id": bookmarkData.lastId,
         "keywords": [],
         "name": "",
         "path": "",
@@ -201,9 +196,6 @@ const bookmarkObject = input => {
                     break
                 case "fg":
                     newbookmark[key] = value
-                    break
-                case "id":
-                    newbookmark[key] = +value
                     break
                 case "title":
                     newbookmark[key] = value
@@ -353,7 +345,6 @@ const addBookmark = input => {
     }
     if (isBookmarkValid(newbookmark)) {
         bookmarkData.bookmarks.push(newbookmark)
-        bookmarkData.lastId += 1
         writeBookmarksToFile()
         notifyBookmarksPages()
     }
@@ -502,23 +493,15 @@ const deleteFolder = input => {
 /**
  * Delete bookmark based on the input.
  * @param {string[]} input - The input to parse.
- * @param {number | undefined} bookmarkId - The bookmark id or undefined.
  */
-const deleteBookmark = (input, bookmarkId) => {
-    let selectedBookmarks = []
-    if (typeof bookmarkId === "number") {
-        selectedBookmarks = bookmarkData.bookmarks.filter(b => b.id
-            === bookmarkId)
-    } else if (input.join("") === "") {
-        selectedBookmarks = matchBookmarksToInput([`url=${currentPage()?.src}`])
-    } else {
-        selectedBookmarks = matchBookmarksToInput(input)
-    }
+const deleteBookmark = input => {
+    const selectedBookmarks = input.join("") === ""
+        ? matchBookmarksToInput([`url=${currentPage()?.src}`])
+        : matchBookmarksToInput(input)
     for (const sb of selectedBookmarks) {
-        for (let x = 0; x < bookmarkData.bookmarks.length; x++) {
-            if (sb.id === bookmarkData.bookmarks[x].id) {
-                bookmarkData.bookmarks.splice(x, 1)
-            }
+        const idx = bookmarkData.bookmarks.indexOf(sb)
+        if (idx !== -1) {
+            bookmarkData.bookmarks.splice(idx, 1)
         }
     }
     writeBookmarksToFile()
@@ -585,7 +568,7 @@ const processBookmark = fileContent => {
     }
     const parser = new DOMParser()
     const dom = parser.parseFromString(fileContent, "text/html")
-    /** @type {Partial<Bookmark>[]} bookmarks - bookmarks array */
+    /** @type {Bookmark[]} bookmarks - bookmarks array */
     const bookmarks = []
     const folders = new Set()
     const firstDl = dom.body.querySelector("DL")
@@ -603,11 +586,7 @@ const processBookmark = fileContent => {
     let newBookmarksCount = 0
     for (const bookmark of bookmarks) {
         if (!existingBookmarks.has(`${bookmark.name}::${bookmark.url}`)) {
-            // @ts-ignore
-            bookmarkData.bookmarks.push({
-                ...bookmark,
-                "id": bookmarkData.lastId += 1
-            })
+            bookmarkData.bookmarks.push({...bookmark})
             newBookmarksCount += 1
         }
     }
