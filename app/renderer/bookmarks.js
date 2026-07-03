@@ -589,9 +589,15 @@ const processBookmark = fileContent => {
     const bookmarks = []
     const folders = new Set()
     const firstDl = dom.body.querySelector("DL")
-    if (firstDl) {
-        parseBookmarks(firstDl, "/", bookmarks, folders)
+    if (!firstDl) {
+        notify({
+            "id": "actions.bookmarks.import.failed",
+            "src": "user",
+            "type": "warning"
+        })
+        return
     }
+    parseBookmarks(firstDl, "/", bookmarks, folders)
     const existingBookmarks = new Set(bookmarkData.bookmarks
         .map(b => `${b.name}::${b.url}`))
     let newBookmarksCount = 0
@@ -605,12 +611,17 @@ const processBookmark = fileContent => {
             newBookmarksCount += 1
         }
     }
+    let foldersAdded = false
     for (const folder of folders) {
         if (!bookmarkData.folders.some(f => f.path === folder)) {
             bookmarkData.folders.push({
                 "keywords": [], "name": "", "path": folder
             })
+            foldersAdded = true
         }
+    }
+    if (newBookmarksCount === 0 && !foldersAdded) {
+        return
     }
     writeBookmarksToFile()
     notifyBookmarksPages()
