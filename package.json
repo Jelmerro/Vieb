@@ -32,27 +32,27 @@
         "update": "npx -y jelmerro/nus"
     },
     "dependencies": {
-        "@ghostery/adblocker-electron": "2.17.0",
-        "@ghostery/adblocker-electron-preload": "2.17.0",
+        "@ghostery/adblocker-electron": "2.18.1",
+        "@ghostery/adblocker-electron-preload": "2.18.1",
         "@mozilla/readability": "0.6.0",
         "darkreader": "4.9.96",
         "highlight.js": "11.11.1",
-        "linkedom": "0.18.12",
+        "linkedom": "0.18.13",
         "marked": "15.0.12",
-        "marked-base-url": "1.1.9",
+        "marked-base-url": "1.1.10",
         "marked-highlight": "2.2.4",
-        "picomatch": "4.0.4"
+        "picomatch": "4.0.5"
     },
     "devDependencies": {
         "@electron/asar": "4.2.0",
         "@types/picomatch": "4.0.3",
-        "electron": "42.0.1",
-        "electron-builder": "26.8.1",
+        "electron": "43.1.0",
+        "electron-builder": "26.15.3",
         "eslint-config": "github:Jelmerro/eslint-config",
         "glob": "13.0.6",
-        "terser-webpack-plugin": "5.6.0",
+        "terser-webpack-plugin": "5.6.1",
         "type-config": "github:Jelmerro/type-config",
-        "webpack": "5.106.2",
+        "webpack": "5.108.4",
         "webpack-node-externals": "3.0.0"
     },
     "engines": {
