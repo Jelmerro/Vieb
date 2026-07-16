@@ -46,7 +46,7 @@
     "devDependencies": {
         "@electron/asar": "4.2.0",
         "@types/picomatch": "4.0.3",
-        "electron": "43.1.0",
+        "electron": "43.1.1",
         "electron-builder": "26.15.3",
         "eslint-config": "github:Jelmerro/eslint-config",
         "glob": "13.0.6",

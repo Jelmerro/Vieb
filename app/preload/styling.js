@@ -194,10 +194,8 @@ const loadThemes = (loadedFully = false) => {
     if (specialPage?.name) {
         domain = "special"
         scope = "special"
-    } else if (window.location.href.startsWith("file://")) {
-        domain = "file"
-        scope = "file"
-    } else if (document.body.id === "filebrowser") {
+    } else if (window.location.href.startsWith("file://")
+        || document.body.id === "filebrowser") {
         domain = "file"
         scope = "file"
     }

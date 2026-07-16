@@ -53,7 +53,8 @@ const processHash = () => {
                 .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
             return easyHash === id
         })
-        if (!match || !document.querySelector(`a[href='#${match}']`)) {
+        if (!match || !document.querySelector(
+            `a[href='#${CSS.escape(match)}']`)) {
             easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
                 .replace(/^:?/, "")
             match = ids.find(raw => {
@@ -63,7 +64,8 @@ const processHash = () => {
                     .replace(/^action\./, "").replace(/^pointer\./, "")
             })
         }
-        const matchEl = document.querySelector(`a[href='#${match}']`)
+        const matchEl = document.querySelector(
+            `a[href='#${CSS.escape(match ?? "")}']`)
         if (match && matchEl instanceof HTMLAnchorElement) {
             matchEl.click()
             return
@@ -72,7 +74,7 @@ const processHash = () => {
     let mode = null
     let keys = String(hash)
     if (/^\w_.*/.test(hash)) {
-        [mode] = hash.split("_")
+        [mode] = hash.split("_", 1)
         keys = hash.split("_").slice(1).join("_")
     }
     if (mode) {
@@ -124,17 +126,18 @@ const addTextWithLinksToTypes = (baseEl, text) => {
  * @param {Element} element
  */
 const createUpdatedMapKbdAndUpdateInCacheObject = (obj, mapping, element) => {
-    const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
-    const [, keys] = mapping.split(" ")
+    const mode = mapping.split(" ", 1)[0].replace(/(nore)?map$/g, "")
+    const [, keys] = mapping.split(" ", 2)
     if (mode) {
         if (!obj[mode][keys]) {
-            obj[mode][keys] = document.querySelector(`a[href='#${element.id}']`)
+            obj[mode][keys] = document.querySelector(
+                `a[href='#${CSS.escape(element.id)}']`)
         }
     } else {
         for (const m of modes) {
             if (!obj[m][keys]) {
                 obj[m][keys] = document.querySelector(
-                    `a[href='#${element.id}']`)
+                    `a[href='#${CSS.escape(element.id)}']`)
             }
         }
     }
@@ -175,38 +178,39 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
         el.remove()
     }
     for (const setting of settings) {
-        if (document.getElementById(setting.name)) {
-            const settingStatus = document.createElement("div")
-            settingStatus.className = "setting-status"
-            const typeLabel = document.createElement("span")
-            typeLabel.textContent = "Type:"
-            settingStatus.append(typeLabel)
-            const type = document.createElement("kbd")
-            addTextWithLinksToTypes(type, setting.typeLabel)
-            settingStatus.append(type)
-            const originalLabel = document.createElement("span")
-            originalLabel.textContent = "Default:"
-            settingStatus.append(originalLabel)
-            const original = document.createElement("kbd")
-            original.textContent = `${JSON.stringify(setting.default)}`
-            settingStatus.append(original)
-            const currentLabel = document.createElement("span")
-            currentLabel.textContent = "Current:"
-            settingStatus.append(currentLabel)
-            const current = document.createElement("kbd")
-            current.textContent = `${JSON.stringify(setting.current)}`
-            settingStatus.append(current)
-            const allowedValuesLabel = document.createElement("span")
-            allowedValuesLabel.textContent = "Accepted:"
-            settingStatus.append(allowedValuesLabel)
-            const allowedValues = document.createElement("kbd")
-            addTextWithLinksToTypes(
-                allowedValues, String(setting.allowedValues))
-            settingStatus.append(allowedValues)
-            document.getElementById(setting.name)?.parentNode?.parentNode
-                ?.insertBefore(settingStatus, document.getElementById(
-                    setting.name)?.parentNode?.nextSibling ?? null)
+        if (!document.getElementById(setting.name)) {
+            continue
         }
+        const settingStatus = document.createElement("div")
+        settingStatus.className = "setting-status"
+        const typeLabel = document.createElement("span")
+        typeLabel.textContent = "Type:"
+        settingStatus.append(typeLabel)
+        const type = document.createElement("kbd")
+        addTextWithLinksToTypes(type, setting.typeLabel)
+        settingStatus.append(type)
+        const originalLabel = document.createElement("span")
+        originalLabel.textContent = "Default:"
+        settingStatus.append(originalLabel)
+        const original = document.createElement("kbd")
+        original.textContent = `${JSON.stringify(setting.default)}`
+        settingStatus.append(original)
+        const currentLabel = document.createElement("span")
+        currentLabel.textContent = "Current:"
+        settingStatus.append(currentLabel)
+        const current = document.createElement("kbd")
+        current.textContent = `${JSON.stringify(setting.current)}`
+        settingStatus.append(current)
+        const allowedValuesLabel = document.createElement("span")
+        allowedValuesLabel.textContent = "Accepted:"
+        settingStatus.append(allowedValuesLabel)
+        const allowedValues = document.createElement("kbd")
+        addTextWithLinksToTypes(
+            allowedValues, String(setting.allowedValues))
+        settingStatus.append(allowedValues)
+        document.getElementById(setting.name)?.parentNode?.parentNode
+            ?.insertBefore(settingStatus, document.getElementById(
+                setting.name)?.parentNode?.nextSibling ?? null)
     }
     // Enrich the command list with the keys that map to them
     for (const cmdNode of document.querySelectorAll("h3[id^=':']")) {

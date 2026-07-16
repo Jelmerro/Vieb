@@ -15,7 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* eslint-disable jsdoc/require-jsdoc, n/no-path-concat */
+/* eslint-disable jsdoc/require-jsdoc,
+ n/no-path-concat,
+ unicorn/no-global-object-property-assignment,
+ unicorn/consistent-class-member-order
+*/
 "use strict"
 
 const assert = require("node:assert")

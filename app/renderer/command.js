@@ -206,7 +206,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             if (JSON.stringify(newValue) === JSON.stringify(current)) {
                 for (const entry of addition) {
                     newValue = newValue.filter(
-                        e => e.split("~")[0] !== entry.split("~")[0])
+                        e => e.split("~", 1)[0] !== entry.split("~", 1)[0])
                 }
             }
             set(src, setting, newValue)
@@ -220,7 +220,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             /** @type {{[key: string]: string}} */
             const additionObj = {}
             for (const val of addition) {
-                additionObj[val.split("~")[0]] = val
+                additionObj[val.split("~", 1)[0]] = val
                     .split("~").slice(1).join("~") ?? ""
             }
             addition = additionObj
@@ -244,7 +244,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             }
         }
         if (method === "remove") {
-            for (const [key] of Object.entries(addition)) {
+            for (const key of Object.keys(addition)) {
                 delete newValue[key]
             }
         }
@@ -301,7 +301,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
             const obj = {}
             const arr = value.split(",").filter(v => v.trim())
             for (const val of arr) {
-                obj[val.split("~")[0]] = val
+                obj[val.split("~", 1)[0]] = val
                     .split("~").slice(1).join("~") ?? ""
             }
             modifyListOrObject(src, setting, JSON.stringify(obj), method)
@@ -322,7 +322,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
     if (method === "append") {
         if (isObject) {
             const obj = getSetting(setting)
-            obj[value.split("~")[0]] = value
+            obj[value.split("~", 1)[0]] = value
                 .split("~").slice(1).join("~") ?? ""
             set(src, setting, obj)
         }
@@ -343,7 +343,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
     if (method === "remove") {
         if (isObject) {
             const obj = getSetting(setting)
-            delete obj[value.split("~")[0]]
+            delete obj[value.split("~", 1)[0]]
             set(src, setting, obj)
         }
         if (isList) {
@@ -354,7 +354,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
             let newValue = current.filter(e => e && e !== value)
             if (JSON.stringify(newValue) === JSON.stringify(current)) {
                 newValue = current.filter(
-                    e => e.split("~")[0] !== value.split("~")[0])
+                    e => e.split("~", 1)[0] !== value.split("~", 1)[0])
             }
             set(src, setting, newValue)
         }
@@ -471,7 +471,7 @@ const setCommand = (src, args) => {
                 })
             }
         } else if ((/^\w+!.+/).test(part)) {
-            const [setting] = part.split("!")
+            const [setting] = part.split("!", 1)
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
                 const index = values.indexOf(String(getSetting(setting)))
@@ -564,9 +564,8 @@ const setCommand = (src, args) => {
                 } = require("./settings")
                 if (typeof value === "boolean") {
                     modifySetting(src, settingName, "false")
-                } else if (isArraySetting(settingName)) {
-                    modifySetting(src, settingName, "")
-                } else if (isObjectSetting(settingName)) {
+                } else if (isArraySetting(settingName)
+                    || isObjectSetting(settingName)) {
                     modifySetting(src, settingName, "")
                 } else if (isNumberSetting(settingName)) {
                     modifySetting(src, settingName, "0")
@@ -653,7 +652,7 @@ const source = (src, origin, args) => {
         sourcedFiles.push(absFile)
     }
     for (const line of parsed.split("\n")) {
-        if (line && !line.trim().startsWith("\"")) {
+        if (line && !line.trimStart().startsWith("\"")) {
             /* eslint-disable-next-line no-use-before-define */
             execute(line, {"settingsFile": absFile, "src": "source"})
         }
@@ -667,9 +666,9 @@ const source = (src, origin, args) => {
  * @param {boolean} silent
  */
 const translateSearchRangeToIdx = (src, range, silent) => {
-    const [flags] = range.split("/")
+    const [flags] = range.split("/", 1)
     const allFlags = new Set("giaszrtupn")
-    if (![...flags].every(f => allFlags.has(f))) {
+    if ([...flags].some(f => !allFlags.has(f))) {
         if (!silent) {
             notify({
                 "fields": [range],
@@ -736,7 +735,7 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
     const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
     const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
     /** @type {(string | number)[]} */
-    let [charOrNum] = rangePart.split(/[+-]/g)
+    let [charOrNum] = rangePart.split(/[+-]/g, 1)
     if (rangePart.split("/").length > 2) {
         const searchResult = translateSearchRangeToIdx(src, rangePart, silent)
         charOrNum = searchResult.tabs.find(i => i >= start) ?? -1
@@ -796,7 +795,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
         return {"tabs": listTabs().map((_, i) => i), "valid": true}
     }
     if (range.includes(",")) {
-        const [start, end, tooManyArgs] = range.split(",")
+        const [start, end, tooManyArgs] = range.split(",", 3)
         if (tooManyArgs !== undefined) {
             if (!silent) {
                 notify({
@@ -850,7 +849,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
         }
     }
     if (range.split("/").length > 2) {
-        const flags = [...range.split("/")[0]]
+        const flags = [...range.split("/", 1)[0]]
         if (flags.includes("g")) {
             return translateSearchRangeToIdx(src, range, silent)
         }
@@ -1148,11 +1147,9 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
     const {addTab, navigateTo} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
         addTab({src, "url": newSpecialUrl})
-    } else if (replaceSpecial === "always") {
-        navigateTo(src, newSpecialUrl)
-    } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
-        navigateTo(src, newSpecialUrl)
-    } else if (currentSpecial === "newtab" && isNewtab) {
+    } else if (replaceSpecial === "always"
+        || replaceSpecial === "special" && (currentSpecial || isNewtab)
+        || currentSpecial === "newtab" && isNewtab) {
         navigateTo(src, newSpecialUrl)
     } else {
         addTab({src, "url": newSpecialUrl})
@@ -1330,10 +1327,10 @@ const translateDimsToRect = dims => {
         return
     }
     const rect = {
-        "height": Number(dims.split(",")[1]),
-        "width": Number(dims.split(",")[0]),
-        "x": Number(dims.split(",")[2]),
-        "y": Number(dims.split(",")[3])
+        "height": Number(dims.split(",", 2)[1]),
+        "width": Number(dims.split(",", 1)[0]),
+        "x": Number(dims.split(",", 3)[2]),
+        "y": Number(dims.split(",", 4)[3])
     }
     const pageWidth = propPixels(page.style, "width")
     const pageHeight = propPixels(page.style, "height")
@@ -1595,11 +1592,7 @@ const setMute = (src, args, range) => {
         targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
     }
     for (const tab of targets) {
-        if (args[0] === "true") {
-            tab?.setAttribute("muted", "muted")
-        } else {
-            tab?.removeAttribute("muted")
-        }
+        tab?.toggleAttribute("muted", args[0] === "true")
         const page = pageForTab(tab)
         if (page && !(page instanceof HTMLDivElement)) {
             page.setAudioMuted(!!tab?.getAttribute("muted"))
@@ -1634,11 +1627,7 @@ const mute = (src, args, range = null) => {
         notify({"id": "commands.mute.noMatch", src, "type": "warning"})
         return
     }
-    if (tab.getAttribute("muted")) {
-        tab.removeAttribute("muted")
-    } else {
-        tab.setAttribute("muted", "muted")
-    }
+    tab.toggleAttribute("muted")
     const page = pageForTab(tab)
     if (page && !(page instanceof HTMLDivElement)) {
         page.setAudioMuted(!!tab.getAttribute("muted"))
@@ -2161,13 +2150,13 @@ const scrollpos = (src, args) => {
         return prev
     }, 0) + 1
     if (args.length === 0) {
-        for (const key of Object.keys(qm.scroll.global)) {
-            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
+        for (const [key, action] of Object.entries(qm.scroll.global)) {
+            relevantPos.push(`${key.padEnd(longest)}${action}`)
         }
-        for (const domain of Object.keys(qm.scroll.local)) {
-            for (const key of Object.keys(qm.scroll.local[domain])) {
+        for (const [domain, keys] of Object.entries(qm.scroll.local)) {
+            for (const [key, action] of Object.entries(keys)) {
                 relevantPos.push(`${key.padEnd(longest)}${
-                    String(qm.scroll.local[domain][key]).padEnd(7)}${domain}`)
+                    String(action).padEnd(7)}${domain}`)
             }
         }
     } else {
@@ -2175,10 +2164,10 @@ const scrollpos = (src, args) => {
         if (qm.scroll.global[key] !== undefined) {
             relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
         }
-        for (const domain of Object.keys(qm.scroll.local)) {
-            if (qm.scroll.local[domain][key] !== undefined) {
+        for (const [domain, keys] of Object.entries(qm.scroll.local)) {
+            if (keys[key] !== undefined) {
                 relevantPos.push(`${key.padEnd(longest)}${
-                    String(qm.scroll.local[domain][key]).padEnd(7)}${domain}`)
+                    String(keys[key]).padEnd(7)}${domain}`)
             }
         }
     }
@@ -2358,14 +2347,14 @@ const pointerpos = (src, args) => {
         return prev
     }, 0) + 1
     if (args.length === 0) {
-        for (const key of Object.keys(qm.pointer.global)) {
-            const {x, y} = qm.pointer.global[key]
+        for (const [key, position] of Object.entries(qm.pointer.global)) {
+            const {x, y} = position
             relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
                 String(y).padEnd(7)}`)
         }
-        for (const domain of Object.keys(qm.pointer.local)) {
-            for (const key of Object.keys(qm.pointer.local[domain])) {
-                const {x, y} = qm.pointer.local[domain][key]
+        for (const [domain, keys] of Object.entries(qm.pointer.local)) {
+            for (const [key, position] of Object.entries(keys)) {
+                const {x, y} = position
                 relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
                     String(y).padEnd(7)}${domain}`)
             }
@@ -2377,12 +2366,13 @@ const pointerpos = (src, args) => {
             relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
                 String(y).padEnd(7)}`)
         }
-        for (const domain of Object.keys(qm.pointer.local)) {
-            if (qm.pointer.local[domain][key] !== undefined) {
-                const {x, y} = qm.pointer.local[domain][key]
-                relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
-                    String(y).padEnd(7)}${domain}`)
+        for (const [domain, keys] of Object.entries(qm.pointer.local)) {
+            if (qm.pointer.local[domain][key] === undefined) {
+                continue
             }
+            const {x, y} = keys[key]
+            relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                String(y).padEnd(7)}${domain}`)
         }
     }
     if (relevantPos.length === 0) {
@@ -2821,7 +2811,7 @@ const commands = {
     "suspend": ({args, range, src}) => suspend(src, args, range),
     "tabnew": ({raw, src}) => tabnew(
         src, null, raw.split(" ").slice(1).join(" ")),
-    "tabnewcontainer": ({raw, src}) => tabnew(src, raw.split(" ")[1],
+    "tabnewcontainer": ({raw, src}) => tabnew(src, raw.split(" ", 2)[1],
         raw.split(" ").slice(2).join(" ")),
     "translatepage": ({args, src}) => translatepage(src, args),
     "v": ({src}) => openSpecialPage(src, "version", false),
@@ -2886,9 +2876,10 @@ const addCommand = (src, overwrite, args) => {
         return
     }
     if (args.length === 0) {
-        const commandString = Object.keys(userCommands).map(c => translate(
-            "commands.command.listSingle", {"fields": [c, userCommands[c]]})
-        ).join("\n").trim()
+        const commandString = Object.entries(userCommands)
+            .map(([c, value]) => translate(
+                "commands.command.listSingle", {"fields": [c, value]})
+            ).join("\n").trim()
         if (commandString) {
             notify({
                 "fields": [commandString], "id": "commands.command.list", src
@@ -2907,7 +2898,6 @@ const addCommand = (src, overwrite, args) => {
         notify({"id": "commands.command.special", src, "type": "warning"})
         return
     }
-    const params = args.slice(1)
     if (commands[command]) {
         notify({
             "fields": [command],
@@ -2917,6 +2907,7 @@ const addCommand = (src, overwrite, args) => {
         })
         return
     }
+    const params = args.slice(1)
     if (params.length === 0) {
         if (userCommands[command]) {
             notify({
@@ -2976,7 +2967,7 @@ const deleteCommand = (src, args) => {
  */
 const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
-    let [command] = commandStr.split(" ")
+    let [command] = commandStr.split(" ", 1)
     let range = ""
     while (command[0]?.match(specialChars) || command[0]?.match(/\d+/g) || command.includes("/")) {
         range += command[0]
@@ -3126,7 +3117,7 @@ const execute = (com, opts = {}) => {
     // which will hold <useCurrent... for calling it when it is used
     // otherwise they will always use the same value at creation
     if (commandStr.includes("<use")
-        && !holdUseCommands.some(command => commandStr.startsWith(command))) {
+        && holdUseCommands.every(command => !commandStr.startsWith(command))) {
         const {getPageUrl} = require("./actions")
         // Replace all occurrences of <useCurrent for their values
         commandStr = commandStr.replace("<useCurrentUrl>", `${getPageUrl()}`)
@@ -3271,8 +3262,8 @@ const commandList = (includeCustom = true) => {
  * @param {boolean} full
  */
 const customCommandsAsCommandList = (full = false) => {
-    let commandString = Object.keys(userCommands).map(
-        command => `command ${command} ${userCommands[command]}`).join("\n")
+    let commandString = Object.entries(userCommands).map(
+        ([command, value]) => `command ${command} ${value}`).join("\n")
     if (full || currentscheme !== "default") {
         commandString += `\ncolorscheme ${currentscheme}`
     }

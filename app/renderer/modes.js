@@ -165,10 +165,11 @@ const modes = {
          * @param {import("./common").Mode} newMode
          */
         "onLeave": newMode => {
-            if (!["follow", "pointer"].includes(newMode)) {
-                const {releaseKeys} = require("./pointer")
-                releaseKeys()
+            if (["follow", "pointer"].includes(newMode)) {
+                return
             }
+            const {releaseKeys} = require("./pointer")
+            releaseKeys()
         }
     }
 }

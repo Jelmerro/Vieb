@@ -415,37 +415,38 @@ const alignLink = ({
     /** @type {("left"|"top"|"right"|"bottom"|"transform")[]} */
     const alignmentProps = ["left", "top", "right", "bottom", "transform"]
     for (const align of alignmentProps) {
-        if (alignment[align] !== undefined) {
-            let value = alignment[align]
-            if (align === "left" && elWidth && typeof value === "number"
-                && value > baseDims.width + baseDims.right - elWidth) {
-                value = baseDims.width + baseDims.right
-                linkElement.style.transform += "translateX(-100%) "
+        if (alignment[align] === undefined) {
+            continue
+        }
+        let value = alignment[align]
+        if (align === "left" && elWidth && typeof value === "number"
+            && value > baseDims.width + baseDims.right - elWidth) {
+            value = baseDims.width + baseDims.right
+            linkElement.style.transform += "translateX(-100%) "
+        }
+        if (align === "top" && elWidth && typeof value === "number"
+            && value > baseDims.height + baseDims.bottom - elWidth) {
+            value = baseDims.height + baseDims.bottom
+            linkElement.style.transform += "translateY(-100%) "
+        }
+        if (align === "right" && typeof value === "number") {
+            if (elWidth && value + baseDims.left < elWidth) {
+                value = 0
+                linkElement.style.transform += "translateX(100%) "
             }
-            if (align === "top" && elWidth && typeof value === "number"
-                && value > baseDims.height + baseDims.bottom - elWidth) {
-                value = baseDims.height + baseDims.bottom
-                linkElement.style.transform += "translateY(-100%) "
+            value = baseDims.width - value
+        }
+        if (align === "bottom" && typeof value === "number") {
+            if (elWidth && value + baseDims.top < elWidth) {
+                value = 0
+                linkElement.style.transform += "translateY(100%) "
             }
-            if (align === "right" && typeof value === "number") {
-                if (elWidth && value + baseDims.left < elWidth) {
-                    value = 0
-                    linkElement.style.transform += "translateX(100%) "
-                }
-                value = baseDims.width - value
-            }
-            if (align === "bottom" && typeof value === "number") {
-                if (elWidth && value + baseDims.top < elWidth) {
-                    value = 0
-                    linkElement.style.transform += "translateY(100%) "
-                }
-                value = baseDims.height - value
-            }
-            if (align === "transform" && value) {
-                linkElement.style.transform += value
-            } else if (typeof value === "number") {
-                linkElement.style[align] = `${value.toFixed(2)}px`
-            }
+            value = baseDims.height - value
+        }
+        if (align === "transform" && value) {
+            linkElement.style.transform += value
+        } else if (typeof value === "number") {
+            linkElement.style[align] = `${value.toFixed(2)}px`
         }
     }
 }
@@ -547,8 +548,8 @@ const parseAndDisplayLinks = receivedLinks => {
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
         const followlabelposition = getSetting("followlabelposition")
-        const elWidth = followEl.querySelector(`[link-id='${index}']`)
-            ?.getBoundingClientRect()?.width ?? 0
+        const elWidth = followEl.querySelector(`[link-id='${
+            CSS.escape(`${index}`)}']`)?.getBoundingClientRect()?.width ?? 0
         alignLink({
             baseDims,
             elWidth,

@@ -46,14 +46,11 @@ const updateCurrentView = (user = true) => {
     if (filter) {
         allElements = allElements.filter(el => {
             const url = el.querySelector("a")?.getAttribute("href")
-            const title = el.querySelector(".hist-title")?.textContent
             if (url?.toLowerCase().includes(filter)) {
                 return true
             }
-            if (title?.toLowerCase().includes(filter)) {
-                return true
-            }
-            return false
+            const title = el.querySelector(".hist-title")?.textContent
+            return title?.toLowerCase().includes(filter)
         })
     }
     if (list.children.length !== viewItemCount || user) {
@@ -100,7 +97,7 @@ const updateCurrentView = (user = true) => {
     for (const p of [...pages.children].slice(pageCount)) {
         p.remove()
     }
-    pages.querySelector(`[page-number="${pageNumber}"]`)
+    pages.querySelector(`[page-number="${CSS.escape(`${pageNumber}`)}"]`)
         ?.classList.add("current")
     if (user) {
         pages.querySelector(".current")
@@ -211,14 +208,11 @@ const clearHistory = () => {
             return true
         }
         const url = el.querySelector("a")?.getAttribute("href")
-        const title = el.querySelector(".hist-title")?.textContent
         if (url?.toLowerCase().includes(filter)) {
             return true
         }
-        if (title?.toLowerCase().includes(filter)) {
-            return true
-        }
-        return false
+        const title = el.querySelector(".hist-title")?.textContent
+        return title?.toLowerCase().includes(filter)
     })
     const entries = allElements.map(h => {
         h.classList.add("marked")
@@ -264,15 +258,16 @@ window.addEventListener("DOMContentLoaded", () => {
     })
     const perpage = document.getElementById("perpage")
     perpage?.addEventListener("input", () => {
-        if (perpage instanceof HTMLInputElement) {
-            const count = Number(perpage.value)
-            if (!count || Number.isNaN(count) || count < 1) {
-                viewItemCount = getSetting("historyperpage") ?? 100
-            } else {
-                viewItemCount = count
-            }
-            updateCurrentView()
+        if (!(perpage instanceof HTMLInputElement)) {
+            return
         }
+        const count = Number(perpage.value)
+        if (!count || Number.isNaN(count) || count < 1) {
+            viewItemCount = getSetting("historyperpage") ?? 100
+        } else {
+            viewItemCount = count
+        }
+        updateCurrentView()
     })
     ipcRenderer.sendToHost("history-list-request")
 })

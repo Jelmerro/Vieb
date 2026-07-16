@@ -35,34 +35,35 @@ const checkForUpdates = () => {
     const req = new XMLHttpRequest()
     /** Compare the current version to the latest Github version and report. */
     req.addEventListener("readystatechange", () => {
-        if (req.readyState === 4) {
-            if (req.status === 200) {
-                try {
-                    const release = JSON.parse(req.responseText)
-                    const diff = compareVersions(version, release.tag_name)
-                    if (diff === "older") {
-                        versionCheck.textContent = translate(
-                            "pages.version.newerFound",
-                            {"fields": [release.tag_name]})
-                    } else if (diff === "newer") {
-                        versionCheck.textContent = translate(
-                            "pages.version.alreadyNewer",
-                            {"fields": [release.tag_name]})
-                    } else if (diff === "even") {
-                        versionCheck.textContent = translate(
-                            "pages.version.latest")
-                    } else {
-                        versionCheck.textContent = translate(
-                            "pages.version.failed")
-                    }
-                } catch {
-                    versionCheck.textContent = translate("pages.version.failed")
+        if (req.readyState !== 4) {
+            return
+        }
+        if (req.status === 200) {
+            try {
+                const release = JSON.parse(req.responseText)
+                const diff = compareVersions(version, release.tag_name)
+                if (diff === "older") {
+                    versionCheck.textContent = translate(
+                        "pages.version.newerFound",
+                        {"fields": [release.tag_name]})
+                } else if (diff === "newer") {
+                    versionCheck.textContent = translate(
+                        "pages.version.alreadyNewer",
+                        {"fields": [release.tag_name]})
+                } else if (diff === "even") {
+                    versionCheck.textContent = translate(
+                        "pages.version.latest")
+                } else {
+                    versionCheck.textContent = translate(
+                        "pages.version.failed")
                 }
-            } else {
+            } catch {
                 versionCheck.textContent = translate("pages.version.failed")
             }
-            button.disabled = false
+        } else {
+            versionCheck.textContent = translate("pages.version.failed")
         }
+        button.disabled = false
     })
     req.open("GET", apiUrl, true)
     req.send(null)

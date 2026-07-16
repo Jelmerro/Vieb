@@ -23,8 +23,6 @@ const {fetchJSON, getSetting} = require("../util")
 const loadSponsorblock = () => {
     /** @type {HTMLDivElement[]} */
     let previousBlockEls = []
-    /** @type {number|null} */
-    let previousDuration = null
     /**
      * @type {{
      *   segment: number[],
@@ -42,6 +40,8 @@ const loadSponsorblock = () => {
     if (!vid) {
         return
     }
+    /** @type {number|null} */
+    let previousDuration = null
     /** Fetch the sponsorblock data from the api. */
     const fetchSponsorBlockData = () => {
         for (const el of previousBlockEls) {

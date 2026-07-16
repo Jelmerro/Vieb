@@ -276,25 +276,25 @@ const isUrl = location => {
  */
 const searchword = location => {
     const searchwords = getSetting("searchwords")
-    for (const word of Object.keys(searchwords)) {
-        const url = searchwords[word]
-        if (word && url) {
-            const q = location.replace(`${word} `, "")
-            if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
-                const queries = q.split(",")
-                let urlString = url
-                let counter = 1
-                const patternMatches = (urlString.match(/%s/g) || []).length
-                while (urlString.includes("%s") && counter < patternMatches) {
-                    urlString = urlString.replace(/%s/,
-                        encodeURIComponent(queries.shift()?.trim() || ""))
-                    counter += 1
-                }
-                const remainderString = queries.join(",").trim()
+    for (const [word, url] of Object.entries(searchwords)) {
+        if (!(word && url)) {
+            continue
+        }
+        const q = location.replace(`${word} `, "")
+        if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
+            const queries = q.split(",")
+            let urlString = url
+            let counter = 1
+            const patternMatches = (urlString.match(/%s/g) || []).length
+            while (urlString.includes("%s") && counter < patternMatches) {
                 urlString = urlString.replace(/%s/,
-                    encodeURIComponent(remainderString))
-                return {"url": urlString, word}
+                    encodeURIComponent(queries.shift()?.trim() || ""))
+                counter += 1
             }
+            const remainderString = queries.join(",").trim()
+            urlString = urlString.replace(/%s/,
+                encodeURIComponent(remainderString))
+            return {"url": urlString, word}
         }
     }
     return {"url": location, "word": null}
@@ -325,7 +325,7 @@ const userAgentPlatform = () => ({
 
 /** Return the default navigator.userAgent. */
 const defaultUseragent = () => {
-    const [version] = process.versions.chrome.split(".")
+    const [version] = process.versions.chrome.split(".", 1)
     const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
         + `Chrome/${version}.0.0.0 Safari/537.36`
@@ -353,7 +353,7 @@ const userAgentTemplated = agent => {
     if (!agent) {
         return ""
     }
-    const version = `${process.versions.chrome.split(".")[0]}.0.0.0`
+    const version = `${process.versions.chrome.split(".", 1)[0]}.0.0.0`
     return agent
         .replace(/%sys/g, userAgentPlatform())
         .replace(/%firefoxversion/g, firefoxVersion())
@@ -860,8 +860,8 @@ const compareVersions = (v1Str, v2Str) => {
     if (v1 === v2) {
         return "even"
     }
-    const [v1num, v1ext] = v1.split("-")
-    const [v2num, v2ext] = v2.split("-")
+    const [v1num, v1ext] = v1.split("-", 2)
+    const [v2num, v2ext] = v2.split("-", 2)
     // Same number and at least one of them has a suffix such as "-dev"
     if (v1num === v2num) {
         if (v1ext && v2ext) {
@@ -1568,7 +1568,7 @@ const clearCache = () => {
         rm(joinPath(part, "blob_storage"))
         rm(joinPath(part, "databases"))
     }
-    subNodes = [...new Set(subNodes).values()]
+    subNodes = [...new Set(subNodes)]
     for (const part of partitions) {
         for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
             rm(joinPath(part, node))
@@ -1593,7 +1593,7 @@ const clearCookies = () => {
     for (const part of partitions) {
         subNodes.push(...listDir(part) || [])
     }
-    subNodes = [...new Set(subNodes).values()]
+    subNodes = [...new Set(subNodes)]
     for (const part of partitions) {
         for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
             rm(joinPath(part, node))
@@ -1613,7 +1613,7 @@ const clearLocalStorage = () => {
     for (const part of partitions) {
         subNodes.push(...listDir(part) || [])
     }
-    subNodes = [...new Set(subNodes).values()]
+    subNodes = [...new Set(subNodes)]
     for (const part of partitions) {
         rm(joinPath(part, "IndexedDB"))
         for (const node of subNodes.filter(n => n.endsWith("Storage"))) {

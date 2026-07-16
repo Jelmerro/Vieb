@@ -146,24 +146,25 @@ const moveToMouse = () => {
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos) {
         for (const el of document.elementsFromPoint(mousePos.x, mousePos.y)) {
-            if (el instanceof HTMLElement
-                && matchesQuery(el, "webview[link-id]")) {
-                if (el !== currentPage() || currentMode() !== "visual") {
-                    const {switchToTab} = require("./tabs")
-                    // @ts-expect-error el is checked to be a webview above
-                    switchToTab(tabForPage(el))
-                }
-                const containerPos = pageContainerPos()
-                if (currentMode() === "visual") {
-                    X = mousePos.x - containerPos.left
-                    Y = mousePos.y - containerPos.top
-                    updateElement()
-                } else {
-                    start({
-                        "x": mousePos.x - containerPos.left,
-                        "y": mousePos.y - containerPos.top
-                    })
-                }
+            if (!(el instanceof HTMLElement
+                && matchesQuery(el, "webview[link-id]"))) {
+                continue
+            }
+            if (el !== currentPage() || currentMode() !== "visual") {
+                const {switchToTab} = require("./tabs")
+                // @ts-expect-error el is checked to be a webview above
+                switchToTab(tabForPage(el))
+            }
+            const containerPos = pageContainerPos()
+            if (currentMode() === "visual") {
+                X = mousePos.x - containerPos.left
+                Y = mousePos.y - containerPos.top
+                updateElement()
+            } else {
+                start({
+                    "x": mousePos.x - containerPos.left,
+                    "y": mousePos.y - containerPos.top
+                })
             }
         }
     }
@@ -863,11 +864,12 @@ const startVisualSelect = () => {
 
 /** Swap the current start location and the pointer while in visual mode. */
 const swapPosition = () => {
-    if (currentMode() === "visual") {
-        [startX, X] = [X, startX]
-        ;[startY, Y] = [Y, startY]
-        updateElement()
+    if (currentMode() !== "visual") {
+        return
     }
+    [startX, X] = [X, startX]
+    ;[startY, Y] = [Y, startY]
+    updateElement()
 }
 
 /** Move the pointer 100px right. */

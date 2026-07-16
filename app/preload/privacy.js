@@ -124,8 +124,11 @@ contextBridge.executeInMainWorld({
      * @param {(message?: string) => null} alert
      */
     "func": (prompt, confirm, alert) => {
+        // eslint-disable-next-line unicorn/no-global-object-property-assignment
         window.prompt = prompt
+        // eslint-disable-next-line unicorn/no-global-object-property-assignment
         window.confirm = confirm
+        // eslint-disable-next-line unicorn/no-global-object-property-assignment
         window.alert = alert
     }
 })
@@ -231,7 +234,7 @@ const privacyOverrides = (oscpu, platform) => {
                 "chargingTime", {"get": () => 0})
             // @ts-expect-error Not present in HTTP environments nor ts spec
             scope.Object.defineProperty(scope.BatteryManager.prototype,
-                "dischargingTime", {"get": () => Infinity})
+                "dischargingTime", {"get": () => Number.POSITIVE_INFINITY})
             // @ts-expect-error Not present in HTTP environments nor ts spec
             scope.Object.defineProperty(scope.BatteryManager.prototype,
                 "onchargingchange", {"get": () => null})

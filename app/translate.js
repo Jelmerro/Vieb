@@ -117,11 +117,12 @@ const onlyKeepSafeNodes = node => {
     }
     if (node instanceof Element) {
         for (const attr of node.attributes) {
-            if (!safeAttributes.has(attr.name)) {
-                console.warn(
-                    `Removed attribute ${attr.name} from translations:`, node)
-                node.removeAttribute(attr.name)
+            if (safeAttributes.has(attr.name)) {
+                continue
             }
+            console.warn(
+                `Removed attribute ${attr.name} from translations:`, node)
+            node.removeAttribute(attr.name)
         }
     }
     for (const child of node.childNodes) {

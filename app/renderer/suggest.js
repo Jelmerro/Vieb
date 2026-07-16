@@ -348,8 +348,7 @@ const suggestExplore = search => {
                 order = "alpha"
             }
             const searchwords = getSetting("searchwords")
-            const words = Object.keys(searchwords).map(title => {
-                const url = searchwords[title]
+            const words = Object.entries(searchwords).map(([title, url]) => {
                 let filledUrl = searchword(search).url
                 if (filledUrl === search) {
                     filledUrl = url
@@ -357,15 +356,7 @@ const suggestExplore = search => {
                 return {title, "type": "searchword", "url": filledUrl}
             })
             if (order === "alpha") {
-                words.sort((a, b) => {
-                    if (a.title > b.title) {
-                        return 1
-                    }
-                    if (a.title < b.title) {
-                        return -1
-                    }
-                    return 0
-                })
+                words.sort((a, b) => a.title.localeCompare(b.title))
             }
             const searchStr = search.split(" ").find(Boolean)?.trim() ?? ""
             for (const word of words.filter(
@@ -496,13 +487,13 @@ const suggestCommand = searchStr => {
         if (dims && !dims?.match(/^[\d,]+$/g)) {
             return
         }
-        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
-        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g, 1)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g, 1)[0])
         const rect = {
-            "height": Number(dims?.split(",")[1] ?? pageHeight),
-            "width": Number(dims?.split(",")[0] ?? pageWidth),
-            "x": Number(dims?.split(",")[2] ?? 0),
-            "y": Number(dims?.split(",")[3] ?? 0)
+            "height": Number(dims?.split(",", 2)[1] ?? pageHeight),
+            "width": Number(dims?.split(",", 1)[0] ?? pageWidth),
+            "x": Number(dims?.split(",", 3)[2] ?? 0),
+            "y": Number(dims?.split(",", 4)[3] ?? 0)
         }
         const dimsSuggest = `${rect.width},${rect.height},${rect.x},${rect.y}`
         location = expandPath(location || "")
@@ -639,12 +630,10 @@ const suggestCommand = searchStr => {
                 if (l.path.includes(" ")) {
                     loc = `"${loc}"`
                 }
-                if (type) {
-                    if (args[0] === type) {
-                        addCommand(`write ${typeSuggest} ${loc}`)
-                    } else {
-                        addCommand(`write ${loc} ${typeSuggest}`)
-                    }
+                if (type && args[0] === type) {
+                    addCommand(`write ${typeSuggest} ${loc}`)
+                } else if (type) {
+                    addCommand(`write ${loc} ${typeSuggest}`)
                 } else {
                     addCommand(`write ${loc}`)
                     addCommand(`write ${loc} html`)
@@ -730,9 +719,9 @@ const suggestCommand = searchStr => {
                 themes[part.replace(/\.css$/g, "")] = location
             }
         }
-        for (const t of Object.keys(themes)) {
-            if (t.startsWith(args[0] || "")) {
-                addCommand(`colorscheme ${t}`, themes[t])
+        for (const [themeName, themePath] of Object.entries(themes)) {
+            if (themeName.startsWith(args[0] || "")) {
+                addCommand(`colorscheme ${themeName}`, themePath)
             }
         }
     }
@@ -741,8 +730,8 @@ const suggestCommand = searchStr => {
         if (custom.startsWith(command)
         && (custom.endsWith("!") || !confirm) && !range) {
             for (const cmd of customCommandsAsCommandList().split("\n")
-                .filter(c => c.split(" ")[0] === "command")
-                .map(c => c.split(" ")[1])
+                .filter(c => c.split(" ", 1)[0] === "command")
+                .map(c => c.split(" ", 2)[1])
                 .filter(c => !args[0] || c.startsWith(args[0]))) {
                 addCommand(`${custom} ${cmd}`)
             }
@@ -805,12 +794,12 @@ const suggestCommand = searchStr => {
             ...Object.values(settingsWithDefaults()).map(s => s.name),
             ...listSupportedActions(),
             ...listMappingsAsCommandList("user", null, true).split("\n")
-                .map(m => m.split(" ")[1])
+                .map(m => m.split(" ", 2)[1])
         ]
         const mapCommandString = listMappingsAsCommandList("user", null, true)
         for (const map of mapCommandString.split("\n")) {
-            const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
-            const [, keys] = map.split(" ")
+            const mode = map.split(" ", 1)[0].replace(/(nore)?map$/g, "")
+            const [, keys] = map.split(" ", 2)
             if (mode) {
                 sections.push(`${mode}_${keys}`)
             } else {
@@ -853,71 +842,72 @@ const suggestCommand = searchStr => {
         "vsplit",
         "close"
     ]) {
-        if (bufferCommand.startsWith(command)) {
-            const acceptsConfirm = new Set(["close", "mute", "pin"])
-            if (!acceptsConfirm.has(bufferCommand) && confirm) {
-                continue
+        if (!bufferCommand.startsWith(command)) {
+            continue
+        }
+        const acceptsConfirm = new Set(["close", "mute", "pin"])
+        if (!acceptsConfirm.has(bufferCommand) && confirm) {
+            continue
+        }
+        if (range) {
+            if (!confirm || args.length === 0) {
+                addCommand(`${range}${bufferCommand}${confirmChar}`)
+                if (acceptsConfirm.has(bufferCommand) && !confirm) {
+                    addCommand(`${range}${bufferCommand}!`)
+                }
             }
-            if (range) {
-                if (!confirm || args.length === 0) {
-                    addCommand(`${range}${bufferCommand}${confirmChar}`)
-                    if (acceptsConfirm.has(bufferCommand) && !confirm) {
-                        addCommand(`${range}${bufferCommand}!`)
-                    }
-                }
-                let a = ""
-                if (["mute", "pin"].includes(bufferCommand) && confirm) {
-                    addCommand(`${range}${bufferCommand}${confirmChar} true`)
-                    addCommand(`${range}${bufferCommand}${confirmChar} false`)
-                    a = " true"
-                    if (args.join("").trim().startsWith("f")) {
-                        a = " false"
-                    }
-                } else if (args.length > 0) {
-                    continue
-                }
-                const tabs = listTabs()
-                const indexes = rangeToTabIdxs("user", range, true)
-                const cmds = indexes.tabs.map(num => {
-                    const tab = tabs.at(num)
-                    if (!tab) {
-                        return null
-                    }
-                    const index = tabs.indexOf(tab)
-                    return {
-                        "command": `${index}${bufferCommand}${confirmChar}${a}`,
-                        "icon": pageForTab(tab)?.getAttribute("src") ?? "",
-                        "title": tab.querySelector("span")?.textContent ?? "",
-                        "url": pageForTab(tab)?.getAttribute("src") ?? ""
-                    }
-                }).filter(Boolean)
-                for (const c of cmds) {
-                    addCommand(c.command, c.title, c.url, c.icon, true)
-                }
-                continue
-            }
+            let a = ""
             if (["mute", "pin"].includes(bufferCommand) && confirm) {
-                addCommand(`${bufferCommand}${confirmChar} true`)
-                addCommand(`${bufferCommand}${confirmChar} false`)
+                addCommand(`${range}${bufferCommand}${confirmChar} true`)
+                addCommand(`${range}${bufferCommand}${confirmChar} false`)
+                a = " true"
+                if (args.join("").trimStart().startsWith("f")) {
+                    a = " false"
+                }
+            } else if (args.length > 0) {
                 continue
             }
-            const {allTabsForBufferArg} = require("./command")
             const tabs = listTabs()
-            for (const t of allTabsForBufferArg(args).map(b => {
-                if (!b?.tab) {
+            const indexes = rangeToTabIdxs("user", range, true)
+            const cmds = indexes.tabs.map(num => {
+                const tab = tabs.at(num)
+                if (!tab) {
                     return null
                 }
-                const index = tabs.indexOf(b.tab)
+                const index = tabs.indexOf(tab)
                 return {
-                    "command": `${bufferCommand}${confirmChar} ${index}`,
-                    "icon": b.url,
-                    "title": b.title,
-                    "url": b.url
+                    "command": `${index}${bufferCommand}${confirmChar}${a}`,
+                    "icon": pageForTab(tab)?.getAttribute("src") ?? "",
+                    "title": tab.querySelector("span")?.textContent ?? "",
+                    "url": pageForTab(tab)?.getAttribute("src") ?? ""
                 }
-            })) {
-                if (t) {
-                    addCommand(t.command, t.title, t.url, t.icon)
-                }
+            }).filter(Boolean)
+            for (const c of cmds) {
+                addCommand(c.command, c.title, c.url, c.icon, true)
+            }
+            continue
+        }
+        if (["mute", "pin"].includes(bufferCommand) && confirm) {
+            addCommand(`${bufferCommand}${confirmChar} true`)
+            addCommand(`${bufferCommand}${confirmChar} false`)
+            continue
+        }
+        const {allTabsForBufferArg} = require("./command")
+        const tabs = listTabs()
+        for (const t of allTabsForBufferArg(args).map(b => {
+            if (!b?.tab) {
+                return null
+            }
+            const index = tabs.indexOf(b.tab)
+            return {
+                "command": `${bufferCommand}${confirmChar} ${index}`,
+                "icon": b.url,
+                "title": b.title,
+                "url": b.url
+            }
+        })) {
+            if (t) {
+                addCommand(t.command, t.title, t.url, t.icon)
             }
         }
     }

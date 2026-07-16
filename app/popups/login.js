@@ -21,10 +21,10 @@ const {ipcRenderer} = require("electron")
 
 window.addEventListener("load", () => {
     const username = document.getElementById("username")
-    const password = document.getElementById("password")
     if (!(username instanceof HTMLInputElement)) {
         return
     }
+    const password = document.getElementById("password")
     if (!(password instanceof HTMLInputElement)) {
         return
     }
@@ -57,15 +57,16 @@ window.addEventListener("load", () => {
         document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {
-        if (e.key === "Tab" && !e.altKey) {
-            e.preventDefault()
-            if (document.activeElement === username) {
-                password.focus()
-                password.click()
-            } else {
-                username.focus()
-                username.click()
-            }
+        if (e.key !== "Tab" || e.altKey) {
+            return
+        }
+        e.preventDefault()
+        if (document.activeElement === username) {
+            password.focus()
+            password.click()
+        } else {
+            username.focus()
+            username.click()
         }
     })
     for (const input of inputs) {
@@ -75,17 +76,17 @@ window.addEventListener("load", () => {
                     [username.value, password.value])
             } else if (e.metaKey || e.altKey) {
                 // Don't trigger the escape keys below
-            } else if (e.ctrlKey && e.key === "[") {
-                ipcRenderer.send("hide-login-window")
-            } else if (!e.ctrlKey && e.key === "Escape") {
+            } else if (e.ctrlKey && e.key === "["
+                || !e.ctrlKey && e.key === "Escape") {
                 ipcRenderer.send("hide-login-window")
             }
         })
         input.addEventListener("focusout", e => {
-            if (!(e.relatedTarget instanceof HTMLInputElement)) {
-                input.focus()
-                input.click()
+            if (e.relatedTarget instanceof HTMLInputElement) {
+                return
             }
+            input.focus()
+            input.click()
         })
     }
 })

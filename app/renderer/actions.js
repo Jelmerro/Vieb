@@ -476,13 +476,13 @@ const toRootSubdomain = args => {
     const urlObj = new URL(url)
     const originalUrl = urlObj.href
     const domainNames = urlObj.hostname.split(".")
-    let wwwIfNeeded = ""
     if (domainNames.length < 3) {
         return
     }
     if (domainNames.every(n => (/^\d{1,3}$/).test(n))) {
         return
     }
+    let wwwIfNeeded = ""
     const wwwSubdomain = domainNames.find(d => d.match(/www\d?/g))
     if (wwwSubdomain) {
         wwwIfNeeded = `${wwwSubdomain}.`
@@ -540,7 +540,7 @@ const toRootUrl = args => {
     if (process.platform === "win32") {
         const isRoot = [
             "file://", "file:///", "file:///C:", "file:///C:/"
-        ].find(u => u === urlObj.href || u === originalUrl)
+        ].some(u => u === urlObj.href || u === originalUrl)
         if (isRoot) {
             navigateTo(args.src, "file:///C:/")
             return
@@ -570,7 +570,7 @@ const toParentUrl = args => {
     if (process.platform === "win32") {
         const isRoot = [
             "file://", "file:///", "file:///C:", "file:///C:/"
-        ].find(u => u === urlObj.href || u === originalUrl)
+        ].some(u => u === urlObj.href || u === originalUrl)
         if (isRoot) {
             navigateTo(args.src, "file:///C:/")
             return
@@ -1083,7 +1083,7 @@ const editWithVim = args => {
     let tempFile = joinPath(fileFolder, String(Date.now()))
     const domain = domainName(urlToString(page.src)) || domainName(page.src)
     if (domain && typeOfEdit === "input") {
-        tempFile = `${tempFile}_${domain}`
+        tempFile += `_${domain}`
     }
     tempFile += ".txt"
     /** @type {import("child_process").ChildProcess|null} */

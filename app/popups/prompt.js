@@ -50,27 +50,28 @@ window.addEventListener("load", () => {
         document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {
-        if (e.key === "Tab" && !e.altKey) {
-            e.preventDefault()
-            input.focus()
-            input.click()
+        if (e.key !== "Tab" || e.altKey) {
+            return
         }
+        e.preventDefault()
+        input.focus()
+        input.click()
     })
     input.addEventListener("keydown", e => {
         if (e.key === "Enter") {
             ipcRenderer.send("prompt-response", input.value)
         } else if (e.metaKey || e.altKey) {
             // Don't trigger the escape keys below
-        } else if (e.ctrlKey && e.key === "[") {
-            ipcRenderer.send("hide-prompt-window")
-        } else if (!e.ctrlKey && e.key === "Escape") {
+        } else if (e.ctrlKey && e.key === "["
+            || !e.ctrlKey && e.key === "Escape") {
             ipcRenderer.send("hide-prompt-window")
         }
     })
     input.addEventListener("focusout", e => {
-        if (input !== e.relatedTarget) {
-            input.focus()
-            input.click()
+        if (input === e.relatedTarget) {
+            return
         }
+        input.focus()
+        input.click()
     })
 })

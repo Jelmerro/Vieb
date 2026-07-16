@@ -206,8 +206,8 @@ const recreateWebview = (src, webview, customSrc = null) => {
 const checkContainerNames = (src, webview, location) => {
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
     const sessionName = getSetting("containernames").find(
-        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
-        ?.split("~")[1]
+        c => loc.match(c.split("~", 1)[0]) && c.split("~", 3)[2] !== "newtab")
+        ?.split("~", 2)[1]
     if (sessionName && sessionName !== webview.getAttribute("container")) {
         webview.setAttribute("container", sessionName)
         recreateWebview(src, webview, loc)
@@ -559,20 +559,21 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
         }).catch(() => {
             ipcRenderer.invoke("run-isolated-js-head-check",
                 webview.getWebContentsId()).then(result => {
-                if (result === "") {
-                    const bg = document.body.computedStyleMap()
-                        .get("--bg")?.toString()
-                    const fg = document.body.computedStyleMap()
-                        .get("--fg")?.toString()
-                    const linkcolor = document.body.computedStyleMap()
-                        .get("--link-color")?.toString()
-                    const style = `html {
-                        color: ${fg || "#eee"};
-                        background: ${bg || "#333"};
-                        font-size: ${fontsize}px;
-                    } a {color: ${linkcolor || "#0cf"};}`
-                    injectCustomStyleRequest(webview, "theme", style)
+                if (result !== "") {
+                    return
                 }
+                const bg = document.body.computedStyleMap()
+                    .get("--bg")?.toString()
+                const fg = document.body.computedStyleMap()
+                    .get("--fg")?.toString()
+                const linkcolor = document.body.computedStyleMap()
+                    .get("--link-color")?.toString()
+                const style = `html {
+                    color: ${fg || "#eee"};
+                    background: ${bg || "#333"};
+                    font-size: ${fontsize}px;
+                } a {color: ${linkcolor || "#0cf"};}`
+                injectCustomStyleRequest(webview, "theme", style)
             }).catch(() => null)
         })
         if (!force) {
@@ -589,33 +590,34 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
  */
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
-        if (e.isMainFrame) {
-            const oldUrl = webview.getAttribute("src") ?? ""
-            if (sameDomain(oldUrl, e.url)) {
-                const {copyMapping} = require("./favicons")
-                copyMapping(oldUrl, e.url)
-            }
-            rerollUserAgent(webview)
-            resetTabInfo(webview)
-            const name = tabForPage(webview)?.querySelector("span")
-            if (name && !name?.textContent) {
-                name.textContent = urlToString(e.url)
-            }
-            const timeout = getSetting("requesttimeout")
-            const id = webview.getAttribute("link-id")
-            if (!id) {
-                return
-            }
-            clearTimeout(timeouts[id])
-            if (timeout) {
-                timeouts[id] = setTimeout(() => {
-                    try {
-                        webview.stop()
-                    } catch {
-                        // Webview might be destroyed or unavailable, no issue
-                    }
-                }, timeout)
-            }
+        if (!e.isMainFrame) {
+            return
+        }
+        const oldUrl = webview.getAttribute("src") ?? ""
+        if (sameDomain(oldUrl, e.url)) {
+            const {copyMapping} = require("./favicons")
+            copyMapping(oldUrl, e.url)
+        }
+        rerollUserAgent(webview)
+        resetTabInfo(webview)
+        const name = tabForPage(webview)?.querySelector("span")
+        if (name && !name?.textContent) {
+            name.textContent = urlToString(e.url)
+        }
+        const timeout = getSetting("requesttimeout")
+        const id = webview.getAttribute("link-id")
+        if (!id) {
+            return
+        }
+        clearTimeout(timeouts[id])
+        if (timeout) {
+            timeouts[id] = setTimeout(() => {
+                try {
+                    webview.stop()
+                } catch {
+                    // Webview might be destroyed or unavailable, no issue
+                }
+            }, timeout)
         }
     })
     webview.addEventListener("render-process-gone", e => {
@@ -633,11 +635,12 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("close", () => {
-        if (getSetting("permissionclosepage") === "allow") {
-            const tab = tabForPage(webview)
-            if (tab) {
-                closeTab("other", listTabs().indexOf(tab))
-            }
+        if (getSetting("permissionclosepage") !== "allow") {
+            return
+        }
+        const tab = tabForPage(webview)
+        if (tab) {
+            closeTab("other", listTabs().indexOf(tab))
         }
     })
     webview.addEventListener("media-started-playing", () => {
@@ -649,6 +652,7 @@ const addWebviewListeners = webview => {
         const tab = tabForPage(webview)
         let counter = Number(tab?.getAttribute("media-playing")) || 0
         counter -= 1
+        // eslint-disable-next-line unicorn/prefer-toggle-attribute
         if (counter < 1) {
             tab?.removeAttribute("media-playing")
         } else {
@@ -1036,8 +1040,8 @@ const unsuspendPage = page => {
     const url = page.getAttribute("src") || ""
     const loc = url.replace(/view-?source:\/?\/?/g, "sourceviewer://")
     const sessionName = getSetting("containernames").find(
-        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
-        ?.split("~")[1] ?? page.getAttribute("container")
+        c => loc.match(c.split("~", 1)[0]) && c.split("~", 3)[2] !== "newtab")
+        ?.split("~", 2)[1] ?? page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
         getSetting("adblocker"), getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
@@ -1054,37 +1058,38 @@ const unsuspendPage = page => {
         webview.src = specialPagePath("newtab")
     }
     webview.addEventListener("dom-ready", () => {
-        if (!webview.getAttribute("dom-ready")) {
-            if (webview.getAttribute("custom-first-load")) {
-                webview.clearHistory()
-                webview.removeAttribute("custom-first-load")
-                webview.setAttribute("dom-ready", "true")
-                return
-            }
-            const name = tab.querySelector("span")
-            if (tab.getAttribute("muted")) {
-                webview.setAudioMuted(true)
-            }
-            addWebviewListeners(webview)
-            const newtabUrl = getSetting("newtaburl")
-            if (isDevtoolsTab) {
-                ipcRenderer.send("add-devtools",
-                    currentPageId, webview.getWebContentsId())
-                if (name) {
-                    name.textContent = "Devtools"
-                }
-            } else if (url || newtabUrl) {
-                webview.setAttribute("custom-first-load", "true")
-                webview.loadURL(url || stringToUrl(newtabUrl)).catch(() => null)
-                resetTabInfo(webview)
-                if (name) {
-                    name.textContent = urlToString(url)
-                }
-                return
-            }
-            webview.clearHistory()
-            webview.setAttribute("dom-ready", "true")
+        if (webview.getAttribute("dom-ready")) {
+            return
         }
+        if (webview.getAttribute("custom-first-load")) {
+            webview.clearHistory()
+            webview.removeAttribute("custom-first-load")
+            webview.setAttribute("dom-ready", "true")
+            return
+        }
+        const name = tab.querySelector("span")
+        if (tab.getAttribute("muted")) {
+            webview.setAudioMuted(true)
+        }
+        addWebviewListeners(webview)
+        const newtabUrl = getSetting("newtaburl")
+        if (isDevtoolsTab) {
+            ipcRenderer.send("add-devtools",
+                currentPageId, webview.getWebContentsId())
+            if (name) {
+                name.textContent = "Devtools"
+            }
+        } else if (url || newtabUrl) {
+            webview.setAttribute("custom-first-load", "true")
+            webview.loadURL(url || stringToUrl(newtabUrl)).catch(() => null)
+            resetTabInfo(webview)
+            if (name) {
+                name.textContent = urlToString(url)
+            }
+            return
+        }
+        webview.clearHistory()
+        webview.setAttribute("dom-ready", "true")
     })
     page.replaceWith(webview)
 }
@@ -1205,7 +1210,7 @@ const addTab = opts => {
         sessionName = opts.session
     } else if (opts.url) {
         sessionName = getSetting("containernames").find(
-            c => opts.url?.match(c.split("~")[0]))?.split("~")[1]
+            c => opts.url?.match(c.split("~", 1)[0]))?.split("~", 2)[1]
             || sessionName
     }
     sessionName = sessionName.replace("%n", `${linkId}`)
@@ -1274,9 +1279,9 @@ const addTab = opts => {
     }
     tab.setAttribute("link-id", `${linkId}`)
     const color = getSetting("containercolors").find(
-        c => sessionName.match(c.split("~")[0]))
+        c => sessionName.match(c.split("~", 1)[0]))
     if (color) {
-        [, tab.style.color] = color.split("~")
+        [, tab.style.color] = color.split("~", 2)
     }
     const page = document.createElement("div")
     if (opts.script) {

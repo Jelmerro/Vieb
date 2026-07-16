@@ -659,13 +659,13 @@ const acceptsIntervals = new Set(["clearhistoryinterval"])
 /** @type {Set<keyof typeof defaultSettings>} */
 const acceptsInvertedIntervals = new Set()
 let customStyling = ""
-/** @type {(keyof typeof defaultSettings)[]} */
-const downloadSettings = [
-    "downloadmethod",
-    "downloadpath",
+/** @type {(Set<keyof typeof defaultSettings>)} */
+const downloadSettings = new Set([
+    "cleardownloadsoncompleted",
     "cleardownloadsonquit",
-    "cleardownloadsoncompleted"
-]
+    "downloadmethod",
+    "downloadpath"
+])
 const containerSettings = new Set([
     "containernewtab", "containersplitpage", "containerstartuppage"
 ])
@@ -874,7 +874,7 @@ const checkOther = (src, setting, value) => {
                 })
                 return false
             }
-            const [match, color] = colorMatch.split("~")
+            const [match, color] = colorMatch.split("~", 2)
             try {
                 new RegExp(match)
             } catch {
@@ -914,7 +914,7 @@ const checkOther = (src, setting, value) => {
                 })
                 return false
             }
-            const [match, container, newtabParam] = containerMatch.split("~")
+            const [match, container, newtabParam] = containerMatch.split("~", 3)
             if (newtabParam && newtabParam !== "newtab") {
                 notify({
                     "fields": [containerMatch],
@@ -1111,9 +1111,8 @@ const checkOther = (src, setting, value) => {
             return false
         }
         for (const name of value) {
-            if (name.length > 1
-                && (!keyNames.some(l => l.vim.map(k => `<${k}>`).includes(name))
-                || name === "<Any>")) {
+            if (name.length > 1 && (keyNames.every(l => !l.vim.map(
+                k => `<${k}>`).includes(name)) || name === "<Any>")) {
                 notify({
                     "fields": [name],
                     "id": "settings.errors.modifiers",
@@ -1197,7 +1196,7 @@ const checkOther = (src, setting, value) => {
                     })
                     return false
                 }
-                if (!keyNames.some(key => key.vim.includes(name))) {
+                if (keyNames.every(key => !key.vim.includes(name))) {
                     notify({
                         "fields": [name],
                         "id": "settings.errors.passthrough.keyname",
@@ -1334,7 +1333,7 @@ const checkOther = (src, setting, value) => {
                 })
                 return false
             }
-            const [match] = redirect.split("~")
+            const [match] = redirect.split("~", 1)
             try {
                 new RegExp(match)
             } catch {
@@ -1526,7 +1525,6 @@ const checkOther = (src, setting, value) => {
         for (const page of value) {
             const parts = page.split("~")
             const url = parts.shift() ?? ""
-            const cname = parts.shift()
             if (!isUrl(url)) {
                 notify({
                     "fields": [url],
@@ -1536,6 +1534,7 @@ const checkOther = (src, setting, value) => {
                 })
                 return false
             }
+            const cname = parts.shift()
             if (cname) {
                 const specials = [
                     "s:usematching",
@@ -1825,10 +1824,10 @@ const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
             const color = allSettings.containercolors.find(
-                c => page.getAttribute("container")?.match(c.split("~")[0]))
+                c => page.getAttribute("container")?.match(c.split("~", 1)[0]))
             const tab = tabForPage(page)
             if (tab && color) {
-                [, tab.style.color] = color.split("~")
+                [, tab.style.color] = color.split("~", 2)
             } else if (tab) {
                 tab.style.color = ""
             }
@@ -1839,7 +1838,7 @@ const updateContainerSettings = (full = true) => {
         return
     }
     const color = allSettings.containercolors.find(
-        c => container.match(c.split("~")[0]))
+        c => container.match(c.split("~", 1)[0]))
     const show = allSettings.containershowname
     const containerNameEl = document.getElementById("containername")
     if (!containerNameEl) {
@@ -1851,7 +1850,7 @@ const updateContainerSettings = (full = true) => {
         containerNameEl.textContent = container
         if (color) {
             [, containerNameEl
-                .style.color] = color.split("~")
+                .style.color] = color.split("~", 2)
         } else {
             containerNameEl.style.color = ""
         }
@@ -1889,8 +1888,8 @@ const updateSettings = () => {
         "linkcolor": document.body.computedStyleMap().get(
             "--link-color")?.toString() ?? ""
     }
-    for (const setting of Object.keys(allSettings)) {
-        data[setting] = allSettings[setting]
+    for (const [setting, value] of Object.entries(allSettings)) {
+        data[setting] = value
     }
     writeJSON(settingsFile, data)
 }
@@ -1902,9 +1901,9 @@ const updatePermissionSettings = () => {
      *   |{[key: string]: string}}}
      */
     const permissions = {}
-    for (const setting of Object.keys(allSettings)) {
-        if (setting.startsWith("permission")) {
-            permissions[setting] = allSettings[setting]
+    for (const [settingName, settingValue] of Object.entries(allSettings)) {
+        if (settingName.startsWith("permission")) {
+            permissions[settingName] = settingValue
         }
     }
     ipcRenderer.send("set-permissions", permissions)
@@ -2017,6 +2016,7 @@ const setCustomStyling = css => {
 }
 
 /** Return a list of all settings with default, type and allowed values. */
+// eslint-disable-next-line unicorn/prefer-object-iterable-methods
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     let typeLabel = "String"
     /** @type {string|string[]} */
@@ -2135,7 +2135,7 @@ const updateObjectSetting = (setting, value) => {
                 /** @type {{[key: string]: string}} */
                 const element = {}
                 for (const el of parsed) {
-                    const [key, val] = el.split("~")
+                    const [key, val] = el.split("~", 2)
                     element[key] = val
                 }
                 allSettings[setting] = element
@@ -2146,7 +2146,7 @@ const updateObjectSetting = (setting, value) => {
             /** @type {{[key: string]: string}} */
             const element = {}
             for (const el of value.split(",").filter(Boolean)) {
-                const [key, val] = el.split("~")
+                const [key, val] = el.split("~", 2)
                 element[key] = val
             }
             allSettings[setting] = element
@@ -2155,7 +2155,7 @@ const updateObjectSetting = (setting, value) => {
         /** @type {{[key: string]: string}} */
         const element = {}
         for (const el of value) {
-            const [key, val] = el.split("~")
+            const [key, val] = el.split("~", 2)
             element[key] = val
         }
         allSettings[setting] = element
@@ -2197,7 +2197,7 @@ const set = (src, setting, value) => {
         }
         if (setting === "mouse") {
             let newval = allSettings.mouse
-            if (!mouseFeatures.some(f => !newval.includes(f))) {
+            if (mouseFeatures.every(f => newval.includes(f))) {
                 newval = "all"
             }
             if (newval !== "all" && newval.includes("all")) {
@@ -2232,7 +2232,7 @@ const set = (src, setting, value) => {
                 hideScrollbar()
             }
         }
-        if (downloadSettings.includes(setting)) {
+        if (downloadSettings.has(setting)) {
             updateDownloadSettings()
         }
         if (setting.startsWith("gui")) {
@@ -2361,28 +2361,30 @@ const loadFromDisk = (firstRun, src = "source") => {
     if (isFile(joinPath(appData(), "erwicmode"))) {
         /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
-        for (const t of Object.keys(erwicDefaults)) {
-            set(src, t, erwicDefaults[t])
+        for (const [t, value] of Object.entries(erwicDefaults)) {
+            set(src, t, value)
         }
     }
     for (const conf of files) {
-        if (isFile(conf)) {
-            const parsed = readFile(conf)
-            if (!parsed) {
-                notify({
-                    "fields": [conf],
-                    "id": "settings.errors.fileload",
-                    src,
-                    "type": "error"
-                })
+        if (!isFile(conf)) {
+            continue
+        }
+        const parsed = readFile(conf)
+        if (!parsed) {
+            notify({
+                "fields": [conf],
+                "id": "settings.errors.fileload",
+                src,
+                "type": "error"
+            })
+            continue
+        }
+        for (const line of parsed.split("\n").filter(l => l.trim())) {
+            if (line.trimStart().startsWith("\"")) {
                 continue
             }
-            for (const line of parsed.split("\n").filter(l => l.trim())) {
-                if (!line.trim().startsWith("\"")) {
-                    const {execute} = require("./command")
-                    execute(line, {"settingsFile": conf, src})
-                }
-            }
+            const {execute} = require("./command")
+            execute(line, {"settingsFile": conf, src})
         }
     }
     updateContainerSettings()
@@ -2403,8 +2405,8 @@ const loadFromDisk = (firstRun, src = "source") => {
  */
 const reset = (src, setting) => {
     if (setting === "all") {
-        for (const s of Object.keys(defaultSettings)) {
-            set(src, s, defaultSettings[s])
+        for (const [s, value] of Object.entries(defaultSettings)) {
+            set(src, s, value)
         }
     } else if (isExistingSetting(setting)) {
         set(src, setting, defaultSettings[setting])
@@ -2423,7 +2425,7 @@ const reset = (src, setting) => {
  * @param {string|number} value
  */
 const escapeValueChars = value => {
-    if (typeof value === "string" && value.match(/([ "'])/g)?.length) {
+    if (typeof value === "string" && new RegExp(/([ "'])/g).test(value)) {
         return JSON.stringify(value)
     }
     return value
@@ -2451,8 +2453,7 @@ const listCurrentSettings = (full = false) => {
         }
     }
     let setCommands = ""
-    for (const setting of Object.keys(settings)) {
-        const value = settings[setting]
+    for (const [setting, value] of Object.entries(settings)) {
         if (typeof value === "boolean") {
             if (value) {
                 setCommands += `${setting}\n`
@@ -2486,7 +2487,6 @@ const listCurrentSettings = (full = false) => {
  * @param {boolean} full
  */
 const saveToDisk = (src, full) => {
-    let settingsAsCommands = ""
     const options = listCurrentSettings(full).split("\n").filter(Boolean)
         .map(s => `set ${s}`).join("\n").trim()
     const {listMappingsAsCommandList} = require("./input")
@@ -2497,6 +2497,7 @@ const saveToDisk = (src, full) => {
         notify({"id": "settings.errors.unchanged", src})
         return
     }
+    let settingsAsCommands = ""
     if (options) {
         settingsAsCommands += `" Options\n${options}\n\n`
     }

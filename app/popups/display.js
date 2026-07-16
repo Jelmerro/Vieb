@@ -24,14 +24,14 @@ const keys = [..."abcdefghijklmnopqrstuvwxyz0123456789"]
 let sources = []
 window.addEventListener("load", () => {
     const screensContainer = document.getElementById("screens")
-    const audioEnabledBox = document.getElementById("audio-enabled")
-    const echoEnabledBox = document.getElementById("echo-enabled")
     if (!screensContainer) {
         return
     }
+    const audioEnabledBox = document.getElementById("audio-enabled")
     if (!(audioEnabledBox instanceof HTMLInputElement)) {
         return
     }
+    const echoEnabledBox = document.getElementById("echo-enabled")
     if (!(echoEnabledBox instanceof HTMLInputElement)) {
         return
     }

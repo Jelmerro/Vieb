@@ -33,7 +33,7 @@ const {
  * @param {string|null|undefined} id
  */
 const layoutDivById = id => document.querySelector(
-    `#pagelayout div[link-id='${id ?? "none"}']`)
+    `#pagelayout div[link-id='${CSS.escape(id ?? "none")}']`)
 
 /** @type {{[id: string]: NodeJS.Timeout}} */
 const timers = {}
@@ -63,13 +63,14 @@ const removeRedundantContainers = () => {
             container.remove()
         }
         for (const child of container.children) {
-            if (!child.getAttribute("link-id")
-                && child.className === container.className) {
-                for (const subChild of child.children) {
-                    child.before(subChild)
-                }
-                child.remove()
+            if (child.getAttribute("link-id")
+                || child.className !== container.className) {
+                continue
             }
+            for (const subChild of child.children) {
+                child.before(subChild)
+            }
+            child.remove()
         }
     }
 }
@@ -82,7 +83,8 @@ const applyLayout = () => {
     }
     for (const element of pagelayout.querySelectorAll("*[link-id]")) {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
+        const page = document.querySelector(
+            `#pages .webview[link-id='${CSS.escape(id ?? "")}']`)
         if (!page) {
             element.remove()
         }
@@ -240,9 +242,9 @@ const hide = (view, close = false) => {
             newTab = visibleTabs.find(t => t.getAttribute("link-id")
                 === sibling.getAttribute("link-id"))
         }
-        if (!newTab && parent?.children[0]) {
+        if (!newTab && parent?.firstElementChild) {
             newTab = visibleTabs.find(t => t.getAttribute("link-id")
-                === parent.children[0].getAttribute("link-id"))
+                === parent.firstElementChild?.getAttribute("link-id"))
         }
         if (!newTab) {
             newTab = visibleTabs.find(t => t.getAttribute("link-id")
@@ -530,27 +532,30 @@ const resize = (orientation, change) => {
     }
     if (flexGrow < 1) {
         for (const child of element.parentNode?.children ?? []) {
-            if (child instanceof HTMLElement) {
-                const current = propPixels(child, "flex-grow") || 1
-                child.style.flexGrow = `${current / flexGrow}`
+            if (!(child instanceof HTMLElement)) {
+                continue
             }
+            const current = propPixels(child, "flex-grow") || 1
+            child.style.flexGrow = `${current / flexGrow}`
         }
         flexGrow = 1
     }
     if (flexGrow > 10) {
         for (const child of element.parentNode?.children ?? []) {
-            if (child instanceof HTMLElement) {
-                const current = propPixels(child, "flex-grow") || 1
-                child.style.flexGrow = `${current / (flexGrow / 10)}`
+            if (!(child instanceof HTMLElement)) {
+                continue
             }
+            const current = propPixels(child, "flex-grow") || 1
+            child.style.flexGrow = `${current / (flexGrow / 10)}`
         }
         flexGrow = 10
     }
     for (const child of element.parentNode?.children ?? []) {
-        if (child instanceof HTMLElement) {
-            const current = propPixels(child, "flex-grow") || 1
-            child.style.flexGrow = `${Math.min(10, Math.max(1, current))}`
+        if (!(child instanceof HTMLElement)) {
+            continue
         }
+        const current = propPixels(child, "flex-grow") || 1
+        child.style.flexGrow = `${Math.min(10, Math.max(1, current))}`
     }
     if (element instanceof HTMLElement) {
         element.style.flexGrow = `${flexGrow}`

@@ -923,7 +923,7 @@ app.whenReady().then(async() => {
         if (argExecuteDur) {
             setTimeout(() => {
                 const fileContents = readFile(executeOut)
-                const parts = fileContents?.split("\t\t\t") ?? []
+                const parts = fileContents?.split("\t".repeat(3)) ?? []
                 if (parts.at(-1) === "") {
                     parts.pop()
                 }
@@ -935,18 +935,19 @@ app.whenReady().then(async() => {
             }, argExecuteDur)
         }
         watchFile(executeOut, info => {
-            if (info.blksize > 0 || info.size > 0) {
-                const fileContents = readFile(executeOut)
-                const parts = fileContents?.split("\t\t\t") ?? []
-                if (parts.at(-1) === "") {
-                    parts.pop()
-                }
-                if (fileContents !== null && argExecuteCount
-                    && parts.length >= argExecuteCount) {
-                    console.info(parts.join("\n"))
-                    deleteFile(executeOut)
-                    process.exit(0)
-                }
+            if (!(info.blksize > 0 || info.size > 0)) {
+                return
+            }
+            const fileContents = readFile(executeOut)
+            const parts = fileContents?.split("\t".repeat(3)) ?? []
+            if (parts.at(-1) === "") {
+                parts.pop()
+            }
+            if (fileContents !== null && argExecuteCount
+                && parts.length >= argExecuteCount) {
+                console.info(parts.join("\n"))
+                deleteFile(executeOut)
+                process.exit(0)
             }
         })
         return
@@ -1642,8 +1643,7 @@ const enableAdblocker = type => {
             extraLists = extralistFileData
         }
         const allBlocklists = {...blocklists, ...extraLists}
-        for (const list of Object.keys(allBlocklists)) {
-            const url = allBlocklists[list]
+        for (const [list, url] of Object.entries(allBlocklists)) {
             if (!url) {
                 continue
             }
@@ -1723,7 +1723,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return
     }
     const sessionDir = joinPath(partitionDir, encodeURIComponent(
-        name.split(":")[1] || name))
+        name.split(":", 2)[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
     newSess.setUserAgent(app.userAgentFallback)
@@ -1850,10 +1850,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         for (const r of redirects) {
-            if (r.trim()) {
-                const [match, replace] = r.split("~")
-                url = url.replace(new RegExp(match), replace)
+            if (!r.trim()) {
+                continue
             }
+            const [match, replace] = r.split("~", 2)
+            url = url.replace(new RegExp(match), replace)
         }
         if (details.url !== url) {
             return callback({"cancel": false, "redirectURL": url})
@@ -1910,11 +1911,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
     newSess.webRequest.onBeforeSendHeaders((details, callback) => {
         const headers = details.requestHeaders
-        for (const head of Object.keys(requestHeaders)) {
+        for (const [head, headerInfo] of Object.entries(requestHeaders)) {
             if (head.startsWith("-")) {
                 delete headers[head.replace(/$-/, "")]
             } else {
-                headers[head] = requestHeaders[head]
+                headers[head] = headerInfo
             }
         }
         for (const head of Object.keys(headers)) {
@@ -2584,10 +2585,11 @@ ipcMain.handle("toggle-always-on-top", () => {
     mainWindow?.setAlwaysOnTop(!mainWindow?.isAlwaysOnTop())
 })
 ipcMain.handle("toggle-fullscreen", () => {
-    if (mainWindow) {
-        mainWindow.fullScreen = !mainWindow.fullScreen
-        saveWindowState(true)
+    if (!mainWindow) {
+        return
     }
+    mainWindow.fullScreen = !mainWindow.fullScreen
+    saveWindowState(true)
 })
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings
@@ -2691,7 +2693,7 @@ ipcMain.on("mouse-location", e => {
  * @param {unknown} exception
  */
 const errToMain = exception => {
-    if (exception instanceof Error && exception.stack) {
+    if (Error.isError(exception) && exception.stack) {
         mainWindow?.webContents.send("main-error", exception.stack)
     }
     if (typeof exception === "string") {
@@ -2784,28 +2786,26 @@ const handleFrameDetails = (e, details) => {
     frameInfo[frameId].id = frameId
     frameInfo[frameId].url = details.url
     for (const subframe of details.subframes) {
-        for (const id of Object.keys(frameInfo)) {
-            const url = frameInfo[id].url?.replace(/^about:srcdoc$/g, "") ?? ""
+        for (const [id, info] of Object.entries(frameInfo)) {
+            const url = info.url?.replace(/^about:srcdoc$/g, "") ?? ""
             if (url === subframe.url && id !== frameId) {
-                frameInfo[id].x = subframe.x
-                frameInfo[id].y = subframe.y
-                frameInfo[id].width = subframe.width
-                frameInfo[id].height = subframe.height
-                frameInfo[id].usableWidth = subframe.width
+                info.x = subframe.x
+                info.y = subframe.y
+                info.width = subframe.width
+                info.height = subframe.height
+                info.usableWidth = subframe.width
                 const overflowW = subframe.x + subframe.width - details.width
                 if (overflowW > 0) {
-                    frameInfo[id].usableWidth = (frameInfo[id].usableWidth
-                        ?? 0) - overflowW
+                    info.usableWidth = (info.usableWidth ?? 0) - overflowW
                 }
-                frameInfo[id].usableHeight = subframe.height
+                info.usableHeight = subframe.height
                 const overflowH = subframe.y + subframe.height - details.height
                 if (overflowH > 0) {
-                    frameInfo[id].usableHeight = (frameInfo[id].usableHeight
-                        ?? 0) - overflowH
+                    info.usableHeight = (info.usableHeight ?? 0) - overflowH
                 }
-                frameInfo[id].pagex = details.pagex
-                frameInfo[id].pagey = details.pagey
-                frameInfo[id].parent = frameId
+                info.pagex = details.pagex
+                info.pagey = details.pagey
+                info.parent = frameId
             }
         }
     }
@@ -3115,7 +3115,7 @@ const translateMouseEvent = (e, clickInfo = null) => {
         parentId = parentInfo?.id || frameId
     }
     let frameUrl = clickInfo?.frame ?? ""
-    if (info?.x && info?.url) {
+    if (info?.x && info.url) {
         frameUrl = info.url
     }
     /** @type {number|null} */
@@ -3170,7 +3170,7 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
     try {
         let keyCode = keyOptions.key
         if (keyCode === "Return") {
-            keyCode = "\u000d"
+            keyCode = "\u{d}"
         }
         const wc = webContents.fromId(id)
         if (!wc) {

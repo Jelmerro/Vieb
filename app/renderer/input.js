@@ -686,10 +686,10 @@ const globalDefaultMappings = {
     "<F11>": {"mapping": "<toggleFullscreen>"},
     "<F12>": {"mapping": "<:devtools>"}
 }
-for (const mode of Object.keys(defaultBindings)) {
-    for (const key of Object.keys(globalDefaultMappings)) {
-        if (!defaultBindings[mode][key]) {
-            defaultBindings[mode][key] = globalDefaultMappings[key]
+for (const keysPerMode of Object.values(defaultBindings)) {
+    for (const [key, action] of Object.entries(globalDefaultMappings)) {
+        if (!keysPerMode[key]) {
+            keysPerMode[key] = action
         }
     }
 }
@@ -729,7 +729,7 @@ const keyNames = [
     {"js": ["Backspace"], "vim": ["BS"]},
     {
         "electron": "Return",
-        "js": ["Enter", "\u000d"],
+        "js": ["Enter", "\u{d}"],
         "vim": ["CR", "NL", "Return", "Enter"]
     },
     {"js": ["|"], "vim": ["Bar"]},
@@ -740,7 +740,7 @@ const keyNames = [
     {"electron": "Down", "js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape", "Esc"], "vim": ["Esc"]},
     {"electron": "Space", "js": [" "], "vim": ["Space", " "]},
-    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
+    {"js": ["Delete", "\u{0}"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
     {"electron": "Numlock", "js": ["NumLock"], "vim": ["NumLock"]},
@@ -988,20 +988,20 @@ const moveScreenshotFrame = (x, y) => {
     const deltaX = x - lastScreenshotX
     const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
+        if (currentMode() !== "command" || !currentPage()) {
+            return
+        }
         const url = getUrl()
         const dims = url?.value.split(" ").find(
             arg => arg?.match(/^[\d,]+$/g))
         const dimsIndex = url?.value.split(" ").indexOf(dims ?? "") ?? 1
-        if (currentMode() !== "command" || !currentPage()) {
-            return
-        }
-        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
-        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g, 1)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g, 1)[0])
         const rect = {
-            "height": Number(dims?.split(",")[1] ?? pageHeight),
-            "width": Number(dims?.split(",")[0] ?? pageWidth),
-            "x": Number(dims?.split(",")[2] ?? 0),
-            "y": Number(dims?.split(",")[3] ?? 0)
+            "height": Number(dims?.split(",", 2)[1] ?? pageHeight),
+            "width": Number(dims?.split(",", 1)[0] ?? pageWidth),
+            "x": Number(dims?.split(",", 3)[2] ?? 0),
+            "y": Number(dims?.split(",", 4)[3] ?? 0)
         }
         if (draggingScreenshotFrame === "position") {
             rect.x += deltaX
@@ -1422,7 +1422,7 @@ const sendKeysToWebview = async(options, mapStr, src) => {
     if (options.bubbles) {
         const action = actionForKeys(mapStr)
         if (action) {
-            /* eslint-disable-next-line no-use-before-define */
+            // eslint-disable-next-line no-use-before-define
             await executeMapString(action.mapping, !action.noremap, {src})
         }
     }
@@ -1527,7 +1527,8 @@ const executeMapString = async(mapStr, recursive, opts) => {
                     setTimeout(r, 3)
                 })
                 continue
-            } else if (key.startsWith("<:")) {
+            }
+            if (key.startsWith("<:")) {
                 const {execute} = require("./command")
                 execute(key.replace(/^<:|>$/g, ""), {"src": opts.src})
                 lastActionInMapping = null
@@ -1602,15 +1603,15 @@ const resetInputHistory = () => {
  * @param {boolean} force
  */
 const typeCharacterIntoNavbar = (character, force = false) => {
+    if (!"ces".includes(currentMode()[0]) && !force) {
+        return
+    }
     const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
         .replace(/<k([A-Za-z]+)>/, (_, r) => `<${r}>`)
         .replace(/<k(\d)>/, (_, r) => r)
         .replace("<Plus>", "+").replace("<Minus>", "-").replace("<Point>", ".")
         .replace("<Divide>", "/").replace("<Multiply>", "*")
         .replace("Delete>", "Del>")
-    if (!"ces".includes(currentMode()[0]) && !force) {
-        return
-    }
     if (recordingName) {
         recordingString += id
     }
@@ -1660,7 +1661,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     if (id === "<S-Right>") {
         if (url.selectionStart === url.selectionEnd
-            && url.selectionStart !== null && url.selectionEnd !== null) {
+            && url.selectionEnd !== null) {
             url.setSelectionRange(url.selectionStart, url.selectionEnd + 1)
         } else if (url.selectionDirection !== "backward") {
             if (url.selectionEnd !== null
@@ -1727,7 +1728,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     if (id === "<S-Left>") {
         if (url.selectionStart === url.selectionEnd
-            && url.selectionStart !== null && url.selectionEnd !== null) {
+            && url.selectionStart !== null) {
             url.setSelectionRange(url.selectionStart - 1,
                 url.selectionEnd, "backward")
         } else if (url.selectionDirection === "backward") {
@@ -1756,24 +1757,23 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         let wordPosition = url.value.length
         for (const word of words.toReversed()) {
             wordPosition -= word.length
-            if (wordPosition < index) {
-                if (url.selectionStart === url.selectionEnd) {
-                    url.setSelectionRange(wordPosition,
-                        url.selectionEnd, "backward")
-                } else if (url.selectionDirection === "backward") {
-                    url.setSelectionRange(wordPosition,
-                        url.selectionEnd, "backward")
-                } else if (url.selectionStart !== null) {
-                    if (wordPosition < url.selectionStart) {
-                        url.setSelectionRange(url.selectionStart,
-                            url.selectionStart)
-                        return
-                    }
-                    url.setSelectionRange(url.selectionStart, wordPosition)
-                }
-                updateNavbarScrolling()
-                return
+            if (wordPosition >= index) {
+                continue
             }
+            if (url.selectionStart === url.selectionEnd
+                || url.selectionDirection === "backward") {
+                url.setSelectionRange(wordPosition,
+                    url.selectionEnd, "backward")
+            } else if (url.selectionStart !== null) {
+                if (wordPosition < url.selectionStart) {
+                    url.setSelectionRange(url.selectionStart,
+                        url.selectionStart)
+                    return
+                }
+                url.setSelectionRange(url.selectionStart, wordPosition)
+            }
+            updateNavbarScrolling()
+            return
         }
         return
     }
@@ -2327,8 +2327,8 @@ const listMappingsAsCommandList = (
         // Mappings that can be added with a global "map" instead of 1 per mode
         const globalMappings = []
         const globalIdenticalMappings = mappings.filter(m => m.match(
-            /^n(noremap|map|unmap) /g)).filter(m => !modes.some(
-            mode => !mappings.includes(`${mode}${m.slice(1)}`)))
+            /^n(noremap|map|unmap) /g)).filter(m => modes.every(
+            mode => mappings.includes(`${mode}${m.slice(1)}`)))
         for (const m of globalIdenticalMappings) {
             globalMappings.push(m.slice(1))
             mappings = mappings.filter(map => map.slice(1) !== m.slice(1))
@@ -2354,8 +2354,8 @@ const mapSingle = (src, mode, args, noremap) => {
     if (mode) {
         bindings[mode][mapping] = {"mapping": actions, noremap}
     } else {
-        for (const m of Object.keys(bindings)) {
-            bindings[m][mapping] = {"mapping": actions, noremap}
+        for (const value of Object.values(bindings)) {
+            value[mapping] = {"mapping": actions, noremap}
         }
     }
     const {updateHelpPage} = require("./settings")
@@ -2450,18 +2450,18 @@ const unmap = (src, mode, args, anyAsWildcard) => {
         return
     }
     const keys = splitMapString(mapStr).maps
-    for (const bindMode of Object.keys(bindings)) {
+    for (const [bindMode, modeBindings] of Object.entries(bindings)) {
         if (mode && mode !== bindMode) {
             continue
         }
         if (anyAsWildcard) {
-            for (const map of Object.keys(bindings[bindMode])) {
+            for (const map of Object.keys(modeBindings)) {
                 const mapKeys = splitMapString(map).maps
                 const sameKeys = mapKeys.every((key, index) => key
                     === keys[index] || keys[index] === "<Any>")
                 const sameKeyLen = mapKeys.length === keys.length
                 if (sameKeys && sameKeyLen) {
-                    delete bindings[bindMode][map]
+                    delete modeBindings[map]
                 }
             }
         } else {
@@ -2550,8 +2550,8 @@ const init = () => {
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
         if (currentMode() === "insert" && getMouseConf("leaveinsert")
-            && !e.composedPath().some(n => isElement(n)
-            && matchesQuery(n, "#context-menu"))) {
+            && e.composedPath().every(n => !(isElement(n)
+            && matchesQuery(n, "#context-menu")))) {
             ACTIONS.toNormalMode()
         }
         if (e.button === 3) {
@@ -2752,13 +2752,14 @@ const init = () => {
         }
         if (getSetting("mousefocus")) {
             for (const n of document.elementsFromPoint(e.x, e.y)) {
-                if (matchesQuery(n, tabSelector)) {
-                    const tab = listTabs().find(t => t.getAttribute(
-                        "link-id") === n.getAttribute("link-id"))
-                    if (tab && currentTab() !== tab) {
-                        const {switchToTab} = require("./tabs")
-                        switchToTab(tab)
-                    }
+                if (!matchesQuery(n, tabSelector)) {
+                    continue
+                }
+                const tab = listTabs().find(t => t.getAttribute(
+                    "link-id") === n.getAttribute("link-id"))
+                if (tab && currentTab() !== tab) {
+                    const {switchToTab} = require("./tabs")
+                    switchToTab(tab)
                 }
             }
         }

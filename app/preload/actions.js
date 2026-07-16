@@ -57,7 +57,7 @@ const navigateToPage = (selector, newtab) => {
             if (newtab) {
                 ipcRenderer.sendToHost("url", pagination.href)
             } else {
-                window.location.href = pagination.href
+                window.location.assign(pagination.href)
             }
             return
         }
@@ -211,12 +211,7 @@ const print = () => document.execCommand("print")
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (isHTMLVideoElement(el)) {
-        if (el.hasAttribute("controls")
-            && el.getAttribute("controls") !== "false") {
-            el.removeAttribute("controls")
-        } else {
-            el.setAttribute("controls", "controls")
-        }
+        el.toggleAttribute("controls")
     }
 }
 
@@ -228,11 +223,7 @@ const toggleControls = (x, y) => {
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
-        if (el.hasAttribute("loop") && el.getAttribute("loop") !== "false") {
-            el.removeAttribute("loop")
-        } else {
-            el.setAttribute("loop", "loop")
-        }
+        el.toggleAttribute("loop")
     }
 }
 
@@ -376,7 +367,6 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
             return [...range.getClientRects()].find(rect => x >= rect.left
                 && y >= rect.top && x <= rect.right && y <= rect.bottom)
         }
-        let left = 0
         let right = 0
         if (isTextNode(baseNode)) {
             right = baseNode.length
@@ -386,6 +376,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
         if (right === 0) {
             return
         }
+        let left = 0
         while (right - left > 1) {
             const center = left + Math.floor((right - left) / 2)
             if (pointInsideRegion(left, center)) {
@@ -488,7 +479,8 @@ const processTranslateResult = (text, node) => {
         return
     }
     const resEl = document.createElement("div")
-    resEl.innerHTML = text
+    // @ts-expect-error very new API, but much safer than innerHTML, hence used.
+    resEl.setHTML(text)
     for (const [txtIndex, txtEl] of [...node.childNodes].entries()) {
         const txt = resEl.childNodes[txtIndex]?.textContent
         if (txt) {
@@ -525,7 +517,7 @@ const translatepage = async(api, url, lang, apiKey) => {
     for (const n of textNodes) {
         let base = n.parentNode ?? n
         if (n.childNodes.length === 1
-            && n.childNodes[0].nodeName === "#text" && n.parentNode) {
+            && n.firstChild?.nodeName === "#text" && n.parentNode) {
             base = n.parentNode
         }
         if (["kbd", "script", "style"].includes(base.nodeName.toLowerCase())) {
@@ -543,9 +535,8 @@ const translatepage = async(api, url, lang, apiKey) => {
             if (["code", "kbd"].includes(textNode.nodeName.toLowerCase())) {
                 // Skip element text
             } else if (isElement(textNode)
-                && textNode.textContent === textNode.innerHTML) {
-                subText.textContent = textNode.textContent
-            } else if (textNode.nodeName === "#text") {
+                && textNode.textContent === textNode.getHTML()
+                || textNode.nodeName === "#text") {
                 subText.textContent = textNode.textContent
             }
             txtEl.append(subText)
@@ -556,7 +547,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         baseNodes = baseNodes.filter(b => b !== base)
         return null
     }).filter(Boolean)
-    const strings = parsedNodes.map(n => n?.innerHTML ?? "")
+    const strings = parsedNodes.map(n => n?.getHTML() ?? "")
     if (api === "libretranslate") {
         try {
             const srcResponse = await fetchJSON(`${url}/detect`, {

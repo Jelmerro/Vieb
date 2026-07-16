@@ -218,10 +218,11 @@ const updateGuiVisibility = () => {
  * @param {boolean} status
  */
 const setTopOfPageWithMouse = status => {
-    if (topOfPageWithMouse !== status) {
-        topOfPageWithMouse = status
-        updateGuiVisibility()
+    if (topOfPageWithMouse === status) {
+        return
     }
+    topOfPageWithMouse = status
+    updateGuiVisibility()
 }
 
 /**
@@ -244,14 +245,14 @@ const updateScreenshotHighlight = (hide = false) => {
         return
     }
     const border = Number(highlight?.computedStyleMap().get(
-        "border-width")?.toString().split(/[.px]/g)[0])
-    const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
-    const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
+        "border-width")?.toString().split(/[.px]/g, 1)[0])
+    const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g, 1)[0])
+    const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g, 1)[0])
     const rect = {
-        "height": Number(dims?.split(",")[1] ?? pageHeight),
-        "width": Number(dims?.split(",")[0] ?? pageWidth),
-        "x": Number(dims?.split(",")[2] ?? 0),
-        "y": Number(dims?.split(",")[3] ?? 0)
+        "height": Number(dims?.split(",", 2)[1] ?? pageHeight),
+        "width": Number(dims?.split(",", 1)[0] ?? pageWidth),
+        "x": Number(dims?.split(",", 3)[2] ?? 0),
+        "y": Number(dims?.split(",", 4)[3] ?? 0)
     }
     if (rect.x > pageWidth) {
         rect.x = pageWidth
@@ -265,8 +266,8 @@ const updateScreenshotHighlight = (hide = false) => {
     if (rect.height === 0 || rect.height > pageHeight - rect.y) {
         rect.height = pageHeight - rect.y
     }
-    const pageTop = Number(currentPage()?.style.top.split(/[.px]/g)[0])
-    const pageLeft = Number(currentPage()?.style.left.split(/[.px]/g)[0])
+    const pageTop = Number(currentPage()?.style.top.split(/[.px]/g, 1)[0])
+    const pageLeft = Number(currentPage()?.style.left.split(/[.px]/g, 1)[0])
     highlight.style.height = `${rect.height}px`
     highlight.style.width = `${rect.width}px`
     highlight.style.left = `${pageLeft + rect.x - border}px`

@@ -19,8 +19,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 43.1.0 (was 42.0.1)
-- Chromium 150.0.7871.47 (was 148.0.7778.97)
+- Electron 43.1.1 (was 42.0.1)
+- Chromium 150.0.7871.114 (was 148.0.7778.97)
 
 ## [12.9.0](https://github.com/Jelmerro/Vieb/compare/12.8.0...12.9.0) - 2026-05-10
 

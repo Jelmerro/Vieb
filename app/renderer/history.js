@@ -62,8 +62,7 @@ const isValidHistItem = item => {
 const init = () => {
     const allHist = readJSON(histFile) || {}
     if (isObject(allHist)) {
-        for (const key of Object.keys(allHist)) {
-            const histItem = allHist[key]
+        for (const [key, histItem] of Object.entries(allHist)) {
             if (isValidHistItem(histItem)) {
                 groupedHistory[key] = histItem
             }
@@ -119,21 +118,21 @@ const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
  * @param {number} count
  */
 const suggestHist = (searchStr, order, count) => {
+    if (!isFile(histFile)) {
+        // No need to suggest history if it's not stored
+        return
+    }
     // Simplify the search to a list of words, or an ordered list of words,
     // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
     const search = searchStr.toLowerCase().trim()
     const simpleSearch = search.split(specialChars).filter(Boolean)
-    if (!isFile(histFile)) {
-        // No need to suggest history if it's not stored
-        return
-    }
-    const entries = Object.keys(groupedHistory).map(url => {
-        if (!groupedHistory[url]) {
+    const entries = Object.entries(groupedHistory).map(([url, histItem]) => {
+        if (!histItem) {
             return null
         }
         const simpleUrl = getSimpleUrl(url)
-        const name = groupedHistory[url].title
+        const name = histItem.title
         let relevance = 1
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
@@ -144,7 +143,7 @@ const suggestHist = (searchStr, order, count) => {
         if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
             return {
                 "icon": url,
-                "last": new Date(groupedHistory[url]?.visits?.at(-1) ?? ""),
+                "last": new Date(histItem?.visits?.at(-1) ?? ""),
                 "title": name,
                 "top": relevance * visitCount(url),
                 url
@@ -245,9 +244,8 @@ const addToHist = url => {
  * @param {Date} date
  */
 const removeOldHistory = date => {
-    for (const url of Object.keys(groupedHistory)) {
-        groupedHistory[url].visits = groupedHistory[url].visits
-            .filter(d => new Date(d) > date)
+    for (const histItem of Object.values(groupedHistory)) {
+        histItem.visits = histItem.visits.filter(d => new Date(d) > date)
     }
     return writeHistToFile(true)
 }
@@ -257,9 +255,8 @@ const removeOldHistory = date => {
  * @param {Date} date
  */
 const removeRecentHistory = date => {
-    for (const url of Object.keys(groupedHistory)) {
-        groupedHistory[url].visits = groupedHistory[url].visits
-            .filter(d => new Date(d) < date)
+    for (const histItem of Object.values(groupedHistory)) {
+        histItem.visits = histItem.visits.filter(d => new Date(d) < date)
     }
     return writeHistToFile(true)
 }
@@ -269,9 +266,9 @@ const removeRecentHistory = date => {
  * @param {string} urlSnippet
  */
 const removeHistoryByPartialUrl = urlSnippet => {
-    for (const url of Object.keys(groupedHistory)) {
+    for (const [url, histItem] of Object.entries(groupedHistory)) {
         if (url.includes(urlSnippet)) {
-            groupedHistory[url].visits = []
+            histItem.visits = []
         }
     }
     return writeHistToFile(true)
@@ -322,14 +319,14 @@ const handleRequest = async(webview, action = null, entries = []) => {
     /** @type {historyItem[]} */
     let history = []
     const {forSite} = require("./favicons")
-    for (const site of Object.keys(groupedHistory)) {
-        for (const visit of groupedHistory[site].visits) {
+    for (const [url, histItem] of Object.entries(groupedHistory)) {
+        for (const visit of histItem.visits) {
             history.push({
                 "date": new Date(visit),
-                "icon": forSite(site),
-                "title": groupedHistory[site].title,
-                "url": site,
-                "visits": groupedHistory[site].visits.length
+                "icon": forSite(url),
+                "title": histItem.title,
+                url,
+                "visits": histItem.visits.length
             })
         }
     }

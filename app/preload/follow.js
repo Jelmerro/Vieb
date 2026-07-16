@@ -203,13 +203,9 @@ const parseElement = (element, type = null, bounds = null) => {
     if (isHTMLAnchorElement(element)) {
         ({href} = element)
         // Set links to the current page as type 'other'
-        if (!href) {
-            typeOverride = "other"
-        } else if (href === window.location.href) {
-            typeOverride = "other"
-        } else if (href === `${window.location.href}#`) {
-            typeOverride = "other"
-        } else if (href?.startsWith?.("javascript:")) {
+        if (!href || href === window.location.href
+            || href === `${window.location.href}#`
+            || href?.startsWith?.("javascript:")) {
             typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open
@@ -495,27 +491,28 @@ getListenCounts = contextBridge.executeInMainWorld({
  * @param {HTMLIFrameElement|null} frame
  */
 const clickListener = (e, frame = null) => {
-    if (e.isTrusted) {
-        const paddingInfo = findFrameInfo(frame)
-        const inputEl = e.composedPath().find(
-            el => isElement(el) && matchesQuery(el, textlikeInputs))
-        let focusEl = null
-        if (isHTMLElement(inputEl)) {
-            focusEl = [
-                inputEl,
-                inputEl?.parentElement,
-                inputEl?.parentElement?.parentElement
-            ].find(el => el?.click && el?.focus)
-        }
-        if (focusEl) {
-            previouslyFocussedElements.push(focusEl)
-        }
-        ipcRenderer.send("mouse-click-info", {
-            "toinsert": !!inputEl,
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0)
-        })
+    if (!e.isTrusted) {
+        return
     }
+    const paddingInfo = findFrameInfo(frame)
+    const inputEl = e.composedPath().find(
+        el => isElement(el) && matchesQuery(el, textlikeInputs))
+    let focusEl = null
+    if (isHTMLElement(inputEl)) {
+        focusEl = [
+            inputEl,
+            inputEl?.parentElement,
+            inputEl?.parentElement?.parentElement
+        ].find(el => el?.click && el.focus)
+    }
+    if (focusEl) {
+        previouslyFocussedElements.push(focusEl)
+    }
+    ipcRenderer.send("mouse-click-info", {
+        "toinsert": !!inputEl,
+        "x": e.x + (paddingInfo?.x || 0),
+        "y": e.y + (paddingInfo?.y || 0)
+    })
 }
 
 window.addEventListener("click", clickListener,
@@ -649,90 +646,91 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
  * @param {object|null} extraData
  */
 const contextListener = (e, frame = null, extraData = null) => {
-    if (e.isTrusted && !currentFollowStatus && e.button === 2) {
-        e.preventDefault?.()
-        const paddingInfo = findFrameInfo(frame)
-        const img = e.composedPath().find(isHTMLImageElement)
-        const svg = e.composedPath().find(isSVGElement)
-        const backgroundImg = e.composedPath().map(el => {
-            if (isElement(el)) {
-                const styling = el.computedStyleMap()
-                    .get("background-image")?.toString()
-                const url = styling?.match(/url\(.*?\)/g)?.[0]
-                if (url) {
-                    return url?.slice(5, -2)
-                }
-            }
-            return null
-        }).find(Boolean)
-        const videoEl = e.composedPath().find(isHTMLVideoElement)
-        const video = [
-            videoEl,
-            [...videoEl?.querySelectorAll("source") ?? []].find(
-                el => el.getAttribute("type")?.startsWith("audio"))
-        ].find(el => el?.src.trim())
-        const audioEl = e.composedPath().find(isHTMLAudioElement)
-        const audio = [
-            audioEl,
-            [...audioEl?.querySelectorAll("source") ?? []].find(
-                el => el.getAttribute("type")?.startsWith("audio")),
-            [...videoEl?.querySelectorAll("source") ?? []].find(
-                el => el.getAttribute("type")?.startsWith("audio"))
-        ].find(el => el?.src.trim())
-        const link = e.composedPath().filter(isHTMLAnchorElement)
-            .find(el => el.href?.trim())
-        const text = e.composedPath().find(
-            el => isElement(el) && matchesQuery(el, textlikeInputs))
-        const iframe = [...e.composedPath(), frame].find(isHTMLIFrameElement)
-        const selection = (iframe?.contentWindow ?? window).getSelection()
-        let inputVal = ""
-        let inputSel = 0
-        if (isInputOrTextElement(text)) {
-            inputVal = text.value
-            inputSel = text.selectionStart ?? 0
-        } else if (isHTMLElement(text)) {
-            inputVal = text.textContent ?? ""
-            inputSel = selection?.getRangeAt(0)?.startOffset ?? 0
-        }
-        const titleAttr = e.composedPath().filter(el => isHTMLElement(el)
-            && el.title).find(isHTMLElement)?.title ?? ""
-        ipcRenderer.send("context-click-info", {
-            "audio": audio?.src?.trim(),
-            "audioData": {
-                "controllable": !!audioEl,
-                "loop": ["", "loop", "true"].includes(
-                    audioEl?.getAttribute("loop") ?? "false"),
-                "muted": audioEl?.volume === 0,
-                "paused": audioEl?.paused
-            },
-            backgroundImg,
-            "canEdit": !!text,
-            extraData,
-            "frame": iframe?.src,
-            "hasElementListener": hasContextMenuListener(e.composedPath()[0]),
-            "hasGlobalListener": e.composedPath().some(
-                el => hasContextMenuListener(el)),
-            "img": img?.src?.trim(),
-            inputSel,
-            inputVal,
-            "link": link?.href?.trim(),
-            "svgData": svg && getSvgData(svg),
-            "text": selection?.toString(),
-            titleAttr,
-            "video": video?.src?.trim(),
-            "videoData": {
-                "controllable": !!videoEl,
-                "controls": ["", "controls", "true"].includes(
-                    videoEl?.getAttribute("controls") ?? "false"),
-                "loop": ["", "loop", "true"].includes(
-                    videoEl?.getAttribute("loop") ?? "false"),
-                "muted": videoEl?.volume === 0,
-                "paused": videoEl?.paused
-            },
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0)
-        })
+    if (!(e.isTrusted && !currentFollowStatus && e.button === 2)) {
+        return
     }
+    e.preventDefault?.()
+    const paddingInfo = findFrameInfo(frame)
+    const img = e.composedPath().find(isHTMLImageElement)
+    const svg = e.composedPath().find(isSVGElement)
+    const backgroundImg = e.composedPath().map(el => {
+        if (isElement(el)) {
+            const styling = el.computedStyleMap()
+                .get("background-image")?.toString()
+            const url = styling?.match(/url\(.*?\)/g)?.[0]
+            if (url) {
+                return url?.slice(5, -2)
+            }
+        }
+        return null
+    }).find(Boolean)
+    const videoEl = e.composedPath().find(isHTMLVideoElement)
+    const video = [
+        videoEl,
+        [...videoEl?.querySelectorAll("source") ?? []].find(
+            el => el.getAttribute("type")?.startsWith("audio"))
+    ].find(el => el?.src.trim())
+    const audioEl = e.composedPath().find(isHTMLAudioElement)
+    const audio = [
+        audioEl,
+        [...audioEl?.querySelectorAll("source") ?? []].find(
+            el => el.getAttribute("type")?.startsWith("audio")),
+        [...videoEl?.querySelectorAll("source") ?? []].find(
+            el => el.getAttribute("type")?.startsWith("audio"))
+    ].find(el => el?.src.trim())
+    const link = e.composedPath().filter(isHTMLAnchorElement)
+        .find(el => el.href?.trim())
+    const text = e.composedPath().find(
+        el => isElement(el) && matchesQuery(el, textlikeInputs))
+    const iframe = [...e.composedPath(), frame].find(isHTMLIFrameElement)
+    const selection = (iframe?.contentWindow ?? window).getSelection()
+    let inputVal = ""
+    let inputSel = 0
+    if (isInputOrTextElement(text)) {
+        inputVal = text.value
+        inputSel = text.selectionStart ?? 0
+    } else if (isHTMLElement(text)) {
+        inputVal = text.textContent ?? ""
+        inputSel = selection?.getRangeAt(0)?.startOffset ?? 0
+    }
+    const titleAttr = e.composedPath().filter(el => isHTMLElement(el)
+        && el.title).find(isHTMLElement)?.title ?? ""
+    ipcRenderer.send("context-click-info", {
+        "audio": audio?.src?.trim(),
+        "audioData": {
+            "controllable": !!audioEl,
+            "loop": ["", "loop", "true"].includes(
+                audioEl?.getAttribute("loop") ?? "false"),
+            "muted": audioEl?.volume === 0,
+            "paused": audioEl?.paused
+        },
+        backgroundImg,
+        "canEdit": !!text,
+        extraData,
+        "frame": iframe?.src,
+        "hasElementListener": hasContextMenuListener(e.composedPath()[0]),
+        "hasGlobalListener": e.composedPath().some(
+            el => hasContextMenuListener(el)),
+        "img": img?.src?.trim(),
+        inputSel,
+        inputVal,
+        "link": link?.href?.trim(),
+        "svgData": svg && getSvgData(svg),
+        "text": selection?.toString(),
+        titleAttr,
+        "video": video?.src?.trim(),
+        "videoData": {
+            "controllable": !!videoEl,
+            "controls": ["", "controls", "true"].includes(
+                videoEl?.getAttribute("controls") ?? "false"),
+            "loop": ["", "loop", "true"].includes(
+                videoEl?.getAttribute("loop") ?? "false"),
+            "muted": videoEl?.volume === 0,
+            "paused": videoEl?.paused
+        },
+        "x": e.x + (paddingInfo?.x || 0),
+        "y": e.y + (paddingInfo?.y || 0)
+    })
 }
 
 ipcRenderer.on("contextmenu-data", (_, request) => {
@@ -1087,20 +1085,22 @@ const mainInfoLoop = () => {
 
 /** If following, send the follow elements with a 100ms pause between them. */
 const followLoop = async() => {
-    if (currentFollowStatus) {
-        const links = await getAllFollowLinks(currentFollowStatus)
-        ipcRenderer.send("follow-response", links)
-        setTimeout(() => followLoop(), 100)
+    if (!currentFollowStatus) {
+        return
     }
+    const links = await getAllFollowLinks(currentFollowStatus)
+    ipcRenderer.send("follow-response", links)
+    setTimeout(() => followLoop(), 100)
 }
 
 ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
-    if (!currentFollowStatus
-        || currentFollowStatus.length !== newFollowFilter.length
-        || currentFollowStatus[0] !== newFollowFilter[0]) {
-        currentFollowStatus = newFollowFilter
-        followLoop()
+    if (currentFollowStatus
+        && currentFollowStatus.length === newFollowFilter.length
+        && currentFollowStatus[0] === newFollowFilter[0]) {
+        return
     }
+    currentFollowStatus = newFollowFilter
+    followLoop()
 })
 ipcRenderer.on("follow-mode-stop", () => {
     currentFollowStatus = null
@@ -1111,18 +1111,19 @@ window.addEventListener("DOMContentLoaded", () => {
     const pdfbehavior = getSetting("pdfbehavior") ?? "block"
     if (pdfbehavior !== "view") {
         for (const embed of querySelectorAll("embed")) {
-            if (embed.getAttribute("type") === "application/pdf") {
-                if (pdfbehavior === "download") {
-                    const src = embed.getAttribute("src")?.replace(
-                        /^about:blank/g, "") || window.location.href
-                    ipcRenderer.sendToHost("download", src)
-                } else if (pdfbehavior === "external") {
-                    const src = embed.getAttribute("src")?.replace(
-                        /^about:blank/g, "") || window.location.href
-                    ipcRenderer.sendToHost("external", src)
-                }
-                embed.remove()
+            if (embed.getAttribute("type") !== "application/pdf") {
+                continue
             }
+            if (pdfbehavior === "download") {
+                const src = embed.getAttribute("src")?.replace(
+                    /^about:blank/g, "") || window.location.href
+                ipcRenderer.sendToHost("download", src)
+            } else if (pdfbehavior === "external") {
+                const src = embed.getAttribute("src")?.replace(
+                    /^about:blank/g, "") || window.location.href
+                ipcRenderer.sendToHost("external", src)
+            }
+            embed.remove()
         }
     }
 })

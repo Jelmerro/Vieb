@@ -142,7 +142,7 @@ const rimrafSync = p => {
         if (!isErrnoException(error) || error.code !== "EISDIR") {
             throw error
         }
-        if (error instanceof Error) {
+        if (Error.isError(error)) {
             rmdirSync(p, error)
         }
     }

@@ -1103,7 +1103,7 @@ const handleContextMenuClick = (_, info) => {
             }
         }
     }
-    if (info.extraData?.type && info.extraData?.action) {
+    if (info.extraData?.type && info.extraData.action) {
         commonAction(info.extraData.src ?? "user", info.extraData.type,
             info.extraData.action, info)
     } else {
