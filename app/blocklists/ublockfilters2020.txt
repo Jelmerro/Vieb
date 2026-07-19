@@ -840,7 +840,7 @@ uploadrar.*###commonId > a[target="_blank"]
 uploadrar.*##main > center > a.btn-primary
 uploadrar.*##form > center:has(.btn):has([href])
 uploadrar.*##.footer, span > .text-muted, .card, .m-2.submit-btn.btn-primary.btn
-uploadrar.*##.fs-5, p, ul, li, #how-to-open, .p-0.block, .download-controls, .ad-box + center
+uploadrar.*##.fs-5, p, ul, li, #how-to-open, .download-controls, .ad-box + center
 uploadrar.*##.ad-label, .adsbygoogle
 uploadrar.*##+js(acs, document.documentElement, break;case $.)
 uploadrar.*##+js(nano-stb, /.?/, *)
@@ -1500,7 +1500,6 @@ w3schools.com###tryitLeaderboard + .trytopnav ~ #dragbar + #container:style(top:
 w3schools.com##.trytopnav:style(top: 0!important;)
 w3schools.com###tryitLeaderboard ~ #container:style(top: 48px!important;)
 !#endif
-||w3schools.com/lib/sparteo.css
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/60713
 vviruslove.com##+js(nosiif, visibility, 1000)
@@ -2043,9 +2042,7 @@ movidy.*##+js(nowoif)
 thepoorcoder.com##+js(aopr, adblockDetector)
 
 ! brave issue google funding
-globo.com,latimes.com##+js(nostif, f.parentNode.removeChild(f), 100)
-! https://github.com/uBlockOrigin/uAssets/issues/23957
-globo.com##+js(trusted-set-cookie, _ga, GA1.1.000000000.1900000000, , , domain, globo.com)
+latimes.com##+js(nostif, f.parentNode.removeChild(f), 100)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/7972
 *$script,3p,denyallow=fastly.net|fastlylb.net|jquery.com|hwcdn.net|hcaptcha.com|recaptcha.net|cloudflare.com|cloudflare.net|google.com|googleapis.com|gstatic.com,domain=13x4.com
@@ -2091,6 +2088,7 @@ downloadrepack.com###footer-widgets > .container-inner > .group.hu-pad
 tecnobillo.com##+js(nostif, check)
 tecnobillo.com##.tecnobillo-ad-wrapper-wrapper
 
+! https://github.com/uBlockOrigin/uAssets/issues/32994
 ! xtits.com/xxx pre-roll ads
 xtits.*##+js(set, flashvars.adv_start_html, '')
 xtits.*##+js(set, flashvars.adv_pause_html, '')
@@ -2099,9 +2097,10 @@ xtits.*##.table
 xtits.*##.spot-holder
 *$frame,script,3p,denyallow=ahacdn.me|bimbolive.com|cloudflare.net,domain=xtits.*
 ||xtits.*^$csp=script-src * 'unsafe-inline'
-||xtits.*/static/js/custom.js$script,1p
 
-! https://github.com/AdguardTeam/AdguardFilters/issues/65120
+! https://github.com/uBlockOrigin/uAssets/issues/33245
+acapellas.eu##+js(nostif, getComputedStyle)
+acapellas.eu##+js(rmnt, script, runCheck)
 acapellas.eu##+js(acs, addEventListener, google_ad_client)
 
 ! descarga.xyz popup ads
@@ -2502,7 +2501,9 @@ discoveryplus.*##+js(json-prune, data.attributes.config.freewheel data.attribute
 ! https://github.com/uBlockOrigin/uAssets/issues/21007
 ! https://github.com/uBlockOrigin/uAssets/issues/27265
 discoveryplus.*,go.discovery.com,watch.foodnetwork.com##+js(json-prune, data.attributes.ssaiInfo.forecastTimeline data.attributes.ssaiInfo.vendorAttributes.nonLinearAds data.attributes.ssaiInfo.vendorAttributes.videoView data.attributes.ssaiInfo.vendorAttributes.breaks.[].ads.[].adMetadata data.attributes.ssaiInfo.vendorAttributes.breaks.[].ads.[].adParameters data.attributes.ssaiInfo.vendorAttributes.breaks.[].timeOffset)
-discoveryplus.*,go.discovery.com,investigationdiscovery.com,go.tlc.com,sciencechannel.com,watch.foodnetwork.com##+js(xml-prune, xpath(//*[name()="MPD"][.//*[name()="BaseURL" and contains(text()\,'dash_clear_fmp4') and contains(text()\,'/a/')]]/@mediaPresentationDuration | //*[name()="Period"][./*[name()="BaseURL" and contains(text()\,'dash_clear_fmp4') and contains(text()\,'/a/')]]), , .mpd)
+go.discovery.com,investigationdiscovery.com,go.tlc.com,sciencechannel.com,watch.foodnetwork.com##+js(xml-prune, xpath(//*[name()="MPD"][.//*[name()="BaseURL" and contains(text()\,'dash_clear_fmp4') and contains(text()\,'/a/')]]/@mediaPresentationDuration | //*[name()="Period"][./*[name()="BaseURL" and contains(text()\,'dash_clear_fmp4') and contains(text()\,'/a/')]]), , .mpd)
+! https://github.com/uBlockOrigin/uAssets/issues/31057#issuecomment-4991830723
+discoveryplus.*##+js(xml-prune, 'xpath(//*[name()="MPD"][.//*[name()="BaseURL" and contains(text(),"emea-free")]]/@mediaPresentationDuration | //*[name()="MPD"][.//*[name()="BaseURL" and contains(text(),"emea-free")]]//*[name()="Period"]/@start | //*[name()="Period"][./*[name()="BaseURL" and contains(text(),"emea-free")]])', , .mpd)
 ! https://github.com/uBlockOrigin/uAssets/issues/27520
 play.discoveryplus.com##+js(json-prune, ssaiInfo)
 ! https://github.com/uBlockOrigin/uAssets/issues/20172
@@ -2752,13 +2753,13 @@ palcomix.com##center > font[size="3"][face="ARIAL"]:has-text(ADVERTISING):upward
 palcomix.com##table[width="800"]:has(img[src^="../ads/"])
 /\.com\/(full)?ad[0-9a-z]+\.(?:gif|jpg)$/$image,1p,domain=palcomix.com
 
-! https://github.com/AdguardTeam/AdguardFilters/issues/69378
+! https://github.com/uBlockOrigin/uAssets/issues/33145
 freemagazines.top##+js(aopr, b2a)
 freemagazines.top##+js(nostif, showModal)
 freemagazines.top##+js(acs, eval, replace)
 freemagazines.top##+js(rmnt, script, var Data)
 freemagazines.top##+js(no-xhr-if, /doubleclick|googlesyndication/)
-freemagazines.top##+js(aeld, DOMContentLoaded, atob)
+freemagazines.top##+js(aeld, DOMContentLoaded, /atob|overlay/)
 *$xhr,redirect-rule=nooptext,domain=freemagazines.top
 
 ! https://github.com/abp-filters/abp-filters-anti-cv/issues/506
@@ -2844,6 +2845,10 @@ hentaihd.net##.active-item
 nypost.com##img[src$="/knewz_300x250.png"]:upward(.widget_text)
 ! https://github.com/uBlockOrigin/uAssets/issues/28257#issuecomment-3288078833
 nypost.com##.entry-content > .nyp-video-player
+! https://github.com/uBlockOrigin/uAssets/issues/33707
+! https://old.reddit.com/r/uBlockOrigin/comments/1ug4jiw/the_sun_adblock_nag/
+decider.com,nypost.com,pagesix.com,the-sun.com,thescottishsun.co.uk,thesun.co.uk,thesun.ie##+js(rmnt, script, parentNode.removeChild)
+decider.com,nypost.com,pagesix.com,the-sun.com,thescottishsun.co.uk,thesun.co.uk,thesun.ie##+js(acs, atob, parentNode.removeChild)
 
 ! xmegadrive.com popup
 xmegadrive.com##+js(set, flashvars.adv_pause_html, '')

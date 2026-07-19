@@ -97,6 +97,7 @@ nicomanga.com,weloma.art##+js(nowoif)
 ! https://github.com/AdguardTeam/AdguardFilters/issues/218227
 love4u.net,nicomanga.com,nihonkuni.com,rawinu.com,weloma.art##+js(set-cookie, unlock_chapter_guest, 1)
 love4u.net,nicomanga.com,nihonkuni.com,rawinu.com,weloma.art##+js(trusted-replace-argument, String.prototype.includes, 0, json:"", condition, unlock)
+love4u.net,nicomanga.com,nihonkuni.com,rawinu.com,weloma.art##+js(nowoif)
 love4u.net,nicomanga.com,nihonkuni.com,rawinu.com,weloma.art###unlock_box
 love4u.net,nicomanga.com,nihonkuni.com,rawinu.com,weloma.art###imgChapter[style*="none"]:style(display: block !important;)
 weloma.art##+js(acs, document.createElement, dataset.zone)
@@ -689,6 +690,7 @@ javmix.app##+js(set, puShown, true)
 ||cdn-static3.com/cdn/push.min.js
 ://creative.*/widgets/Spot/lib.js$3p
 ://creative.*/widgets/v4/Universal?$frame,3p
+://creative.*/widgets/v4/MobileSlider?$frame,3p
 
 ! xtremetop100.com ads
 xtremetop100.com###sidebanner
@@ -870,12 +872,14 @@ taigoforum.de##+js(acs, $, .show)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/17018
 myanimelist.net##[data-koukoku-width]:remove()
-myanimelist.net##+js(rmnt, style, body:not(.ownlist))
+myanimelist.net##+js(rmnt, style, body:is(:not(.ownlist)))
 ! https://github.com/uBlockOrigin/uAssets/issues/25757
 myanimelist.net##[class*="-malside"]
 myanimelist.net##[class*="-pdatla"]
 myanimelist.net##.bookstore-detail-right
 myanimelist.net##div[class*="bookstores-recommend-plugin-"]:has(span[class="sponsored"])
+myanimelist.net##.ad-sas
+myanimelist.net##a[href^="https://mangamirai.com/"]
 
 ! winknews.com anti adblock
 ! homepage live video breakage
@@ -1295,12 +1299,6 @@ gadgets.es##+js(set, isAdBlockActive, false)
 ! https://www.reddit.com/r/uBlockOrigin/comments/12g5jyb/
 rackusreads.com##+js(set, DHAntiAdBlocker, true)
 
-! https://github.com/uBlockOrigin/uAssets/issues/17522
-elamigosgamez.net##+js(nostif, checkAdblockUser)
-elamigosgamez.net##.content_store
-elamigosgamez.net##h3.my-4:has-text(/^Advertising/)
-elamigosgamez.net##.iframeDiv
-
 ! https://github.com/uBlockOrigin/uAssets/issues/12214
 *$script,domain=wp.pl|money.pl|o2.pl|parenting.pl|pudelek.pl|autokult.pl|gadzetomania.pl|fotoblogia.pl|komorkomania.pl|polygamia.pl|abczdrowie.pl|benchmark.pl|kafeteria.pl|pysznosci.pl|dobreprogramy.pl|genialne.pl|autocentrum.pl|jastrzabpost.pl|deliciousmagazine.pl,redirect-rule=noopjs
 ||imasdk.googleapis.com/js/sdkloader/ima3_debug.js$script,domain=o2.pl,redirect=google-ima.js:10
@@ -1314,8 +1312,10 @@ wp.pl,money.pl,o2.pl,parenting.pl,pudelek.pl,autokult.pl,gadzetomania.pl,fotoblo
 wp.pl,money.pl,o2.pl,parenting.pl,pudelek.pl,autokult.pl,gadzetomania.pl,fotoblogia.pl,komorkomania.pl,polygamia.pl,abczdrowie.pl,benchmark.pl,kafeteria.pl,pysznosci.pl,dobreprogramy.pl,genialne.pl,autocentrum.pl,jastrzabpost.pl,deliciousmagazine.pl##body > [id]:style(filter: none !important;)
 wp.pl,money.pl,o2.pl,parenting.pl,pudelek.pl,autokult.pl,gadzetomania.pl,fotoblogia.pl,komorkomania.pl,polygamia.pl,abczdrowie.pl,benchmark.pl,kafeteria.pl,pysznosci.pl,dobreprogramy.pl,genialne.pl,autocentrum.pl,jastrzabpost.pl,deliciousmagazine.pl##body:style(overflow: auto !important;)
 ||v.wpimg.pl/*.html$frame
+@@||kobieta.wp.pl^$ehide,badfilter
+pudelek.pl#@#style + div[class]
 wp.pl#@#[class^="css-"]
-wp.pl,money.pl,komorkomania.pl,autokult.pl,o2.pl,parenting.pl,abczdrowie.pl,pudelek.pl#@#body [class]:style(filter: none !important;)
+wp.pl,money.pl,komorkomania.pl,autokult.pl,o2.pl,parenting.pl,abczdrowie.pl,pudelek.pl#@#body [class]:style(filter: none !important)
 money.pl#@##app > div[class^="sc-"] > div[class]:not([class*=" "]):has(:scope > div[class*=" "]:only-child > img[src^="https://v.wpimg.pl/"][src$="=="][alt])
 money.pl,wp.pl#@#div[class]:has(>div[class]:first-child:has-text(REKLAMA):not(:has(>*)))
 money.pl,kobieta.wp.pl,gadzetomania.pl,fotoblogia.pl,komorkomania.pl,wiadomosci.wp.pl,tech.wp.pl,dom.wp.pl,facet.wp.pl,film.wp.pl,finanse.wp.pl,gry.wp.pl,gwiazdy.wp.pl,kobieta.wp.pl,ksiazki.wp.pl,kuchnia.wp.pl,moto.wp.pl,opinie.wp.pl,pogoda.wp.pl,teleshow.wp.pl,turystyka.wp.pl,wideo.wp.pl,wawalove.wp.pl,autokult.pl#@#+js(nostif, detected, 300)
@@ -1352,9 +1352,8 @@ o2.pl##section > h2:has-text(Oferty dla Ciebie:)
 o2.pl##div > h6:has-text(Oferty dla Ciebie)
 o2.pl,www.wp.pl##div:is([style="width:100%"], [style="width:100%;height:100%"]):has(> div[class] > img[src^="https://v.wpimg.pl/"][role="presentation"])
 o2.pl##.w-full:has(> div:not([class]) > div > div > a > img[src^="https://v.wpimg.pl/"])
-www.wp.pl###app-content > .relative > .w-full > div:first-child[style^="max-height: "]:has(> div:first-child > div:first-child > a > div:empty)
 www.wp.pl###site-header:style(min-height: 0px !important;)
-www.wp.pl###app-content > .relative > [data-cover="true"] > .relative > .w-full > .items-start > .sticky:has( > div > div + div:last-child > span:has-text(REKLAMA))
+www.wp.pl##div[class*=" "]:has(> div:first-child > div:first-child + div:last-child > span:only-child > span:only-child:has-text(REKLAMA))
 !#if env_mobile
 www.wp.pl##.max-w-mobile > div[class]:has(> div > div > iframe)
 www.wp.pl##.max-w-mobile > div:has(> div:first-child > div:only-child > div > span:has-text(Przewijaj w dół, by kontynuować))
@@ -1386,6 +1385,10 @@ abczdrowie.pl,domodi.pl,forum.kardiolo.pl##*:has(> div:first-child:has(> div:fir
 ~www.wp.pl,wp.pl,komorkomania.pl,fotoblogia.pl,gadzetomania.pl##div:has(> div:not([class], [id]) > div > a[href*="utm_"])
 sportowefakty.wp.pl##.article > .article__top + div:has(> div:last-child > div > div > div[id^="div-gpt-ad-"])
 sportowefakty.wp.pl##.article-footer + div:has(> div:last-child > div > div > div > div[id^="div-gpt-ad-"])
+sportowefakty.wp.pl###app > div[class*=" "]:has(> div:last-child:has-text(/^REKLAMA$/))
+sportowefakty.wp.pl###app > div[class*=" "]:has(> div:only-child > a[href^="https://sportowefakty.wp.pl/"]:only-child > img[src^="https://v.wpimg.pl/"]:only-child)
+sportowefakty.wp.pl##div[class*=" "]:has(> div:only-child > a[href^="https://sportowefakty.wp.pl/"]:first-child + div:empty + span:has-text(ROZWIŃ) + div:last-child)
+sportowefakty.wp.pl###sticky-panel-content:style(min-height: 0px !important;)
 abczdrowie.pl##div[data-element="s3-placeholder"]
 abczdrowie.pl##body > div > div:only-child > div:only-child > a:first-child > div:only-child:empty
 turystyka.wp.pl##div:has(> div:only-child > * > div > .border > .container > .labelCopy:has-text(REKLAMA))
@@ -1397,6 +1400,7 @@ wp.pl##a[href="https://www.wp.pl"][data-st-area="goToSG"] + div:has(> div > div 
 forum.parenting.pl##aside > div:has(> div:first-child + div:empty + script:last-child)
 wiadomosci.wp.pl,sportowefakty.wp.pl,pudelek.pl,abczdrowie.pl,kafeteria.pl##div[class]:has(> div:only-child > div:only-child > a:first-child:has(> div:only-child:empty) + div:empty)
 jastrzabpost.pl##div:only-child:has(> div:first-child > div:first-child > a:only-child > img):has(> div:first-child > div:first-child + div:last-child:empty)
+wp.pl,pudelek.pl,benchmark.pl##div[class]:has(> div:first-child > a[class]:only-child > img[src^="https://v.wpimg.pl/"]:only-child):has(> div:first-child + div:last-child:empty)
 ! against blinking ads
 wp.pl#@#div:matches-css-after(content:/R.*E.*K.*L.*A.*M.*A/):upward(1)
 wp.pl,money.pl##div:has(> a:first-child:has(> div:empty:only-child) + div:empty:last-child):remove()
@@ -1433,11 +1437,19 @@ wirtualnemedia.pl##.wm-categoryteasersection-ad-large
 wirtualnemedia.pl##.wp-screening-placeholder-container
 wirtualnemedia.pl##body div[class]:not([id]):has(> img[src="/staticfiles/wm-placeholder.png"])
 wirtualnemedia.pl##.py-12:not([data-testid="screening-main"]):has(img[src="/staticfiles/wm-placeholder.png"])
+! https://github.com/uBlockOrigin/uAssets/issues/15986
+||imasdk.googleapis.com/js/sdkloader/ima3.js$script,domain=dobreprogramy.pl,redirect=noopjs
 ! https://github.com/uBlockOrigin/uAssets/issues/30894
 dobreprogramy.pl##+js(trusted-edit-inbound-object, Object.keys, 0, [?.context.bidRequestId].*)
 !#if env_chromium
 dobreprogramy.pl##+js(trusted-replace-argument, RegExp.prototype.test, 0, json:"wirtualnemedia", condition, /^dobreprogramy$/)
 !#endif
+! https://github.com/uBlockOrigin/uAssets/issues/32909
+dobreprogramy.pl##div[class*=" "]:not([class*="-"], [id]):has(> img[src^="https://v.wpimg.pl/"])
+! https://github.com/uBlockOrigin/uAssets/issues/32959
+wp.pl#@#body > div:nth-of-type(1)[style^="display: block;"]:not(#page)
+||dot.wp.pl/*/dot.gif?$css,redirect=noop.css
+||std.wpcdn.pl/images/adv/$image,redirect=1x1.gif
 
 ! https://github.com/uBlockOrigin/uAssets/issues/17527
 tralhasvarias.blogspot.com##+js(nano-stb, decodeURL, *)
@@ -1652,6 +1664,7 @@ qcheng.cc##+js(aopr, killAdKiller)
 *$frame,redirect-rule=noopframe,domain=busuu.com
 ||busuu.com/*/busuu_ad$media
 busuu.com##+js(nano-sib, current-=1, *, 0.001)
+busuu.com##+js(trusted-json-edit-xhr-response, .access=true, propsToMatch, /no_ads/config)
 ! https://www.reddit.com/r/uBlockOrigin/comments/1gyh3xz/cant_block_ads_on_busuucom/
 ||busuu.com/*_ad_generic_$media
 ||api.busuu.com/ads/
@@ -1694,10 +1707,14 @@ bellesa.co##[href*="preroll"]:upward(2)
 ||res.cloudinary.com/$image,domain=bellesa.co
 
 ! https://github.com/uBlockOrigin/uAssets/issues/17859
+! https://github.com/uBlockOrigin/uAssets/issues/18051
 satkurier.pl##+js(no-fetch-if, ads)
 satkurier.pl##+js(nostif, /getComputedStyle|bait/)
 satkurier.pl##+js(set, AController_3, noopFunc)
 satkurier.pl##+js(trusted-replace-argument, document.createElement, 0, json:"div", condition, ins)
+satkurier.pl##+js(rpnt, script, if (isBlocked), if (false))
+satkurier.pl##+js(rmnt, script, assets/check)
+satkurier.pl###billboard1
 satkurier.pl###m_top_1_mainpage
 satkurier.pl###navbarMenu + div[style*="text-align:center;"]
 
@@ -1766,19 +1783,21 @@ reshare.pm##+js(nowoif)
 ||googlesyndication.com^$script,redirect=noopjs,domain=flysas.com
 
 ! https://github.com/uBlockOrigin/uAssets/issues/21553
-gamedrive.org##.code-block a[href][target="_blank"] > img[data-recalc-dims]
-gamedrive.org##a[href][target="_blank"][rel="noopener noreferrer"] > img
-gamedrive.org##.netflix-banner
-gamedrive.org##.hbo-banner
-gamedrive.org##[id^="gridlove-module-"] > .gridlove-text-module-content > div:is(:has([data-format]), [onclick*='window.open'])
-gamedrive.org##+js(aost, document.querySelector, /showModal|chooseAction|doAction|callbackAdsBlocked/)
-gamedrive.org##+js(acs,  String.fromCharCode, fetch)
-gamedrive.org##+js(acs, eval, replace)
-gamedrive.org##+js(aopr, b2a)
-!gamedrive.org##+js(rmnt, script, isOwner)
-gamedrive.org##+js(aeld, DOMContentLoaded, window.open)
-gamedrive.org##+js(aeld, click, _shouldProcessLink)
-gamedrive.org##+js(aeld, click, preventDefault)
+gamedrive.*##.code-block a[href][target="_blank"] > img[data-recalc-dims]
+gamedrive.*##a[href][target="_blank"][rel="noopener noreferrer"] > img
+gamedrive.*##.netflix-banner
+gamedrive.*##.hbu-banner
+gamedrive.*##[id^="gridlove-module-"] > .gridlove-text-module-content > div:is(:has([data-format]), [onclick*='window.open'])
+gamedrive.*##div[class*="banner"][onclick]
+gamedrive.*##+js(aost, document.querySelector, /showModal|chooseAction|doAction|callbackAdsBlocked/)
+gamedrive.*##+js(acs,  String.fromCharCode, fetch)
+gamedrive.*##+js(acs, eval, replace)
+gamedrive.*##+js(aopr, b2a)
+!gamedrive.*##+js(rmnt, script, isOwner)
+gamedrive.*##+js(aeld, DOMContentLoaded, window.open)
+gamedrive.*##+js(aeld, click, _shouldProcessLink)
+gamedrive.*##+js(aeld, click, preventDefault)
+
 ! https://github.com/uBlockOrigin/uAssets/issues/31131
 cybar.xyz,cybar.to##+js(aeld, click, open)
 cybar.xyz,cybar.to##+js(nowoif, cpmecs)
@@ -1975,9 +1994,6 @@ ontools.net##+js(aeld, load, blocker)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/18042
 ||tvonline123.com^$1p,frame,redirect-rule=noop.html
-
-! https://github.com/AdguardTeam/AdguardFilters/issues/150726
-wellness4live.com##+js(no-fetch-if, googlesyndication)
 
 ! https://leeapk.com/youtube-revanced-mod-apk/download/
 ! https://www.kindleku.com/2023/04/a-girl-called-samson-a-novel-amy-harmon-kindle-mobi.html
@@ -2641,7 +2657,9 @@ rgb.vn##+js(nostif, siteAccessPopup)
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/14pu01w/
 ! https://www.reddit.com/r/uBlockOrigin/comments/14qeaz4/
+! https://github.com/uBlockOrigin/uAssets/issues/7960#issuecomment-4818981509
 www.google.com##div[aria-label="Why this ad?"]:upward([data-pla="1"])
+www.google.com##div[data-snf][data-snm]:has(> div[class] > div[data-hb="isv"])
 
 ! https://github.com/uBlockOrigin/uAssets/issues/18816
 totalcsgo.com##+js(rmnt, script, /adconfig/i)
@@ -2700,9 +2718,6 @@ thapcam.net##.mmo
 pandasnovel.com##+js(set, pandaAdviewValidate, true)
 pandasnovel.com##a[href^="https://www.panda-novel.com/advertising"]:upward(.index-swiper)
 
-! https://github.com/AdguardTeam/AdguardFilters/issues/155887
-! https://github.com/AdguardTeam/AdguardFilters/issues/155883
-10minuteemails.com,luxusmail.org##+js(nostif, ad_block)
 ! https://www.reddit.com/r/uBlockOrigin/comments/1dp1nc6/how_do_i_block_sulvocom/
 ||10minutemail.com/ub/
 
@@ -3204,7 +3219,7 @@ eu-proxy.startpage.com##+js(set, ytInitialPlayerResponse.adPlacements, undefined
 eu-proxy.startpage.com##+js(set, playerResponse.adPlacements, undefined)
 ! https://github.com/uBlockOrigin/uAssets/issues/26030
 startpage.com###main > div[style]:not([class]):has(path)
-startpage.com##+js(trusted-replace-argument, Array.prototype.find, 0, undefined, condition, affinity-qi)
+startpage.com##.search-form-relative-container + div[class^="css-"]:has(div[data-identifier])
 
 ! https://x2download.com/ ad caller
 x2download.com##+js(aopr, GeneratorAds)
@@ -3739,10 +3754,9 @@ smarthomebeginner.com##body > .fb-inst[data-type="popup"]
 @@||streamnoads.com^$ghide
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/176cyms/dzapk_detect_ublock_origin/
-dzapk.com##^script:has-text(/innerHTML.*appendChild/)
-!#if !cap_html_filtering
-dzapk.com##+js(rmnt, script, /innerHTML.*appendChild/)
-!#endif
+! https://github.com/uBlockOrigin/uAssets/issues/33357
+dzapk.com##+js(nowoif, _blank)
+dzapk.com##+js(rmnt, script, /offsetHeight|popup/i)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/20006
 ! https://github.com/uBlockOrigin/uAssets/issues/21494
@@ -3897,9 +3911,9 @@ web1s.asia##+js(nano-sib, wait)
 sshkit.com,fastssh.com,howdy.id##+js(no-fetch-if, /adsbygoogle|doubleclick/)
 @@*$ghide,domain=sshkit.com|fastssh.com|howdy.id
 
-! https://github.com/uBlockOrigin/uAssets/issues/9764#issuecomment-1779676540
+! https://github.com/uBlockOrigin/uAssets/issues/9764
 pluto.tv##+js(json-prune-fetch-response, adBreaks.[].startingOffset adBreaks.[].adBreakDuration adBreaks.[].ads adBreaks.[].startTime adBreak adBreakLocations, , propsToMatch, /session.json)
-pluto.tv##+js(xml-prune, 'xpath(//*[name()="Period"][not(contains(@id,"subclip"))] | //*[name()="MPD"]/@mediaPresentationDuration | //*[name()="Period"]/@start)', , /\/episode\/.+?\.mpd\?/)
+pluto.tv##+js(xml-prune, 'xpath(//*[name()="Period"][.//*[name()="BaseURL" and contains(text(),"_ad") and contains(text(),"creative")]] | //*[name()="MPD"]/@mediaPresentationDuration | //*[name()="Period"]/@start)', '', /\/episode\/.+?\.mpd\?/)
 ! https://github.com/uBlockOrigin/uAssets/issues/9764#issuecomment-2398597866
 @@||a-fds.youborafds01.com/data?$xhr,domain=pluto.tv
 
@@ -4395,6 +4409,7 @@ sonixgvn.net##.su-note:style(display: block !important;)
 ||sonixgvn.net/wp-content/plugins/adrotate/$script,1p,important
 ||sonixgvn.net/cdn-cgi/apps/head/$script,1p,important
 ||vlitag.com^$script,xhr,domain=sonixgvn.net,redirect=noopjs
+||sonixgvn.net/dark/?aHR0c*$doc,urlskip=&1 -base64
 
 ! basketballbuzz .ca anti-adb
 basketballbuzz.ca##+js(rmnt, script, deblocker)
@@ -4513,7 +4528,6 @@ areascans.net##+js(noeval-if, ads)
 
 ! bettycrocker.com PH
 bettycrocker.com##.adhesiveHeaderAdFixed header:matches-media((min-width: 1000px)):style(top: 0 !important;)
-bettycrocker.com##.adhesiveAdSpacing
 
 ! https://brutaljav.com/fsdss-536-female-teacher-gangrape-in-jav-video/
 player.bestrapeporn.com##+js(nowoif)
@@ -4586,7 +4600,7 @@ pkbiosfix.com##+js(rmnt, script, AdBlock)
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/18ot1ak/unblockable_ads_on_this_site/ - Ad-reinsertion
 ! https://github.com/uBlockOrigin/uAssets/issues/21564
-autoscout24.*##+js(nostif, /Detect|adblock|style\.display|\[native code]|\.call\(null\)/)
+autoscout24.*##+js(nostif, /Detect|adblock|style\.display|\.call\(null\)/)
 autoscout24.*##div[class^="AdContentBanner"]
 
 ! scsport .live anti-adb

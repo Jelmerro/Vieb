@@ -49,7 +49,6 @@ freebie-ac.jp##+js(trusted-rpnt, script, currentTime = 1500 * 2, currentTime = 0
 alluretube.com,anyxvideos.com,fetishtube.cc,italianporn.com.es,japanporn.tv,lovefap.com,mommysucks.com,mzansinudes.com,napiszar.com,of-model.com,onlineporn24.com,porntube15.com,sexavgo.com,sexdiaryz.*##+js(acs, decodeURI, decodeURIComponent)
 japanporn.tv##+js(acs, Math.floor, ExoLoader)
 ##div[style^="z-index: 999999; background-image: url(\"data:image/gif;base64,"][style$="position: absolute;"]
-.com/f_lo.js|$script,1p
 ||a.b.napiszar.com^
 ||japanporn.tv/rg3y/*$script
 
@@ -80,8 +79,6 @@ bingotingo.com###please-wait
 watchporn.to##.table
 ! https://github.com/uBlockOrigin/uAssets/issues/15390#issuecomment-1293077428
 ! https://github.com/AdguardTeam/AdguardFilters/issues/157349
-watchporn.to##+js(set, flashvars.protect_block, '')
-watchporn.to##+js(set, flashvars.popunder_url, '')
 watchporn.to##[href^="https://go.gkrtmc.com/"]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/9448#issuecomment-1006821975
@@ -922,6 +919,7 @@ dongknows.com##+js(acs, eval, replace)
 dongknows.com##+js(aeld, load, .innerHTML)
 dongknows.com##body > div > [href^="https://www.amazon.com/deals/"]
 dongknows.com##.dkt-amz-bottom > [href^="https://www.amazon.com/deals/"]
+dongknows.com##.dkt-amz-head
 @@||dongknows.com^$ghide
 
 ! https://tlin.me/h88 focus detection
@@ -1653,6 +1651,7 @@ missav.*,missav123.com,missav888.com##div[x-show="showBanner"]
 missav.*,missav123.com,missav888.com##+js(acs, document.createElement, htmlAds)
 missav.*,missav123.com,missav888.com##+js(nowoif)
 missav.*,missav123.com,missav888.com##^script:has-text(htmlAds)
+||wheelroot.com^
 ! https://github.com/uBlockOrigin/uAssets/issues/16375#issuecomment-4014166868
 ||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=google-ima.js,domain=1player.store
 
@@ -2069,15 +2068,10 @@ odum.cl##+js(acs, $, sam)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/13966
 ! https://github.com/uBlockOrigin/uAssets/issues/1545
-elektroda.pl#@#.advert
 elektroda.pl,elektroda.com,elektroda.de##div[id]:has(> .text-center > div[id^="div-gpt-ad-"] > script:only-child)
 elektroda.de,elektroda.com##section[class]:has(> .text-center > div[id^="div-gpt-ad-"] > script:only-child)
-elektroda.de,elektroda.com##div[style="min-height: 265px;"]:has(> div[class] > .text-center > div[id^="div-gpt-ad-"] > script:only-child)
-elektroda.pl##div[class]:has(> b > .fancy-new-lnk[target="_blank"])
-elektroda.pl,elektroda.de,elektroda.com##div[style="position: relative;"]:has(> a[href*=".php?"][onclick*="sendGAEvent"][target="_blank"][title] > img[width] + div > span)
-elektroda.pl##div[class="topic-box clearfix "] + div[class]:last-child:has(> a[style="font-weight: bold;"][target="_blank"]:only-child)
-elektroda.pl##*:has(> div[style*="height"] + div:last-child > div:first-child + div:last-child > a[href*=".php?"][rel][onclick].fancybox:only-child)
-elektroda.pl##div:not([id], [class]):has(> div:first-child + a[href*=".php?"]:last-child > picture > source + source + img)
+elektroda.pl##.post > .clearfix + div[class]:not(.clearfix):has(a[target="_blank"]:has-text(sponsorowane))
+elektroda.pl##div[class="col-lg-4 col-md-12 no-padd"]:has(> [id]:only-child > div[style^="height: "] > div + form[action][method="get"][onsubmit])
 
 ! helmiau. com anti adb
 helmiau.com##+js(acs, document.createElement, open)
@@ -2150,9 +2144,6 @@ enit.in##+js(set, timeSec, 0)
 ||datacheap.io/vue.min.js
 ||quiziizz.github.io/cdnjs.js
 ||ad.doubleclick.net/ddm/adj/small_ad.js$script,domain=quiziizz.github.io,redirect=noopjs
-
-! https://github.com/uBlockOrigin/uAssets/issues/14037
-||grow.gab.com/galahad/$media
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/124326
 cardscanner.co##+js(nostif, show)
@@ -2265,9 +2256,11 @@ komputerswiat.pl##+js(acs, $onet, adblock)
 vebo1.com##+js(aopr, adsRedirectPopups)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/14226
+! https://github.com/uBlockOrigin/uAssets/issues/26736
 ewrc-results.com##+js(set, canGetAds, true)
 ewrc-results.com##+js(no-fetch-if, method:/head/i)
-ewrc-results.com##+js(trusted-replace-argument, Array.prototype.includes, 0, json:"none", condition, /brave-api|script-content|bait|real/)
+ewrc-results.com##+js(set-local-storage-item, ewrc_ad_signal, $remove$)
+ewrc-results.com##+js(trusted-replace-argument, Storage.prototype.setItem, 1, , condition, bannerDismissed)
 ! @@||pagead2.googlesyndication.com/pagead/js/adsbygoogle.js$script,xhr,domain=ewrc-results.com
 ||media.ewrc-results.com/banners/
 ewrc-results.com##.rounded-lg.items-center.justify-center.h-full.w-full.flex:has(.adsbygoogle)
@@ -2360,10 +2353,6 @@ rakuten.com#@#.google-ads
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/wty11m/adblocker_detected_on_hentaiseasoncom/
 hentaiseason.com##+js(acs, eval, replace)
-
-! https://github.com/uBlockOrigin/uAssets/issues/14489
-courseclub.me##+js(nostif, show)
-courseclub.me##+js(aeld, , show)
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/127233
 descargasok.*##+js(acs, document.addEventListener, google_ad_client)
@@ -3068,6 +3057,9 @@ manofadan.com,cempakajaya.com##+js(aeld, load, htmls)
 ! https://github.com/uBlockOrigin/uAssets/issues/17529
 karanpc.com##+js(rmnt, script, deblocker)
 karanpc.com##+js(aost, document.getElementsByTagName, adsBlocked)
+! https://github.com/AdguardTeam/AdguardFilters/issues/230978
+karanpc.com##span.wp-txt-ref:has-text(Direct)
+karanpc.com##.entry-content div[onclick][data-matrix]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/15384
 @@||adshnk.com^$ghide
@@ -3589,9 +3581,6 @@ sitefilme.com##+js(nowoif)
 smgplaza.com##+js(nostif, modal)
 smgplaza.com##+js(aeld, , modal)
 smgplaza.com##+js(acs, eval, replace)
-
-! https://github.com/uBlockOrigin/uAssets/issues/15986
-||imasdk.googleapis.com/js/sdkloader/ima3.js$script,domain=dobreprogramy.pl,redirect=noopjs
 
 ! https://github.com/uBlockOrigin/uAssets/issues/15993
 uberhumor.com##+js(nowoif)
