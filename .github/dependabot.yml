@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # Bump flake.lock inputs (nixpkgs) when newer commits are available upstream.
+  # Brings new electron_43 patch releases and other nixpkgs updates automatically.
+  # Dependabot's Nix support is GA since April 2026.
+  - package-ecosystem: "nix"
+    directory: "/"
+    schedule:
+      interval: "weekly"
