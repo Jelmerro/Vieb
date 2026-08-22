@@ -232,7 +232,7 @@ const navigateTo = (src, location, customPage = null) => {
     if (!webview || !location || webview.src.startsWith("devtools://")) {
         return
     }
-    if (!webview.getAttribute("dom-ready") && webview.isLoading()) {
+    if (!webview.hasAttribute("dom-ready") && webview.isLoading()) {
         setTimeout(() => navigateTo(src, location, webview), 1)
         return
     }
@@ -288,7 +288,7 @@ const saveTabs = () => {
         /** @type {TabInfo} */
         const tabInfo = {
             container,
-            "muted": !!tab.getAttribute("muted"),
+            "muted": tab.hasAttribute("muted"),
             "url": urlToString(url)
         }
         if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
@@ -442,7 +442,7 @@ const closeTab = (src, index = null, force = false) => {
         recentlyClosed.push({
             "container": page.getAttribute("container") ?? "",
             "index": oldTabIdx,
-            "muted": tab.getAttribute("muted") === "muted",
+            "muted": tab.hasAttribute("muted"),
             url
         })
     }
@@ -543,7 +543,7 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
 const addColorschemeStylingToWebview = (webview, force = false) => {
     const isSpecialPage = pathToSpecialPageName(webview.src)?.name
     const isLocal = webview.src.startsWith("file:/")
-    const isErrorPage = webview.getAttribute("failed-to-load")
+    const isErrorPage = webview.hasAttribute("failed-to-load")
     const isCustomView = webview.src.startsWith("sourceviewer:")
         || webview.src.startsWith("readerview:")
         || webview.src.startsWith("markdownviewer:")
@@ -1019,7 +1019,7 @@ const unsuspendPage = page => {
         return
     }
     const tab = tabForPage(page)
-    if (!tab?.getAttribute("suspended")) {
+    if (!tab?.hasAttribute("suspended")) {
         return
     }
     tab.removeAttribute("suspended")
@@ -1058,17 +1058,17 @@ const unsuspendPage = page => {
         webview.src = specialPagePath("newtab")
     }
     webview.addEventListener("dom-ready", () => {
-        if (webview.getAttribute("dom-ready")) {
+        if (webview.hasAttribute("dom-ready")) {
             return
         }
-        if (webview.getAttribute("custom-first-load")) {
+        if (webview.hasAttribute("custom-first-load")) {
             webview.clearHistory()
             webview.removeAttribute("custom-first-load")
             webview.setAttribute("dom-ready", "true")
             return
         }
         const name = tab.querySelector("span")
-        if (tab.getAttribute("muted")) {
+        if (tab.hasAttribute("muted")) {
             webview.setAudioMuted(true)
         }
         addWebviewListeners(webview)

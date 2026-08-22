@@ -165,7 +165,7 @@ const applyLayout = () => {
             delete timers[linkId]
         } else {
             tab.classList.remove("visible-tab")
-            if (timeout && !timers[linkId] && !tab.getAttribute("suspended")) {
+            if (timeout && !timers[linkId] && !tab.hasAttribute("suspended")) {
                 timers[linkId] = setTimeout(
                     () => susCall(tab, linkId, timeout), timeout)
             }

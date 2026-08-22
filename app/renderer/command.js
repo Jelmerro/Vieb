@@ -681,11 +681,11 @@ const translateSearchRangeToIdx = (src, range, silent) => {
     }
     let search = range.split("/").slice(1, -1).join("/")
     const ids = listTabs().map((t, i) => ({
-        "audio": !!t.getAttribute("media-playing"),
+        "audio": t.hasAttribute("media-playing"),
         "idx": i,
         "name": t.querySelector("span")?.textContent,
         "pinned": t.classList.contains("pinned"),
-        "suspended": !!t.getAttribute("suspended"),
+        "suspended": t.hasAttribute("suspended"),
         "url": pageForTab(t)?.getAttribute("src")
     })).filter(t => {
         let name = String(t.name)
@@ -1527,7 +1527,7 @@ const suspend = (src, args, range = null) => {
         tab = currentTab()
     } else {
         tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab")
-                && !t.getAttribute("suspended"))
+                && !t.hasAttribute("suspended"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
@@ -1595,7 +1595,7 @@ const setMute = (src, args, range) => {
         tab?.toggleAttribute("muted", args[0] === "true")
         const page = pageForTab(tab)
         if (page && !(page instanceof HTMLDivElement)) {
-            page.setAudioMuted(!!tab?.getAttribute("muted"))
+            page.setAudioMuted(tab?.hasAttribute("muted") ?? false)
         }
     }
     const {saveTabs} = require("./tabs")
@@ -1630,7 +1630,7 @@ const mute = (src, args, range = null) => {
     tab.toggleAttribute("muted")
     const page = pageForTab(tab)
     if (page && !(page instanceof HTMLDivElement)) {
-        page.setAudioMuted(!!tab.getAttribute("muted"))
+        page.setAudioMuted(tab.hasAttribute("muted"))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
@@ -1700,7 +1700,7 @@ const pin = (src, args, range) => {
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
+        tab = tabForBufferArg(args, t => !t.hasAttribute("suspended"))
     }
     if (!tab) {
         notify({"id": "commands.pin.noMatch", src, "type": "warning"})

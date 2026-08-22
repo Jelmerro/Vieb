@@ -70,7 +70,7 @@ const informPreload = (first = false) => {
             elemTypesToFollow, true)
     }
     setTimeout(() => {
-        if (currentPage()?.getAttribute("dom-ready")) {
+        if (currentPage()?.hasAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
                 ipcRenderer.send("follow-mode-start",
                     currentPage()?.getWebContentsId(), elemTypesToFollow)

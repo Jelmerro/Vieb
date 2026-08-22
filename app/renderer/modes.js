@@ -46,7 +46,7 @@ const modes = {
          * @param {import("./common").Mode} newMode
          */
         "onLeave": newMode => {
-            if (currentPage()?.getAttribute("dom-ready")) {
+            if (currentPage()?.hasAttribute("dom-ready")) {
                 currentPage()?.send("action", "blur")
             }
             if (newMode !== "pointer" && !getMouseConf("pageoutsideinsert")) {
@@ -184,7 +184,7 @@ const setMode = mode => {
     if (!modes[mode] || currentMode() === mode || !page) {
         return
     }
-    if (page.getAttribute("dom-ready")
+    if (page.hasAttribute("dom-ready")
         && page.isCrashed() && "fipv".includes(mode[0])) {
         return
     }
