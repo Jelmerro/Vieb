@@ -22,6 +22,20 @@
                 "general": "Failed to connect to server, see console",
                 "libretranslate": "Error from LibreTranslate: $1"
             }
+        },
+        "bookmarks": {
+            "added": "Bookmark added: $1: $2",
+            "deleted": "Deleted $1 bookmarks that matched the query.",
+            "exists": "A bookmark with name '$1' already exists.",
+            "folder": {
+                "deleted": "Deleted folder that matched the query."
+            },
+            "import": {
+                "failed": "Failed to import bookmarks.",
+                "success": "Successfully imported $1 new bookmarks."
+            },
+            "loaded": "Loaded $1 bookmarks that matched the query.",
+            "notfound": "Could not find bookmark."
         }
     },
     "adblocker": {
@@ -34,6 +48,21 @@
     "commands": {
         "arguments": {
             "folderMissing": "Folder '$1' does not exist!"
+        },
+        "bookmarks": {
+            "color": {
+                "invalid": "Invalid color: $1"
+            },
+            "invalid": {
+                "options": "Not valid options: $1."
+            },
+            "keywords": {
+                "multiword": "Keywords must be single words. Invalid multi-word keywords: $1"
+            },
+            "path": {
+                "invalid": "Invalid path: $1. Paths should only contain alphanumeric characters, hyphens and underscores."
+            },
+            "noname": "No name provided for the bookmark."
         },
         "buffers": "$1",
         "clear": {
@@ -303,6 +332,9 @@
         "noMappingsForKey": "No mapping found for key: $1"
     },
     "pages": {
+        "bookmarks": {
+            "title": "Bookmarks"
+        },
         "cookies": {
             "empty": "There are no cookies stored yet",
             "filterEmpty": "No results for current filter",

@@ -22,6 +22,20 @@
                 "general": "Verbinding met server mislukt, zie console",
                 "libretranslate": "Foutmelding van LibreTranslate: $1"
             }
+        },
+        "bookmarks": {
+            "added": "Bladwijzer toegevoegd: $1: $2",
+            "deleted": "$1 bladwijzers verwijderd die overeenkwamen met de zoekopdracht.",
+            "exists": "Een bladwijzer met de naam '$1' bestaat al.",
+            "folder": {
+                "deleted": "Verwijderde map die overeenkomt met de zoekopdracht."
+            },
+            "import": {
+                "failed": "Het importeren van bladwijzers is mislukt.",
+                "success": "Succesvol $1 nieuwe bladwijzers geïmporteerd."
+            },
+            "loaded": "$1 bladwijzers geladen die overeenkwamen met de zoekopdracht.",
+            "notfound": "Kon bladwijzer niet vinden."
         }
     },
     "adblocker": {
@@ -34,6 +48,21 @@
     "commands": {
         "arguments": {
             "folderMissing": "Map '$1' bestaat niet!"
+        },
+        "bookmarks": {
+            "color": {
+                "invalid": "Ongeldige kleurcode: $1"
+            },
+            "invalid": {
+                "options": "Geen geldige opties: $1."
+            },
+            "keywords": {
+                "multiword": "Zoekwoorden moeten uit één woord bestaan. Ongeldige zoekwoorden bestaande uit meerdere woorden: $1"
+            },
+            "path": {
+                "invalid": "Ongeldig pad: $1. Paden mogen alleen bestaan uit alfanumerieke tekens, koppeltekens en onderstrepingstekens."
+            },
+            "noname": "Geen naam opgegeven voor de bladwijzer."
         },
         "buffers": "$1",
         "clear": {
@@ -303,6 +332,9 @@
         "noMappingsForKey": "Geen mappings gevonden voor toetscombinatie: $1"
     },
     "pages": {
+        "bookmarks": {
+            "title": "Bladwijzers"
+        },
         "cookies": {
             "empty": "Er zijn nog geen cookies opgeslagen",
             "filterEmpty": "Geen cookies gevonden voor huidige filter",
