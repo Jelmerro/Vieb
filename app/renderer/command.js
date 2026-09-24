@@ -1022,7 +1022,8 @@ const quit = (src, range) => {
     }
 }
 
-let currentscheme = "default"
+let defaultscheme = "default"
+let currentscheme = defaultscheme
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
@@ -1059,7 +1060,7 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
         })
         return
     }
-    if (name === "default") {
+    if (name === defaultscheme) {
         css = ""
     }
     if (!document.getElementById("custom-styling")) {
