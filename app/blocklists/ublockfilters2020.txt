@@ -121,6 +121,7 @@ flickr.com##section:has([href*="istockphoto.com"])
 ! flickr.com##.sub-photo-right-view [href^="/account/upgrade"]:upward(.sub-photo-right-view > div)
 ! https://github.com/uBlockOrigin/uAssets/issues/29476
 flickr.com##body::after:style(top: 0 !important;)
+flickr.com##[data-skybox="desktop"], [data-skybox="desktop"] ~ *:style(--global-nav-ad-height: 0rem !important;)
 flickr.com##.nav-ad-container
 flickr.com##.fluid-magic-subnav-view.desktop-nav-ad .fluid-subnav.fixed, .fluid-magic-subnav-view.mobile-nav-ad .fluid-subnav.fixed:style(top: 0 !important;)
 flickr.com##.global-nav-view.desktop-nav-ad, .global-nav-view.desktop-nav-ad .global-nav-content, .global-nav-view.mobile-nav-ad, .global-nav-view.mobile-nav-ad .global-nav-content:style(margin-top: 0 !important;)
@@ -403,12 +404,12 @@ twistedporn.com##+js(nowoif)
 @@||paypou.com^$ghide
 ||paypou.com/newbanner
 
-! https://github.com/NanoMeow/QuickReports/issues/3773
-||oklivetv.com^$xhr,1p,redirect-rule=nooptext
-*$script,redirect-rule=noopjs,domain=oklivetv.com
-!#if env_firefox
-@@||oklivetv.com^$xhr,script,css,1p
-!#endif
+! https://github.com/uBlockOrigin/uAssets/issues/34676
+oklivetv.com##+js(set, xpv, {})
+oklivetv.com##+js(set, xpv.v, true)
+oklivetv.com##+js(acs, EventTarget.prototype.addEventListener, .clientHeight===0)
+||oklivetv.com/xplay/ad-serve.php
+||oklivetv.com/xplay/ad-click.php
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/54961
 ! https://github.com/uBlockOrigin/uAssets/issues/26788
@@ -892,8 +893,7 @@ sms24.*##+js(aost, document.createElement, app.js)
 sms24.*##.ado-header
 sms24.*##.ado-content
 sms24.*##.placeholder:remove-class(placeholder)
-*$script,redirect-rule=noopjs,domain=sms24.*
-@@||sms24.*^$ghide
+@@||sms24.$ghide
 
 ! https://github.com/uBlockOrigin/uAssets/issues/7551
 hentaistream.com##+js(aeld, load, script)
@@ -1076,6 +1076,7 @@ yellowbridge.com##+js(set, isContentBlocked, falseFunc)
 ||2mdn.net^$media,redirect=noop-1s.mp4:10,domain=open.spotify.com
 ||adxcel.com^$media,redirect=noop-1s.mp4:10,domain=open.spotify.com
 ||adstudio-assets.scdn.co^$media,redirect=noop-1s.mp4:10,domain=open.spotify.com
+||spotify.com/ad-logic/$media,redirect=noop-1s.mp4:10,domain=open.spotify.com
 *$media,3p,redirect-rule=noop-1s.mp4:10,domain=open.spotify.com
 ! https://www.reddit.com/r/uBlockOrigin/comments/1eiyb2h/spotify_web_player_skipping_through_entire/
 @@||podscribe.com/rss/$media,domain=open.spotify.com
@@ -1603,9 +1604,6 @@ pimylifeup.com##+js(aopr, adthrive.config)
 ! https://github.com/uBlockOrigin/uAssets/issues/14883
 @@||chronicle.com/dg/default/rest/$xhr,1p
 chronicle.com##.GoogleDfpAd-container
-
-! https://github.com/NanoMeow/QuickReports/issues/4512
-animepahe.*##+js(aopw, __C)
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/62210
 ||uii.io^$3p
@@ -2413,9 +2411,24 @@ arrowos.net###babasbmsgx
 ! https://github.com/uBlockOrigin/uAssets/issues/8167
 3hiidude.*##+js(aopr, String.fromCharCode)
 
+! https://github.com/uBlockOrigin/uAssets/issues/13833
+! https://github.com/uBlockOrigin/uAssets/issues/33868
+! vidmoly . me | .to popups
+kaembed.net,vidmoly.*##+js(nowoif, !vidmoly)
+vidmoly.*##+js(set, HTMLAnchorElement.prototype.click, noopFunc)
+vidmoly.*##+js(aeld, DOMContentLoaded, anchor.href)
+||boyfriendmeaningless.com^
+||disproveknob.com^
+vidmoly.*###mg_vd
+vidmoly.*###voc_block
+vidmoly.*###dos_vlock
+||cdn.staticmoly.me/*.php
 ! https://github.com/AdguardTeam/AdguardFilters/issues/66996
 ! https://github.com/uBlockOrigin/uAssets/issues/17289
 vidmoly.*###adsblock
+! https://github.com/uBlockOrigin/uAssets/issues/14870#issuecomment-5306796231
+kaembed.net##body > img[id]
+###vplayer ~ img[id][onclick]
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/67094
 lite-link.*##+js(aopr, app_vars.force_disable_adblock)
@@ -2613,8 +2626,13 @@ taufiqhdyt.com###big-ads
 ! https://github.com/uBlockOrigin/uAssets/issues/16498
 ! https://github.com/uBlockOrigin/uAssets/issues/21742
 beverfood.com##+js(nosiif, .offsetHeight)
+beverfood.com##+js(aeld, DOMContentLoaded, offsetHeight)
 beverfood.com###backy
 beverfood.com##.switchabig
+beverfood.com##a#x1
+beverfood.com##body:style(background-image: unset !important;)
+beverfood.com##.sito:style(margin-top: 0 !important;)
+beverfood.com##.theiaStickySidebar > ul > li.widget:has(> .textwidget > div[align="center"] > a[target=_blank]:not([class]) img)
 ||beverfood.com/immagini/*1920$image
 
 ! camthots.tv pre-roll ads
@@ -2757,9 +2775,10 @@ palcomix.com##table[width="800"]:has(img[src^="../ads/"])
 freemagazines.top##+js(aopr, b2a)
 freemagazines.top##+js(nostif, showModal)
 freemagazines.top##+js(acs, eval, replace)
-freemagazines.top##+js(rmnt, script, var Data)
+freemagazines.top##+js(rmnt, script, .offsetParent)
 freemagazines.top##+js(no-xhr-if, /doubleclick|googlesyndication/)
 freemagazines.top##+js(aeld, DOMContentLoaded, /atob|overlay/)
+freemagazines.top##.widget:has(> .adsbygoogle)
 *$xhr,redirect-rule=nooptext,domain=freemagazines.top
 
 ! https://github.com/abp-filters/abp-filters-anti-cv/issues/506
@@ -2847,8 +2866,8 @@ nypost.com##img[src$="/knewz_300x250.png"]:upward(.widget_text)
 nypost.com##.entry-content > .nyp-video-player
 ! https://github.com/uBlockOrigin/uAssets/issues/33707
 ! https://old.reddit.com/r/uBlockOrigin/comments/1ug4jiw/the_sun_adblock_nag/
-decider.com,nypost.com,pagesix.com,the-sun.com,thescottishsun.co.uk,thesun.co.uk,thesun.ie##+js(rmnt, script, parentNode.removeChild)
-decider.com,nypost.com,pagesix.com,the-sun.com,thescottishsun.co.uk,thesun.co.uk,thesun.ie##+js(acs, atob, parentNode.removeChild)
+decider.com,nypost.com,pagesix.com,the-sun.com,thescottishsun.co.uk,thesun.co.uk,thesun.ie##+js(rmnt, script, /parentNode\.removeChild|textContent=atob/)
+decider.com,nypost.com,pagesix.com,the-sun.com,thescottishsun.co.uk,thesun.co.uk,thesun.ie##+js(acs, atob, /parentNode\.removeChild|textContent=atob/)
 
 ! xmegadrive.com popup
 xmegadrive.com##+js(set, flashvars.adv_pause_html, '')
@@ -2867,6 +2886,12 @@ moviessources.*##+js(aopr, console.clear)
 
 ! citynews sites .it anti adb in video
 agrigentonotizie.it,anconatoday.it,arezzonotizie.it,avellinotoday.it,bresciatoday.it,brindisireport.it,casertanews.it,cataniatoday.it,cesenatoday.it,chietitoday.it,forlitoday.it,frosinonetoday.it,genovatoday.it,ilpescara.it,ilpiacenza.it,latinatoday.it,lecceprima.it,leccotoday.it,livornotoday.it,messinatoday.it,milanotoday.it,modenatoday.it,monzatoday.it,novaratoday.it,padovaoggi.it,parmatoday.it,perugiatoday.it,pisatoday.it,quicomo.it,ravennatoday.it,reggiotoday.it,riminitoday.it,romatoday.it,salernotoday.it,sondriotoday.it,sportpiacenza.it,ternitoday.it,today.it,torinotoday.it,trevisotoday.it,triesteprima.it,udinetoday.it,veneziatoday.it,vicenzatoday.it##+js(nostif, bADBlock)
+! https://www.reddit.com/r/uBlockOrigin/comments/1xio240/adblock_detection_on_wwwmilanotodayit/
+!#if cap_html_filtering
+agrigentonotizie.it,anconatoday.it,arezzonotizie.it,avellinotoday.it,bresciatoday.it,brindisireport.it,casertanews.it,cataniatoday.it,cesenatoday.it,chietitoday.it,forlitoday.it,frosinonetoday.it,genovatoday.it,ilpescara.it,ilpiacenza.it,latinatoday.it,lecceprima.it,leccotoday.it,livornotoday.it,messinatoday.it,milanotoday.it,modenatoday.it,monzatoday.it,novaratoday.it,padovaoggi.it,parmatoday.it,perugiatoday.it,pisatoday.it,quicomo.it,ravennatoday.it,reggiotoday.it,riminitoday.it,romatoday.it,salernotoday.it,sondriotoday.it,sportpiacenza.it,ternitoday.it,today.it,torinotoday.it,trevisotoday.it,triesteprima.it,udinetoday.it,veneziatoday.it,vicenzatoday.it##^script:has-text(__unfair)
+!#else
+agrigentonotizie.it,anconatoday.it,arezzonotizie.it,avellinotoday.it,bresciatoday.it,brindisireport.it,casertanews.it,cataniatoday.it,cesenatoday.it,chietitoday.it,forlitoday.it,frosinonetoday.it,genovatoday.it,ilpescara.it,ilpiacenza.it,latinatoday.it,lecceprima.it,leccotoday.it,livornotoday.it,messinatoday.it,milanotoday.it,modenatoday.it,monzatoday.it,novaratoday.it,padovaoggi.it,parmatoday.it,perugiatoday.it,pisatoday.it,quicomo.it,ravennatoday.it,reggiotoday.it,riminitoday.it,romatoday.it,salernotoday.it,sondriotoday.it,sportpiacenza.it,ternitoday.it,today.it,torinotoday.it,trevisotoday.it,triesteprima.it,udinetoday.it,veneziatoday.it,vicenzatoday.it##+js(rmnt, script, __unfair)
+!#endif
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/kc6jpe/how_to_bypass_adblock_detection_on_these_sites/
 *$script,redirect-rule=noopjs,domain=examsnet.com
