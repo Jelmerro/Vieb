@@ -677,8 +677,6 @@ const permissionHandler = (_, pm, callback, details) => {
             permission = "camera"
         } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
-        } else if (details.mediaTypes) {
-            permission = "displaycapture"
         } else {
             permission = "mediadevices"
         }
@@ -2620,8 +2618,8 @@ ipcMain.handle("make-default-app", () => {
 ipcMain.on("clear-clipboard", e => {
     e.returnValue = clipboard.clear()
 })
-ipcMain.on("read-clipboard", e => {
-    e.returnValue = clipboard.readText()
+ipcMain.on("read-clipboard", async e => {
+    e.returnValue = await clipboard.readText()
 })
 ipcMain.handle("write-clipboard", (_, data, type = "text") => {
     if (type === "dataurl") {
