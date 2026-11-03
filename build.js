@@ -111,6 +111,9 @@ const defaultConfig = {"config": {
             "--after-upgrade=./after-install.sh"
         ]
     },
+    "toolsets": {
+        "appimage": "1.0.2"
+    },
     "win": {
         "icon": "app/img/icons/512x512.png",
         "legalTrademarks": "Copyright @ Jelmer van Arnhem | "

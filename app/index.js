@@ -21,6 +21,7 @@ const {
     app,
     BrowserWindow,
     clipboard,
+    ClipboardItem,
     desktopCapturer,
     dialog,
     ipcMain,
@@ -1177,7 +1178,7 @@ ipcMain.on("set-custom-styling", (_, newFontSize, newCSS) => {
     customCSS = newCSS
 })
 app.on("login", (e, contents, _, auth, callback) => {
-    if (!mainWindow || !loginWindow || loginWindow.isVisible()) {
+    if (!contents || !mainWindow || !loginWindow || loginWindow.isVisible()) {
         return
     }
     if (loginAttempts.includes(contents.id)) {
@@ -1813,21 +1814,18 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     }
                     callback({...stream})
                 } else {
-                    // @ts-expect-error Incorrectly typed in Electron
                     callback(null)
                 }
             })
             ipcMain.on("hide-display-window", () => {
                 displayWindow?.hide()
                 mainWindow?.focus()
-                // @ts-expect-error Incorrectly typed in Electron
                 callback(null)
             })
             displayWindow.on("close", ev => {
                 ev.preventDefault()
                 displayWindow?.hide()
                 mainWindow?.focus()
-                // @ts-expect-error Incorrectly typed in Electron
                 callback(null)
             })
         })
@@ -2627,13 +2625,16 @@ ipcMain.on("read-clipboard", e => {
 })
 ipcMain.handle("write-clipboard", (_, data, type = "text") => {
     if (type === "dataurl") {
-        clipboard.writeImage(nativeImage.createFromDataURL(data))
+        const buff = nativeImage.createFromDataURL(data).toPNG()
+        clipboard.write([new ClipboardItem({
+            "image/png": new Blob([new Uint8Array(buff)], {"type": "image/png"})
+        })])
     } else if (type === "buffer") {
-        clipboard.writeImage(nativeImage.createFromBuffer(data))
-    } else if (type === "image") {
-        clipboard.writeImage(data)
-    } else if (type === "selection") {
-        clipboard.writeText(data, "selection")
+        clipboard.write([new ClipboardItem({
+            "image/png": new Blob([new Uint8Array(data)], {"type": "image/png"})
+        })])
+    } else if (type === "selection" && clipboard.selection) {
+        clipboard.selection.writeText(data)
     } else {
         clipboard.writeText(data)
     }

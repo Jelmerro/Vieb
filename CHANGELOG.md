@@ -13,14 +13,18 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- AppImage toolset version to a more recent one
+
 ### Fixed
 
 - Mute and suspend state inconsistencies by using hasAttribute instead
 
 ### Versions
 
-- Electron 43.1.1 (unchanged)
-- Chromium 150.0.7871.114 (unchanged)
+- Electron 44.10.1 (was 43.1.1)
+- Chromium 152.0.7977.169 (was 150.0.7871.114)
 
 ## [12.10.0](https://github.com/Jelmerro/Vieb/compare/12.9.0...12.10.0) - 2026-07-19
 
