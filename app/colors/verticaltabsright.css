@@ -15,7 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 #tabs {overflow-x: hidden;overflow-y: auto;position: absolute;right: 0;width: 15vw;max-height: calc(100vh - 2em);top: 2em;flex-wrap: wrap;}
 #tabs > span {min-height: 1.9em;max-height: 1.9em;min-width: 14vw !important;width: 15vw;}
 #page-container {height: calc(100vh - 2em);position: absolute;top: 2em;right: 15vw;width: 85vw;}
