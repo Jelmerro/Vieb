@@ -928,6 +928,19 @@ const addWebviewListeners = webview => {
                 webview.send("insert-new-tab-info", false, favoritePages)
             }
         }
+        if (e.channel === "bookmark-data-request") {
+            const {getBookmarkData} = require("./bookmarks")
+            const bmdata = getBookmarkData()
+            webview.send("bookmark-data-response", bmdata)
+        }
+        if (e.channel === "delete-bookmarks-folder") {
+            const {deleteFolder} = require("./bookmarks")
+            deleteFolder([`path=${e.args[0]}`])
+        }
+        if (e.channel === "delete-bookmark") {
+            const {deleteBookmark} = require("./bookmarks")
+            deleteBookmark([`url=${e.args[0]}`])
+        }
         if (e.channel === "swipe" && getMouseConf("historyswipe")) {
             if (e.args[0]) {
                 forwardInHistory({"customPage": webview, "src": "user"})
