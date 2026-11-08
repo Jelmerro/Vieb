@@ -38,10 +38,13 @@ usage should be similar to other packages of the same type.
 
 ##### Mac
 
-The mac apps are not signed, you can sign them yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
-This step has become [a required step in recent versions](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
-If not sufficient to self-sign it, you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
-which comes down to disabling app store requirements with `sudo spctl --master-disable`.
+The mac apps are not signed, you can sign them yourself with these commands:
+
+```sh
+sudo codesign --force --deep --sign - /Applications/Vieb.app
+sudo xattr -dr com.apple.quarantine /Applications/Vieb.app
+```
+
 If none of these work, you can build the app from source with the [README build instructions](./README.md#building).
 If these instructions do not seem to be followed at all, your issue might be [closed](https://github.com/Jelmerro/Vieb/issues/169),
 as it's not Vieb's responsibility to fix your operating system quirks for you.
