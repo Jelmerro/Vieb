@@ -1058,113 +1058,6 @@ app.whenReady().then(async() => {
             return {"action": "deny"}
         })
     })
-    // Show a dialog for sites requiring Basic HTTP authentication
-    /** @type {Electron.BrowserWindowConstructorOptions} */
-    const loginWindowData = {
-        "alwaysOnTop": true,
-        "frame": false,
-        "fullscreenable": false,
-        "modal": true,
-        "parent": mainWindow,
-        "resizable": false,
-        "show": false,
-        "webPreferences": {
-            "partition": "login",
-            "preload": joinPath(__dirname, "popups/login.js"),
-            "sandbox": false
-        }
-    }
-    if (customIcon) {
-        loginWindowData.icon = customIcon
-    }
-    loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
-    loginWindow.loadURL(loginPage)
-    loginWindow.on("close", e => {
-        e.preventDefault()
-        loginWindow?.hide()
-        mainWindow?.focus()
-    })
-    ipcMain.on("hide-login-window", () => {
-        loginWindow?.hide()
-        mainWindow?.focus()
-    })
-    // Show a dialog for large notifications
-    /** @type {Electron.BrowserWindowConstructorOptions} */
-    const notificationWindowData = {
-        "alwaysOnTop": true,
-        "frame": false,
-        "fullscreenable": false,
-        "modal": true,
-        "parent": mainWindow,
-        "resizable": false,
-        "show": false,
-        "webPreferences": {
-            "partition": "notification-window",
-            "preload": joinPath(__dirname, "popups/notification.js"),
-            "sandbox": false
-        }
-    }
-    if (customIcon) {
-        notificationWindowData.icon = customIcon
-    }
-    notificationWindow = new BrowserWindow(notificationWindowData)
-    const notificationPage = `file:///${joinPath(
-        __dirname, "pages/notificationpopup.html")}`
-    notificationWindow.loadURL(notificationPage)
-    notificationWindow.on("close", e => {
-        e.preventDefault()
-        notificationWindow?.hide()
-        mainWindow?.focus()
-    })
-    ipcMain.on("hide-notification-window", () => {
-        notificationWindow?.hide()
-        mainWindow?.focus()
-    })
-    // Show a sync prompt dialog if requested by any of the pages
-    /** @type {Electron.BrowserWindowConstructorOptions} */
-    const promptWindowData = {
-        "alwaysOnTop": true,
-        "frame": false,
-        "fullscreenable": false,
-        "modal": true,
-        "parent": mainWindow,
-        "resizable": false,
-        "show": false,
-        "webPreferences": {
-            "partition": "prompt",
-            "preload": joinPath(__dirname, "popups/prompt.js"),
-            "sandbox": false
-        }
-    }
-    if (customIcon) {
-        promptWindowData.icon = customIcon
-    }
-    promptWindow = new BrowserWindow(promptWindowData)
-    const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
-    promptWindow.loadURL(promptPage)
-    // Show a sync display dialog if requested by any of the pages
-    /** @type {Electron.BrowserWindowConstructorOptions} */
-    const displayWindowData = {
-        "alwaysOnTop": true,
-        "frame": false,
-        "fullscreenable": false,
-        "modal": true,
-        "parent": mainWindow,
-        "resizable": false,
-        "show": false,
-        "webPreferences": {
-            "partition": "display",
-            "preload": joinPath(__dirname, "popups/display.js"),
-            "sandbox": false
-        }
-    }
-    if (customIcon) {
-        displayWindowData.icon = customIcon
-    }
-    displayWindow = new BrowserWindow(displayWindowData)
-    const displayPage = `file:///${joinPath(__dirname, "pages/displaypopup.html")}`
-    displayWindow.loadURL(displayPage)
 })
 // Handle Basic HTTP login attempts
 /** @type {number[]} */
@@ -1175,8 +1068,8 @@ ipcMain.on("set-custom-styling", (_, newFontSize, newCSS) => {
     fontsize = newFontSize
     customCSS = newCSS
 })
-app.on("login", (e, contents, _, auth, callback) => {
-    if (!contents || !mainWindow || !loginWindow || loginWindow.isVisible()) {
+app.on("login", async(e, contents, _, auth, callback) => {
+    if (!contents || !mainWindow || loginWindow?.isVisible()) {
         return
     }
     if (loginAttempts.includes(contents.id)) {
@@ -1185,6 +1078,42 @@ app.on("login", (e, contents, _, auth, callback) => {
     }
     e.preventDefault()
     loginAttempts.push(contents.id)
+    if (!loginWindow) {
+        /** @type {Electron.BrowserWindowConstructorOptions} */
+        const loginWindowData = {
+            "alwaysOnTop": true,
+            "frame": false,
+            "fullscreenable": false,
+            "modal": true,
+            "parent": mainWindow,
+            "resizable": false,
+            "show": false,
+            "webPreferences": {
+                "partition": "login",
+                "preload": joinPath(__dirname, "popups/login.js"),
+                "sandbox": false
+            }
+        }
+        if (customIcon) {
+            loginWindowData.icon = customIcon
+        }
+        loginWindow = new BrowserWindow(loginWindowData)
+        const loginPage = `file:///${joinPath(
+            __dirname, "pages/loginpopup.html")}`
+        loginWindow.loadURL(loginPage)
+        await new Promise(res => {
+            loginWindow?.on("ready-to-show", () => res(null))
+        })
+        loginWindow.on("close", ev => {
+            ev.preventDefault()
+            loginWindow?.hide()
+            mainWindow?.focus()
+        })
+        ipcMain.on("hide-login-window", () => {
+            loginWindow?.hide()
+            mainWindow?.focus()
+        })
+    }
     loginWindow.removeAllListeners("hide")
     loginWindow.once("hide", () => {
         try {
@@ -1227,9 +1156,45 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.focus()
 })
 // Show a scrollable notification popup for long notifications
-ipcMain.on("show-notification", (_, escapedMessage, properType) => {
-    if (!mainWindow || !notificationWindow) {
+ipcMain.on("show-notification", async(_, escapedMessage, properType) => {
+    if (!mainWindow) {
         return
+    }
+    if (!notificationWindow) {
+        /** @type {Electron.BrowserWindowConstructorOptions} */
+        const notificationWindowData = {
+            "alwaysOnTop": true,
+            "frame": false,
+            "fullscreenable": false,
+            "modal": true,
+            "parent": mainWindow,
+            "resizable": false,
+            "show": false,
+            "webPreferences": {
+                "partition": "notification-window",
+                "preload": joinPath(__dirname, "popups/notification.js"),
+                "sandbox": false
+            }
+        }
+        if (customIcon) {
+            notificationWindowData.icon = customIcon
+        }
+        notificationWindow = new BrowserWindow(notificationWindowData)
+        const notificationPage = `file:///${joinPath(
+            __dirname, "pages/notificationpopup.html")}`
+        notificationWindow.loadURL(notificationPage)
+        await new Promise(res => {
+            notificationWindow?.on("ready-to-show", () => res(null))
+        })
+        notificationWindow.on("close", e => {
+            e.preventDefault()
+            notificationWindow?.hide()
+            mainWindow?.focus()
+        })
+        ipcMain.on("hide-notification-window", () => {
+            notificationWindow?.hide()
+            mainWindow?.focus()
+        })
     }
     const bounds = mainWindow.getBounds()
     const width = Math.round(bounds.width * 0.9)
@@ -1254,9 +1219,36 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.focus()
 })
 // Handle prompts in sync from within the webviews
-ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
-    if (!mainWindow || !promptWindow) {
+ipcMain.on("show-prompt-dialog", async(e, title, defaultText) => {
+    if (!mainWindow) {
         return
+    }
+    if (!promptWindow) {
+        /** @type {Electron.BrowserWindowConstructorOptions} */
+        const promptWindowData = {
+            "alwaysOnTop": true,
+            "frame": false,
+            "fullscreenable": false,
+            "modal": true,
+            "parent": mainWindow,
+            "resizable": false,
+            "show": false,
+            "webPreferences": {
+                "partition": "prompt",
+                "preload": joinPath(__dirname, "popups/prompt.js"),
+                "sandbox": false
+            }
+        }
+        if (customIcon) {
+            promptWindowData.icon = customIcon
+        }
+        promptWindow = new BrowserWindow(promptWindowData)
+        const promptPage = `file:///${joinPath(
+            __dirname, "pages/promptpopup.html")}`
+        promptWindow.loadURL(promptPage)
+        await new Promise(res => {
+            promptWindow?.on("ready-to-show", () => res(null))
+        })
     }
     ipcMain.removeAllListeners("prompt-response")
     ipcMain.removeAllListeners("hide-prompt-window")
@@ -1279,8 +1271,6 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
         }
     }
     promptWindow.webContents.send("prompt-info", information)
-    promptWindow.show()
-    promptWindow.focus()
     ipcMain.on("prompt-response", (_, response) => {
         promptWindow?.hide()
         mainWindow?.focus()
@@ -1297,6 +1287,8 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
         mainWindow?.focus()
         e.returnValue = null
     })
+    promptWindow.show()
+    promptWindow.focus()
 })
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
@@ -1699,8 +1691,35 @@ const enableAdblocker = type => {
  * @param {Electron.DesktopCapturerSource[]} desktopSources
  */
 const handleDesktopCapture = async(request, callback, desktopSources) => {
-    if (!mainWindow || !displayWindow) {
+    if (!mainWindow) {
         return
+    }
+    if (!displayWindow) {
+        /** @type {Electron.BrowserWindowConstructorOptions} */
+        const displayWindowData = {
+            "alwaysOnTop": true,
+            "frame": false,
+            "fullscreenable": false,
+            "modal": true,
+            "parent": mainWindow,
+            "resizable": false,
+            "show": false,
+            "webPreferences": {
+                "partition": "display",
+                "preload": joinPath(__dirname, "popups/display.js"),
+                "sandbox": false
+            }
+        }
+        if (customIcon) {
+            displayWindowData.icon = customIcon
+        }
+        displayWindow = new BrowserWindow(displayWindowData)
+        const displayPage = `file:///${joinPath(
+            __dirname, "pages/displaypopup.html")}`
+        displayWindow.loadURL(displayPage)
+        await new Promise(res => {
+            displayWindow?.on("ready-to-show", () => res(null))
+        })
     }
     ipcMain.removeAllListeners("display-response")
     ipcMain.removeAllListeners("hide-display-window")
@@ -1786,8 +1805,6 @@ const handleDesktopCapture = async(request, callback, desktopSources) => {
         }
     }
     displayWindow.webContents.send("display-info", information)
-    displayWindow.show()
-    displayWindow.focus()
     ipcMain.on("display-response", (__, response) => {
         displayWindow?.hide()
         mainWindow?.focus()
@@ -1838,6 +1855,8 @@ const handleDesktopCapture = async(request, callback, desktopSources) => {
         mainWindow?.focus()
         callback(null)
     })
+    displayWindow.show()
+    displayWindow.focus()
 }
 
 /** Return the system matching sec-ch-ua-platform client hint platform. */
