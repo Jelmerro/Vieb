@@ -1692,6 +1692,154 @@ const enableAdblocker = type => {
     }
 }
 
+/**
+ * Handle desktop capture requests to send the selected screen/tab via callback.
+ * @param {Electron.DisplayMediaRequestHandlerHandlerRequest} request
+ * @param {(streams: Electron.Streams|null) => void} callback
+ * @param {Electron.DesktopCapturerSource[]} desktopSources
+ */
+const handleDesktopCapture = async(request, callback, desktopSources) => {
+    if (!mainWindow || !displayWindow) {
+        return
+    }
+    ipcMain.removeAllListeners("display-response")
+    ipcMain.removeAllListeners("hide-display-window")
+    displayWindow.removeAllListeners("close")
+    const bounds = mainWindow.getBounds()
+    const width = Math.round(bounds.width * 0.9)
+    let height = Math.round(bounds.height * 0.9)
+    height -= Math.round(height % fontsize + fontsize * 0.75)
+    displayWindow.setMinimumSize(width, height)
+    displayWindow.setSize(width, height)
+    displayWindow.setPosition(
+        Math.round(bounds.x + bounds.width / 2 - width / 2),
+        Math.round(bounds.y + bounds.height / 2 - height / 2))
+    let tabId = null
+    const tabIds = webContents.getAllWebContents().map(wc => {
+        try {
+            if (wc.mainFrame === request.frame) {
+                tabId = wc.id
+            } else if (wc.getType() === "webview") {
+                return wc.id
+            }
+        } catch {
+            // Likely not fully loaded properly or not a webview at all.
+        }
+        return null
+    }).filter(Boolean)
+    let tabImg = null
+    if (tabId) {
+        try {
+            const img = await webContents.fromId(tabId)?.capturePage()
+            tabImg = img?.resize({"width": 20 * fontsize})?.toDataURL()
+        } catch {
+            // No tab preview, not a huge problem
+        }
+    }
+    const otherTabs = await Promise.all(tabIds.map(async id => {
+        try {
+            const wc = webContents.fromId(id)
+            const capture = await wc?.capturePage(
+                undefined, {"stayHidden": true})
+            const img = capture?.resize({"width": 20 * fontsize})?.toDataURL()
+            if (img) {
+                return {
+                    "icon": null,
+                    id,
+                    img,
+                    "title": translate("popups.display.tab", {
+                        "fields": [String(id)]
+                    }),
+                    "type": "tab"
+                }
+            }
+        } catch {
+            // No tab image, skipping this tab in the preview
+        }
+        return null
+    }))
+    const sources = [
+        ...desktopSources.map(s => ({
+            "icon": s.appIcon?.toDataURL() ?? "",
+            "id": s.id,
+            "img": s.thumbnail.toDataURL(),
+            "title": s.name.trim() || translate(
+                "popups.display.screen", {"fields": [s.id]}),
+            "type": "desktop"
+        })),
+        {
+            "icon": null,
+            "img": tabImg,
+            "title": translate("popups.display.currentTab"),
+            "type": "currenttab"
+        },
+        ...otherTabs.filter(Boolean)
+    ]
+    const information = {
+        customCSS,
+        fontsize,
+        sources,
+        "translations": {
+            "audio": translate("popups.display.audio"),
+            "echo": translate("popups.display.echo"),
+            "title": translate("popups.display.title")
+        }
+    }
+    displayWindow.webContents.send("display-info", information)
+    displayWindow.show()
+    displayWindow.focus()
+    ipcMain.on("display-response", (__, response) => {
+        displayWindow?.hide()
+        mainWindow?.focus()
+        if (response?.source) {
+            const {audio, echo, source} = response
+            /** @type {Partial<Electron.Streams>} */
+            let stream = {}
+            if (echo) {
+                stream = {"enableLocalEcho": true}
+            }
+            if (source.type === "currenttab" && request.frame) {
+                if (audio) {
+                    stream = {...stream, "audio": request.frame}
+                }
+                callback({...stream, "video": request.frame})
+            }
+            if (source.type === "tab" && source.id) {
+                const wc = webContents.fromId(source.id)
+                if (wc) {
+                    if (audio) {
+                        stream = {...stream, "audio": wc.mainFrame}
+                    }
+                    callback({...stream, "video": wc.mainFrame})
+                }
+            }
+            if (source.type === "desktop") {
+                if (audio) {
+                    stream = {...stream, "audio": "loopback"}
+                }
+                const desktopSource = desktopSources.find(
+                    s => s.id === source.id)
+                if (desktopSource) {
+                    callback({...stream, "video": desktopSource})
+                }
+            }
+        } else {
+            callback(null)
+        }
+    })
+    ipcMain.on("hide-display-window", () => {
+        displayWindow?.hide()
+        mainWindow?.focus()
+        callback(null)
+    })
+    displayWindow.on("close", ev => {
+        ev.preventDefault()
+        displayWindow?.hide()
+        mainWindow?.focus()
+        callback(null)
+    })
+}
+
 /** Return the system matching sec-ch-ua-platform client hint platform. */
 const clientHintPlatform = () => ({
     "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
@@ -1744,148 +1892,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "fetchWindowIcons": true,
             "thumbnailSize": {"height": 20 * fontsize, "width": 20 * fontsize},
             "types": ["screen", "window"]
-        }).then(async desktopSources => {
-            if (!mainWindow || !displayWindow) {
-                return
-            }
-            ipcMain.removeAllListeners("display-response")
-            ipcMain.removeAllListeners("hide-display-window")
-            displayWindow.removeAllListeners("close")
-            const bounds = mainWindow.getBounds()
-            const width = Math.round(bounds.width * 0.9)
-            let height = Math.round(bounds.height * 0.9)
-            height -= Math.round(height % fontsize + fontsize * 0.75)
-            displayWindow.setMinimumSize(width, height)
-            displayWindow.setSize(width, height)
-            displayWindow.setPosition(
-                Math.round(bounds.x + bounds.width / 2 - width / 2),
-                Math.round(bounds.y + bounds.height / 2 - height / 2))
-            let tabId = null
-            const tabIds = webContents.getAllWebContents().map(wc => {
-                try {
-                    if (wc.mainFrame === request.frame) {
-                        tabId = wc.id
-                    } else if (wc.getType() === "webview") {
-                        return wc.id
-                    }
-                } catch {
-                    // Likely not fully loaded properly or not a webview at all.
-                }
-                return null
-            }).filter(Boolean)
-            let tabImg = null
-            if (tabId) {
-                try {
-                    const img = await webContents.fromId(tabId)?.capturePage()
-                    tabImg = img?.resize({"width": 20 * fontsize})?.toDataURL()
-                } catch {
-                    // No tab preview, not a huge problem
-                }
-            }
-            const otherTabs = await Promise.all(tabIds.map(async id => {
-                try {
-                    const wc = webContents.fromId(id)
-                    const capture = await wc?.capturePage(
-                        undefined, {"stayHidden": true})
-                    const img = capture?.resize(
-                        {"width": 20 * fontsize})?.toDataURL()
-                    if (img) {
-                        return {
-                            "icon": null,
-                            id,
-                            img,
-                            "title": translate("popups.display.tab", {
-                                "fields": [String(id)]
-                            }),
-                            "type": "tab"
-                        }
-                    }
-                } catch {
-                    // No tab image, skipping this tab in the preview
-                }
-                return null
-            }))
-            const sources = [
-                ...desktopSources.map(s => ({
-                    "icon": s.appIcon?.toDataURL() ?? "",
-                    "id": s.id,
-                    "img": s.thumbnail.toDataURL(),
-                    "title": s.name.trim() || translate(
-                        "popups.display.screen", {"fields": [s.id]}),
-                    "type": "desktop"
-                })),
-                {
-                    "icon": null,
-                    "img": tabImg,
-                    "title": translate("popups.display.currentTab"),
-                    "type": "currenttab"
-                },
-                ...otherTabs.filter(Boolean)
-            ]
-            const information = {
-                customCSS,
-                fontsize,
-                sources,
-                "translations": {
-                    "audio": translate("popups.display.audio"),
-                    "echo": translate("popups.display.echo"),
-                    "title": translate("popups.display.title")
-                }
-            }
-            displayWindow.webContents.send("display-info", information)
-            displayWindow.show()
-            displayWindow.focus()
-            ipcMain.on("display-response", (__, response) => {
-                displayWindow?.hide()
-                mainWindow?.focus()
-                if (response?.source) {
-                    const {audio, echo, source} = response
-                    /** @type {Partial<Electron.Streams>} */
-                    let stream = {}
-                    if (echo) {
-                        stream = {"enableLocalEcho": true}
-                    }
-                    if (source.type === "currenttab" && request.frame) {
-                        if (audio) {
-                            stream = {...stream, "audio": request.frame}
-                        }
-                        callback({...stream, "video": request.frame})
-                    }
-                    if (source.type === "tab" && source.id) {
-                        const wc = webContents.fromId(source.id)
-                        if (wc) {
-                            if (audio) {
-                                stream = {...stream, "audio": wc.mainFrame}
-                            }
-                            callback({...stream, "video": wc.mainFrame})
-                        }
-                    }
-                    if (response.type === "desktop") {
-                        if (audio) {
-                            stream = {...stream, "audio": "loopback"}
-                        }
-                        const desktopSource = desktopSources.find(
-                            s => s.id === source.id)
-                        if (desktopSource) {
-                            callback({...stream, "video": desktopSource})
-                        }
-                    }
-                } else {
-                    callback(null)
-                }
-            })
-            ipcMain.on("hide-display-window", () => {
-                displayWindow?.hide()
-                mainWindow?.focus()
-                callback(null)
-            })
-            displayWindow.on("close", ev => {
-                ev.preventDefault()
-                displayWindow?.hide()
-                mainWindow?.focus()
-                callback(null)
-            })
-        })
+        }).then(async desktopSources => await handleDesktopCapture(
+            request, callback, desktopSources))
     })
     newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, () => null, {
