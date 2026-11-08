@@ -429,6 +429,8 @@
             "audio": "Share system audio",
             "currentTab": "Current tab",
             "echo": "Enable audio echo",
+            "screen": "Screen $1",
+            "tab": "Tab $1",
             "title": "Display capture"
         },
         "login": {

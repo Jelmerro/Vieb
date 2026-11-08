@@ -291,6 +291,8 @@ export type TranslationKeys =
     | "popups.display.audio"
     | "popups.display.currentTab"
     | "popups.display.echo"
+    | "popups.display.screen"
+    | "popups.display.tab"
     | "popups.display.title"
     | "popups.login.info"
     | "popups.login.password"

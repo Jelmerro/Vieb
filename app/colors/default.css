@@ -206,12 +206,12 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs.scroll {overflow-x: auto;}
 #tabs.wrap {flex-wrap: wrap;}
 /* pages container */
-.webview {position: absolute;display: none;pointer-events: none;}
-#page-container {position: relative;}
-#page-container, #current-page, .visible-page {display: flex;flex: 1;height: 100%;width: 100%;}
+.webview {position: absolute;pointer-events: none;z-index: -1;}
+#page-container {position: relative;overflow: hidden;}
+#page-container, #current-page, .visible-page {z-index: 0;display: flex;flex: 1;height: 100%;width: 100%;}
 #pages.multiple .webview {border: solid .15em transparent;box-sizing: border-box;}
 #pages.multiple #current-page {border-color: var(--tab-split);}
-#pagelayout {display: flex;height: 100%;width: 100%;}
+#pagelayout {background: var(--bg);display: flex;height: 100%;width: 100%;}
 #pagelayout * {flex: 1;}
 #pagelayout.hor, #pagelayout .hor {flex-direction: row;display: flex;}
 #pagelayout.ver, #pagelayout .ver {flex-direction: column;display: flex;}

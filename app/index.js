@@ -1744,7 +1744,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "fetchWindowIcons": true,
             "thumbnailSize": {"height": 20 * fontsize, "width": 20 * fontsize},
             "types": ["screen", "window"]
-        }).then(async sources => {
+        }).then(async desktopSources => {
             if (!mainWindow || !displayWindow) {
                 return
             }
@@ -1760,13 +1760,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             displayWindow.setPosition(
                 Math.round(bounds.x + bounds.width / 2 - width / 2),
                 Math.round(bounds.y + bounds.height / 2 - height / 2))
-            const tabId = webContents.getAllWebContents().find(wc => {
+            let tabId = null
+            const tabIds = webContents.getAllWebContents().map(wc => {
                 try {
-                    return wc.mainFrame === request.frame
+                    if (wc.mainFrame === request.frame) {
+                        tabId = wc.id
+                    } else if (wc.getType() === "webview") {
+                        return wc.id
+                    }
                 } catch {
-                    return false
+                    // Likely not fully loaded properly or not a webview at all.
                 }
-            })?.id ?? null
+                return null
+            }).filter(Boolean)
             let tabImg = null
             if (tabId) {
                 try {
@@ -1776,18 +1782,52 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     // No tab preview, not a huge problem
                 }
             }
+            const otherTabs = await Promise.all(tabIds.map(async id => {
+                try {
+                    const wc = webContents.fromId(id)
+                    const capture = await wc?.capturePage(
+                        undefined, {"stayHidden": true})
+                    const img = capture?.resize(
+                        {"width": 20 * fontsize})?.toDataURL()
+                    if (img) {
+                        return {
+                            "icon": null,
+                            id,
+                            img,
+                            "title": translate("popups.display.tab", {
+                                "fields": [String(id)]
+                            }),
+                            "type": "tab"
+                        }
+                    }
+                } catch {
+                    // No tab image, skipping this tab in the preview
+                }
+                return null
+            }))
+            const sources = [
+                ...desktopSources.map(s => ({
+                    "icon": s.appIcon?.toDataURL() ?? "",
+                    "id": s.id,
+                    "img": s.thumbnail.toDataURL(),
+                    "title": s.name.trim() || translate(
+                        "popups.display.screen", {"fields": [s.id]}),
+                    "type": "desktop"
+                })),
+                {
+                    "icon": null,
+                    "img": tabImg,
+                    "title": translate("popups.display.currentTab"),
+                    "type": "currenttab"
+                },
+                ...otherTabs.filter(Boolean)
+            ]
             const information = {
                 customCSS,
                 fontsize,
-                "sources": sources.map(s => ({
-                    "icon": s.appIcon?.toDataURL() ?? "",
-                    "img": s.thumbnail.toDataURL(),
-                    "title": s.name
-                })),
-                tabImg,
+                sources,
                 "translations": {
                     "audio": translate("popups.display.audio"),
-                    "currentTab": translate("popups.display.currentTab"),
                     "echo": translate("popups.display.echo"),
                     "title": translate("popups.display.title")
                 }
@@ -1798,19 +1838,38 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             ipcMain.on("display-response", (__, response) => {
                 displayWindow?.hide()
                 mainWindow?.focus()
-                if (response) {
-                    /** @type {Electron.Streams} */
-                    let stream = {"video": sources[response.index]}
-                    if (response.index === "frame" && request.frame) {
-                        stream = {...stream, "video": request.frame}
+                if (response?.source) {
+                    const {audio, echo, source} = response
+                    /** @type {Partial<Electron.Streams>} */
+                    let stream = {}
+                    if (echo) {
+                        stream = {"enableLocalEcho": true}
                     }
-                    if (response.audio) {
-                        stream = {...stream, "audio": "loopback"}
+                    if (source.type === "currenttab" && request.frame) {
+                        if (audio) {
+                            stream = {...stream, "audio": request.frame}
+                        }
+                        callback({...stream, "video": request.frame})
                     }
-                    if (response.echo) {
-                        stream = {...stream, "enableLocalEcho": true}
+                    if (source.type === "tab" && source.id) {
+                        const wc = webContents.fromId(source.id)
+                        if (wc) {
+                            if (audio) {
+                                stream = {...stream, "audio": wc.mainFrame}
+                            }
+                            callback({...stream, "video": wc.mainFrame})
+                        }
                     }
-                    callback({...stream})
+                    if (response.type === "desktop") {
+                        if (audio) {
+                            stream = {...stream, "audio": "loopback"}
+                        }
+                        const desktopSource = desktopSources.find(
+                            s => s.id === source.id)
+                        if (desktopSource) {
+                            callback({...stream, "video": desktopSource})
+                        }
+                    }
                 } else {
                     callback(null)
                 }

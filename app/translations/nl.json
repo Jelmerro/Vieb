@@ -429,6 +429,8 @@
             "audio": "Deel systeem audio",
             "currentTab": "Huidig tabblad",
             "echo": "Geluidsecho inschakelen",
+            "screen": "Scherm $1",
+            "tab": "Tabblad $1",
             "title": "Scherm delen"
         },
         "login": {

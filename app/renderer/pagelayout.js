@@ -130,7 +130,14 @@ const applyLayout = () => {
         page.classList.remove("visible-page")
     }
     for (const page of listRealPages()) {
-        page.classList.toggle("visible-page", visiblePages.includes(page))
+        const visible = visiblePages.includes(page)
+        page.classList.toggle("visible-page", visible)
+        if (!visible) {
+            page.style.left = `${Math.round(containerPos.x)}px`
+            page.style.top = `${Math.round(containerPos.y)}px`
+            page.style.width = `${Math.round(containerPos.width)}px`
+            page.style.height = `${Math.round(containerPos.height)}px`
+        }
     }
     /**
      * Suspend a tab after a timeout, optionally repeating if playing media.

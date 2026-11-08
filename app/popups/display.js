@@ -19,8 +19,24 @@
 
 const {ipcRenderer} = require("electron")
 
+/**
+ * @typedef {{
+ *   title: string,
+ *   img: string,
+ *   icon: string,
+ *   type: "desktop"|"currenttab"|"tab",
+ *   id?: number
+ * }} SourceInfo
+ */
+/**
+ * @typedef {{
+ *   type: "desktop"|"currenttab"|"tab",
+ *   id?: number
+ * }} SourceSelect
+ */
+
 const keys = [..."abcdefghijklmnopqrstuvwxyz0123456789"]
-/** @type {{title: string, img: string, icon: string}[]} */
+/** @type {SourceInfo[]} */
 let sources = []
 window.addEventListener("load", () => {
     const screensContainer = document.getElementById("screens")
@@ -34,6 +50,18 @@ window.addEventListener("load", () => {
     const echoEnabledBox = document.getElementById("echo-enabled")
     if (!(echoEnabledBox instanceof HTMLInputElement)) {
         return
+    }
+    /**
+     * Confirm a source as the selected one for desktop/tab sharing.
+     * @param {SourceSelect} source
+     */
+    const sendSelectedSource = source => {
+        /** @type {{source: SourceSelect, audio: boolean, echo: boolean}} */
+        ipcRenderer.send("display-response", {
+            "audio": audioEnabledBox.checked,
+            "echo": echoEnabledBox.checked,
+            source
+        })
     }
     ipcRenderer.on("display-info", (_, information) => {
         ({sources} = information)
@@ -61,49 +89,30 @@ window.addEventListener("load", () => {
         }
         screensContainer.textContent = ""
         screensContainer.scrollBy(0, -1000000000)
-        for (const [index, screen] of sources.entries()) {
+        for (const [index, source] of sources.entries()) {
             const screenEl = document.createElement("div")
             screenEl.classList.add("screen")
             screenEl.addEventListener("click", () => {
-                ipcRenderer.send("display-response", {index})
+                sendSelectedSource(source)
             })
             const keyEl = document.createElement("span")
             keyEl.classList.add("screen-key")
             keyEl.textContent = keys[index] ?? ""
             const previewEl = document.createElement("img")
             previewEl.classList.add("screen-preview")
-            previewEl.src = screen.img
+            previewEl.src = source.img
             const iconEl = document.createElement("img")
             iconEl.classList.add("screen-icon")
-            iconEl.src = screen.icon
+            iconEl.src = source.icon
             iconEl.addEventListener("error", () => {
                 iconEl.style.opacity = "0"
             })
             const titleEl = document.createElement("span")
             titleEl.classList.add("screen-title")
-            titleEl.textContent = screen.title
+            titleEl.textContent = source.title
             screenEl.append(keyEl, previewEl, iconEl, titleEl)
             screensContainer.append(screenEl)
         }
-        const tabScreenEl = document.createElement("div")
-        tabScreenEl.classList.add("screen")
-        tabScreenEl.addEventListener("click", () => {
-            ipcRenderer.send("display-response", {"index": "frame"})
-        })
-        const tabKeyEl = document.createElement("span")
-        tabKeyEl.classList.add("screen-key")
-        tabKeyEl.textContent = "t"
-        const tabPreviewEl = document.createElement("img")
-        tabPreviewEl.classList.add("screen-preview")
-        tabPreviewEl.src = information.tabImg
-        tabPreviewEl.addEventListener("error", () => {
-            tabPreviewEl.style.opacity = "0"
-        })
-        const tabTitleEl = document.createElement("span")
-        tabTitleEl.classList.add("screen-title")
-        tabTitleEl.textContent = information.translations.currentTab
-        tabScreenEl.append(tabKeyEl, tabPreviewEl, tabTitleEl)
-        screensContainer.append(tabScreenEl)
         document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {
@@ -132,23 +141,7 @@ window.addEventListener("load", () => {
             ipcRenderer.send("hide-display-window")
         } else if (!e.ctrlKey && keys.includes(e.key.toLowerCase())) {
             const index = keys.indexOf(e.key.toLowerCase())
-            const source = sources[index]
-            /**
-             * @type {{
-             *   index: number|"frame", audio: boolean, echo: boolean
-             * }}
-             */
-            const response = {
-                "audio": audioEnabledBox.checked,
-                "echo": echoEnabledBox.checked,
-                index
-            }
-            if (e.key.toLowerCase() === "t") {
-                response.index = "frame"
-            }
-            if (source || e.key.toLowerCase() === "t") {
-                ipcRenderer.send("display-response", response)
-            }
+            sendSelectedSource(sources[index])
         }
     })
 })

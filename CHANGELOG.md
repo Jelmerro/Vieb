@@ -11,6 +11,21 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Setting "permissioncapturedsurfacecontrol" to control access to scrolling/zooming for shared screens via displaycapture
+
+### Changed
+
+- Page layout updates to reflect for hidden pages in the background automatically
+
+### Versions
+
+- Electron 45.2.1 (unchanged)
+- Chromium 156.0.8078.75 (unchanged)
+
 ## [12.11.0](https://github.com/Jelmerro/Vieb/compare/12.10.0...12.11.0) - 2026-11-03
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.10.0...12.11.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.11.0)
