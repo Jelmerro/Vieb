@@ -1106,25 +1106,5 @@ ipcRenderer.on("follow-mode-stop", () => {
     currentFollowStatus = null
 })
 setInterval(mainInfoLoop, 1000)
-window.addEventListener("DOMContentLoaded", () => {
-    mainInfoLoop()
-    const pdfbehavior = getSetting("pdfbehavior") ?? "block"
-    if (pdfbehavior !== "view") {
-        for (const embed of querySelectorAll("embed")) {
-            if (embed.getAttribute("type") !== "application/pdf") {
-                continue
-            }
-            if (pdfbehavior === "download") {
-                const src = embed.getAttribute("src")?.replace(
-                    /^about:blank/g, "") || window.location.href
-                ipcRenderer.sendToHost("download", src)
-            } else if (pdfbehavior === "external") {
-                const src = embed.getAttribute("src")?.replace(
-                    /^about:blank/g, "") || window.location.href
-                ipcRenderer.sendToHost("external", src)
-            }
-            embed.remove()
-        }
-    }
-})
+window.addEventListener("DOMContentLoaded", mainInfoLoop)
 window.addEventListener("resize", mainInfoLoop)

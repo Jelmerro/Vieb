@@ -1322,7 +1322,7 @@ let downloads = []
 let redirects = []
 /** @type {import("@ghostery/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
-/** @type {"view"|"block"|"download"}} */
+/** @type {"view"|"block"|"download"|"external"} */
 let pdfbehavior = "view"
 /** @type {string[]|null} */
 let resourceTypes = null
@@ -1986,6 +1986,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         blocker.onBeforeRequest(details, callback)
     })
     newSess.webRequest.onHeadersReceived((details, callback) => {
+        if (details.resourceType === "mainFrame") {
+            const isPdf = details.responseHeaders?.["content-type"]
+                ?.[0] === "application/pdf"
+            if (isPdf) {
+                mainWindow?.webContents.send("pdf-url-hit", details.url)
+            }
+        }
         if (!blocker) {
             return callback({"cancel": false})
         }

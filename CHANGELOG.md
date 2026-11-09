@@ -22,6 +22,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Page layout updates to reflect for hidden pages in the background automatically
 - Dialogs to load just before show instead of on startup
 
+### Fixed
+
+- Setting "pdfbehavior" values "download" and "external" not doing anything recently
+
 ### Versions
 
 - Electron 45.2.1 (unchanged)

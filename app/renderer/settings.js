@@ -2547,6 +2547,14 @@ const init = () => {
     })
     ipcRenderer.on("set-permission", (
         _, name, value) => set("user", name, value))
+    ipcRenderer.on("pdf-url-hit", (_, url) => {
+        if (allSettings.pdfbehavior === "download") {
+            currentPage()?.downloadURL(url)
+        } else if (allSettings.pdfbehavior === "external") {
+            const {commonAction} = require("./contextmenu")
+            commonAction("other", "link", "external", {"link": url})
+        }
+    })
     ipcRenderer.on("notify", (_, opts) => {
         if (getMouseConf("notification")
             && opts.action?.type === "download-success") {
