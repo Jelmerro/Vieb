@@ -859,13 +859,6 @@ const addWebviewListeners = webview => {
             /* eslint-disable-next-line no-use-before-define */
             addTab({"src": "other", "url": e.args[0]})
         }
-        if (e.channel === "download") {
-            currentPage()?.downloadURL(e.args[0])
-        }
-        if (e.channel === "external") {
-            const {commonAction} = require("./contextmenu")
-            commonAction("other", "link", "external", {"link": e.args[0]})
-        }
         if (e.channel === "back-button" && getMouseConf("history")) {
             backInHistory({"customPage": webview, "src": "user"})
         }

@@ -122,10 +122,10 @@ const addDownload = download => {
     file.className = "filelocation"
     file.textContent = download.file
     title.addEventListener("click", () => {
-        ipcRenderer.send("open-download", file.textContent)
+        ipcRenderer.send("open-download", download.file)
     })
     file.addEventListener("click", () => {
-        ipcRenderer.send("open-download", file.textContent)
+        ipcRenderer.send("open-download", download.file)
     })
     misc.append(file)
     const date = document.createElement("span")

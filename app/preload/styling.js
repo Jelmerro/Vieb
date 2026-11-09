@@ -20,7 +20,7 @@
 // Change the colors to $FG text on $BG background for plain text pages
 // Change the background to white for regular pages with no explicit background
 // Optionally loads darkreader to override the page colors and use a dark theme
-const {ipcRenderer} = require("electron")
+const {ipcRenderer, webFrame} = require("electron")
 const {
     appData,
     domainName,
@@ -205,6 +205,12 @@ const loadThemes = (loadedFully = false) => {
             .find(m => window.location.href.match(m))
         if (!blocked) {
             enableDarkReader()
+        }
+    }
+    if (webFrame.getZoomFactor() === 1) {
+        const zoom = getSetting("zoomdefault")
+        if (zoom !== 100) {
+            webFrame.setZoomFactor(zoom / 100)
         }
     }
     if (getSetting("userstyle")

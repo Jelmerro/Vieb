@@ -256,6 +256,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Adblock resources file handling, now uses the JSON format for increased coverage
+- Setting "zoomdefault" to control the default zoom percentage for all pages
 
 ### Fixed
 

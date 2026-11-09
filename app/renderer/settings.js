@@ -426,7 +426,8 @@ const defaultSettings = {
     "windowmaximize": "restore",
     "windowposition": "restore",
     "windowsize": "restore",
-    "windowtitle": "%app - %title"
+    "windowtitle": "%app - %title",
+    "zoomdefault": 100
 }
 /** @type {typeof defaultSettings} */
 let allSettings = JSON.parse(JSON.stringify(defaultSettings))
@@ -655,7 +656,8 @@ const numberRanges = {
     "suggestcommands": [0, 9000000000000000],
     "suggesttopsites": [0, 9000000000000000],
     "suspendtimeout": [0, 9000000000000000],
-    "timeoutlen": [0, 9000000000000000]
+    "timeoutlen": [0, 9000000000000000],
+    "zoomdefault": [10, 400]
 }
 /** @type {Set<keyof typeof defaultSettings>} */
 const acceptsIntervals = new Set(["clearhistoryinterval"])
