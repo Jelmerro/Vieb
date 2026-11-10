@@ -684,18 +684,24 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             } else if (followLinkDestination === "copylink") {
                 ipcRenderer.invoke("write-clipboard", link.url)
             } else {
+                const switchTo = !stayInFollowMode
+                    && getSetting("followsplitswitch")
                 const currentTabId = currentTab()?.getAttribute("link-id")
-                addTab({
+                const newTabId = addTab({
                     "container": getSetting("containersplitpage"),
+                    "lazy": false,
                     src,
+                    switchTo,
                     "url": link.url
-                })
+                })?.getAttribute("link-id") ?? ""
                 const {add} = require("./pagelayout")
                 const opposite = followLinkDestination === "ver"
                     && !getSetting("splitbelow")
                     || followLinkDestination === "hor"
                     && !getSetting("splitright")
-                if (currentTabId) {
+                if (!switchTo) {
+                    add(newTabId, followLinkDestination, opposite)
+                } else if (currentTabId) {
                     add(currentTabId, followLinkDestination, !opposite)
                 }
             }

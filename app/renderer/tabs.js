@@ -1322,6 +1322,7 @@ const addTab = opts => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     }
+    return tab
 }
 
 /**

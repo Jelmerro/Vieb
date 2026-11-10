@@ -16,6 +16,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "permissioncapturedsurfacecontrol" to control access to scrolling/zooming for shared screens via displaycapture
+- Other tab support to displaycapture permission dialog
+- Command confirm versions `:split!` and `:vsplit!` to open splits but stay focused in the current split
+- Setting "followsplitswitch" to control if split versions of follow mode should switch to the new split
 
 ### Changed
 

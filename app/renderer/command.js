@@ -1723,32 +1723,51 @@ const pin = (src, args, range) => {
 
 /**
  * Add a split to the page layout.
- * @param {import("./common").RunSource} src
- * @param {"hor"|"ver"} method
- * @param {boolean} leftOrAbove
- * @param {string[]} args
- * @param {string|null} range
+ * @param {{
+ *   args: string[],
+ *   leftOrAbove: boolean,
+ *   method: "hor"|"ver",
+ *   src: import("./common").RunSource,
+ *   switchTo: boolean,
+ *   range?: string
+ * }} opts
  */
-const addSplit = (src, method, leftOrAbove, args, range = null) => {
+const addSplit = opts => {
+    const {args, leftOrAbove, method, range, src, switchTo} = opts
     if (range && args.length > 0) {
         notify({"id": "commands.split.range", src, "type": "warning"})
         return
     }
     if (range) {
         for (const t of rangeToTabIdxs(src, range).tabs) {
-            addSplit(src, method, leftOrAbove, [`${t}`])
+            addSplit({
+                "args": [`${t}`],
+                leftOrAbove,
+                method,
+                src,
+                switchTo
+            })
         }
         return
     }
     const {add} = require("./pagelayout")
-    const {addTab, switchToTab} = require("./tabs")
+    const {addTab, switchToTab, unsuspendPage} = require("./tabs")
     const id = currentTab()?.getAttribute("link-id")
     if (!id) {
         return
     }
     if (args.length === 0) {
-        addTab({"container": getSetting("containersplitpage"), src})
-        add(id, method, !leftOrAbove)
+        const newTabId = addTab({
+            "container": getSetting("containersplitpage"),
+            "lazy": false,
+            src,
+            switchTo
+        })?.getAttribute("link-id") ?? ""
+        if (switchTo) {
+            add(id, method, !leftOrAbove)
+        } else {
+            add(newTabId, method, leftOrAbove)
+        }
         return
     }
     const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
@@ -1759,16 +1778,28 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
             const page = pageForTab(tab)
             if (page) {
                 add(page, method, leftOrAbove)
-                switchToTab(tab)
+                if (switchTo) {
+                    switchToTab(tab)
+                } else {
+                    unsuspendPage(page)
+                    const {applyLayout} = require("./pagelayout")
+                    applyLayout()
+                }
             }
         }
     } else {
-        addTab({
+        const newTabId = addTab({
             "container": getSetting("containersplitpage"),
+            "lazy": false,
             src,
+            switchTo,
             "url": stringToUrl(args.join(" "))
-        })
-        add(id, method, !leftOrAbove)
+        })?.getAttribute("link-id") ?? ""
+        if (switchTo) {
+            add(id, method, !leftOrAbove)
+        } else {
+            add(newTabId, method, leftOrAbove)
+        }
     }
 }
 
@@ -2803,11 +2834,39 @@ const commands = {
     },
     "scrollpos": ({args, src}) => scrollpos(src, args),
     "set": ({args, src}) => setCommand(src, args),
-    "Sexplore": ({args, range, src}) => addSplit(
-        src, "ver", !getSetting("splitbelow"), args, range),
+    "Sexplore": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitbelow"),
+        "method": "ver",
+        range,
+        src,
+        "switchTo": true
+    }),
+    "Sexplore!": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitbelow"),
+        "method": "ver",
+        range,
+        src,
+        "switchTo": false
+    }),
     "source": ({args, src}) => source(src, null, args),
-    "split": ({args, range, src}) => addSplit(
-        src, "ver", !getSetting("splitbelow"), args, range),
+    "split": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitbelow"),
+        "method": "ver",
+        range,
+        src,
+        "switchTo": true
+    }),
+    "split!": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitbelow"),
+        "method": "ver",
+        range,
+        src,
+        "switchTo": false
+    }),
     "suspend": ({args, range, src}) => suspend(src, args, range),
     "tabnew": ({raw, src}) => tabnew(
         src, null, raw.split(" ").slice(1).join(" ")),
@@ -2818,10 +2877,38 @@ const commands = {
     "v!": ({src}) => openSpecialPage(src, "version", true),
     "version": ({src}) => openSpecialPage(src, "version", false),
     "version!": ({src}) => openSpecialPage(src, "version", true),
-    "Vexplore": ({args, range, src}) => addSplit(
-        src, "hor", !getSetting("splitright"), args, range),
-    "vsplit": ({args, range, src}) => addSplit(
-        src, "hor", !getSetting("splitright"), args, range),
+    "Vexplore": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitright"),
+        "method": "hor",
+        range,
+        src,
+        "switchTo": true
+    }),
+    "Vexplore!": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitright"),
+        "method": "hor",
+        range,
+        src,
+        "switchTo": false
+    }),
+    "vsplit": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitright"),
+        "method": "hor",
+        range,
+        src,
+        "switchTo": true
+    }),
+    "vsplit!": ({args, range, src}) => addSplit({
+        args,
+        "leftOrAbove": !getSetting("splitright"),
+        "method": "hor",
+        range,
+        src,
+        "switchTo": false
+    }),
     "w": ({args, range, src}) => write(src, args, range),
     "write": ({args, range, src}) => write(src, args, range)
 }

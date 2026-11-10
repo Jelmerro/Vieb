@@ -180,6 +180,7 @@ const defaultSettings = {
      */
     "followlabelposition": "outsiderighttop",
     "follownewtabswitch": true,
+    "followsplitswitch": true,
     "guifontsize": 14,
     /** @type {"always"|"onupdate"|"oninput"|"never"} */
     "guifullscreennavbar": "oninput",
