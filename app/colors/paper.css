@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2022 Jelmer van Arnhem
+* Copyright (C) 2020-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 */
 /* colors */
 :root {
+    color-scheme: only light; /* supported color schemes */
+    --is-light: 1;
     /* general */
     --bg: #F2EEDE;
     --fg: #000;
@@ -125,12 +127,3 @@
     --follow-other-border: #aaa;
     --follow-other-hover: #aaa7;
 }
-
-/* general */
-#tabs .status {filter: invert(.4);}
-
-/* special pages */
-#app #pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
-.specialpage a::after {filter: invert(1);}
-#helppage .cheatsheet {filter: none;}
-#historypage img.favicon {filter: none;}
