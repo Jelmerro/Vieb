@@ -67,6 +67,8 @@ if (!app.getName().toLowerCase().startsWith("vieb")) {
     app.setName("Vieb")
 }
 
+app.setDesktopName("vieb")
+
 /** Print the license information to the console. */
 const printLicense = () => {
     console.info(`Vieb is created by Jelmer van Arnhem and contributors.
