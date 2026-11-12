@@ -290,7 +290,7 @@ const select = () => {
  * @param {contextMenuAction} action
  * @param {Partial<webviewData>} options
  */
-const commonAction = (src, type, action, options) => {
+const commonAction = async(src, type, action, options) => {
     let relevantData = options[type]
     if (type === "img") {
         relevantData = options.img || options.backgroundImg || options.svgData
@@ -314,16 +314,16 @@ const commonAction = (src, type, action, options) => {
             canvas.height = el.naturalHeight
             canvas.getContext("2d")?.drawImage(el, 0, 0)
             ipcRenderer.invoke("write-clipboard",
-                canvas.toDataURL("image/png"), "dataurl")
+                canvas.toDataURL("image/png"), "dataurl").catch(() => null)
         })
         el.src = relevantData
         return
     }
     if (action === "open") {
         const {navigateTo} = require("./tabs")
-        navigateTo(src, stringToUrl(relevantData))
+        await navigateTo(src, stringToUrl(relevantData))
     } else if (action === "newtab") {
-        addTab({src, "url": stringToUrl(relevantData)})
+        await addTab({src, "url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         let urlData = relevantData
         if (isUrl(relevantData)) {
@@ -337,16 +337,15 @@ const commonAction = (src, type, action, options) => {
                 urlData = stringToUrl(relevantData)
             }
         }
-        ipcRenderer.invoke("write-clipboard", urlData)
+        ipcRenderer.invoke("write-clipboard", urlData).catch(() => null)
     } else if (action === "download") {
         const {updateDownloadSettings} = require("./settings")
-        updateDownloadSettings(src).then(() => {
-            currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
-        })
+        await updateDownloadSettings(src)
+        currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
     } else if (action === "split") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
-            addTab({
+            await addTab({
                 "container": getSetting("containersplitpage"),
                 src,
                 "url": relevantData
@@ -356,7 +355,7 @@ const commonAction = (src, type, action, options) => {
     } else if (action === "vsplit") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
-            addTab({
+            await addTab({
                 "container": getSetting("containersplitpage"),
                 src,
                 "url": relevantData
@@ -506,14 +505,14 @@ const viebMenu = (src, options, force = false) => {
             })
             createMenuItem({
                 /** Menu item: Paste and go to url. */
-                "action": () => {
+                "action": async() => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
                     const {pasteInput} = require("./input")
                     pasteInput()
-                    useEnteredData({src})
+                    await useEnteredData({src})
                 },
                 "title": translate("contextmenu.text.pasteGo")
             })
@@ -552,12 +551,12 @@ const viebMenu = (src, options, force = false) => {
             }
             createMenuItem({
                 /** Menu item: toggle suspend. */
-                "action": () => {
+                "action": async() => {
                     const {suspendTab, unsuspendPage} = require("./tabs")
                     if (isSuspended) {
-                        unsuspendPage(page)
+                        await unsuspendPage(page)
                     } else {
-                        suspendTab(src, tab)
+                        await suspendTab(src, tab)
                     }
                 },
                 "title": suspendTitle
@@ -572,8 +571,8 @@ const viebMenu = (src, options, force = false) => {
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
                     /** Menu item: Previous. */
-                    "action": () => {
-                        backInHistory({"customPage": page, src})
+                    "action": async() => {
+                        await backInHistory({"customPage": page, src})
                     },
                     "title": translate("contextmenu.tab.previous")
                 })
@@ -581,8 +580,8 @@ const viebMenu = (src, options, force = false) => {
             if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
                 createMenuItem({
                     /** Menu item: Next. */
-                    "action": () => {
-                        forwardInHistory({"customPage": page, src})
+                    "action": async() => {
+                        await forwardInHistory({"customPage": page, src})
                     },
                     "title": translate("contextmenu.tab.next")
                 })
@@ -590,13 +589,13 @@ const viebMenu = (src, options, force = false) => {
         }
         createMenuItem({
             /** Add a tab next to the selected tab. */
-            "action": () => {
+            "action": async() => {
                 const tabnewposition = getSetting("tabnewposition")
                 let index = listTabs().indexOf(tab)
                 if (tabnewposition === "right") {
                     index += 1
                 }
-                addTab({"customIndex": index, pinned, src})
+                await addTab({"customIndex": index, pinned, src})
             },
             "title": translate("contextmenu.tab.addHere")
         })
@@ -613,13 +612,13 @@ const viebMenu = (src, options, force = false) => {
         })
         createMenuItem({
             /** Menu item: Open a new tab with the current url and navigate. */
-            "action": () => {
+            "action": async() => {
                 const tabnewposition = getSetting("tabnewposition")
                 let index = listTabs().indexOf(tab)
                 if (tabnewposition === "right") {
                     index += 1
                 }
-                addTab({
+                await addTab({
                     "customIndex": index,
                     src,
                     "url": page.getAttribute("src") ?? ""
@@ -688,11 +687,10 @@ const linkMenu = (src, options) => {
     })
     createMenuItem({
         /** Menu item: Link download. */
-        "action": () => {
+        "action": async() => {
             const {updateDownloadSettings} = require("./settings")
-            updateDownloadSettings(src).then(() => {
-                currentPage()?.downloadURL(options.link)
-            })
+            await updateDownloadSettings(src)
+            currentPage()?.downloadURL(options.link)
         },
         "title": translate("contextmenu.general.download")
     })
@@ -731,11 +729,11 @@ const commandMenu = (src, options) => {
     clear()
     createMenuItem({
         /** Menu item: Execute the command. */
-        "action": () => {
+        "action": async() => {
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")
-            execute(options.command, {src})
+            await execute(options.command, {src})
         },
         "title": translate("contextmenu.general.execute")
     })
@@ -809,9 +807,9 @@ const webviewMenu = (src, options, force = false) => {
     }
     createMenuItem({
         /** Menu item: Save the page to disk. */
-        "action": () => {
+        "action": async() => {
             const {execute} = require("./command")
-            execute("write", {src})
+            await execute("write", {src})
         },
         "title": translate("contextmenu.tab.save")
     })
@@ -1090,7 +1088,7 @@ const webviewMenu = (src, options, force = false) => {
  * @param {Electron.IpcRendererEvent} _
  * @param {webviewData} info
  */
-const handleContextMenuClick = (_, info) => {
+const handleContextMenuClick = async(_, info) => {
     if (info.webviewId
         && info.webviewId !== currentPage()?.getWebContentsId()) {
         const page = listReadyPages().find(
@@ -1099,12 +1097,12 @@ const handleContextMenuClick = (_, info) => {
             const {switchToTab} = require("./tabs")
             const tab = tabForPage(page)
             if (tab) {
-                switchToTab(tab)
+                await switchToTab(tab)
             }
         }
     }
     if (info.extraData?.type && info.extraData.action) {
-        commonAction(info.extraData.src ?? "user", info.extraData.type,
+        await commonAction(info.extraData.src ?? "user", info.extraData.type,
             info.extraData.action, info)
     } else {
         webviewMenu(info.extraData?.src ?? "user",

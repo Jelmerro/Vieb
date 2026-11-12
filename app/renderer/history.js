@@ -183,8 +183,8 @@ const suggestHist = (searchStr, order, count) => {
 const writeHistToFile = (now = false) => {
     clearTimeout(histWriteTimeout ?? undefined)
     if (!now) {
-        histWriteTimeout = setTimeout(() => {
-            writeHistToFile(true)
+        histWriteTimeout = setTimeout(async() => {
+            await writeHistToFile(true)
         }, 5000)
         return true
     }
@@ -203,7 +203,7 @@ const writeHistToFile = (now = false) => {
  * Add a specific url to the history if not excluded.
  * @param {string} url
  */
-const addToHist = url => {
+const addToHist = async url => {
     if (url.startsWith("devtools://")) {
         return
     }
@@ -236,7 +236,7 @@ const addToHist = url => {
         groupedHistory[url] = {"title": url, "visits": []}
     }
     groupedHistory[url].visits.push(date)
-    writeHistToFile()
+    await writeHistToFile()
 }
 
 /**
@@ -312,8 +312,8 @@ const handleRequest = async(webview, action = null, entries = []) => {
         if (action === "range" && entries.length > 0) {
             success = await removeFromHistory(entries)
         }
-        webview.send("history-removal-status", success)
-        updateMappings()
+        webview.send("history-removal-status", success).catch(() => null)
+        await updateMappings()
         return
     }
     /** @type {historyItem[]} */
@@ -331,8 +331,8 @@ const handleRequest = async(webview, action = null, entries = []) => {
         }
     }
     history = history.toSorted((a, b) => b.date.getTime() - a.date.getTime())
-    webview.send("history-list", history)
-    updateMappings()
+    webview.send("history-list", history).catch(() => null)
+    await updateMappings()
 }
 
 /** Return a list of top sites by visit count, depending on suggesttopsites. */
@@ -366,11 +366,11 @@ const titleForPage = originalUrl => {
  * @param {string} rawUrl
  * @param {string} rawName
  */
-const updateTitle = (rawUrl, rawName) => {
+const updateTitle = async(rawUrl, rawName) => {
     const url = rawUrl.replace(/\t/g, "")
     const name = rawName.replace(/\t/g, "")
     if (!groupedHistory[url]) {
-        addToHist(url)
+        await addToHist(url)
     }
     if (groupedHistory[url]) {
         if (groupedHistory[url].title === name) {
@@ -381,7 +381,7 @@ const updateTitle = (rawUrl, rawName) => {
         }
         groupedHistory[url].title = name
     }
-    writeHistToFile()
+    await writeHistToFile()
 }
 
 module.exports = {

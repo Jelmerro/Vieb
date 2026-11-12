@@ -609,7 +609,7 @@ const notify = opts => mainWindow?.webContents.send("notify", opts)
 const resolveLocalPaths = (paths, cwd = null) => paths.map(u => {
     let url = ""
     if (typeof u === "string") {
-        url = String(u)
+        url = u
     } else if (typeof u === "object") {
         url = String(u.url)
     }
@@ -837,7 +837,7 @@ const permissionHandler = (_, pm, callback, details) => {
             }
             callback(allow)
             return allow
-        })
+        }).catch(() => null)
     } else {
         if (settingRule) {
             notify({
@@ -877,6 +877,8 @@ const permissionHandler = (_, pm, callback, details) => {
     return false
 }
 
+/** @type {Electron.RestoreOptions|null} */
+let navHistoryToRestore = null
 const minWindowSize = 500
 app.whenReady().then(async() => {
     app.userAgentFallback = defaultUseragent()
@@ -998,7 +1000,6 @@ app.whenReady().then(async() => {
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
-    mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
         mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
         mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
@@ -1013,7 +1014,15 @@ app.whenReady().then(async() => {
         prefs.sandbox = false
         prefs.contextIsolation = true
     })
-    mainWindow.webContents.on("did-attach-webview", (_, contents) => {
+    mainWindow.webContents.on("did-attach-webview", async(_, contents) => {
+        if (navHistoryToRestore) {
+            contents.stop()
+            await contents.navigationHistory.restore({
+                "entries": navHistoryToRestore.entries,
+                "index": navHistoryToRestore.entries.length - 1
+            })
+        }
+        navHistoryToRestore = null
         contents.on("will-prevent-unload", e => e.preventDefault())
         contents.on("unresponsive", () => mainWindow?.webContents.send(
             "unresponsive", contents.id))
@@ -1058,7 +1067,8 @@ app.whenReady().then(async() => {
             return {"action": "deny"}
         })
     })
-})
+    await mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
+}).catch(() => null)
 // Handle Basic HTTP login attempts
 /** @type {number[]} */
 const loginAttempts = []
@@ -1100,10 +1110,7 @@ app.on("login", async(e, contents, _, auth, callback) => {
         loginWindow = new BrowserWindow(loginWindowData)
         const loginPage = `file:///${joinPath(
             __dirname, "pages/loginpopup.html")}`
-        loginWindow.loadURL(loginPage)
-        await new Promise(res => {
-            loginWindow?.on("ready-to-show", () => res(null))
-        })
+        await loginWindow.loadURL(loginPage)
         loginWindow.on("close", ev => {
             ev.preventDefault()
             loginWindow?.hide()
@@ -1182,10 +1189,7 @@ ipcMain.on("show-notification", async(_, escapedMessage, properType) => {
         notificationWindow = new BrowserWindow(notificationWindowData)
         const notificationPage = `file:///${joinPath(
             __dirname, "pages/notificationpopup.html")}`
-        notificationWindow.loadURL(notificationPage)
-        await new Promise(res => {
-            notificationWindow?.on("ready-to-show", () => res(null))
-        })
+        await notificationWindow.loadURL(notificationPage)
         notificationWindow.on("close", e => {
             e.preventDefault()
             notificationWindow?.hide()
@@ -1245,10 +1249,7 @@ ipcMain.on("show-prompt-dialog", async(e, title, defaultText) => {
         promptWindow = new BrowserWindow(promptWindowData)
         const promptPage = `file:///${joinPath(
             __dirname, "pages/promptpopup.html")}`
-        promptWindow.loadURL(promptPage)
-        await new Promise(res => {
-            promptWindow?.on("ready-to-show", () => res(null))
-        })
+        await promptWindow.loadURL(promptPage)
     }
     ipcMain.removeAllListeners("prompt-response")
     ipcMain.removeAllListeners("hide-prompt-window")
@@ -1716,10 +1717,7 @@ const handleDesktopCapture = async(request, callback, desktopSources) => {
         displayWindow = new BrowserWindow(displayWindowData)
         const displayPage = `file:///${joinPath(
             __dirname, "pages/displaypopup.html")}`
-        displayWindow.loadURL(displayPage)
-        await new Promise(res => {
-            displayWindow?.on("ready-to-show", () => res(null))
-        })
+        await displayWindow.loadURL(displayPage)
     }
     ipcMain.removeAllListeners("display-response")
     ipcMain.removeAllListeners("hide-display-window")
@@ -1912,7 +1910,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "thumbnailSize": {"height": 20 * fontsize, "width": 20 * fontsize},
             "types": ["screen", "window"]
         }).then(async desktopSources => await handleDesktopCapture(
-            request, callback, desktopSources))
+            request, callback, desktopSources)).catch(() => callback(null))
     })
     newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, () => null, {
@@ -1930,7 +1928,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         newSess.protocol.handle("chrome-extension", blockPdf)
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
-        let url = String(details.url)
+        let {url} = details
         for (const r of redirects) {
             if (!r.trim()) {
                 continue
@@ -2640,9 +2638,8 @@ ipcMain.on("window-state-init", (_, restore) => {
 ipcMain.on("update-native-theme", (_, newTheme) => {
     nativeTheme.themeSource = newTheme
 })
-ipcMain.handle("save-page", (_, id, loc, type) => {
-    webContents.fromId(id)?.savePage(loc, type)
-})
+ipcMain.handle("save-page",
+    (_, id, loc, type) => webContents.fromId(id)?.savePage(loc, type))
 ipcMain.on("hide-window", () => {
     if (!argDebugMode) {
         mainWindow?.hide()
@@ -2654,7 +2651,7 @@ ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     if (page && devtools) {
         page.setDevToolsWebContents(devtools)
         page.openDevTools()
-        devtools.executeJavaScript("window.location.reload()")
+        devtools.executeJavaScript("window.location.reload()").catch(() => null)
     }
 })
 ipcMain.on("open-internal-devtools",
@@ -2691,7 +2688,7 @@ ipcMain.on("set-window-title", (_, t) => {
 })
 ipcMain.handle("show-message-dialog", (_, options) => {
     if (mainWindow) {
-        dialog.showMessageBox(mainWindow, options)
+        dialog.showMessageBox(mainWindow, options).catch(() => null)
     }
 })
 ipcMain.on("sync-message-dialog", (e, options) => {
@@ -2719,16 +2716,30 @@ ipcMain.handle("write-clipboard", (_, data, type = "text") => {
         const buff = nativeImage.createFromDataURL(data).toPNG()
         clipboard.write([new ClipboardItem({
             "image/png": new Blob([new Uint8Array(buff)], {"type": "image/png"})
-        })])
+        })]).catch(() => null)
     } else if (type === "buffer") {
         clipboard.write([new ClipboardItem({
             "image/png": new Blob([new Uint8Array(data)], {"type": "image/png"})
-        })])
+        })]).catch(() => null)
     } else if (type === "selection" && clipboard.selection) {
-        clipboard.selection.writeText(data)
+        clipboard.selection.writeText(data).catch(() => null)
     } else {
-        clipboard.writeText(data)
+        clipboard.writeText(data).catch(() => null)
     }
+})
+ipcMain.handle("list-navigation-history", (_, id) => {
+    const wc = webContents.fromId(id)
+    if (!wc) {
+        return null
+    }
+    return {
+        "entries": wc.navigationHistory.getAllEntries().map(
+            e => ({"title": e.title, "url": e.url})),
+        "index": wc.navigationHistory.getActiveIndex()
+    }
+})
+ipcMain.handle("restore-navigation-history", (_, history) => {
+    navHistoryToRestore = history
 })
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()

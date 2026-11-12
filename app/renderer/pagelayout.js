@@ -145,7 +145,7 @@ const applyLayout = () => {
      * @param {string} linkId
      * @param {number} timeout
      */
-    const susCall = (tab, linkId, timeout) => {
+    const susCall = async(tab, linkId, timeout) => {
         const index = listTabs().indexOf(tab)
         let shouldSuspend = true
         for (const ignore of getSetting("suspendtimeoutignore")) {
@@ -157,7 +157,7 @@ const applyLayout = () => {
         if (shouldSuspend) {
             delete timers[linkId]
             const {suspendTab} = require("./tabs")
-            suspendTab("other", tab)
+            await suspendTab("other", tab)
         } else {
             timers[linkId] = setTimeout(
                 () => susCall(tab, linkId, timeout), timeout)
@@ -227,7 +227,7 @@ const switchView = (oldViewOrId, newView) => {
  * @param {Electron.WebviewTag|HTMLDivElement} view
  * @param {boolean} close
  */
-const hide = (view, close = false) => {
+const hide = async(view, close = false) => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -271,7 +271,7 @@ const hide = (view, close = false) => {
         }
         const {switchToTab} = require("./tabs")
         if (newTab) {
-            switchToTab(newTab)
+            await switchToTab(newTab)
         }
     } else if (close) {
         tabForPage(view)?.remove()
@@ -378,7 +378,7 @@ const rotateReverse = () => {
 }
 
 /** Exchange the current split position for the next on in the split list. */
-const exchange = () => {
+const exchange = async() => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -405,7 +405,7 @@ const exchange = () => {
     const tab = listTabs().find(t => t.getAttribute("link-id") === newId)
     if (tab) {
         const {switchToTab} = require("./tabs")
-        switchToTab(tab)
+        await switchToTab(tab)
     }
     applyLayout()
 }
@@ -467,7 +467,7 @@ const toTop = direction => {
  * Move the focus to a specific direction.
  * @param {"top"|"left"|"right"|"bottom"} direction
  */
-const moveFocus = direction => {
+const moveFocus = async direction => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -504,7 +504,7 @@ const moveFocus = direction => {
                 t => t.getAttribute("link-id") === newId)
             if (tab) {
                 const {switchToTab} = require("./tabs")
-                switchToTab(tab)
+                await switchToTab(tab)
             }
         }
     }
@@ -571,18 +571,18 @@ const resize = (orientation, change) => {
 }
 
 /** Go to the first split based on position in the list. */
-const firstSplit = () => {
+const firstSplit = async() => {
     const first = document.querySelector("#pagelayout *[link-id]")
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === first?.getAttribute("link-id"))
     if (tab) {
-        switchToTab(tab)
+        await switchToTab(tab)
     }
 }
 
 /** Go to the previous split based on position in the list. */
-const previousSplit = () => {
+const previousSplit = async() => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const current = layoutDivById(currentPage()?.getAttribute("link-id"))
     if (!current) {
@@ -593,12 +593,12 @@ const previousSplit = () => {
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
     if (tab) {
-        switchToTab(tab)
+        await switchToTab(tab)
     }
 }
 
 /** Go to the next split based on position in the list. */
-const nextSplit = () => {
+const nextSplit = async() => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const current = layoutDivById(currentPage()?.getAttribute("link-id"))
     if (!current) {
@@ -609,19 +609,19 @@ const nextSplit = () => {
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
     if (tab) {
-        switchToTab(tab)
+        await switchToTab(tab)
     }
 }
 
 /** Go to the last split based on position in the list. */
-const lastSplit = () => {
+const lastSplit = async() => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const last = views.at(-1) ?? views[0]
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === last.getAttribute("link-id"))
     if (tab) {
-        switchToTab(tab)
+        await switchToTab(tab)
     }
 }
 
@@ -670,7 +670,7 @@ const showScrollbar = () => {
         return
     }
     for (const p of listReadyPages()) {
-        p.send("show-scrollbar")
+        p.send("show-scrollbar").catch(() => null)
     }
 }
 
@@ -683,7 +683,7 @@ const hideScrollbar = () => {
         scrollbarHideIgnoreTimer = null
     }, 500)
     for (const p of listReadyPages()) {
-        p.send("hide-scrollbar")
+        p.send("hide-scrollbar").catch(() => null)
     }
 }
 

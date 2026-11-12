@@ -144,7 +144,7 @@ const updateScrollbar = () => {
  * General check for applying all custom styling, will do more once loaded.
  * @param {boolean} loadedFully
  */
-const loadThemes = (loadedFully = false) => {
+const loadThemes = async(loadedFully = false) => {
     const html = document.querySelector("html")
     if (!html) {
         return
@@ -202,9 +202,9 @@ const loadThemes = (loadedFully = false) => {
     if (getSetting("darkreader")
         && getSetting("darkreaderscope")?.includes(scope)) {
         const blocked = (getSetting("darkreaderblocklist") ?? [])
-            .find(m => window.location.href.match(m))
+            .some(m => window.location.href.match(m))
         if (!blocked) {
-            enableDarkReader()
+            await enableDarkReader()
         }
     }
     if (webFrame.getZoomFactor() === 1) {
@@ -240,10 +240,10 @@ ipcRenderer.on("disable-userstyle", () => ipcRenderer.sendToHost(
 ipcRenderer.on("show-scrollbar", () => ipcRenderer.sendToHost(
     "custom-style-inject", "scrollbar"))
 ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
-loadThemes()
+loadThemes().catch(() => null)
 window.addEventListener("DOMContentLoaded", () => loadThemes())
-window.addEventListener("load", () => {
-    loadThemes(true)
+window.addEventListener("load", async() => {
+    await loadThemes(true)
     setTimeout(loadThemes, 1000)
 })
 ipcRenderer.on("reload-basic-theme-styling", () => loadThemes(true))

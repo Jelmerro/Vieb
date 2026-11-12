@@ -95,7 +95,7 @@ const translate = (id, {customLang = null, fields = []} = {}) => {
     if (translation && typeof translation === "string") {
         for (const [key, value] of fields?.entries() ?? []) {
             translation = translation.replace(
-                new RegExp(String.raw`\$${key + 1}`, "g"), String(value))
+                new RegExp(String.raw`\$${key + 1}`, "g"), value)
         }
         return translation
     }

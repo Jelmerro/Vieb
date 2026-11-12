@@ -213,7 +213,7 @@ const clickAtLink = async(link, src = "user") => {
     const {isUrl} = require("../util")
     if (link.url && link.type === "url" && isUrl(link.url)) {
         const {navigateTo} = require("./tabs")
-        navigateTo(src, link.url)
+        await navigateTo(src, link.url)
         return
     }
     setMode("insert")
@@ -306,7 +306,7 @@ const onclickListener = async(e, link) => {
     if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
         setMode(modeBeforeFollow)
         const {addTab} = require("./tabs")
-        addTab({
+        await addTab({
             "src": "user",
             "switchTo": getSetting("mousenewtabswitch"),
             "url": link.url
@@ -675,7 +675,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             }
             const {addTab} = require("./tabs")
             if (followLinkDestination === "newtab") {
-                addTab({
+                await addTab({
                     src,
                     "switchTo": !stayInFollowMode
                         && getSetting("follownewtabswitch"),
@@ -683,17 +683,19 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                 })
             } else if (followLinkDestination === "copylink") {
                 ipcRenderer.invoke("write-clipboard", link.url)
+                    .catch(() => null)
             } else {
                 const switchTo = !stayInFollowMode
                     && getSetting("followsplitswitch")
                 const currentTabId = currentTab()?.getAttribute("link-id")
-                const newTabId = addTab({
+                const newTab = await addTab({
                     "container": getSetting("containersplitpage"),
                     "lazy": false,
                     src,
                     switchTo,
                     "url": link.url
-                })?.getAttribute("link-id") ?? ""
+                })
+                const newTabId = newTab?.getAttribute("link-id") ?? ""
                 const {add} = require("./pagelayout")
                 const opposite = followLinkDestination === "ver"
                     && !getSetting("splitbelow")

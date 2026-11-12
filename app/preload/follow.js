@@ -1093,14 +1093,14 @@ const followLoop = async() => {
     setTimeout(() => followLoop(), 100)
 }
 
-ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
+ipcRenderer.on("follow-mode-start", async(_, newFollowFilter) => {
     if (currentFollowStatus
         && currentFollowStatus.length === newFollowFilter.length
         && currentFollowStatus[0] === newFollowFilter[0]) {
         return
     }
     currentFollowStatus = newFollowFilter
-    followLoop()
+    await followLoop()
 })
 ipcRenderer.on("follow-mode-stop", () => {
     currentFollowStatus = null

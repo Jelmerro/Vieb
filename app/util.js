@@ -1479,7 +1479,7 @@ const pathToSpecialPageName = urlPath => {
  * @param {string} location
  */
 const stringToUrl = location => {
-    let url = String(location)
+    let url = location
     const specialPage = pathToSpecialPageName(url)
     if (specialPage?.name) {
         return specialPagePath(specialPage.name, specialPage.section)

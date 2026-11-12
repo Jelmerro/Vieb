@@ -72,7 +72,7 @@ const processHash = () => {
         }
     }
     let mode = null
-    let keys = String(hash)
+    let keys = hash
     if (/^\w_.*/.test(hash)) {
         [mode] = hash.split("_", 1)
         keys = hash.split("_").slice(1).join("_")

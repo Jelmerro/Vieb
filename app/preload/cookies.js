@@ -109,7 +109,7 @@ const refreshList = async() => {
         remove.addEventListener("click", async() => {
             await ipcRenderer.invoke("remove-cookie",
                 cookieToUrl(cookie), cookie.name)
-            refreshList()
+            await refreshList()
         })
         cookieElement.append(remove)
         listEl?.append(cookieElement)
@@ -134,10 +134,10 @@ const removeAllCookies = async() => {
                 cookie.getAttribute("cookie-name"))
         }
     }
-    refreshList()
+    await refreshList()
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
     const h1 = document.querySelector("h1")
     if (h1) {
         h1.textContent = translate("pages.cookies.title")
@@ -156,5 +156,5 @@ window.addEventListener("DOMContentLoaded", () => {
     removeAll.addEventListener("click", removeAllCookies)
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter")?.addEventListener("input", filterList)
-    refreshList()
+    await refreshList()
 })

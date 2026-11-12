@@ -252,7 +252,7 @@ const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.paused) {
-            el.play()
+            el.play().catch(() => null)
         } else {
             el.pause()
         }

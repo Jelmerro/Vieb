@@ -334,12 +334,12 @@ const previousPageNewTab = () => sendToPageOrSubFrame(
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
-const modifyUrl = (src, source, replacement) => {
+const modifyUrl = async(src, source, replacement) => {
     const url = currentPage()?.src || ""
     const next = url.replace(new RegExp(source), replacement)
     if (next !== url) {
         const {navigateTo} = require("./tabs")
-        navigateTo(src, next)
+        await navigateTo(src, next)
     }
 }
 
@@ -399,7 +399,7 @@ const decreasePageNumber = args => movePageNumber(args.src, -1)
  * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const movePortNumber = (src, movement) => {
+const movePortNumber = async(src, movement) => {
     const url = currentPage()?.src || ""
     const loc = document.createElement("a")
     loc.href = url
@@ -411,7 +411,8 @@ const movePortNumber = (src, movement) => {
         port = 443
     }
     if (port) {
-        modifyUrl(src, String.raw`(^[a-zA-Z\d]+:\/\/[.a-zA-Z\d-]+)(:\d+)?(.*$)`,
+        await modifyUrl(src,
+            String.raw`(^[a-zA-Z\d]+:\/\/[.a-zA-Z\d-]+)(:\d+)?(.*$)`,
             (_, domain, _port, rest) => {
                 if (Number.isNaN(port)) {
                     return `${domain}${rest}`
@@ -468,7 +469,7 @@ const decreaseLastNumber = args => moveLastNumber(args.src, -1)
  * Go to root domain, by removing most subdomains, repeats to remove www.
  * @param {ActionParam} args
  */
-const toRootSubdomain = args => {
+const toRootSubdomain = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -493,7 +494,7 @@ const toRootSubdomain = args => {
     }
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(args.src, urlObj.href)
+        await navigateTo(args.src, urlObj.href)
     }
 }
 
@@ -501,7 +502,7 @@ const toRootSubdomain = args => {
  * Go to the parent domain, by removing 1 subdomain until there are none.
  * @param {ActionParam} args
  */
-const toParentSubdomain = args => {
+const toParentSubdomain = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -518,7 +519,7 @@ const toParentSubdomain = args => {
     urlObj.hostname = domainNames.slice(1).join(".")
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(args.src, urlObj.href)
+        await navigateTo(args.src, urlObj.href)
     }
 }
 
@@ -526,7 +527,7 @@ const toParentSubdomain = args => {
  * Go to the root url by removing the entire path, the search and the hash.
  * @param {ActionParam} args
  */
-const toRootUrl = args => {
+const toRootUrl = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -542,12 +543,12 @@ const toRootUrl = args => {
             "file://", "file:///", "file:///C:", "file:///C:/"
         ].some(u => u === urlObj.href || u === originalUrl)
         if (isRoot) {
-            navigateTo(args.src, "file:///C:/")
+            await navigateTo(args.src, "file:///C:/")
             return
         }
     }
     if (originalUrl !== urlObj.href) {
-        navigateTo(args.src, urlObj.href)
+        await navigateTo(args.src, urlObj.href)
     }
 }
 
@@ -555,7 +556,7 @@ const toRootUrl = args => {
  * Go to the parent url by removing the path part, the search and the hash.
  * @param {ActionParam} args
  */
-const toParentUrl = args => {
+const toParentUrl = async args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -572,30 +573,30 @@ const toParentUrl = args => {
             "file://", "file:///", "file:///C:", "file:///C:/"
         ].some(u => u === urlObj.href || u === originalUrl)
         if (isRoot) {
-            navigateTo(args.src, "file:///C:/")
+            await navigateTo(args.src, "file:///C:/")
             return
         }
     }
     if (originalUrl !== urlObj.href) {
-        navigateTo(args.src, urlObj.href)
+        await navigateTo(args.src, urlObj.href)
     }
 }
 
 /** Go to the previous tab in the bar, optionally wrapping back to the last. */
-const previousTab = () => {
+const previousTab = async() => {
     const {switchToTab} = require("./tabs")
     const current = currentTab()
     if (current) {
-        switchToTab(listTabs().indexOf(current) - 1)
+        await switchToTab(listTabs().indexOf(current) - 1)
     }
 }
 
 /** Go to the next tab in the bar, optionally wrapping to the first. */
-const nextTab = () => {
+const nextTab = async() => {
     const {switchToTab} = require("./tabs")
     const current = currentTab()
     if (current) {
-        switchToTab(listTabs().indexOf(current) + 1)
+        await switchToTab(listTabs().indexOf(current) + 1)
     }
 }
 
@@ -603,22 +604,22 @@ const nextTab = () => {
  * Toggle the sourceviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleSourceViewer = args => {
+const toggleSourceViewer = async args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
-        let loc = String(src)
+        let loc = src
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(args.src, `file://${loc}`)
+            await navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(args.src, `https://${src}`)
+        await navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
+        await navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
     }
 }
 
@@ -626,22 +627,22 @@ const toggleSourceViewer = args => {
  * Open the sourceviewer in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleSourceViewerNewTab = args => {
+const toggleSourceViewerNewTab = async args => {
     const {addTab, navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
         const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
-        let loc = String(src)
+        let loc = src
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(args.src, `file://${loc}`)
+            await navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(args.src, `https://${src}`)
+        await navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({
+        await addTab({
             "src": args.src,
             "url": page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:")
         })
@@ -652,22 +653,22 @@ const toggleSourceViewerNewTab = args => {
  * Toggle the readerviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleReaderView = args => {
+const toggleReaderView = async args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
-        let loc = String(src)
+        let loc = src
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(args.src, `file://${loc}`)
+            await navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(args.src, `https://${src}`)
+        await navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
+        await navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
     }
 }
 
@@ -675,22 +676,22 @@ const toggleReaderView = args => {
  * Open the readerview in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleReaderViewNewTab = args => {
+const toggleReaderViewNewTab = async args => {
     const {addTab, navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
         const src = page.src.replace(/^readerview:\/?\/?/g, "")
-        let loc = String(src)
+        let loc = src
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(args.src, `file://${loc}`)
+            await navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(args.src, `https://${src}`)
+        await navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({
+        await addTab({
             "src": args.src,
             "url": page.src.replace(/^.+?:\/?\/?/g, "readerview:")
         })
@@ -701,22 +702,22 @@ const toggleReaderViewNewTab = args => {
  * Toggle the markdownviewer in the current tab.
  * @param {ActionParam} args
  */
-const toggleMarkdownViewer = args => {
+const toggleMarkdownViewer = async args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
-        let loc = String(src)
+        let loc = src
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(args.src, `file://${loc}`)
+            await navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(args.src, `https://${src}`)
+        await navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(args.src,
+        await navigateTo(args.src,
             page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
     }
 }
@@ -725,22 +726,22 @@ const toggleMarkdownViewer = args => {
  * Open the markdownviewer in a new tab or go back to the page in the current.
  * @param {ActionParam} args
  */
-const toggleMarkdownViewerNewTab = args => {
+const toggleMarkdownViewerNewTab = async args => {
     const {addTab, navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
         const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
-        let loc = String(src)
+        let loc = src
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(args.src, `file://${loc}`)
+            await navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(args.src, `https://${src}`)
+        await navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({
+        await addTab({
             "src": args.src,
             "url": page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:")
         })
@@ -810,12 +811,12 @@ const scrollPageUpHalf = () => currentPage()?.send(
  * Refresh the current page or optionally a custom page.
  * @param {ActionParam} args
  */
-const refreshTab = args => {
+const refreshTab = async args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(args.src, page)
+            await recreateWebview(args.src, page)
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -829,9 +830,9 @@ const refreshTab = args => {
  * Reopen the last closed tab.
  * @param {ActionParam} args
  */
-const reopenTab = args => {
+const reopenTab = async args => {
     const {"reopenTab": reopen} = require("./tabs")
-    reopen(args.src)
+    await reopen(args.src)
 }
 
 /** Switch to follow mode to copy a link. */
@@ -868,12 +869,12 @@ const startFollowCurrentTab = () => {
  * Go back in history for the current page or a custom one.
  * @param {ActionParam} args
  */
-const backInHistory = args => {
+const backInHistory = async args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(args.src, page)
+            await recreateWebview(args.src, page)
             return
         }
         if (page?.canGoBack()) {
@@ -893,12 +894,12 @@ const backInHistory = args => {
  * Go forward in history for the current page or a custom one.
  * @param {ActionParam} args
  */
-const forwardInHistory = args => {
+const forwardInHistory = async args => {
     const page = args.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(args.src, page)
+            await recreateWebview(args.src, page)
             return
         }
         if (page?.canGoForward()) {
@@ -918,12 +919,12 @@ const forwardInHistory = args => {
  * Refresh the curren tab without using cache.
  * @param {ActionParam} args
  */
-const refreshTabWithoutCache = args => {
+const refreshTabWithoutCache = async args => {
     const page = currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(args.src, page)
+            await recreateWebview(args.src, page)
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -942,7 +943,7 @@ const refreshTabWithoutCache = args => {
  *   customPage?: Electron.WebviewTag | HTMLDivElement
  * }} args
  */
-const openNewTabWithCurrentUrl = args => {
+const openNewTabWithCurrentUrl = async args => {
     const url = args.customPage?.getAttribute("src") || currentPage()?.src || ""
     const {addTab} = require("./tabs")
     if (args.customPage) {
@@ -956,10 +957,10 @@ const openNewTabWithCurrentUrl = args => {
             index += 1
         }
         const pinned = tab.classList.contains("pinned") ?? false
-        addTab({"customIndex": index, pinned, "src": args.src})
+        await addTab({"customIndex": index, pinned, "src": args.src})
     } else {
         const pinned = currentTab()?.classList.contains("pinned") ?? false
-        addTab({pinned, "src": args.src})
+        await addTab({pinned, "src": args.src})
     }
     const {setMode} = require("./modes")
     setMode("explore")
@@ -1053,9 +1054,9 @@ const stopFollowMode = () => {
  * Repeat the last used action.
  * @param {ActionParam} args
  */
-const repeatLastAction = args => {
+const repeatLastAction = async args => {
     const {"repeatLastAction": repeat} = require("./input")
-    repeat(args.src)
+    await repeat(args.src)
 }
 
 /**
@@ -1148,9 +1149,9 @@ const editWithVim = args => {
  * Download the current page link to disk.
  * @param {ActionParam} args
  */
-const downloadLink = args => {
+const downloadLink = async args => {
     const {commonAction} = require("./contextmenu")
-    commonAction(args.src, "link", "download",
+    await commonAction(args.src, "link", "download",
         {"link": currentPage()?.src ?? ""})
 }
 
@@ -1158,9 +1159,9 @@ const downloadLink = args => {
  * Open the current page link in an external application as per setting.
  * @param {ActionParam} args
  */
-const openLinkExternal = args => {
+const openLinkExternal = async args => {
     const {commonAction} = require("./contextmenu")
-    commonAction(args.src, "link", "external",
+    await commonAction(args.src, "link", "external",
         {"link": currentPage()?.src ?? ""})
 }
 
@@ -1280,57 +1281,57 @@ const rightHalfSplitWindow = () => {
 }
 
 /** Move the focus to the split to the left of the current one. */
-const toLeftSplitWindow = () => {
+const toLeftSplitWindow = async() => {
     const {moveFocus} = require("./pagelayout")
-    moveFocus("left")
+    await moveFocus("left")
 }
 
 /** Move the focus to the split to the bottom of the current one. */
-const toBottomSplitWindow = () => {
+const toBottomSplitWindow = async() => {
     const {moveFocus} = require("./pagelayout")
-    moveFocus("bottom")
+    await moveFocus("bottom")
 }
 
 /** Move the focus to the split to the top of the current one. */
-const toTopSplitWindow = () => {
+const toTopSplitWindow = async() => {
     const {moveFocus} = require("./pagelayout")
-    moveFocus("top")
+    await moveFocus("top")
 }
 
 /** Move the focus to the split to the right of the current one. */
-const toRightSplitWindow = () => {
+const toRightSplitWindow = async() => {
     const {moveFocus} = require("./pagelayout")
-    moveFocus("right")
+    await moveFocus("right")
 }
 
 /** Move the focus back to the previously focused window split. */
-const toLastSplitWindow = () => {
+const toLastSplitWindow = async() => {
     const {lastSplit} = require("./pagelayout")
-    lastSplit()
+    await lastSplit()
 }
 
 /** Move the focus to the very first split by appearance. */
-const toFirstSplitWindow = () => {
+const toFirstSplitWindow = async() => {
     const {firstSplit} = require("./pagelayout")
-    firstSplit()
+    await firstSplit()
 }
 
 /** Move the focus to the next split by appearance. */
-const toNextSplitWindow = () => {
+const toNextSplitWindow = async() => {
     const {nextSplit} = require("./pagelayout")
-    nextSplit()
+    await nextSplit()
 }
 
 /** Move the focus to the previous split by appearance. */
-const toPreviousSplitWindow = () => {
+const toPreviousSplitWindow = async() => {
     const {previousSplit} = require("./pagelayout")
-    previousSplit()
+    await previousSplit()
 }
 
 /** Swap the location of the current split and others in the same level. */
-const exchangeSplitWindow = () => {
+const exchangeSplitWindow = async() => {
     const {exchange} = require("./pagelayout")
-    exchange()
+    await exchange()
 }
 
 /** Increase the height of the current window split within the same level. */
@@ -1367,8 +1368,9 @@ const distrubuteSpaceSplitWindow = () => {
 const toggleAlwaysOnTop = () => ipcRenderer.invoke("toggle-always-on-top")
 
 /** Toggle the fullscreen functionality of the app, then update the GUI. */
-const toggleFullscreen = () => {
-    ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
+const toggleFullscreen = async() => {
+    await ipcRenderer.invoke("toggle-fullscreen")
+    updateGuiVisibility()
 }
 
 /**
@@ -1457,7 +1459,7 @@ const pageRSSLinkToClipboard = async args => {
     }
     const feedkey = !Number.isNaN(Number(args.key)) && Number(args.key) || 0
     const feedUrl = feedUrls[feedkey] ?? ""
-    ipcRenderer.invoke("write-clipboard", feedUrl)
+    await ipcRenderer.invoke("write-clipboard", feedUrl)
     notify({
         "fields": [feedUrl],
         "id": "actions.rss.clipboard",
@@ -1471,37 +1473,37 @@ const pageToClipboard = () => ipcRenderer.invoke(
     "write-clipboard", getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
-const pageTitleToClipboard = () => {
+const pageTitleToClipboard = async() => {
     const {getPageTitle} = require("./command")
-    ipcRenderer.invoke("write-clipboard", getPageTitle())
+    await ipcRenderer.invoke("write-clipboard", getPageTitle())
 }
 
 /** Copy the current page to the system clipboard formatted as HTML. */
-const pageToClipboardHTML = () => {
+const pageToClipboardHTML = async() => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    ipcRenderer.invoke("write-clipboard", `<a href="${url}">${title}</a>`)
+    await ipcRenderer.invoke("write-clipboard", `<a href="${url}">${title}</a>`)
 }
 
 /** Copy the current page to the system clipboard formatted as Markdown. */
-const pageToClipboardMarkdown = () => {
+const pageToClipboardMarkdown = async() => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    ipcRenderer.invoke("write-clipboard", `[${title}](${url})`)
+    await ipcRenderer.invoke("write-clipboard", `[${title}](${url})`)
 }
 
 /** Copy the current page to the system clipboard formatted as RST. */
-const pageToClipboardRST = () => {
+const pageToClipboardRST = async() => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    ipcRenderer.invoke("write-clipboard", `\`${title} <${url}>\`_`)
+    await ipcRenderer.invoke("write-clipboard", `\`${title} <${url}>\`_`)
 }
 
 /** Copy the current page to the system clipboard formatted as Emacs. */
-const pageToClipboardEmacs = () => {
+const pageToClipboardEmacs = async() => {
     const url = getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
-    ipcRenderer.invoke("write-clipboard", `[[${url}][${title}]]`)
+    await ipcRenderer.invoke("write-clipboard", `[[${url}][${title}]]`)
 }
 
 /** Paste the contents of the clipboard into the page programmatically. */
@@ -1519,11 +1521,11 @@ const pasteText = () => {
  * Open the link currently in the system clipboard in the current tab.
  * @param {ActionParam} args
  */
-const openFromClipboard = args => {
+const openFromClipboard = async args => {
     const text = ipcRenderer.sendSync("read-clipboard").trim()
     if (text) {
         const {navigateTo} = require("./tabs")
-        navigateTo(args.src, stringToUrl(text))
+        await navigateTo(args.src, stringToUrl(text))
     }
 }
 
@@ -1605,7 +1607,7 @@ const restoreScrollPos = args => {
             document.body.scrollTo(0, ${pixels})
         } else {
             window.scrollTo(0, ${pixels})
-        }`)
+        }`).catch(() => null)
     }
 }
 
@@ -1630,7 +1632,7 @@ const makeMark = args => {
  * Restore a stored mark by key to a position.
  * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
  */
-const restoreMark = args => {
+const restoreMark = async args => {
     if (!args.key) {
         return
     }
@@ -1646,7 +1648,7 @@ const restoreMark = args => {
         position = shiftedPosition
     }
     position = args.position ?? position
-    commonAction(args.src, "link", position, {"link": qm.marks[args.key]})
+    await commonAction(args.src, "link", position, {"link": qm.marks[args.key]})
 }
 
 /**
@@ -1665,9 +1667,9 @@ const runRecording = args => {
     if (!recording) {
         return
     }
-    setTimeout(() => {
+    setTimeout(async() => {
         const {executeMapString, sanitiseMapString} = require("./input")
-        executeMapString(sanitiseMapString(
+        await executeMapString(sanitiseMapString(
             args.src, recording, true),
         true, {"initial": true, "src": args.src})
     }, 5)
@@ -1832,7 +1834,7 @@ const toggleTOC = () => {
  * Use the navbar entered data to either navigate, search or run commands.
  * @param {ActionParam} args
  */
-const useEnteredData = args => {
+const useEnteredData = async args => {
     const {setMode} = require("./modes")
     const url = getUrl()
     if (!url) {
@@ -1842,7 +1844,7 @@ const useEnteredData = args => {
         const command = url.value.trim()
         setMode("normal")
         const {execute} = require("./command")
-        execute(command, {"src": "user"})
+        await execute(command, {"src": "user"})
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
@@ -1857,7 +1859,7 @@ const useEnteredData = args => {
             const {push} = require("./explorehistory")
             push(urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
-            navigateTo(args.src, stringToUrl(modifiedLoc))
+            await navigateTo(args.src, stringToUrl(modifiedLoc))
         }
     }
 }

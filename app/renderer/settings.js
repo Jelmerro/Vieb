@@ -2111,7 +2111,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
  * Update the help page with updated settings, mapping and commands.
  * @param {import("./common").RunSource} src
  */
-const updateHelpPage = src => {
+const updateHelpPage = async src => {
     for (const p of listReadyPages()) {
         const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
         if (special?.name === "help") {
@@ -2119,7 +2119,7 @@ const updateHelpPage = src => {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
-            p.send("settings", settingsWithDefaults(),
+            await p.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList(src, null, true), uncountableActions,
                 rangeCompatibleCommands)
         }
@@ -2176,7 +2176,7 @@ const updateObjectSetting = (setting, value) => {
  * @param {keyof typeof defaultSettings} setting
  * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
-const set = (src, setting, value) => {
+const set = async(src, setting, value) => {
     if (isValidSetting(src, setting, value)) {
         const {applyLayout} = require("./pagelayout")
         if (isBooleanSetting(setting)) {
@@ -2239,7 +2239,7 @@ const set = (src, setting, value) => {
             }
         }
         if (downloadSettings.has(setting)) {
-            updateDownloadSettings()
+            await updateDownloadSettings()
         }
         if (setting.startsWith("gui")) {
             updateGuiVisibility()
@@ -2308,9 +2308,9 @@ const set = (src, setting, value) => {
                 }
                 const inScope = allSettings.darkreaderscope.includes(scope)
                 if (allSettings.darkreader && inScope) {
-                    p.send("enable-darkreader")
+                    await p.send("enable-darkreader")
                 } else {
-                    p.send("disable-darkreader")
+                    await p.send("disable-darkreader")
                 }
             }
         }
@@ -2325,9 +2325,9 @@ const set = (src, setting, value) => {
                 }
                 const inScope = allSettings.userstylescope.includes(scope)
                 if (allSettings.userstyle && inScope) {
-                    p.send("enable-userstyle")
+                    await p.send("enable-userstyle")
                 } else {
-                    p.send("disable-userstyle")
+                    await p.send("disable-userstyle")
                 }
             }
         }
@@ -2344,7 +2344,7 @@ const set = (src, setting, value) => {
         if (setting === "windowtitle") {
             updateWindowTitle()
         }
-        updateHelpPage(src)
+        await updateHelpPage(src)
         return true
     }
     return false
@@ -2355,7 +2355,7 @@ const set = (src, setting, value) => {
  * @param {boolean} firstRun
  * @param {import("./common").RunSource} src
  */
-const loadFromDisk = (firstRun, src = "source") => {
+const loadFromDisk = async(firstRun, src = "source") => {
     const {pause, resume} = require("./commandhistory")
     pause()
     const config = appConfig()
@@ -2368,7 +2368,7 @@ const loadFromDisk = (firstRun, src = "source") => {
         /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
         for (const [t, value] of Object.entries(erwicDefaults)) {
-            set(src, t, value)
+            await set(src, t, value)
         }
     }
     for (const conf of files) {
@@ -2390,11 +2390,11 @@ const loadFromDisk = (firstRun, src = "source") => {
                 continue
             }
             const {execute} = require("./command")
-            execute(line, {"settingsFile": conf, src})
+            await execute(line, {"settingsFile": conf, src})
         }
     }
     updateContainerSettings()
-    updateDownloadSettings()
+    await updateDownloadSettings()
     updatePermissionSettings()
     updateSettings()
     updateMouseSettings()
@@ -2409,13 +2409,13 @@ const loadFromDisk = (firstRun, src = "source") => {
  * @param {import("./common").RunSource} src
  * @param {string} setting
  */
-const reset = (src, setting) => {
+const reset = async(src, setting) => {
     if (setting === "all") {
         for (const [s, value] of Object.entries(defaultSettings)) {
-            set(src, s, value)
+            await set(src, s, value)
         }
     } else if (isExistingSetting(setting)) {
-        set(src, setting, defaultSettings[setting])
+        await set(src, setting, defaultSettings[setting])
     } else {
         notify({
             "fields": [setting],
@@ -2538,24 +2538,24 @@ const saveToDisk = (src, full) => {
 }
 
 /** Load the settings from disk and prepare setting-related listeners. */
-const init = () => {
-    loadFromDisk(true)
-    ipcRenderer.invoke("list-spelllangs").then(langs => {
+const init = async() => {
+    await loadFromDisk(true)
+    ipcRenderer.invoke("list-spelllangs").then(async langs => {
         spelllangs = langs || []
         spelllangs.push("system")
         if (!isValidSetting("source", "spelllang", allSettings.spelllang)) {
-            set("source", "spelllang", ["system"])
+            await set("source", "spelllang", ["system"])
         }
         ipcRenderer.send("set-spelllang", allSettings.spelllang)
-    })
+    }).catch(() => null)
     ipcRenderer.on("set-permission", (
         _, name, value) => set("user", name, value))
-    ipcRenderer.on("pdf-url-hit", (_, url) => {
+    ipcRenderer.on("pdf-url-hit", async(_, url) => {
         if (allSettings.pdfbehavior === "download") {
             currentPage()?.downloadURL(url)
         } else if (allSettings.pdfbehavior === "external") {
             const {commonAction} = require("./contextmenu")
-            commonAction("other", "link", "external", {"link": url})
+            await commonAction("other", "link", "external", {"link": url})
         }
     })
     ipcRenderer.on("notify", (_, opts) => {

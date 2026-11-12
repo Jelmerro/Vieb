@@ -63,8 +63,8 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
     // Don't update the mappings before done loading or in rapid succession
     clearTimeout(faviconWriteTimeout ?? undefined)
     if (!now || !isParsed) {
-        faviconWriteTimeout = setTimeout(() => {
-            updateMappings({currentUrl, "now": true})
+        faviconWriteTimeout = setTimeout(async() => {
+            await updateMappings({currentUrl, "now": true})
         }, 5000)
         return
     }
@@ -99,7 +99,7 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
             }
             return []
         }))
-        listDirAsync(faviconFolder).catch(() => null).then(async files => {
+        listDirAsync(faviconFolder).then(async files => {
             const promises = files?.map(file => new Promise(res => {
                 if (!usedFavNames.has(file) && file !== "mappings") {
                     deleteFile(joinPath(faviconFolder, file))
@@ -108,7 +108,7 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
             })) ?? []
             await Promise.all(promises)
             resolveAll("Done")
-        })
+        }).catch(() => null)
     })
 }
 
@@ -205,7 +205,7 @@ const deleteIfTooOld = loc => {
  * @param {Electron.WebviewTag} webview
  * @param {string} favicon
  */
-const update = (webview, favicon) => {
+const update = async(webview, favicon) => {
     const tab = tabForPage(webview)
     if (viebIcon === favicon) {
         if (!pathToSpecialPageName(webview.src)?.name) {
@@ -227,7 +227,7 @@ const update = (webview, favicon) => {
     const currentUrl = webview.src
     if (mappings[currentUrl] !== favicon) {
         mappings[currentUrl] = favicon
-        updateMappings({currentUrl})
+        await updateMappings({currentUrl})
     }
     if (tab && (favicon.startsWith("file:/") || favicon.startsWith("data:"))) {
         setPath(tab, favicon)

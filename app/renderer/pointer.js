@@ -142,7 +142,7 @@ const start = (args = null) => {
 }
 
 /** Move the pointer to the current mouse position. */
-const moveToMouse = () => {
+const moveToMouse = async() => {
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos) {
         for (const el of document.elementsFromPoint(mousePos.x, mousePos.y)) {
@@ -153,7 +153,7 @@ const moveToMouse = () => {
             if (el !== currentPage() || currentMode() !== "visual") {
                 const {switchToTab} = require("./tabs")
                 // @ts-expect-error el is checked to be a webview above
-                switchToTab(tabForPage(el))
+                await switchToTab(tabForPage(el))
             }
             const containerPos = pageContainerPos()
             if (currentMode() === "visual") {
@@ -773,9 +773,9 @@ const leftClick = () => {
 }
 
 /** Move the pointer to the top of the page including scrolling. */
-const startOfPage = () => {
+const startOfPage = async() => {
     const {scrollTop} = require("./actions")
-    scrollTop()
+    await scrollTop()
     Y = 0
     updateElement()
 }
@@ -799,7 +799,7 @@ const insertAtPosition = () => {
 }
 
 /** Move the pointer 10px down, scrolling the page as needed. */
-const moveDown = () => {
+const moveDown = async() => {
     const page = currentPage()
     if (!page) {
         return
@@ -807,7 +807,7 @@ const moveDown = () => {
     const {bottom, top} = pageOffset(page)
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
-        scroll()
+        await scroll()
         listenForScroll = true
     } else {
         Y += 10
@@ -816,10 +816,10 @@ const moveDown = () => {
 }
 
 /** Move the pointer 10px up, scrolling the page as needed. */
-const moveUp = () => {
+const moveUp = async() => {
     if (Y === 0) {
         const {"scrollUp": scroll} = require("./actions")
-        scroll()
+        await scroll()
         listenForScroll = true
     } else {
         Y -= 10
@@ -954,9 +954,9 @@ const endOfView = () => {
 }
 
 /** Move the pointer to the end of the page with scrolling. */
-const endOfPage = () => {
+const endOfPage = async() => {
     const {scrollBottom} = require("./actions")
-    scrollBottom()
+    await scrollBottom()
     Y = window.innerHeight
     updateElement()
 }
@@ -974,7 +974,7 @@ const moveLeftMax = () => {
 }
 
 /** Move the pointer 100px down, scrolling the page as needed. */
-const moveFastDown = () => {
+const moveFastDown = async() => {
     const page = currentPage()
     if (!page) {
         return
@@ -982,7 +982,7 @@ const moveFastDown = () => {
     const {bottom, top} = pageOffset(page)
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
-        scroll()
+        await scroll()
         listenForScroll = true
     } else {
         Y += 100
@@ -991,10 +991,10 @@ const moveFastDown = () => {
 }
 
 /** Move the pointer 100px up, scrolling the page as needed. */
-const moveFastUp = () => {
+const moveFastUp = async() => {
     if (Y === 0) {
         const {"scrollUp": scroll} = require("./actions")
-        scroll()
+        await scroll()
         listenForScroll = true
     } else {
         Y -= 100
@@ -1086,7 +1086,7 @@ const restorePos = args => {
 /** Register mouse event listeners for context and click info. */
 const init = () => {
     const {setMode} = require("./modes")
-    ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
+    ipcRenderer.on("mouse-down-location", async(_, clickInfo) => {
         const {resetInsertLeaveTimeout} = require("./input")
         resetInsertLeaveTimeout()
         if ("ces".includes(currentMode()[0]) && getMouseConf("leaveinput")) {
@@ -1100,7 +1100,7 @@ const init = () => {
                 const tab = tabForPage(page)
                 if (tab) {
                     const {switchToTab} = require("./tabs")
-                    switchToTab(tab)
+                    await switchToTab(tab)
                 }
             }
         }
@@ -1147,6 +1147,7 @@ const init = () => {
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {
         if (process.platform === "linux" || process.platform.includes("bsd")) {
             ipcRenderer.invoke("write-clipboard", selectInfo.text, "selection")
+                .catch(() => null)
         }
         if (selectInfo.toinsert) {
             if (getMouseConf("toinsert")) {

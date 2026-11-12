@@ -1081,7 +1081,7 @@ const cutInput = (event = null) => {
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
-    ipcRenderer.invoke("write-clipboard", selection)
+    ipcRenderer.invoke("write-clipboard", selection).catch(() => null)
     const url = getUrl()
     if (!url) {
         return
@@ -1104,7 +1104,7 @@ const copyInput = (event = null) => {
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
-    ipcRenderer.invoke("write-clipboard", selection)
+    ipcRenderer.invoke("write-clipboard", selection).catch(() => null)
 }
 
 /**
@@ -1450,7 +1450,7 @@ const doAction = async(actionName, opts) => {
         }
         actionCount = 1
     }
-    lastActionInMapping = String(actionName)
+    lastActionInMapping = actionName
     const pointer = actionName.toLowerCase().startsWith("p.")
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
@@ -1504,7 +1504,7 @@ const executeMapString = async(mapStr, recursive, opts) => {
     let repeater = Number(repeatCounter) || 1
     if (opts.initial && repeatCounter
         && ["<scrollBottom>", "<scrollTop>"].includes(mapStr)) {
-        currentPage()?.send("action", "scrollPerc", repeatCounter)
+        await currentPage()?.send("action", "scrollPerc", repeatCounter)
         repeater = 0
     }
     repeatCounter = 0
@@ -1530,7 +1530,7 @@ const executeMapString = async(mapStr, recursive, opts) => {
             }
             if (key.startsWith("<:")) {
                 const {execute} = require("./command")
-                execute(key.replace(/^<:|>$/g, ""), {"src": opts.src})
+                await execute(key.replace(/^<:|>$/g, ""), {"src": opts.src})
                 lastActionInMapping = null
                 await new Promise(r => {
                     setTimeout(r, 3)
@@ -1575,9 +1575,9 @@ const executeMapString = async(mapStr, recursive, opts) => {
  * Repeat the last run action.
  * @param {import("./common").RunSource} src
  */
-const repeatLastAction = src => {
+const repeatLastAction = async src => {
     if (lastExecutedMapstring) {
-        executeMapString(lastExecutedMapstring.mapStr,
+        await executeMapString(lastExecutedMapstring.mapStr,
             lastExecutedMapstring.recursive, {"initial": true, src})
     }
 }
@@ -1897,7 +1897,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     const cur = Number(url.selectionStart)
-    const text = String(url.value)
+    const text = url.value
     if (url.selectionStart !== null && url.selectionEnd !== null) {
         /** @type {{[key: string]: string}} */
         const charMap = {
@@ -2239,12 +2239,12 @@ const handleKeyboard = async e => {
     if (currentMode() === "follow") {
         if (e instanceof KeyboardEvent && e.type === "keydown") {
             const {enterKey} = require("./follow")
-            let unshiftedName = String(e.key).toLowerCase()
+            let unshiftedName = e.key.toLowerCase()
             if (e.key.toUpperCase() === unshiftedName && hadModifier) {
                 const map = await window.navigator.keyboard?.getLayoutMap()
                 unshiftedName = map?.get(e.code) ?? unshiftedName
             }
-            enterKey(src, unshiftedName, id, hadModifier)
+            await enterKey(src, unshiftedName, id, hadModifier)
         }
         return
     }
@@ -2345,7 +2345,7 @@ const listMappingsAsCommandList = (
  * @param {string[]} args
  * @param {boolean} noremap
  */
-const mapSingle = (src, mode, args, noremap) => {
+const mapSingle = async(src, mode, args, noremap) => {
     const mapping = sanitiseMapString(src, args.shift() ?? "")
     const actions = sanitiseMapString(src, args.join(" "), true)
     if (!mapping || !actions) {
@@ -2359,7 +2359,7 @@ const mapSingle = (src, mode, args, noremap) => {
         }
     }
     const {updateHelpPage} = require("./settings")
-    updateHelpPage(src)
+    await updateHelpPage(src)
 }
 
 /**
@@ -2370,7 +2370,7 @@ const mapSingle = (src, mode, args, noremap) => {
  * @param {boolean} noremap
  * @param {boolean} includeDefault
  */
-const mapOrList = (
+const mapOrList = async(
     src, mode, args, noremap = false, includeDefault = false
 ) => {
     if (includeDefault && args.length > 1) {
@@ -2425,7 +2425,7 @@ const mapOrList = (
         }
         return
     }
-    mapSingle(src, mode, args, noremap)
+    await mapSingle(src, mode, args, noremap)
 }
 
 /**
@@ -2435,7 +2435,7 @@ const mapOrList = (
  * @param {string[]} args
  * @param {boolean} anyAsWildcard
  */
-const unmap = (src, mode, args, anyAsWildcard) => {
+const unmap = async(src, mode, args, anyAsWildcard) => {
     if (args.length !== 1) {
         notify({
             "fields": [mode ?? ""],
@@ -2469,7 +2469,7 @@ const unmap = (src, mode, args, anyAsWildcard) => {
         }
     }
     const {updateHelpPage} = require("./settings")
-    updateHelpPage(src)
+    await updateHelpPage(src)
 }
 
 /**
@@ -2478,7 +2478,7 @@ const unmap = (src, mode, args, anyAsWildcard) => {
  * @param {string|null} mode
  * @param {boolean} removeDefaults
  */
-const clearmap = (src, mode, removeDefaults = false) => {
+const clearmap = async(src, mode, removeDefaults = false) => {
     if (mode) {
         if (removeDefaults) {
             bindings[mode] = {}
@@ -2493,7 +2493,7 @@ const clearmap = (src, mode, removeDefaults = false) => {
         bindings = JSON.parse(JSON.stringify(defaultBindings))
     }
     const {updateHelpPage} = require("./settings")
-    updateHelpPage(src)
+    await updateHelpPage(src)
 }
 
 /**
@@ -2556,14 +2556,14 @@ const init = () => {
         }
         if (e.button === 3) {
             if (getMouseConf("history")) {
-                ACTIONS.backInHistory({"src": "user"})
+                ACTIONS.backInHistory({"src": "user"}).catch(() => null)
             }
             e.preventDefault()
             return
         }
         if (e.button === 4) {
             if (getMouseConf("history")) {
-                ACTIONS.forwardInHistory({"src": "user"})
+                ACTIONS.forwardInHistory({"src": "user"}).catch(() => null)
             }
             e.preventDefault()
             return
@@ -2592,12 +2592,11 @@ const init = () => {
             }
         }
     })
-    document.getElementById("tabs")?.addEventListener("dblclick", e => {
+    document.getElementById("tabs")?.addEventListener("dblclick", async e => {
+        e.preventDefault()
         if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
-            addTab({"src": "user"})
-        } else {
-            e.preventDefault()
+            await addTab({"src": "user"})
         }
         ACTIONS.setFocusCorrectly()
     })
@@ -2652,7 +2651,7 @@ const init = () => {
             e.preventDefault()
         }
     })
-    window.addEventListener("mouseup", e => {
+    window.addEventListener("mouseup", async e => {
         if (draggingScreenshotFrame) {
             setTimeout(() => {
                 draggingScreenshotFrame = false
@@ -2692,7 +2691,7 @@ const init = () => {
             })
             if (tab instanceof HTMLElement) {
                 const {closeTab} = require("./tabs")
-                closeTab("user", listTabs().indexOf(tab))
+                await closeTab("user", listTabs().indexOf(tab))
             }
             const {clear} = require("./contextmenu")
             clear()
@@ -2702,7 +2701,7 @@ const init = () => {
     window.addEventListener("cut", cutInput)
     window.addEventListener("copy", copyInput)
     window.addEventListener("paste", pasteInput)
-    window.addEventListener("click", e => {
+    window.addEventListener("click", async e => {
         if (e.composedPath().some(n => isElement(n)
             && matchesQuery(n, "#context-menu"))) {
             return
@@ -2740,13 +2739,13 @@ const init = () => {
             if (tab instanceof HTMLSpanElement) {
                 clear()
                 const {switchToTab} = require("./tabs")
-                switchToTab(tab)
+                await switchToTab(tab)
             }
         }
         ACTIONS.setFocusCorrectly()
     })
     const tabSelector = "#pagelayout *[link-id], #tabs *[link-id]"
-    window.addEventListener("mousemove", e => {
+    window.addEventListener("mousemove", async e => {
         if (e.y === 0) {
             setTopOfPageWithMouse(getMouseConf("guiontop"))
         }
@@ -2759,7 +2758,7 @@ const init = () => {
                     "link-id") === n.getAttribute("link-id"))
                 if (tab && currentTab() !== tab) {
                     const {switchToTab} = require("./tabs")
-                    switchToTab(tab)
+                    await switchToTab(tab)
                 }
             }
         }
@@ -2804,7 +2803,7 @@ const init = () => {
             ACTIONS.zoomOut({"customPage": page, "src": "user"})
         }
     })
-    ipcRenderer.on("insert-mode-input-event", (_, input) => {
+    ipcRenderer.on("insert-mode-input-event", async(_, input) => {
         if (input.key === "Tab") {
             currentPage()?.focus()
         }
@@ -2816,6 +2815,7 @@ const init = () => {
             const ctrlBrack = input.key === "[" && noMods && ctrl
             if (escapeKey || ctrlBrack) {
                 currentPage()?.send("action", "exitFullscreen")
+                    .catch(() => null)
                 return
             }
         }
@@ -2825,7 +2825,7 @@ const init = () => {
         if (input.type.toLowerCase() !== "keydown") {
             return
         }
-        handleKeyboard({
+        await handleKeyboard({
             "altKey": input.alt,
             "ctrlKey": input.control,
             "isTrusted": true,
@@ -2851,9 +2851,9 @@ const init = () => {
         document.body.classList.remove("focus")
         ACTIONS.setFocusCorrectly()
     })
-    ipcRenderer.on("execute-command", (_, command) => {
+    ipcRenderer.on("execute-command", async(_, command) => {
         const {execute} = require("./command")
-        execute(command, {"src": "execute"})
+        await execute(command, {"src": "execute"})
     })
     ipcRenderer.on("window-update-gui", () => updateGuiVisibility())
     ACTIONS.setFocusCorrectly()

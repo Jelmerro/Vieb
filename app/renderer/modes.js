@@ -47,7 +47,7 @@ const modes = {
          */
         "onLeave": newMode => {
             if (currentPage()?.hasAttribute("dom-ready")) {
-                currentPage()?.send("action", "blur")
+                currentPage()?.send("action", "blur").catch(() => null)
             }
             if (newMode !== "pointer" && !getMouseConf("pageoutsideinsert")) {
                 const hoverEl = document.getElementById("url-hover")

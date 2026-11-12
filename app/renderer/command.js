@@ -142,7 +142,7 @@ const isStringObject = value => typeof value === "object"
  * @param {string} value
  * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifyListOrObject = (src, setting, value, method) => {
+const modifyListOrObject = async(src, setting, value, method) => {
     const {isArraySetting, isObjectSetting, set} = require("./settings")
     const isList = isArraySetting(setting)
     const isObject = isObjectSetting(setting)
@@ -193,10 +193,10 @@ const modifyListOrObject = (src, setting, value, method) => {
             current = mouseFeatures
         }
         if (method === "replace") {
-            set(src, setting, addition)
+            await set(src, setting, addition)
         }
         if (method === "append") {
-            set(src, setting, [...current, ...addition])
+            await set(src, setting, [...current, ...addition])
         }
         if (method === "remove") {
             let newValue = current
@@ -209,10 +209,10 @@ const modifyListOrObject = (src, setting, value, method) => {
                         e => e.split("~", 1)[0] !== entry.split("~", 1)[0])
                 }
             }
-            set(src, setting, newValue)
+            await set(src, setting, newValue)
         }
         if (method === "special") {
-            set(src, setting, [...addition, ...current])
+            await set(src, setting, [...addition, ...current])
         }
     } else if (isObject) {
         let addition = parsed
@@ -234,7 +234,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             addition = additionObj
         }
         if (method === "replace") {
-            set(src, setting, addition)
+            await set(src, setting, addition)
             return
         }
         const newValue = getSetting(setting)
@@ -256,7 +256,7 @@ const modifyListOrObject = (src, setting, value, method) => {
             })
             return
         }
-        set(src, setting, newValue)
+        await set(src, setting, newValue)
     }
 }
 
@@ -267,7 +267,7 @@ const modifyListOrObject = (src, setting, value, method) => {
  * @param {string} rawValue
  * @param {"append"|"remove"|"special"|"replace"} method
  */
-const modifySetting = (src, setting, rawValue, method = "replace") => {
+const modifySetting = async(src, setting, rawValue, method = "replace") => {
     let value = rawValue
     const {
         isArraySetting, isNumberSetting, isObjectSetting, isStringSetting, set
@@ -279,7 +279,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
     const {mouseFeatures} = require("./settings")
     if ((isList || isObject) && (value.startsWith("{") && value.endsWith("}")
         || value.startsWith("[") && value.endsWith("]"))) {
-        modifyListOrObject(src, setting, value, method)
+        await modifyListOrObject(src, setting, value, method)
         return
     }
     try {
@@ -293,7 +293,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
     if (method === "replace") {
         if (isList) {
             const arr = value.split(",").filter(v => v.trim())
-            modifyListOrObject(src, setting, JSON.stringify(arr), method)
+            await modifyListOrObject(src, setting, JSON.stringify(arr), method)
             return
         }
         if (isObject) {
@@ -304,10 +304,10 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
                 obj[val.split("~", 1)[0]] = val
                     .split("~").slice(1).join("~") ?? ""
             }
-            modifyListOrObject(src, setting, JSON.stringify(obj), method)
+            await modifyListOrObject(src, setting, JSON.stringify(obj), method)
             return
         }
-        set(src, setting, value)
+        await set(src, setting, value)
         return
     }
     if (!isNumber && !isText && !isList && !isObject) {
@@ -324,27 +324,27 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
             const obj = getSetting(setting)
             obj[value.split("~", 1)[0]] = value
                 .split("~").slice(1).join("~") ?? ""
-            set(src, setting, obj)
+            await set(src, setting, obj)
         }
         if (isList) {
             let current = getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
-            set(src, setting, [...current, value])
+            await set(src, setting, [...current, value])
         }
         if (isNumber) {
-            set(src, setting, getSetting(setting) + Number(value))
+            await set(src, setting, getSetting(setting) + Number(value))
         }
         if (isText) {
-            set(src, setting, getSetting(setting) + value)
+            await set(src, setting, getSetting(setting) + value)
         }
     }
     if (method === "remove") {
         if (isObject) {
             const obj = getSetting(setting)
             delete obj[value.split("~", 1)[0]]
-            set(src, setting, obj)
+            await set(src, setting, obj)
         }
         if (isList) {
             let current = getSetting(setting)
@@ -356,13 +356,13 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
                 newValue = current.filter(
                     e => e.split("~", 1)[0] !== value.split("~", 1)[0])
             }
-            set(src, setting, newValue)
+            await set(src, setting, newValue)
         }
         if (isNumber) {
-            set(src, setting, getSetting(setting) - Number(value))
+            await set(src, setting, getSetting(setting) - Number(value))
         }
         if (isText) {
-            set(src, setting, String(getSetting(setting)).replace(value, ""))
+            await set(src, setting, getSetting(setting).replace(value, ""))
         }
     }
     if (method === "special") {
@@ -378,13 +378,13 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
             if (current === "all") {
                 current = mouseFeatures
             }
-            set(src, setting, [value, ...current])
+            await set(src, setting, [value, ...current])
         }
         if (isNumber) {
-            set(src, setting, getSetting(setting) * Number(value))
+            await set(src, setting, getSetting(setting) * Number(value))
         }
         if (isText) {
-            set(src, setting, value + getSetting(setting))
+            await set(src, setting, value + getSetting(setting))
         }
     }
 }
@@ -394,7 +394,7 @@ const modifySetting = (src, setting, rawValue, method = "replace") => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const setCommand = (src, args) => {
+const setCommand = async(src, args) => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
         const allChanges = listCurrentSettings()
@@ -413,7 +413,7 @@ const setCommand = (src, args) => {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySetting(src, setting, value, "append")
+                await modifySetting(src, setting, value, "append")
             } else {
                 notify({
                     "fields": [setting],
@@ -425,7 +425,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySetting(src, setting, value, "remove")
+                await modifySetting(src, setting, value, "remove")
             } else {
                 notify({
                     "fields": [setting],
@@ -437,7 +437,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySetting(src, setting, value, "special")
+                await modifySetting(src, setting, value, "special")
             } else {
                 notify({
                     "fields": [setting],
@@ -449,7 +449,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySetting(src, setting, value)
+                await modifySetting(src, setting, value)
             } else {
                 notify({
                     "fields": [setting],
@@ -461,7 +461,7 @@ const setCommand = (src, args) => {
         } else if ((/^\w+:/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, ":")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifySetting(src, setting, value)
+                await modifySetting(src, setting, value)
             } else {
                 notify({
                     "fields": [setting],
@@ -475,7 +475,7 @@ const setCommand = (src, args) => {
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
                 const index = values.indexOf(String(getSetting(setting)))
-                modifySetting(src,
+                await modifySetting(src,
                     setting, values[index + 1] || values[0])
             } else {
                 notify({
@@ -491,10 +491,10 @@ const setCommand = (src, args) => {
                 const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
-                    modifySetting(src, setting, String(!value))
+                    await modifySetting(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
                     const index = validOptions[setting].indexOf(String(value))
-                    modifySetting(src, setting,
+                    await modifySetting(src, setting,
                         validOptions[setting][index + 1]
                         || validOptions[setting][0])
                 } else {
@@ -515,7 +515,7 @@ const setCommand = (src, args) => {
             }
         } else if (part.endsWith("&")) {
             const {reset} = require("./settings")
-            reset(src, part.slice(0, -1))
+            await reset(src, part.slice(0, -1))
         } else if (part.endsWith("?")) {
             const settingName = part.slice(0, -1)
             if (isValidSettingName(settingName)) {
@@ -530,13 +530,13 @@ const setCommand = (src, args) => {
             }
         } else if (isValidSettingName(part) && part !== "all"
             && typeof getSetting(part) === "boolean") {
-            modifySetting(src, part, "true")
+            await modifySetting(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 if (typeof value === "boolean") {
-                    modifySetting(src, settingName, String(!value))
+                    await modifySetting(src, settingName, String(!value))
                 } else {
                     notify({
                         "fields": [settingName],
@@ -563,12 +563,12 @@ const setCommand = (src, args) => {
                     isArraySetting, isNumberSetting, isObjectSetting
                 } = require("./settings")
                 if (typeof value === "boolean") {
-                    modifySetting(src, settingName, "false")
+                    await modifySetting(src, settingName, "false")
                 } else if (isArraySetting(settingName)
                     || isObjectSetting(settingName)) {
-                    modifySetting(src, settingName, "")
+                    await modifySetting(src, settingName, "")
                 } else if (isNumberSetting(settingName)) {
-                    modifySetting(src, settingName, "0")
+                    await modifySetting(src, settingName, "0")
                 } else {
                     listSetting(src, settingName)
                 }
@@ -604,7 +604,7 @@ const sourcedFiles = []
  * @param {string|null} origin
  * @param {string[]} args
  */
-const source = (src, origin, args) => {
+const source = async(src, origin, args) => {
     if (args.length !== 1) {
         notify({"id": "commands.source.argCount", src, "type": "warning"})
         return
@@ -654,7 +654,7 @@ const source = (src, origin, args) => {
     for (const line of parsed.split("\n")) {
         if (line && !line.trimStart().startsWith("\"")) {
             /* eslint-disable-next-line no-use-before-define */
-            execute(line, {"settingsFile": absFile, "src": "source"})
+            await execute(line, {"settingsFile": absFile, "src": "source"})
         }
     }
 }
@@ -976,13 +976,13 @@ const quitall = async() => {
         deleteFile(joinPath(appData(), "hist"))
     } else if (clearHistory === "none") {
         const {writeHistToFile} = require("./history")
-        writeHistToFile(true)
+        await writeHistToFile(true)
     } else {
         const {removeOldHistory} = require("./history")
         await removeOldHistory(intervalValueToDate(clearHistory))
     }
     const {saveTabs} = require("./tabs")
-    saveTabs()
+    await saveTabs()
     const pagesContainer = document.getElementById("pages")
     if (pagesContainer) {
         pagesContainer.textContent = ""
@@ -1007,18 +1007,18 @@ const quitall = async() => {
  * @param {import("./common").RunSource} src
  * @param {string} range
  */
-const quit = (src, range) => {
+const quit = async(src, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
         for (const t of rangeToTabIdxs(src, range).tabs) {
-            closeTab(src, t)
+            await closeTab(src, t)
         }
         return
     }
     if (document.getElementById("tabs")?.classList.contains("multiple")) {
-        closeTab(src)
+        await closeTab(src)
     } else {
-        quitall()
+        await quitall()
     }
 }
 
@@ -1078,9 +1078,9 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
 }
 
 /** Quit then reopen the app. */
-const restart = () => {
+const restart = async() => {
     ipcRenderer.send("relaunch")
-    quitall()
+    await quitall()
 }
 
 /**
@@ -1089,7 +1089,7 @@ const restart = () => {
  * @param {string|null} userPosition
  * @param {string|null} trailingArgs
  */
-const openDevTools = (src, userPosition = null, trailingArgs = null) => {
+const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify({"id": "commands.devtools.argCount", src, "type": "warning"})
         return
@@ -1100,17 +1100,17 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
-        addTab({"devtools": true, src})
+        await addTab({"devtools": true, src})
     } else if (position === "vsplit") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
-            addTab({"devtools": true, src})
+            await addTab({"devtools": true, src})
             add(id, "hor", getSetting("splitright"))
         }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
-            addTab({"devtools": true, src})
+            await addTab({"devtools": true, src})
             add(id, "ver", getSetting("splitbelow"))
         }
     } else {
@@ -1136,7 +1136,9 @@ const openInternalDevTools = () => {
  * @param {boolean} forceNewtab
  * @param {string|null} section
  */
-const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
+const openSpecialPage = async(
+    src, specialPage, forceNewtab, section = null
+) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
@@ -1146,13 +1148,13 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
     const replaceSpecial = getSetting("replacespecial")
     const {addTab, navigateTo} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
-        addTab({src, "url": newSpecialUrl})
+        await addTab({src, "url": newSpecialUrl})
     } else if (replaceSpecial === "always"
         || replaceSpecial === "special" && (currentSpecial || isNewtab)
         || currentSpecial === "newtab" && isNewtab) {
-        navigateTo(src, newSpecialUrl)
+        await navigateTo(src, newSpecialUrl)
     } else {
-        addTab({src, "url": newSpecialUrl})
+        await addTab({src, "url": newSpecialUrl})
     }
 }
 
@@ -1163,18 +1165,18 @@ const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
  * @param {string|null} section
  * @param {boolean} trailingArgs
  */
-const help = (src, forceNewtab, section = null, trailingArgs = false) => {
+const help = async(src, forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify({"id": "commands.help.argCount", src, "type": "warning"})
         return
     }
-    openSpecialPage(src, "help", forceNewtab, section)
+    await openSpecialPage(src, "help", forceNewtab, section)
 }
 
 /** Source the startup configs again to reload the config. */
-const reloadconfig = () => {
+const reloadconfig = async() => {
     const {loadFromDisk} = require("./settings")
-    loadFromDisk(false)
+    await loadFromDisk(false)
 }
 
 /**
@@ -1187,12 +1189,12 @@ const hardcopy = (src, range) => {
         for (const t of rangeToTabIdxs(src, range).tabs) {
             const page = pageForTab(listTabs()[t])
             if (!(page instanceof HTMLDivElement)) {
-                page?.send("action", "print")
+                page?.send("action", "print").catch(() => null)
             }
         }
         return
     }
-    currentPage()?.send("action", "print")
+    currentPage()?.send("action", "print").catch(() => null)
 }
 
 /**
@@ -1368,9 +1370,9 @@ const screencopy = (src, args) => {
     }
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
-        currentPage()?.capturePage(rect).then(img => {
-            ipcRenderer.invoke("write-clipboard", img.toPNG(), "buffer")
-        })
+        currentPage()?.capturePage(rect).then(async img => {
+            await ipcRenderer.invoke("write-clipboard", img.toPNG(), "buffer")
+        }).catch(() => null)
     }, 20)
 }
 
@@ -1404,7 +1406,7 @@ const takeScreenshot = (src, dims, location) => {
                     "type": "success"
                 })
             }
-        })
+        }).catch(() => null)
     }, 20)
 }
 
@@ -1463,17 +1465,17 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const buffer = (src, args) => {
+const buffer = async(src, args) => {
     if (args.length === 0) {
         return
     }
     const tab = tabForBufferArg(args)
     if (tab) {
         const {switchToTab} = require("./tabs")
-        switchToTab(tab)
+        await switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        navigateTo(src, stringToUrl(args.join(" ")))
+        await navigateTo(src, stringToUrl(args.join(" ")))
     }
 }
 
@@ -1497,12 +1499,12 @@ const buffers = src => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const open = (src, args) => {
+const open = async(src, args) => {
     if (args.length === 0) {
         return
     }
     const {navigateTo} = require("./tabs")
-    navigateTo(src, stringToUrl(args.join(" ")))
+    await navigateTo(src, stringToUrl(args.join(" ")))
 }
 
 /**
@@ -1511,14 +1513,14 @@ const open = (src, args) => {
  * @param {string[]} args
  * @param {string|null} range
  */
-const suspend = (src, args, range = null) => {
+const suspend = async(src, args, range = null) => {
     if (range && args.length > 0) {
         notify({"id": "commands.suspend.range", src, "type": "warning"})
         return
     }
     if (range) {
         for (const t of rangeToTabIdxs(src, range).tabs) {
-            suspend(src, [`${t}`])
+            await suspend(src, [`${t}`])
         }
         return
     }
@@ -1534,7 +1536,7 @@ const suspend = (src, args, range = null) => {
             notify({"id": "commands.suspend.visible", src, "type": "warning"})
         } else {
             const {suspendTab} = require("./tabs")
-            suspendTab(src, tab)
+            await suspendTab(src, tab)
         }
     }
 }
@@ -1545,14 +1547,14 @@ const suspend = (src, args, range = null) => {
  * @param {string[]} args
  * @param {string|null} range
  */
-const hideCommand = (src, args, range = null) => {
+const hideCommand = async(src, args, range = null) => {
     if (range && args.length > 0) {
         notify({"id": "commands.hide.range", src, "type": "warning"})
         return
     }
     if (range) {
         for (const t of rangeToTabIdxs(src, range).tabs) {
-            hideCommand(src, [`${t}`])
+            await hideCommand(src, [`${t}`])
         }
         return
     }
@@ -1567,7 +1569,7 @@ const hideCommand = (src, args, range = null) => {
             const {hide} = require("./pagelayout")
             const page = pageForTab(tab)
             if (page) {
-                hide(page)
+                await hide(page)
             }
         } else {
             notify({"id": "commands.hide.visible", src, "type": "warning"})
@@ -1581,7 +1583,7 @@ const hideCommand = (src, args, range = null) => {
  * @param {string[]} args
  * @param {string} range
  */
-const setMute = (src, args, range) => {
+const setMute = async(src, args, range) => {
     if (args.length !== 1 || !["false", "true"].includes(args[0])) {
         notify({"id": "commands.mute.argCount", src, "type": "warning"})
         return
@@ -1599,7 +1601,7 @@ const setMute = (src, args, range) => {
         }
     }
     const {saveTabs} = require("./tabs")
-    saveTabs()
+    await saveTabs()
 }
 
 /**
@@ -1608,14 +1610,14 @@ const setMute = (src, args, range) => {
  * @param {string[]} args
  * @param {string|null} range
  */
-const mute = (src, args, range = null) => {
+const mute = async(src, args, range = null) => {
     if (range && args.length > 0) {
         notify({"id": "commands.mute.range", src, "type": "warning"})
         return
     }
     if (range) {
         for (const t of rangeToTabIdxs(src, range).tabs) {
-            mute(src, [`${t}`])
+            await mute(src, [`${t}`])
         }
         return
     }
@@ -1633,7 +1635,7 @@ const mute = (src, args, range = null) => {
         page.setAudioMuted(tab.hasAttribute("muted"))
     }
     const {saveTabs} = require("./tabs")
-    saveTabs()
+    await saveTabs()
 }
 
 /**
@@ -1642,7 +1644,7 @@ const mute = (src, args, range = null) => {
  * @param {string[]} args
  * @param {string} range
  */
-const setPin = (src, args, range) => {
+const setPin = async(src, args, range) => {
     if (args.length !== 1 || !["false", "true"].includes(args[0])) {
         notify({"id": "commands.pin.argCount", src, "type": "warning"})
         return
@@ -1667,7 +1669,7 @@ const setPin = (src, args, range) => {
         }
     }
     const {saveTabs} = require("./tabs")
-    saveTabs()
+    await saveTabs()
 }
 
 /**
@@ -1676,7 +1678,7 @@ const setPin = (src, args, range) => {
  * @param {string[]} args
  * @param {string} range
  */
-const pin = (src, args, range) => {
+const pin = async(src, args, range) => {
     if (range && args.length > 0) {
         notify({"id": "commands.pin.range", src, "type": "warning"})
         return
@@ -1718,7 +1720,7 @@ const pin = (src, args, range) => {
         tab.classList.add("pinned")
     }
     const {saveTabs} = require("./tabs")
-    saveTabs()
+    await saveTabs()
 }
 
 /**
@@ -1732,7 +1734,7 @@ const pin = (src, args, range) => {
  *   range?: string
  * }} opts
  */
-const addSplit = opts => {
+const addSplit = async opts => {
     const {args, leftOrAbove, method, range, src, switchTo} = opts
     if (range && args.length > 0) {
         notify({"id": "commands.split.range", src, "type": "warning"})
@@ -1740,7 +1742,7 @@ const addSplit = opts => {
     }
     if (range) {
         for (const t of rangeToTabIdxs(src, range).tabs) {
-            addSplit({
+            await addSplit({
                 "args": [`${t}`],
                 leftOrAbove,
                 method,
@@ -1757,12 +1759,13 @@ const addSplit = opts => {
         return
     }
     if (args.length === 0) {
-        const newTabId = addTab({
+        const newTab = await addTab({
             "container": getSetting("containersplitpage"),
             "lazy": false,
             src,
             switchTo
-        })?.getAttribute("link-id") ?? ""
+        })
+        const newTabId = newTab?.getAttribute("link-id") ?? ""
         if (switchTo) {
             add(id, method, !leftOrAbove)
         } else {
@@ -1779,22 +1782,23 @@ const addSplit = opts => {
             if (page) {
                 add(page, method, leftOrAbove)
                 if (switchTo) {
-                    switchToTab(tab)
+                    await switchToTab(tab)
                 } else {
-                    unsuspendPage(page)
+                    await unsuspendPage(page)
                     const {applyLayout} = require("./pagelayout")
                     applyLayout()
                 }
             }
         }
     } else {
-        const newTabId = addTab({
+        const newTab = await addTab({
             "container": getSetting("containersplitpage"),
             "lazy": false,
             src,
             switchTo,
             "url": stringToUrl(args.join(" "))
-        })?.getAttribute("link-id") ?? ""
+        })
+        const newTabId = newTab?.getAttribute("link-id") ?? ""
         if (switchTo) {
             add(id, method, !leftOrAbove)
         } else {
@@ -1810,7 +1814,7 @@ const addSplit = opts => {
  * @param {string[]} args
  * @param {string} range
  */
-const close = (src, force, args, range) => {
+const close = async(src, force, args, range) => {
     if (range && args.length > 0) {
         notify({"id": "commands.close.range", src, "type": "warning"})
         return
@@ -1821,17 +1825,17 @@ const close = (src, force, args, range) => {
         const rangeSelectedTabs = rangeToTabIdxs(
             src, range).tabs.map(id => tabs[id])
         for (const tab of rangeSelectedTabs) {
-            closeTab(src, listTabs().indexOf(tab), force)
+            await closeTab(src, listTabs().indexOf(tab), force)
         }
         return
     }
     if (args.length === 0) {
-        closeTab(src, null, force)
+        await closeTab(src, null, force)
         return
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        closeTab(src, listTabs().indexOf(tab), force)
+        await closeTab(src, listTabs().indexOf(tab), force)
         return
     }
     notify({"id": "commands.close.noMatch", src, "type": "warning"})
@@ -1843,11 +1847,10 @@ const close = (src, force, args, range) => {
  * @param {import("./common").RunSource} src
  */
 const callAction = (args, src) => {
-    setTimeout(() => {
+    setTimeout(async() => {
         const {executeMapString, sanitiseMapString} = require("./input")
-        executeMapString(sanitiseMapString(src, args.join(" "), true), true, {
-            "initial": true, src
-        })
+        await executeMapString(sanitiseMapString(
+            src, args.join(" "), true), true, {"initial": true, src})
     }, 5)
 }
 
@@ -1903,7 +1906,7 @@ const makedefault = src => {
  * @param {import("./common").RunSource} src
  * @param {boolean} force
  */
-const lclose = (src, force = false) => {
+const lclose = async(src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1914,7 +1917,7 @@ const lclose = (src, force = false) => {
     for (let i = index - 1; i >= 0; i--) {
         index = listTabs().indexOf(tab)
         const {closeTab} = require("./tabs")
-        closeTab(src, index - 1, force)
+        await closeTab(src, index - 1, force)
     }
 }
 
@@ -1923,7 +1926,7 @@ const lclose = (src, force = false) => {
  * @param {import("./common").RunSource} src
  * @param {boolean} force
  */
-const rclose = (src, force = false) => {
+const rclose = async(src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1935,7 +1938,7 @@ const rclose = (src, force = false) => {
     for (let i = count - 1; i > index; i--) {
         count = listTabs().length
         const {closeTab} = require("./tabs")
-        closeTab(src, count - 1, force)
+        await closeTab(src, count - 1, force)
     }
 }
 
@@ -1955,11 +1958,11 @@ const runjsinpage = (src, raw, range) => {
         for (const tabId of rangeToTabIdxs(src, range).tabs) {
             const page = pageForTab(listTabs()[tabId])
             if (page && !(page instanceof HTMLDivElement)) {
-                page.executeJavaScript(javascript, true)
+                page.executeJavaScript(javascript, true).catch(() => null)
             }
         }
     } else {
-        currentPage()?.executeJavaScript(javascript, true)
+        currentPage()?.executeJavaScript(javascript, true).catch(() => null)
     }
 }
 
@@ -1969,7 +1972,7 @@ const runjsinpage = (src, raw, range) => {
  * @param {string|null} session
  * @param {string|null} url
  */
-const tabnew = (src, session = null, url = null) => {
+const tabnew = async(src, session = null, url = null) => {
     const {addTab} = require("./tabs")
     /**
      * @type {{
@@ -1983,7 +1986,7 @@ const tabnew = (src, session = null, url = null) => {
     if (session?.trim()) {
         options.session = session
     }
-    addTab(options)
+    await addTab(options)
 }
 
 /**
@@ -2061,7 +2064,7 @@ const marks = (src, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const restoremark = (src, args) => {
+const restoremark = async(src, args) => {
     if (args.length > 2) {
         notify({"id": "commands.restoremark.argCount", src, "type": "warning"})
         return
@@ -2081,7 +2084,7 @@ const restoremark = (src, args) => {
     const isValidPosition = pos => pos === undefined
         || validOptions.markposition.includes(pos)
     if (isValidPosition(position)) {
-        restoreMark({key, position, src})
+        await restoreMark({key, position, src})
     } else {
         notify({
             "fields": [
@@ -2131,7 +2134,7 @@ const delmarks = (src, all, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const scrollpos = (src, args) => {
+const scrollpos = async(src, args) => {
     if (args.length > 3) {
         notify({"id": "commands.scrollpos.argCount", src, "type": "warning"})
         return
@@ -2159,7 +2162,7 @@ const scrollpos = (src, args) => {
         if (pixels !== undefined) {
             pixels = Number(pixels)
         }
-        storeScrollPos({key, path, pixels, src})
+        await storeScrollPos({key, path, pixels, src})
         return
     }
     /**
@@ -2187,7 +2190,7 @@ const scrollpos = (src, args) => {
         for (const [domain, keys] of Object.entries(qm.scroll.local)) {
             for (const [key, action] of Object.entries(keys)) {
                 relevantPos.push(`${key.padEnd(longest)}${
-                    String(action).padEnd(7)}${domain}`)
+                    action.padEnd(7)}${domain}`)
             }
         }
     } else {
@@ -2198,7 +2201,7 @@ const scrollpos = (src, args) => {
         for (const [domain, keys] of Object.entries(qm.scroll.local)) {
             if (keys[key] !== undefined) {
                 relevantPos.push(`${key.padEnd(longest)}${
-                    String(keys[key]).padEnd(7)}${domain}`)
+                    keys[key].padEnd(7)}${domain}`)
             }
         }
     }
@@ -2594,6 +2597,7 @@ const translatepage = (src, args) => {
         lang = "pt-pt"
     }
     currentPage()?.send("action", "translatepage", api, url, lang, apiKey)
+        .catch(() => null)
 }
 
 /**
@@ -2603,7 +2607,7 @@ const translatepage = (src, args) => {
  * @param {string} interval
  * @param {string|null} trailingArgs
  */
-const clear = (src, type, interval, trailingArgs = null) => {
+const clear = async(src, type, interval, trailingArgs = null) => {
     if (trailingArgs) {
         notify({"id": "commands.clear.argCount", src, "type": "warning"})
         return
@@ -2625,16 +2629,16 @@ const clear = (src, type, interval, trailingArgs = null) => {
         if (isValidIntervalValue(interval, true)) {
             if (interval.startsWith("last")) {
                 const {removeRecentHistory} = require("./history")
-                removeRecentHistory(intervalValueToDate(
+                await removeRecentHistory(intervalValueToDate(
                     interval.replace(/^last/g, "")))
             } else {
-                removeOldHistory(intervalValueToDate(interval))
+                await removeOldHistory(intervalValueToDate(interval))
             }
         } else if (interval === "all") {
-            removeOldHistory(new Date())
+            await removeOldHistory(new Date())
         } else if (isUrl(interval)) {
             const {removeHistoryByPartialUrl} = require("./history")
-            removeHistoryByPartialUrl(interval)
+            await removeHistoryByPartialUrl(interval)
         } else {
             notify({
                 "id": "commands.clear.intervalInvalid", src, "type": "warning"
@@ -2696,7 +2700,7 @@ let userCommands = {}
  *     range: string,
  *     raw: string,
  *     src: import("./common").RunSource
- *   }) => void
+ *   }) => Promise<void>|void
  * }}
  */
 const commands = {
@@ -2918,35 +2922,35 @@ const holdUseCommands = ["command"]
 const {clearmap, mapOrList, unmap} = require("./input")
 
 for (const prefix of " nicsefpvm") {
-    commands[`${prefix.trim()}map!`] = ({args, src}) => {
-        mapOrList(src, prefix.trim(), args, false, true)
+    commands[`${prefix.trim()}map!`] = async({args, src}) => {
+        await mapOrList(src, prefix.trim(), args, false, true)
     }
-    commands[`${prefix.trim()}noremap!`] = ({args, src}) => {
-        mapOrList(src, prefix.trim(), args, true, true)
+    commands[`${prefix.trim()}noremap!`] = async({args, src}) => {
+        await mapOrList(src, prefix.trim(), args, true, true)
     }
     holdUseCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}map`] = ({args, src}) => {
-        mapOrList(src, prefix.trim(), args)
+    commands[`${prefix.trim()}map`] = async({args, src}) => {
+        await mapOrList(src, prefix.trim(), args)
     }
     noEscapeCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}noremap`] = ({args, src}) => {
-        mapOrList(src, prefix.trim(), args, true)
+    commands[`${prefix.trim()}noremap`] = async({args, src}) => {
+        await mapOrList(src, prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}noremap`)
-    commands[`${prefix.trim()}unmap`] = ({args, src}) => {
-        unmap(src, prefix.trim(), args, false)
+    commands[`${prefix.trim()}unmap`] = async({args, src}) => {
+        await unmap(src, prefix.trim(), args, false)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap`)
-    commands[`${prefix.trim()}unmap!`] = ({args, src}) => {
-        unmap(src, prefix.trim(), args, true)
+    commands[`${prefix.trim()}unmap!`] = async({args, src}) => {
+        await unmap(src, prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap!`)
-    commands[`${prefix.trim()}mapclear`] = ({src}) => {
-        clearmap(src, prefix.trim())
+    commands[`${prefix.trim()}mapclear`] = async({src}) => {
+        await clearmap(src, prefix.trim())
     }
     noArgumentComands.push(`${prefix.trim()}mapclear`)
-    commands[`${prefix.trim()}mapclear!`] = ({src}) => {
-        clearmap(src, prefix.trim(), true)
+    commands[`${prefix.trim()}mapclear!`] = async({src}) => {
+        await clearmap(src, prefix.trim(), true)
     }
 }
 /* eslint-enable jsdoc/require-jsdoc */
@@ -3191,7 +3195,7 @@ const getPageDomain = () => getPageUrlClass().host
  *   src?: import("./common").RunSource
  * }} opts
  */
-const execute = (com, opts = {}) => {
+const execute = async(com, opts = {}) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
@@ -3275,7 +3279,7 @@ const execute = (com, opts = {}) => {
             [command] = matches
         }
         if (command === "source" && opts.settingsFile) {
-            source(src, opts.settingsFile, args)
+            await source(src, opts.settingsFile, args)
         } else if (noArgumentComands.includes(command) && args.length > 0) {
             notify({
                 "fields": [command],
@@ -3305,11 +3309,11 @@ const execute = (com, opts = {}) => {
                     return
                 }
             }
-            commands[command]({args, range, "raw": com, src})
+            await commands[command]({args, range, "raw": com, src})
         } else {
-            setTimeout(() => {
+            setTimeout(async() => {
                 const {executeMapString} = require("./input")
-                executeMapString(userCommands[command], true,
+                await executeMapString(userCommands[command], true,
                     {"initial": true, src})
             }, 5)
         }

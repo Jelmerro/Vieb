@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Other tab support to displaycapture permission dialog
 - Command confirm versions `:split!` and `:vsplit!` to open splits but stay focused in the current split
 - Setting "followsplitswitch" to control if split versions of follow mode should switch to the new split
+- Preserved tab history navigation for reopened and stored tabs
 
 ### Changed
 

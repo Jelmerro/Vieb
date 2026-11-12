@@ -258,7 +258,8 @@ const addExplore = explore => {
     suggestions.push(explore.url)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
-    element.addEventListener("mouseup", e => {
+    element.addEventListener("mouseup", async e => {
+        e.preventDefault()
         if (e.button === 2) {
             if (getMouseConf("suggestselect")
                 && ["both", "explore"].includes(getSetting("menusuggest"))) {
@@ -272,14 +273,13 @@ const addExplore = explore => {
             clear()
             if (e.button === 0) {
                 const {navigateTo} = require("./tabs")
-                navigateTo("user", explore.url)
+                await navigateTo("user", explore.url)
             }
             if (e.button === 1) {
                 const {addTab} = require("./tabs")
-                addTab({"src": "user", "url": explore.url})
+                await addTab({"src": "user", "url": explore.url})
             }
         }
-        e.preventDefault()
     })
     if (explore.icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
@@ -387,7 +387,8 @@ const addCommand = (
     suggestions.push(command)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
-    element.addEventListener("mouseup", e => {
+    element.addEventListener("mouseup", async e => {
+        e.preventDefault()
         if (e.button === 2) {
             if (getMouseConf("suggestselect")
                 && ["both", "command"].includes(getSetting("menusuggest"))) {
@@ -398,11 +399,10 @@ const addCommand = (
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")
-            execute(command, {"src": "user"})
+            await execute(command, {"src": "user"})
             const {clear} = require("./contextmenu")
             clear()
         }
-        e.preventDefault()
     })
     if (icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
