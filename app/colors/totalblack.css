@@ -16,6 +16,8 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 :root {
+    color-scheme: only dark; /* supported color schemes */
+    --is-light: 0;
     /* general */
     --bg: #000;
     --fg: #e0e0e0;

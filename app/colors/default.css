@@ -19,42 +19,43 @@
  * COLORS
 */
 :root {
+    color-scheme: light dark; /* supported color schemes */
     /* general */
-    --bg: #333;
-    --fg: #eee;
-    --tab-background: #444;
-    --tab-suspended: #000;
-    --visible-tab: #666;
+    --bg: light-dark(#eee, #333);
+    --fg: light-dark(#333, #eee);
+    --tab-background: light-dark(#ddd, #444);
+    --tab-suspended: light-dark(#777, #000);
+    --visible-tab: light-dark(#fff, #666);
     --tab-split: #f90;
-    --tab-audio: #09f;
+    --tab-audio: light-dark("", #09f);
     --tab-muted: #fff;
     --tab-muted-playing: #ff3;
-    --tab-crashed: #f00;
+    --tab-crashed: light-dark(#faa, #f00);
     --tab-unresponsive: var(--tab-crashed);
     --tab-scrollbar: #5ff;
     --container-background: none;
-    --mode-normal-fg: #eee;
+    --mode-normal-fg: light-dark(#333, #eee);
     --mode-normal-bg: none;
     --mode-command-fg: #f33;
     --mode-command-bg: none;
-    --mode-insert-fg: #3f3;
+    --mode-insert-fg: light-dark(#0c0, #3f3);
     --mode-insert-bg: none;
     --mode-follow-fg: #f3f;
     --mode-follow-bg: none;
-    --mode-explore-fg: #3ff;
+    --mode-explore-fg: light-dark(#0cc, #3ff);
     --mode-explore-bg: none;
-    --mode-search-fg: #ff3;
+    --mode-search-fg: light-dark(#fb0, #ff3);
     --mode-search-bg: none;
     --mode-pointer-fg: #777;
     --mode-pointer-bg: #fff;
     --mode-visual-fg: #000;
     --mode-visual-bg: #3af;
-    --url-default: #666;
-    --url-search: #f90;
-    --url-searchwords: #fcf;
-    --url-url: #3ff;
-    --url-suggest: #3f3;
-    --url-file: #ff9;
+    --url-default: light-dark(#ddd, #666);
+    --url-search: light-dark(#f80, #f90);
+    --url-searchwords: light-dark(#f5f, #fcf);
+    --url-url: light-dark(#08f, #3ff);
+    --url-suggest: light-dark(#0c0, #3f3);
+    --url-file: light-dark(#fb0, #ff9);
     --url-invalid: #f33;
     --follow-text: #111;
     --follow-url-bg: #bff;
@@ -78,44 +79,44 @@
     --follow-other-bg: #ddd;
     --follow-other-border: #bbb;
     --follow-other-hover: #bbb7;
-    --suggestions-border: #777;
-    --suggestions-bg: #444;
-    --suggestions-selected: #666;
+    --suggestions-border: light-dark(#eee, #777);
+    --suggestions-bg: light-dark(#ddd, #444);
+    --suggestions-selected: light-dark(#fff, #666);
     --suggestions-searchwords: #fcf;
-    --suggestions-url: #bff;
-    --suggestions-file: #ffb;
-    --notification-border: #111;
-    --notification-date: #aaa;
-    --notification-permission: #aaa;
+    --suggestions-url: light-dark(#08f, #bff);
+    --suggestions-file: light-dark(#f80, #ffb);
+    --notification-border: light-dark(#aaa, #111);
+    --notification-date: light-dark(#777, #aaa);
+    --notification-permission: light-dark(#777, #aaa);
     --notification-dialog: var(--notification-permission);
-    --notification-error: #f33;
-    --notification-warning: #fd0;
-    --notification-info: #0cf;
-    --notification-success: #3f3;
+    --notification-error: light-dark(#f33, #f33);
+    --notification-warning: light-dark(#f80, #fd0);
+    --notification-info: light-dark(#08f, #0cf);
+    --notification-success: light-dark(#0c0, #3f3);
     --url-hover-fg: #000;
     --url-hover-bg: #fff9;
     --screenshot-highlight: #f90;
     --screenshot-highlight-background: #f907;
     /* special pages */
-    --link-color: #0cf;
-    --link-underline: #059;
-    --scrollbar-bg: #444;
-    --scrollbar-thumb: #bbb9;
-    --button-disabled: #999;
-    --code-fg: #fff;
-    --code-bg: #111;
+    --link-color: light-dark(#08f, #0cf);
+    --link-underline: light-dark(#0df, #059);
+    --scrollbar-bg: light-dark(#fff, #444);
+    --scrollbar-thumb: light-dark(#aaa7, #bbb9);
+    --button-disabled: light-dark(#777, #999);
+    --code-fg: light-dark(#000, #fff);
+    --code-bg: light-dark(#fff, #111);
     --code-command: #f88;
     --placeholder-text: #ccc;
-    --special-page-element-bg: #444;
-    --special-page-element-border: #222;
-    --input-unfocused: #666;
-    --input-focused: #aaa;
-    --download-progress-fg: #ccc;
-    --download-progress-bg: #666;
+    --special-page-element-bg: light-dark(#ddd, #444);
+    --special-page-element-border: light-dark(#aaa, #222);
+    --input-unfocused: light-dark(#aaa, #666);
+    --input-focused: light-dark(#666, #aaa);
+    --download-progress-fg: light-dark(#fff, #ccc);
+    --download-progress-bg: light-dark(#eee, #666);
     --helppage-h1: #d33;
     --helppage-h2: #f76;
     --helppage-h3: #fb9;
-    --helppage-countable: #fc0;
+    --helppage-countable: light-dark(#0c0, #fc0);
     --helppage-range-compat: #fc0;
     --helppage-nativetheme-fg-light: #aaa;
     --helppage-nativetheme-bg-light: #fff;
@@ -125,20 +126,20 @@
     /* sourceviewer */
     --syntax-fg: var(--fg);
     --syntax-bg: var(--bg);
-    --syntax-keyword: #f77;
-    --syntax-entity: #daf;
-    --syntax-constant: #8cf;
-    --syntax-string: #adf;
-    --syntax-variable: #fa5;
-    --syntax-comment: #89a;
-    --syntax-entity-tag: #8e8;
-    --syntax-markup-heading: #27e;
-    --syntax-markup-list: #fc6;
-    --syntax-markup-emphasis: #cde;
-    --syntax-markup-addition-fg: #bfb;
-    --syntax-markup-addition-bg: #041;
-    --syntax-markup-deletion-fg: #fdd;
-    --syntax-markup-deletion-bg: #600;
+    --syntax-keyword: light-dark(#d45, #f77);
+    --syntax-entity: light-dark(#74c, #daf);
+    --syntax-constant: light-dark(#06c, #8cf);
+    --syntax-string: light-dark(#036, #adf);
+    --syntax-variable: light-dark(#e60, #fa5);
+    --syntax-comment: light-dark(#777, #89a);
+    --syntax-entity-tag: light-dark(#284, #8e8);
+    --syntax-markup-heading: light-dark(#06c, #27e);
+    --syntax-markup-list: light-dark(#760, #fc6);
+    --syntax-markup-emphasis: light-dark(#233, #cde);
+    --syntax-markup-addition-fg: light-dark(#284, #bfb);
+    --syntax-markup-addition-bg: light-dark(#efe, #041);
+    --syntax-markup-deletion-fg: light-dark(#b22, #fdd);
+    --syntax-markup-deletion-bg: light-dark(#fee, #600);
     /* failedload */
     --failedload-main-bg: var(--tab-background);
     /* filebrowser */
@@ -149,6 +150,27 @@
     --filebrowser-error: var(--notification-error);
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --is-light: 0;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --is-light: 1;
+    }
+}
+
+#tabs .status {filter: invert(calc(.4 * var(--is-light)));}
+#app #pointer, #cookiespage img, #downloadspage img, #historypage img, .specialpage a::after {filter: invert(var(--is-light));}
+#historypage img.favicon {filter: none;}
+@container style(--is-light: 0) {
+    #helppage .cheatsheet {filter: contrast(.5) invert() contrast(4) hue-rotate(180deg) saturate(4);}
+}
+@container style(--is-light: 1) {
+    #helppage .cheatsheet {filter: none;}
+}
 
 /*
  * GLOBAL
@@ -362,7 +384,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage main {max-width: 65em;margin: auto;}
 #helppage .header, #helppage .header > div {font-size: 5vw;display: flex;flex: 1;justify-content: center;}
 #helppage .header > div > img {height: 10vw;margin: 0 1em 0 0;}
-#helppage .cheatsheet {float: none;height: auto;width: 100%;filter: contrast(.5) invert() contrast(4) hue-rotate(180deg) saturate(4);}
+#helppage .cheatsheet {float: none;height: auto;width: 100%;}
 #helppage a {overflow-wrap: anywhere;}
 #helppage li {line-height: 1.5em;}
 #helppage .section {display: flex;flex-wrap: wrap;align-items: center;}
