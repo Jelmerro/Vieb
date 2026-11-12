@@ -253,7 +253,7 @@ const defaultSettings = {
     "pdfbehavior": "download",
     /** @type {"block"|"ask"|"allow"} */
     "permissioncamera": "block",
-    /** @type {"block"|"ask"|"allow"} */
+    /** @type {"block"|"allow"} */
     "permissioncapturedsurfacecontrol": "allow",
     /** @type {"block"|"ask"|"allow"} */
     "permissioncertificateerror": "block",
@@ -545,7 +545,7 @@ const validOptions = {
     ],
     "pdfbehavior": ["view", "block", "download", "external"],
     "permissioncamera": ["block", "ask", "allow"],
-    "permissioncapturedsurfacecontrol": ["block", "ask", "allow"],
+    "permissioncapturedsurfacecontrol": ["block", "allow"],
     "permissioncertificateerror": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
     "permissionclipboardwrite": ["block", "ask", "allow"],
