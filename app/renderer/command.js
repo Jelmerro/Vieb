@@ -1057,9 +1057,18 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
         })
         return
     }
-    let css = await readFile(expandPath(`~/.vieb/colors/${name}.css`))
-    if (!css) {
-        css = await readFile(joinPath(await appData(), `colors/${name}.css`))
+    const userColorDirs = [
+        expandPath("~/.vieb/colors"),
+        joinPath(await appData(), "colors")
+    ]
+    let userColorDir = null
+    let css = null
+    for (const dir of userColorDirs) {
+        css = await readFile(joinPath(dir, `${name}.css`))
+        if (css) {
+            userColorDir = dir
+            break
+        }
     }
     if (!css) {
         css = await readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
@@ -1072,6 +1081,15 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
             "type": "warning"
         })
         return
+    }
+    if (userColorDir) {
+        const userColorDirUrl = `file:///${userColorDir.replace(/\\/g, "/")}/`
+        // Explicitly restrict imports to other themes in the same user folder
+        css = css.replaceAll("user:", userColorDirUrl)
+    }
+    if (css) {
+        const builtinColorDirUrl = `file:///${joinPath(getAppRootDir(), "colors").replace(/\\/g, "/")}/`
+        css = css.replaceAll("builtin:", builtinColorDirUrl)
     }
     if (name === "default") {
         css = ""
