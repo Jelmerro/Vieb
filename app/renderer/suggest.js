@@ -712,7 +712,7 @@ const suggestCommand = async searchStr => {
     }
     // Command: colorscheme
     if ("colorscheme".startsWith(command) && !range) {
-        if (args.length > 1 || confirm) {
+        if (args.length > 1) {
             return
         }
         /** @type {{[theme: string]: string}} */
@@ -736,7 +736,7 @@ const suggestCommand = async searchStr => {
         }
         for (const [themeName, themePath] of Object.entries(themes)) {
             if (themeName.startsWith(args[0] || "")) {
-                await addCommand(`colorscheme ${themeName}`, themePath)
+                await addCommand(`colorscheme${confirm ? "!" : ""} ${themeName}`, themePath)
             }
         }
     }
