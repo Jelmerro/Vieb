@@ -1039,10 +1039,11 @@ let currentscheme = "default"
 /**
  * Set the colorscheme by name or log the current one if no name provided.
  * @param {import("./common").RunSource} src
+ * @param {boolean} merge
  * @param {string|null} name
  * @param {string|null} trailingArgs
  */
-const colorscheme = async(src, name = null, trailingArgs = null) => {
+const colorscheme = async(src, merge, name = null, trailingArgs = null) => {
     if (trailingArgs) {
         await notify({
             "id": "commands.colorscheme.argCount", src, "type": "warning"
@@ -1070,6 +1071,9 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
             break
         }
     }
+    if (merge && currentscheme === name) {
+        return
+    }
     if (!css) {
         css = await readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
     }
@@ -1091,7 +1095,10 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
         const builtinColorDirUrl = `file:///${joinPath(getAppRootDir(), "colors").replace(/\\/g, "/")}/`
         css = css.replaceAll("builtin:", builtinColorDirUrl)
     }
-    if (name === "default") {
+    if (merge) {
+        const {getCustomStyling} = require("./settings")
+        css = `${getCustomStyling()}\n${css}`
+    } else if (name === "default") {
         css = ""
     }
     if (!document.getElementById("custom-styling")) {
@@ -1107,7 +1114,11 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
         getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     await setCustomStyling(css)
-    currentscheme = name
+    if (merge) {
+        currentscheme += `+${name}`
+    } else {
+        currentscheme = name
+    }
 }
 
 /** Quit then reopen the app. */
@@ -2809,7 +2820,8 @@ const commands = {
     "clear": ({args, src}) => clear(src, args[0], args[1], args[2]),
     "close": ({args, range, src}) => close(src, false, args, range),
     "close!": ({args, range, src}) => close(src, true, args, range),
-    "colorscheme": ({args, src}) => colorscheme(src, ...args),
+    "colorscheme": ({args, src}) => colorscheme(src, false, ...args),
+    "colorscheme!": ({args, src}) => colorscheme(src, true, ...args),
     "comclear": () => {
         userCommands = {}
     },

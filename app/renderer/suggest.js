@@ -712,7 +712,7 @@ const suggestCommand = async searchStr => {
     }
     // Command: colorscheme
     if ("colorscheme".startsWith(command) && !range) {
-        if (args.length > 1 || confirm) {
+        if (args.length > 1) {
             return
         }
         /** @type {{[theme: string]: string}} */
