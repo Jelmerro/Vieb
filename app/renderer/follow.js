@@ -23,7 +23,6 @@ const {
     currentMode,
     currentPage,
     currentTab,
-    getMouseConf,
     getUrl,
     sendToPageOrSubFrame
 } = require("./common")
@@ -57,10 +56,10 @@ let modeBeforeFollow = "normal"
  * Inform preloads on interval that follow mode is on, keeps working on reload.
  * @param {boolean} first
  */
-const informPreload = (first = false) => {
-    let elemTypesToFollow = getSetting("followelement")
+const informPreload = async(first = false) => {
+    let elemTypesToFollow = await getSetting("followelement")
     if (["pointer", "visual"].includes(modeBeforeFollow)) {
-        elemTypesToFollow = getSetting("followelementpointer")
+        elemTypesToFollow = await getSetting("followelementpointer")
     }
     if (followLinkDestination !== "current") {
         elemTypesToFollow = ["url"]
@@ -69,12 +68,12 @@ const informPreload = (first = false) => {
         ipcRenderer.send("follow-mode-start", currentPage()?.getWebContentsId(),
             elemTypesToFollow, true)
     }
-    setTimeout(() => {
+    setTimeout(async() => {
         if (currentPage()?.hasAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
                 ipcRenderer.send("follow-mode-start",
                     currentPage()?.getWebContentsId(), elemTypesToFollow)
-                informPreload()
+                await informPreload()
             } else {
                 ipcRenderer.send("follow-mode-stop")
             }
@@ -86,7 +85,7 @@ const informPreload = (first = false) => {
  * Start follow mode and open links at the provided location once done.
  * @param {"current"|"newtab"|"copylink"|"hor"|"ver"} dest
  */
-const startFollow = (dest = followLinkDestination) => {
+const startFollow = async(dest = followLinkDestination) => {
     followLinkDestination = dest || "current"
     const followEl = document.getElementById("follow")
     if (!followEl) {
@@ -98,21 +97,21 @@ const startFollow = (dest = followLinkDestination) => {
         modeBeforeFollow = mode
     }
     const {setMode} = require("./modes")
-    setMode("follow")
+    await setMode("follow")
     alreadyFollowing = false
     alreadyFilteringLinks = false
     hoverLink = null
-    informPreload(true)
+    await informPreload(true)
     followEl.style.display = "flex"
 }
 
 /** Request to stop follow mode and return to the mode used before follow. */
-const stopFollow = () => {
+const stopFollow = async() => {
     const {setMode} = require("./modes")
     if (currentMode() === "follow") {
-        setMode(modeBeforeFollow || "normal")
+        await setMode(modeBeforeFollow || "normal")
     } else {
-        setMode("normal")
+        await setMode("normal")
     }
 }
 
@@ -130,7 +129,7 @@ const cancelFollow = () => {
 }
 
 /** Return the current list of characters that should be used for following. */
-const followChars = () => {
+const followChars = async() => {
     const keys = {
         "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
         "alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -139,7 +138,7 @@ const followChars = () => {
         "numbers": "0123456789",
         "qwertyhome": "ASDFGHJKL;"
     }
-    const setName = getSetting("followchars")
+    const setName = await getSetting("followchars")
     let allKeys = setName.replace("custom:", "")
     /**
      * Check if a provided set name is a built-in one or a custom one.
@@ -177,8 +176,8 @@ const digitListInCustomBase = (number, base, minLen = 0) => {
  * @param {number} number
  * @param {number} minLen
  */
-const numberToKeys = (number, minLen = 0) => {
-    const set = followChars()
+const numberToKeys = async(number, minLen = 0) => {
+    const set = await followChars()
     return digitListInCustomBase(number, set.length, minLen).map(
         d => set[d]).join("")
 }
@@ -202,11 +201,11 @@ const clickAtLink = async(link, src = "user") => {
     const {setMode} = require("./modes")
     if (["pointer", "visual"].includes(modeBeforeFollow)) {
         const {move, start} = require("./pointer")
-        start()
+        await start()
         if (modeBeforeFollow === "visual") {
-            setMode("visual")
+            await setMode("visual")
         }
-        move((link.x + link.width / 2) * factor,
+        await move((link.x + link.width / 2) * factor,
             (link.y + link.height / 2) * factor)
         return
     }
@@ -216,7 +215,7 @@ const clickAtLink = async(link, src = "user") => {
         await navigateTo(src, link.url)
         return
     }
-    setMode("insert")
+    await setMode("insert")
     await new Promise(r => {
         setTimeout(r, 2)
     })
@@ -298,26 +297,27 @@ const getWritableDOMRect = el => {
  * @param {FollowLink} link
  */
 const onclickListener = async(e, link) => {
+    const {getMouseConf} = require("./settings")
     if (!getMouseConf("follow")) {
         return
     }
     const {isUrl} = require("../util")
     const {setMode} = require("./modes")
     if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
-        setMode(modeBeforeFollow)
+        await setMode(modeBeforeFollow)
         const {addTab} = require("./tabs")
         await addTab({
             "src": "user",
-            "switchTo": getSetting("mousenewtabswitch"),
+            "switchTo": await getSetting("mousenewtabswitch"),
             "url": link.url
         })
     } else {
         await clickAtLink(link)
         if (link.type !== "inputs-insert") {
             if (e.button === 0) {
-                setMode(modeBeforeFollow)
+                await setMode(modeBeforeFollow)
             } else {
-                startFollow()
+                await startFollow()
             }
         }
     }
@@ -455,7 +455,7 @@ const alignLink = ({
  * Parse the received links and add them to the follow element to be picked.
  * @param {(FollowLink|null)[]} receivedLinks
  */
-const parseAndDisplayLinks = receivedLinks => {
+const parseAndDisplayLinks = async receivedLinks => {
     if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
@@ -465,7 +465,7 @@ const parseAndDisplayLinks = receivedLinks => {
         return
     }
     const {updateUrl} = require("./tabs")
-    updateUrl(page, true)
+    await updateUrl(page, true)
     let newLinks = receivedLinks
     if (followLinkDestination !== "current") {
         const {hasProtocol} = require("../util")
@@ -505,7 +505,7 @@ const parseAndDisplayLinks = receivedLinks => {
     const factor = currentPage()?.getZoomFactor() ?? 1
     /** @type {HTMLSpanElement[]} */
     const followChildren = []
-    const neededLength = numberToKeys(links.length).length
+    const numkeys = await numberToKeys(links.length)
     for (const [index, link] of links.entries()) {
         if (!link) {
             continue
@@ -526,6 +526,7 @@ const parseAndDisplayLinks = receivedLinks => {
         borderElement.style.height = `${height}px`
         borderElement.addEventListener("mouseup", e => onclickListener(e, link))
         borderElement.addEventListener("mousemove", () => {
+            const {getMouseConf} = require("./settings")
             if (!getMouseConf("follow")) {
                 hoverLink = null
                 borderElement.classList.remove("hover")
@@ -545,9 +546,9 @@ const parseAndDisplayLinks = receivedLinks => {
         followChildren.push(borderElement)
         // Show the link key in the preferred position
         const linkElement = document.createElement("span")
-        linkElement.textContent = numberToKeys(index, neededLength)
+        linkElement.textContent = await numberToKeys(index, numkeys.length)
         linkElement.className = `follow-${link.type}`
-        const followlabelposition = getSetting("followlabelposition")
+        const followlabelposition = await getSetting("followlabelposition")
         const elWidth = followEl.querySelector(`[link-id='${
             CSS.escape(`${index}`)}']`)?.getBoundingClientRect()?.width ?? 0
         alignLink({
@@ -566,6 +567,7 @@ const parseAndDisplayLinks = receivedLinks => {
         linkElement.setAttribute("link-id", `${index}`)
         linkElement.addEventListener("mouseup", e => onclickListener(e, link))
         linkElement.addEventListener("mousemove", () => {
+            const {getMouseConf} = require("./settings")
             if (!getMouseConf("follow")) {
                 hoverLink = null
                 borderElement.classList.remove("hover")
@@ -603,9 +605,10 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
     /** @type {HTMLSpanElement[]} */
     // @ts-expect-error query selector only selects span elements
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
-    const charsInLinks = followChars().map(c => c.toLowerCase())
+    const chars = await followChars()
+    const charsInLinks = chars.map(c => c.toLowerCase())
     const {setMode} = require("./modes")
-    const fallbackAction = getSetting("followfallbackaction")
+    const fallbackAction = await getSetting("followfallbackaction")
     const url = getUrl()
     if (!code || !charsInLinks.includes(code.toLowerCase())) {
         if (fallbackAction === "exit") {
@@ -619,7 +622,7 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
             url.value = ""
         }
         const {typeCharacterIntoNavbar} = require("./input")
-        typeCharacterIntoNavbar(id, true)
+        await typeCharacterIntoNavbar(id, true)
         const filterText = url?.value.toLowerCase()
         /** @type {HTMLSpanElement[]} */
         const visibleLinks = []
@@ -634,9 +637,9 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                 linkKey.style.display = "none"
             }
         }
-        const neededLength = numberToKeys(visibleLinks.length).length
+        const numkeys = await numberToKeys(visibleLinks.length)
         for (const [index, linkKey] of visibleLinks.entries()) {
-            linkKey.textContent = numberToKeys(index, neededLength)
+            linkKey.textContent = await numberToKeys(index, numkeys.length)
         }
         return
     }
@@ -655,30 +658,30 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
     }
     if (matches.length === 0) {
         if (fallbackAction === "exit") {
-            setMode(modeBeforeFollow)
+            await setMode(modeBeforeFollow)
             if (stayInFollowMode) {
-                startFollow()
+                await startFollow()
             }
         } else {
-            startFollow()
+            await startFollow()
         }
     } else if (matches.length === 1) {
         const link = links[Number(matches[0].getAttribute("link-id") ?? -1)]
         if (!link) {
-            setMode("normal")
+            await setMode("normal")
             return
         }
         if (followLinkDestination !== "current") {
-            setMode("normal")
+            await setMode("normal")
             if (stayInFollowMode) {
-                startFollow()
+                await startFollow()
             }
             const {addTab} = require("./tabs")
             if (followLinkDestination === "newtab") {
                 await addTab({
                     src,
                     "switchTo": !stayInFollowMode
-                        && getSetting("follownewtabswitch"),
+                        && await getSetting("follownewtabswitch"),
                     "url": link.url
                 })
             } else if (followLinkDestination === "copylink") {
@@ -686,10 +689,10 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                     .catch(() => null)
             } else {
                 const switchTo = !stayInFollowMode
-                    && getSetting("followsplitswitch")
+                    && await getSetting("followsplitswitch")
                 const currentTabId = currentTab()?.getAttribute("link-id")
                 const newTab = await addTab({
-                    "container": getSetting("containersplitpage"),
+                    "container": await getSetting("containersplitpage"),
                     "lazy": false,
                     src,
                     switchTo,
@@ -698,22 +701,22 @@ const enterKey = async(src, code, id, stayInFollowMode) => {
                 const newTabId = newTab?.getAttribute("link-id") ?? ""
                 const {add} = require("./pagelayout")
                 const opposite = followLinkDestination === "ver"
-                    && !getSetting("splitbelow")
+                    && !await getSetting("splitbelow")
                     || followLinkDestination === "hor"
-                    && !getSetting("splitright")
+                    && !await getSetting("splitright")
                 if (!switchTo) {
-                    add(newTabId, followLinkDestination, opposite)
+                    await add(newTabId, followLinkDestination, opposite)
                 } else if (currentTabId) {
-                    add(currentTabId, followLinkDestination, !opposite)
+                    await add(currentTabId, followLinkDestination, !opposite)
                 }
             }
             return
         }
         await clickAtLink(link, src)
         if (link.type !== "inputs-insert" || stayInFollowMode) {
-            setMode(modeBeforeFollow)
+            await setMode(modeBeforeFollow)
             if (stayInFollowMode) {
-                startFollow()
+                await startFollow()
             }
         }
     }

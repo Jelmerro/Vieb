@@ -881,7 +881,7 @@ const permissionHandler = (_, pm, callback, details) => {
 let navHistoryToRestore = null
 const minWindowSize = 500
 app.whenReady().then(async() => {
-    app.userAgentFallback = defaultUseragent()
+    app.userAgentFallback = await defaultUseragent()
     const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
     deleteFile(executeOut)
     if (!argUnsafeMultiwin) {
@@ -1074,7 +1074,7 @@ app.whenReady().then(async() => {
 const loginAttempts = []
 let fontsize = 14
 let customCSS = ""
-ipcMain.on("set-custom-styling", (_, newFontSize, newCSS) => {
+ipcMain.handle("set-custom-styling", (_, newFontSize, newCSS) => {
     fontsize = newFontSize
     customCSS = newCSS
 })
@@ -1344,14 +1344,14 @@ ipcMain.on("set-redirects", (_, rdr) => {
 
 /**
  * Update the request header setting.
- * @param {Electron.IpcMainEvent} _
+ * @param {Electron.IpcMainInvokeEvent} _
  * @param {{[key: string]: string}} headers
  */
 const updateRequestHeaders = (_, headers) => {
     requestHeaders = headers
 }
 
-ipcMain.on("update-request-headers", updateRequestHeaders)
+ipcMain.handle("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
 
 /** Cancel all downloads immediately. */
@@ -1480,13 +1480,13 @@ ipcMain.on("download-list-request", (e, action, downloadUuid) => {
     writeDownloadsToFile()
     e.sender.send("download-list", JSON.stringify(downloads))
 })
-ipcMain.on("set-permissions", (_, permissionObject) => {
+ipcMain.handle("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
 
 /**
  * Update the list of spell languages to be used.
- * @param {Electron.IpcMainEvent} _
+ * @param {Electron.IpcMainInvokeEvent} _
  * @param {string[]} langs
  */
 const setSpelllangs = (_, langs) => {
@@ -1510,8 +1510,8 @@ const setSpelllangs = (_, langs) => {
     }
 }
 
-ipcMain.on("set-spelllang", setSpelllangs)
-ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
+ipcMain.handle("set-spelllang", setSpelllangs)
+ipcMain.handle("update-resource-settings", (_, resources, block, allow) => {
     resourceTypes = [
         ...resources, "mainframe", "subframe", "cspreport", "other"
     ]
@@ -1552,7 +1552,7 @@ const disableAdblocker = () => {
 }
 
 /** Reload the adblocker optionally including the default lists. */
-const reloadAdblocker = () => {
+const reloadAdblocker = async() => {
     if (blocker) {
         disableAdblocker()
     }
@@ -1577,7 +1577,7 @@ const reloadAdblocker = () => {
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
         notify({
             "id": "adblocker.missing",
-            "silent": getSetting("adblockernotifications") === "none",
+            "silent": await getSetting("adblockernotifications") === "none",
             "src": "user",
             "type": "error"
         })
@@ -1606,7 +1606,7 @@ const reloadAdblocker = () => {
  * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
  */
-const enableAdblocker = type => {
+const enableAdblocker = async type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     /** @type {{[property: string]: string}} */
     let blocklists = {}
@@ -1626,7 +1626,7 @@ const enableAdblocker = type => {
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        const adblockerNotify = getSetting("adblockernotifications")
+        const adblockerNotify = await getSetting("adblockernotifications")
         /** @type {{[property: string]: string}} */
         let extraLists = {}
         const extralistFileData = readJSON(joinPath(
@@ -1649,9 +1649,9 @@ const enableAdblocker = type => {
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
                 let body = ""
-                res.on("end", () => {
+                res.on("end", async() => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
-                    reloadAdblocker()
+                    await reloadAdblocker()
                     notify({
                         "fields": [list],
                         "id": "adblocker.updated",
@@ -1681,7 +1681,7 @@ const enableAdblocker = type => {
             request.end()
         }
     } else {
-        reloadAdblocker()
+        await reloadAdblocker()
     }
 }
 
@@ -1858,18 +1858,18 @@ const handleDesktopCapture = async(request, callback, desktopSources) => {
 }
 
 /** Return the system matching sec-ch-ua-platform client hint platform. */
-const clientHintPlatform = () => ({
+const clientHintPlatform = async() => ({
     "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
-}[userAgentResolvedSystem()])
+}[await userAgentResolvedSystem()])
 
-ipcMain.on("adblock-enable", (_, type) => {
+ipcMain.on("adblock-enable", async(_, type) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
-        enableAdblocker(type)
+        await enableAdblocker(type)
     }
 })
 ipcMain.on("adblock-disable", disableAdblocker)
-ipcMain.on("update-pdf-option", (_, newPdfValue) => {
+ipcMain.handle("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
     for (const ses of sessionList) {
         const {protocol} = session.fromPartition(ses)
@@ -1882,7 +1882,7 @@ ipcMain.on("update-pdf-option", (_, newPdfValue) => {
         }
     }
 })
-ipcMain.on("create-session", (_, name, adblock, cache) => {
+ipcMain.on("create-session", async(_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
@@ -1919,9 +1919,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     sessionList.push(name)
     if (adblock !== "off") {
         if (blocker) {
-            reloadAdblocker()
+            await reloadAdblocker()
         } else {
-            enableAdblocker(adblock)
+            await enableAdblocker(adblock)
         }
     }
     if (pdfbehavior !== "view") {
@@ -1996,7 +1996,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         blocker.onHeadersReceived(details, callback)
     })
-    newSess.webRequest.onBeforeSendHeaders((details, callback) => {
+    newSess.webRequest.onBeforeSendHeaders(async(details, callback) => {
         const headers = details.requestHeaders
         for (const [head, headerInfo] of Object.entries(requestHeaders)) {
             if (head.startsWith("-")) {
@@ -2007,7 +2007,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         for (const head of Object.keys(headers)) {
             if (head.toLowerCase() === "sec-ch-ua-platform") {
-                headers[head] = clientHintPlatform()
+                headers[head] = await clientHintPlatform()
             }
         }
         return callback({"cancel": false, "requestHeaders": headers})
@@ -2233,7 +2233,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         return net.fetch(url.href)
     })
-    newSess.protocol.handle("markdownviewer", req => {
+    newSess.protocol.handle("markdownviewer", async req => {
         markdownFilesUniqueId = randomUUID()
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
@@ -2338,7 +2338,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             // Base url handling is optional.
         }
         if (isFile(loc)) {
-            const md = markedObj.parse(readFile(loc) ?? "")
+            const md = await markedObj.parse(readFile(loc) ?? "")
             return new Response(Buffer.from(
                 `<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2351,7 +2351,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return new Promise(resolve => {
             request.on("response", res => {
                 let body = ""
-                res.on("end", () => {
+                res.on("end", async() => {
                     if (!body || !markedObj) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
@@ -2365,7 +2365,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         }}))
                         return
                     }
-                    const md = markedObj.parse(body)
+                    const md = await markedObj.parse(body)
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
                         <style id="default-styling">${defaultCSS}</style>
@@ -2567,7 +2567,7 @@ const saveWindowState = (statesOnly = false) => {
     }
 }
 
-ipcMain.on("window-state-init", (_, restore) => {
+ipcMain.handle("window-state-init", (_, restore) => {
     if (!mainWindow) {
         return
     }
@@ -2635,7 +2635,7 @@ ipcMain.on("window-state-init", (_, restore) => {
         }, 30)
     })
 })
-ipcMain.on("update-native-theme", (_, newTheme) => {
+ipcMain.handle("update-native-theme", (_, newTheme) => {
     nativeTheme.themeSource = newTheme
 })
 ipcMain.handle("save-page",
@@ -2677,9 +2677,8 @@ ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.fullScreen = !mainWindow.fullScreen
     saveWindowState(true)
 })
-ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
+ipcMain.handle("insert-mode-blockers", (_, blockedMappings) => {
     blockedInsertMappings = blockedMappings
-    e.returnValue = null
 })
 ipcMain.on("set-window-title", (_, t) => {
     if (mainWindow) {
@@ -2705,12 +2704,10 @@ ipcMain.handle("make-default-app", () => {
     app.setAsDefaultProtocolClient("http")
     app.setAsDefaultProtocolClient("https")
 })
-ipcMain.on("clear-clipboard", e => {
-    e.returnValue = clipboard.clear()
+ipcMain.handle("clear-clipboard", () => {
+    clipboard.clear()
 })
-ipcMain.on("read-clipboard", async e => {
-    e.returnValue = await clipboard.readText()
-})
+ipcMain.handle("read-clipboard", () => clipboard.readText())
 ipcMain.handle("write-clipboard", (_, data, type = "text") => {
     if (type === "dataurl") {
         const buff = nativeImage.createFromDataURL(data).toPNG()
@@ -2741,29 +2738,25 @@ ipcMain.handle("list-navigation-history", (_, id) => {
 ipcMain.handle("restore-navigation-history", (_, history) => {
     navHistoryToRestore = history
 })
-ipcMain.on("override-global-useragent", (e, globalUseragent) => {
-    app.userAgentFallback = globalUseragent || defaultUseragent()
+ipcMain.handle("override-global-useragent", async(_, globalUseragent) => {
+    app.userAgentFallback = globalUseragent || await defaultUseragent()
     for (const ses of sessionList) {
         session.fromPartition(ses).setUserAgent(app.userAgentFallback)
     }
-    e.returnValue = null
 })
-ipcMain.on("app-config", e => {
-    e.returnValue = {
-        "appdata": app.getPath("appData"),
-        "autoplay": argAutoplayMedia,
-        "downloads": app.getPath("downloads"),
-        "icon": customIcon || undefined,
-        "name": app.getName(),
-        "order": argConfigOrder,
-        "override": argConfigOverride,
-        version
-    }
-})
-ipcMain.on("is-fullscreen", e => {
+ipcMain.handle("app-config", () => ({
+    "appdata": app.getPath("appData"),
+    "autoplay": argAutoplayMedia,
+    "downloads": app.getPath("downloads"),
+    "icon": customIcon || undefined,
+    "name": app.getName(),
+    "order": argConfigOrder,
+    "override": argConfigOverride,
+    version
+}))
+ipcMain.handle("is-fullscreen", () => {
     if (!mainWindow) {
-        e.returnValue = false
-        return
+        return false
     }
     const windowBounds = mainWindow.getBounds()
     const screenBounds = screen.getDisplayMatching(windowBounds).bounds
@@ -2772,21 +2765,20 @@ ipcMain.on("is-fullscreen", e => {
         && screenBounds.width === windowBounds.width
         && screenBounds.height === windowBounds.height
         && !mainWindow.isMaximized()
-    e.returnValue = mainWindow.fullScreen || osFullscreen
+    return mainWindow.fullScreen || osFullscreen
 })
 ipcMain.on("relaunch", () => app.relaunch())
-ipcMain.on("mouse-location", e => {
+ipcMain.handle("mouse-location", () => {
     const windowBounds = mainWindow?.getBounds()
     if (windowBounds) {
         const mousePos = screen.getCursorScreenPoint()
         const x = mousePos.x - windowBounds.x
         const y = mousePos.y - windowBounds.y
         if (x < windowBounds.width && y < windowBounds.height) {
-            e.returnValue = {x, y}
-            return
+            return {x, y}
         }
     }
-    e.returnValue = null
+    return null
 })
 
 // Subframe/iframe related code to send from renderer to frames and vice versa

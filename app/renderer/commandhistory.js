@@ -20,7 +20,7 @@
 const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
 const {currentMode, getUrl} = require("./common")
 
-const commandsFile = joinPath(appData(), "commandhist")
+let commandsFile = ""
 /** @type {string[]} */
 let previousCommands = []
 let previousIndex = -1
@@ -28,7 +28,8 @@ let originalCommand = ""
 let storeCommands = false
 
 /** Load the command hist of the previous session if stored. */
-const init = () => {
+const init = async() => {
+    commandsFile = joinPath(await appData(), "commandhist")
     previousCommands = readFile(commandsFile)?.split("\n").filter(Boolean) || []
 }
 
@@ -43,7 +44,7 @@ const resume = () => {
 }
 
 /** Show the right entry based on new index set by previous or next. */
-const updateNavWithHistory = () => {
+const updateNavWithHistory = async() => {
     let commandText = originalCommand
     if (previousIndex !== -1) {
         commandText = previousCommands[previousIndex]
@@ -53,11 +54,11 @@ const updateNavWithHistory = () => {
         url.value = commandText
     }
     const {suggestCommand} = require("./suggest")
-    suggestCommand(commandText)
+    await suggestCommand(commandText)
 }
 
 /** Go to the previous item in the command history. */
-const previous = () => {
+const previous = async() => {
     if (currentMode() !== "command") {
         return
     }
@@ -67,11 +68,11 @@ const previous = () => {
     } else if (previousIndex > 0) {
         previousIndex -= 1
     }
-    updateNavWithHistory()
+    await updateNavWithHistory()
 }
 
 /** Go to the next item in the command history. */
-const next = () => {
+const next = async() => {
     if (currentMode() !== "command" || previousIndex === -1) {
         return
     }
@@ -80,7 +81,7 @@ const next = () => {
     } else if (previousIndex === previousCommands.length - 1) {
         previousIndex = -1
     }
-    updateNavWithHistory()
+    await updateNavWithHistory()
 }
 
 /** Reset the position info for the command history. */
@@ -94,8 +95,8 @@ const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-const push = (command, user) => {
-    const setting = getSetting("commandhist")
+const push = async(command, user) => {
+    const setting = await getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return
     }
@@ -106,7 +107,7 @@ const push = (command, user) => {
         return
     }
     previousCommands.push(command)
-    if (setting.includes("persist")) {
+    if (setting.includes("persist") && commandsFile) {
         appendFile(commandsFile, `${command}\n`)
     }
 }

@@ -26,7 +26,7 @@ const {
 let currentlyRemoving = false
 let virtualList = document.createElement("div")
 let viewIndex = 0
-let viewItemCount = getSetting("historyperpage") ?? 100
+let viewItemCount = 100
 
 /**
  * Update the current history view by fetching from the cached list by index.
@@ -111,7 +111,7 @@ const updateCurrentView = (user = true) => {
  *   import("../renderer/history").historyItem
  * )} hist
  */
-const addHistToList = hist => {
+const addHistToList = async hist => {
     const histElement = document.createElement("div")
     histElement.className = "hist-entry"
     if (hist.icon) {
@@ -134,7 +134,7 @@ const addHistToList = hist => {
     title.className = "hist-title"
     histElement.append(title)
     const url = document.createElement("a")
-    url.textContent = urlToString(hist.url)
+    url.textContent = await urlToString(hist.url)
     url.setAttribute("href", hist.url)
     histElement.append(url)
     virtualList?.append(histElement)
@@ -165,8 +165,8 @@ const receiveHistory = history => {
      * @param {import("../renderer/history").historyItem} hist
      */
     const addHistTimeout = hist => {
-        setTimeout(() => {
-            addHistToList(hist)
+        setTimeout(async() => {
+            await addHistToList(hist)
             lineNumber += 1
             if (goal === lineNumber) {
                 scanningProgress.style.display = "none"
@@ -227,7 +227,8 @@ const clearHistory = () => {
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
+    viewItemCount = await getSetting("historyperpage")
     // Translations
     const h1 = document.querySelector("h1")
     if (h1) {
@@ -257,13 +258,13 @@ window.addEventListener("DOMContentLoaded", () => {
         updateCurrentView()
     })
     const perpage = document.getElementById("perpage")
-    perpage?.addEventListener("input", () => {
+    perpage?.addEventListener("input", async() => {
         if (!(perpage instanceof HTMLInputElement)) {
             return
         }
         const count = Number(perpage.value)
         if (!count || Number.isNaN(count) || count < 1) {
-            viewItemCount = getSetting("historyperpage") ?? 100
+            viewItemCount = await getSetting("historyperpage") ?? 100
         } else {
             viewItemCount = count
         }

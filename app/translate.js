@@ -2,7 +2,6 @@
 
 const {
     getAppRootDir,
-    getSetting,
     isFile,
     isNestedStringObject,
     joinPath,
@@ -32,12 +31,21 @@ const safeElements = new Set([
     "ul"
 ])
 const safeAttributes = new Set(["class", "href"])
+let selectedLang = "en"
 
 /** Returns a list of languages according to the language files present. */
 const validLanguages = () => {
     const files = listDir(joinPath(getAppRootDir(), "translations")) ?? []
     return files.filter(f => f.endsWith(".json"))
         .map(f => f.replace(/\.json$/, ""))
+}
+
+/**
+ * Update the lang used for translations via func so translate func is faster.
+ * @param {string} lang
+ */
+const updateLang = lang => {
+    selectedLang = lang
 }
 
 /**
@@ -79,7 +87,7 @@ const translate = (id, {customLang = null, fields = []} = {}) => {
             throw new Error("Language file en contains errors")
         }
     }
-    const currentLang = customLang ?? getSetting("lang")
+    const currentLang = customLang ?? selectedLang
     if (!translations[currentLang]) {
         loadLang(currentLang)
     }
@@ -173,5 +181,6 @@ module.exports = {
     argsAsHumanList,
     translate,
     translateAsHTML,
+    updateLang,
     validLanguages
 }

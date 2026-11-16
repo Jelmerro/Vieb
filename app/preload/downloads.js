@@ -58,7 +58,7 @@ window.addEventListener("DOMContentLoaded", () => {
  * Add a download to the list.
  * @param {import("../index").DownloadItem} download
  */
-const addDownload = download => {
+const addDownload = async download => {
     const element = document.createElement("div")
     element.className = "download"
     // Toggle pause and remove buttons
@@ -115,7 +115,7 @@ const addDownload = download => {
     misc.append(state)
     const downloadUrl = document.createElement("a")
     downloadUrl.href = encodeURI(download.url)
-    downloadUrl.textContent = urlToString(download.url)
+    downloadUrl.textContent = await urlToString(download.url)
     misc.append(downloadUrl)
     const file = document.createElement("span")
     file.title = translate("pages.downloads.clickToOpen")
@@ -249,7 +249,7 @@ const updateDownload = (download, element) => {
  * @param {Electron.IpcRendererEvent} _
  * @param {string} l
  */
-const generateDownloadList = (_, l) => {
+const generateDownloadList = async(_, l) => {
     /** @type {import("../index").DownloadItem[]} */
     const list = JSON.parse(l).toReversed()
     // List
@@ -285,7 +285,7 @@ const generateDownloadList = (_, l) => {
             listEl.textContent = ""
         }
         for (let i = list.length - 1; i >= 0; i--) {
-            addDownload(list[i])
+            await addDownload(list[i])
         }
     }
     lastUpdate = new Date()

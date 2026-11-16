@@ -536,11 +536,11 @@ test("sameDomain function should match urls that have the same domain", () => {
         "https://127.0.0.1/", "http://10.0.0.1"), false)
 })
 
-test(`Firefox version should increment by date`, () => {
+test(`Firefox version should increment by date`, async() => {
     const firstMockDate = new Date("2023-06-05")
     const secondMockDate = new Date("2023-06-06")
     const thirdMockDate = new Date("2023-07-04")
-    const sys = UTIL.userAgentPlatform()
+    const sys = await UTIL.userAgentPlatform()
     global.Date = class extends Date {
         constructor(...date) {
             if (date?.length) {
@@ -554,7 +554,7 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     let ver = 113
-    assert.strictEqual(UTIL.firefoxUseragent(),
+    assert.strictEqual(await UTIL.firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
         constructor(...date) {
@@ -569,7 +569,7 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     ver = 114
-    assert.strictEqual(UTIL.firefoxUseragent(),
+    assert.strictEqual(await UTIL.firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
         constructor(...date) {
@@ -584,6 +584,6 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     ver = 115
-    assert.strictEqual(UTIL.firefoxUseragent(),
+    assert.strictEqual(await UTIL.firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })

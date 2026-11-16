@@ -20,7 +20,7 @@
 const {fetchJSON, getSetting} = require("../util")
 
 /** If enabled via settings, cut out sponsored Youtube video segments. */
-const loadSponsorblock = () => {
+const loadSponsorblock = async() => {
     /** @type {HTMLDivElement[]} */
     let previousBlockEls = []
     /**
@@ -43,14 +43,14 @@ const loadSponsorblock = () => {
     /** @type {number|null} */
     let previousDuration = null
     /** Fetch the sponsorblock data from the api. */
-    const fetchSponsorBlockData = () => {
+    const fetchSponsorBlockData = async() => {
         for (const el of previousBlockEls) {
             el.remove()
         }
         previousBlockEls = []
         const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
         previousDuration = vid.duration
-        const categories = getSetting("sponsorblockcategories") ?? {
+        const categories = await getSetting("sponsorblockcategories") ?? {
             "interaction": "red",
             "intro": "cyan",
             "music_offtopic": "",
@@ -84,18 +84,18 @@ const loadSponsorblock = () => {
         }).catch(error => console.warn(error))
     }
     if (window.location.href.includes("watch?v=")
-        && getSetting("sponsorblock")) {
-        fetchSponsorBlockData()
-        vid.addEventListener("durationchange", () => {
-            fetchSponsorBlockData()
+        && await getSetting("sponsorblock")) {
+        await fetchSponsorBlockData()
+        vid.addEventListener("durationchange", async() => {
+            await fetchSponsorBlockData()
         })
-        vid.addEventListener("timeupdate", () => {
+        vid.addEventListener("timeupdate", async() => {
             const current = vid.currentTime
             if (!current || !vid.duration) {
                 return
             }
             if (vid.duration !== previousDuration) {
-                fetchSponsorBlockData()
+                await fetchSponsorBlockData()
                 return
             }
             for (const skip of segments) {

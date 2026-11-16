@@ -42,7 +42,6 @@ const {
 const {
     currentPage,
     currentTab,
-    getMouseConf,
     listPages,
     listReadyPages,
     listTabs,
@@ -684,13 +683,13 @@ let spelllangs = []
  * @param {keyof typeof validOptions} setting
  * @param {string} value
  */
-const checkOption = (src, setting, value) => {
+const checkOption = async(src, setting, value) => {
     /** @type {typeof validOptions[setting]} */
     const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
     if (optionList) {
         const valid = optionList.includes(value)
         if (!valid) {
-            notify({
+            await notify({
                 "fields": [setting, argsAsHumanList(optionList)],
                 "id": "settings.errors.oneof",
                 src,
@@ -708,10 +707,10 @@ const checkOption = (src, setting, value) => {
  * @param {keyof typeof numberRanges} setting
  * @param {number} value
  */
-const checkNumber = (src, setting, value) => {
+const checkNumber = async(src, setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
-        notify({
+        await notify({
             "fields": [setting, String(numberRange[0]), String(numberRange[1])],
             "id": "settings.errors.numberRange",
             src,
@@ -727,11 +726,11 @@ const checkNumber = (src, setting, value) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} value
  */
-const checkSuggestOrder = (src, value) => {
+const checkSuggestOrder = async(src, value) => {
     for (const suggest of value) {
         const parts = (suggest.match(/~/g) || []).length
         if (parts > 2) {
-            notify({
+            await notify({
                 "fields": [suggest],
                 "id": "settings.errors.suggestorder.tilde",
                 src,
@@ -742,7 +741,7 @@ const checkSuggestOrder = (src, value) => {
         const args = suggest.split("~")
         const type = args.shift() ?? ""
         if (!["file", "history", "searchword"].includes(type)) {
-            notify({
+            await notify({
                 "fields": [type],
                 "id": "settings.errors.suggestorder.type",
                 src,
@@ -754,7 +753,7 @@ const checkSuggestOrder = (src, value) => {
         let hasHadOrder = false
         for (const arg of args) {
             if (!arg) {
-                notify({
+                await notify({
                     "id": "settings.errors.suggestorder.empty",
                     src,
                     "type": "warning"
@@ -764,7 +763,7 @@ const checkSuggestOrder = (src, value) => {
             const potentialCount = Number(arg)
             if (potentialCount > 0 && potentialCount <= 9000000000000000) {
                 if (hasHadCount) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.suggestorder.duplicateCount",
                         src,
                         "type": "warning"
@@ -786,7 +785,7 @@ const checkSuggestOrder = (src, value) => {
             }
             if (validOrders.includes(arg)) {
                 if (hasHadOrder) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.suggestorder.duplicateSort",
                         src,
                         "type": "warning"
@@ -796,7 +795,7 @@ const checkSuggestOrder = (src, value) => {
                 hasHadOrder = true
                 continue
             }
-            notify({
+            await notify({
                 "fields": [type, argsAsHumanList(validOrders)],
                 "id": "settings.errors.suggestorder.invalidSort",
                 src,
@@ -814,7 +813,7 @@ const checkSuggestOrder = (src, value) => {
  * @param {keyof typeof defaultSettings} setting
  * @param {number|string|boolean|string[]|{[key: string]: string}} value
  */
-const checkOther = (src, setting, value) => {
+const checkOther = async(src, setting, value) => {
     // Special cases
     if (setting === "clearhistoryinterval") {
         if (typeof value !== "string") {
@@ -823,7 +822,7 @@ const checkOther = (src, setting, value) => {
         const valid = ["none", "session"].includes(value)
             || isValidIntervalValue(value)
         if (!valid) {
-            notify({
+            await notify({
                 "fields": [value],
                 "id": "settings.errors.clearhistoryinterval",
                 src,
@@ -847,7 +846,7 @@ const checkOther = (src, setting, value) => {
             if (specialNames.includes(value)) {
                 return true
             }
-            notify({
+            await notify({
                 "fields": [setting, argsAsHumanList(specialNames)],
                 "id": "settings.errors.container.invalidspecial",
                 src,
@@ -857,7 +856,7 @@ const checkOther = (src, setting, value) => {
         }
         const simpleValue = value.replace("%n", "valid").replace(/_/g, "")
         if (specialChars.test(simpleValue)) {
-            notify({
+            await notify({
                 "fields": [setting, value],
                 "id": "settings.errors.container.specialchars",
                 src,
@@ -872,7 +871,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const colorMatch of value) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
-                notify({
+                await notify({
                     "fields": [setting, colorMatch],
                     "id": "settings.errors.container.colorSeparator",
                     src,
@@ -884,7 +883,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [match],
                     "id": "settings.errors.container.colorRegex",
                     src,
@@ -896,7 +895,7 @@ const checkOther = (src, setting, value) => {
             style.color = "white"
             style.color = color
             if (style.color === "white" && color !== "white" || !color) {
-                notify({
+                await notify({
                     "fields": [color],
                     "id": "settings.errors.container.colorName",
                     src,
@@ -912,7 +911,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const containerMatch of value) {
             if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
-                notify({
+                await notify({
                     "fields": [setting, containerMatch],
                     "id": "settings.errors.container.namesSeparator",
                     src,
@@ -922,7 +921,7 @@ const checkOther = (src, setting, value) => {
             }
             const [match, container, newtabParam] = containerMatch.split("~", 3)
             if (newtabParam && newtabParam !== "newtab") {
-                notify({
+                await notify({
                     "fields": [containerMatch],
                     "id": "settings.errors.container.namesNewtab",
                     src,
@@ -933,7 +932,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [match],
                     "id": "settings.errors.container.namesRegex",
                     src,
@@ -943,7 +942,7 @@ const checkOther = (src, setting, value) => {
             }
             const simpleValue = container.replace("%n", "valid").replace(/_/g, "")
             if (specialChars.test(simpleValue)) {
-                notify({
+                await notify({
                     "fields": [setting, simpleValue],
                     "id": "settings.errors.container.specialchars",
                     src,
@@ -961,7 +960,7 @@ const checkOther = (src, setting, value) => {
         style.color = "white"
         style.color = value
         if (style.color === "white" && value !== "white" || !value) {
-            notify({
+            await notify({
                 "fields": [value],
                 "id": "settings.errors.darkreader.color",
                 src,
@@ -978,7 +977,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [setting, match],
                     "id": "settings.errors.darkreader.blocklistRegex",
                     src,
@@ -995,7 +994,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const match of value) {
             if (!["file", "page", "special"].includes(match)) {
-                notify({
+                await notify({
                     "fields": [match, setting],
                     "id": "settings.errors.invalidScope",
                     src,
@@ -1011,7 +1010,7 @@ const checkOther = (src, setting, value) => {
         }
         const expandedPath = expandPath(value)
         if (value && !pathExists(expandedPath)) {
-            notify({
+            await notify({
                 "fields": [expandedPath],
                 "id": "settings.errors.downloadpathMissing",
                 src,
@@ -1020,7 +1019,7 @@ const checkOther = (src, setting, value) => {
             return false
         }
         if (value && !isDir(expandedPath)) {
-            notify({
+            await notify({
                 "fields": [expandedPath],
                 "id": "settings.errors.downloadpathIsFolder",
                 src,
@@ -1035,7 +1034,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const page of value) {
             if (!isUrl(page)) {
-                notify({
+                await notify({
                     "fields": [page],
                     "id": "settings.errors.favoritepages",
                     src,
@@ -1058,7 +1057,7 @@ const checkOther = (src, setting, value) => {
             "qwertyhome"
         ]
         if (!ok.includes(value) && !value.startsWith("custom:")) {
-            notify({
+            await notify({
                 "fields": [value],
                 "id": "settings.errors.followchars.invalidSet",
                 src,
@@ -1069,7 +1068,7 @@ const checkOther = (src, setting, value) => {
         if (value.startsWith("custom:")) {
             const chars = [...value.replace("custom:", "")]
             if (chars.length < 2) {
-                notify({
+                await notify({
                     "id": "settings.errors.followchars.notEnough",
                     src,
                     "type": "warning"
@@ -1077,7 +1076,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (new Set(chars).size < chars.length) {
-                notify({
+                await notify({
                     "id": "settings.errors.followchars.duplicate",
                     src,
                     "type": "warning"
@@ -1101,7 +1100,7 @@ const checkOther = (src, setting, value) => {
         ]
         for (const element of value) {
             if (!ok.includes(element)) {
-                notify({
+                await notify({
                     "fields": [element, argsAsHumanList(ok)],
                     "id": "settings.errors.followelement",
                     src,
@@ -1119,7 +1118,7 @@ const checkOther = (src, setting, value) => {
         for (const name of value) {
             if (name.length > 1 && (keyNames.every(l => !l.vim.map(
                 k => `<${k}>`).includes(name)) || name === "<Any>")) {
-                notify({
+                await notify({
                     "fields": [name],
                     "id": "settings.errors.modifiers",
                     src,
@@ -1136,7 +1135,7 @@ const checkOther = (src, setting, value) => {
         const invalid = value.find(
             m => !mouseFeatures.includes(m) && m !== "all")
         if (invalid) {
-            notify({
+            await notify({
                 "fields": [invalid],
                 "id": "settings.errors.mouseFeature",
                 src,
@@ -1149,8 +1148,9 @@ const checkOther = (src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify({
+        const stringified = await stringToUrl(value)
+        if (value && !isUrl(stringified.replace(/^https?:\/\//g, ""))) {
+            await notify({
                 "fields": [value],
                 "id": "settings.errors.newtaburl",
                 src,
@@ -1167,7 +1167,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(val)
             } catch {
-                notify({
+                await notify({
                     "fields": [val],
                     "id": "settings.errors.passthrough.regex",
                     src,
@@ -1179,7 +1179,7 @@ const checkOther = (src, setting, value) => {
         for (const val of Object.values(value)) {
             const {maps, valid} = splitMapString(val)
             if (!valid) {
-                notify({
+                await notify({
                     "fields": [val],
                     "id": "settings.errors.passthrough.keys",
                     src,
@@ -1194,7 +1194,7 @@ const checkOther = (src, setting, value) => {
                 if (name.startsWith("<") && name.endsWith(">")) {
                     name = name.slice(1, -1)
                 } else {
-                    notify({
+                    await notify({
                         "fields": [name],
                         "id": "settings.errors.passthrough.keyname",
                         src,
@@ -1203,7 +1203,7 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (keyNames.every(key => !key.vim.includes(name))) {
-                    notify({
+                    await notify({
                         "fields": [name],
                         "id": "settings.errors.passthrough.keyname",
                         src,
@@ -1224,7 +1224,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const override of value) {
             if ((override.match(/~/g) || []).length === 0) {
-                notify({
+                await notify({
                     "fields": [setting, override],
                     "id": "settings.errors.permission.separator",
                     src,
@@ -1236,7 +1236,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [match],
                     "id": "settings.errors.permission.regex",
                     src,
@@ -1258,7 +1258,7 @@ const checkOther = (src, setting, value) => {
                 }
                 const reservedName = permissionSettings.has(name)
                 if (reservedName || !(name in defaultSettings)) {
-                    notify({
+                    await notify({
                         "fields": [name],
                         "id": "settings.errors.permission.name",
                         src,
@@ -1267,7 +1267,7 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("hid")) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.permission.hidasked",
                         src,
                         "type": "warning"
@@ -1275,7 +1275,7 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("usb")) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.permission.usbasked",
                         src,
                         "type": "warning"
@@ -1283,7 +1283,7 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("serial")) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.permission.serialasked",
                         src,
                         "type": "warning"
@@ -1291,7 +1291,7 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("ediadevices")) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.permission.mediadevicesasked",
                         src,
                         "type": "warning"
@@ -1299,7 +1299,7 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
-                    notify({
+                    await notify({
                         "id": "settings.errors.permission.captureallowed",
                         src,
                         "type": "warning"
@@ -1315,7 +1315,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const mType of value) {
             if (!["marks", "pointer", "scroll"].includes(mType)) {
-                notify({
+                await notify({
                     "fields": [mType],
                     "id": "settings.errors.markpersistencetype",
                     src,
@@ -1331,7 +1331,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const redirect of value) {
             if ((redirect.match(/~/g) || []).length !== 1) {
-                notify({
+                await notify({
                     "fields": [redirect],
                     "id": "settings.errors.redirect.separator",
                     src,
@@ -1343,7 +1343,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [match],
                     "id": "settings.errors.redirect.regex",
                     src,
@@ -1362,7 +1362,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [setting, match],
                     "id": "settings.errors.resources.regex",
                     src,
@@ -1373,7 +1373,7 @@ const checkOther = (src, setting, value) => {
             for (const name of names) {
                 const supported = defaultSettings.resourcetypes
                 if (!supported.includes(name)) {
-                    notify({
+                    await notify({
                         "fields": [setting, name],
                         "id": "settings.errors.resources.type",
                         src,
@@ -1390,7 +1390,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const rsrc of value) {
             if (!defaultSettings.resourcetypes.includes(rsrc)) {
-                notify({
+                await notify({
                     "fields": [setting, rsrc],
                     "id": "settings.errors.resources.type",
                     src,
@@ -1407,7 +1407,7 @@ const checkOther = (src, setting, value) => {
         for (let baseUrl of value) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
-                notify({
+                await notify({
                     "fields": [baseUrl],
                     "id": "settings.errors.searchengine.replace",
                     src,
@@ -1416,7 +1416,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (!isUrl(baseUrl)) {
-                notify({
+                await notify({
                     "fields": [baseUrl],
                     "id": "settings.errors.searchengine.url",
                     src,
@@ -1436,7 +1436,7 @@ const checkOther = (src, setting, value) => {
             const [keyword, url] = searchword
             const simpleKeyword = keyword.replace(/_/g, "")
             if (keyword.length === 0 || specialChars.test(simpleKeyword)) {
-                notify({
+                await notify({
                     "fields": [searchword.join("~")],
                     "id": "settings.errors.searchwords.separator",
                     src,
@@ -1445,7 +1445,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (url.length === 0 || !url.includes("%s")) {
-                notify({
+                await notify({
                     "fields": [searchword.join("~")],
                     "id": "settings.errors.searchwords.separator",
                     src,
@@ -1454,7 +1454,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (knownSearchwords.includes(keyword)) {
-                notify({
+                await notify({
                     "fields": [searchword.join("~"), keyword],
                     "id": "settings.errors.searchwords.separator",
                     src,
@@ -1471,7 +1471,7 @@ const checkOther = (src, setting, value) => {
         }
         for (const lang of value) {
             if (spelllangs.length > 0 && !spelllangs.includes(lang)) {
-                notify({
+                await notify({
                     "fields": [lang],
                     "id": "settings.errors.spelllang",
                     src,
@@ -1492,7 +1492,7 @@ const checkOther = (src, setting, value) => {
         for (const catColorPair of Object.entries(value)) {
             const [category, color] = catColorPair
             if (!allCategories.includes(category)) {
-                notify({
+                await notify({
                     "fields": [category],
                     "id": "settings.errors.sponsorblock.name",
                     src,
@@ -1504,7 +1504,7 @@ const checkOther = (src, setting, value) => {
             style.color = "white"
             style.color = color
             if (color && style.color === "white" && color !== "white") {
-                notify({
+                await notify({
                     "fields": [color],
                     "id": "settings.errors.sponsorblock.color",
                     src,
@@ -1513,7 +1513,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (knownCategories.includes(category)) {
-                notify({
+                await notify({
                     "fields": [category],
                     "id": "settings.errors.sponsorblock.duplicate",
                     src,
@@ -1532,7 +1532,7 @@ const checkOther = (src, setting, value) => {
             const parts = page.split("~")
             const url = parts.shift() ?? ""
             if (!isUrl(url)) {
-                notify({
+                await notify({
                     "fields": [url],
                     "id": "settings.errors.startuppages.url",
                     src,
@@ -1550,7 +1550,7 @@ const checkOther = (src, setting, value) => {
                 ]
                 const simple = cname.replace("%n", "valid").replace(/_/g, "")
                 if (!specials.includes(cname) && specialChars.test(simple)) {
-                    notify({
+                    await notify({
                         "fields": [cname],
                         "id": "settings.errors.startuppages.name",
                         src,
@@ -1560,7 +1560,7 @@ const checkOther = (src, setting, value) => {
                 }
             }
             if (parts.length > 2) {
-                notify({
+                await notify({
                     "fields": [page],
                     "id": "settings.errors.startuppages.toomany",
                     src,
@@ -1569,7 +1569,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (parts[0] && parts[0] !== "muted" && parts[0] !== "pinned") {
-                notify({
+                await notify({
                     "fields": [parts[0]],
                     "id": "settings.errors.startuppages.invalidopts",
                     src,
@@ -1578,7 +1578,7 @@ const checkOther = (src, setting, value) => {
                 return false
             }
             if (parts[1] && parts[1] !== "muted" && parts[1] !== "pinned") {
-                notify({
+                await notify({
                     "fields": [parts[1]],
                     "id": "settings.errors.startuppages.invalidopts",
                     src,
@@ -1602,7 +1602,7 @@ const checkOther = (src, setting, value) => {
         ]
         for (const visitType of value) {
             if (!valid.includes(visitType)) {
-                notify({
+                await notify({
                     "fields": [visitType, argsAsHumanList(valid)],
                     "id": "settings.errors.storenewvisits",
                     src,
@@ -1624,7 +1624,8 @@ const checkOther = (src, setting, value) => {
         }
         for (const ignore of value) {
             const {rangeToTabIdxs} = require("./command")
-            if (!rangeToTabIdxs(src, ignore).valid) {
+            const tabIdx = await rangeToTabIdxs(src, ignore)
+            if (!tabIdx.valid) {
                 return false
             }
         }
@@ -1637,7 +1638,7 @@ const checkOther = (src, setting, value) => {
             try {
                 new RegExp(match)
             } catch {
-                notify({
+                await notify({
                     "fields": [match],
                     "id": "settings.errors.tocpages",
                     src,
@@ -1651,8 +1652,9 @@ const checkOther = (src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify({
+        const url = await stringToUrl(value)
+        if (!isUrl(url.replace(/^https?:\/\//g, ""))) {
+            await notify({
                 "fields": [value],
                 "id": "settings.errors.translateurl",
                 src,
@@ -1669,7 +1671,7 @@ const checkOther = (src, setting, value) => {
             return true
         }
         if (!/^\d+x\d+$/g.test(value)) {
-            notify({
+            await notify({
                 "fields": [setting],
                 "id": "settings.errors.windowsize.format",
                 src,
@@ -1679,7 +1681,7 @@ const checkOther = (src, setting, value) => {
         }
         const nums = value.split("x").map(Number)
         if (setting === "windowsize" && nums.some(v => v < 500)) {
-            notify({
+            await notify({
                 "fields": [String(nums.find(v => v < 500))],
                 "id": "settings.errors.windowsize.minimum",
                 src,
@@ -1690,6 +1692,13 @@ const checkOther = (src, setting, value) => {
     }
     return true
 }
+
+/**
+ * Check if a specific mouse feature is enabled.
+ * @param {string} val
+ */
+const getMouseConf = val => allSettings.mouse === "all"
+    || allSettings.mouse.includes(val)
 
 /**
  * Check if a given setting name exists at all.
@@ -1750,7 +1759,7 @@ const isStringSetting = set => isExistingSetting(set)
  * @param {keyof typeof defaultSettings} setting
  * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
-const isValidSetting = (src, setting, value) => {
+const isValidSetting = async(src, setting, value) => {
     let expectedType = typeof allSettings[setting]
     if (setting === "mouse") {
         expectedType = "object"
@@ -1771,7 +1780,7 @@ const isValidSetting = (src, setting, value) => {
         parsedValue = value === "true"
     }
     if (expectedType !== typeof parsedValue) {
-        notify({
+        await notify({
             "fields": [setting, expectedType, typeof parsedValue],
             "id": "settings.errors.type",
             src,
@@ -1808,19 +1817,16 @@ const updateMouseSettings = () => {
 }
 
 /** Update the request headers setting in the main thread. */
-const updateRequestHeaders = () => {
-    ipcRenderer.send("update-request-headers", allSettings.requestheaders)
-}
+const updateRequestHeaders = () => ipcRenderer.invoke(
+    "update-request-headers", allSettings.requestheaders)
 
 /** Update the native theme in the main thread. */
-const updateNativeTheme = () => {
-    ipcRenderer.send("update-native-theme", allSettings.nativetheme)
-}
+const updateNativeTheme = () => ipcRenderer.invoke(
+    "update-native-theme", allSettings.nativetheme)
 
 /** Update the PDF behavior setting in the main thread. */
-const updatePdfOption = () => {
-    ipcRenderer.send("update-pdf-option", allSettings.pdfbehavior)
-}
+const updatePdfOption = () => ipcRenderer.invoke(
+    "update-pdf-option", allSettings.pdfbehavior)
 
 /**
  * Update container related settings on change and update labels/colors.
@@ -1882,8 +1888,8 @@ const updateDownloadSettings = async(src = "other") => {
 }
 
 /** Update the settings in the file so they are updated in main/preload. */
-const updateSettings = () => {
-    const settingsFile = joinPath(appData(), "settings")
+const updateSettings = async() => {
+    const settingsFile = joinPath(await appData(), "settings")
     /**
      * @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}}
@@ -1901,7 +1907,7 @@ const updateSettings = () => {
 }
 
 /** Update the permissions in the main thread on change. */
-const updatePermissionSettings = () => {
+const updatePermissionSettings = async() => {
     /**
      * @type {{[setting: string]: boolean|number|string|string[]
      *   |{[key: string]: string}}}
@@ -1912,7 +1918,7 @@ const updatePermissionSettings = () => {
             permissions[settingName] = settingValue
         }
     }
-    ipcRenderer.send("set-permissions", permissions)
+    await ipcRenderer.invoke("set-permissions", permissions)
 }
 
 /** Return the list of all setting names. */
@@ -1983,13 +1989,13 @@ const suggestionList = () => {
 }
 
 /** Update the window title using the windowtitle setting and app config. */
-const updateWindowTitle = () => {
-    const config = appConfig()
+const updateWindowTitle = async() => {
+    const config = await appConfig()
     const name = config?.name ?? ""
     const version = config?.version ?? ""
     const title = tabForPage(currentPage())
         ?.querySelector("span")?.textContent || ""
-    const url = urlToString(currentPage()?.src || "")
+    const url = await urlToString(currentPage()?.src || "")
     ipcRenderer.send("set-window-title", allSettings.windowtitle
         .replace(/%app/g, name).replace(/%title/g, title)
         .replace(/%url/g, url).replace(/%version/g, version))
@@ -1999,16 +2005,16 @@ const updateWindowTitle = () => {
 const getCustomStyling = () => customStyling
 
 /** Update the custom styling in the webview using colorscheme and fontsize. */
-const updateCustomStyling = () => {
+const updateCustomStyling = async() => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
-    updateSettings()
+    await updateSettings()
     const {addColorschemeStylingToWebview} = require("./tabs")
     for (const p of listReadyPages()) {
-        addColorschemeStylingToWebview(p)
+        await addColorschemeStylingToWebview(p)
     }
     const {applyLayout} = require("./pagelayout")
-    applyLayout()
-    ipcRenderer.send("set-custom-styling",
+    await applyLayout()
+    await ipcRenderer.invoke("set-custom-styling",
         allSettings.guifontsize, customStyling)
 }
 
@@ -2016,9 +2022,9 @@ const updateCustomStyling = () => {
  * Apply custom styling based on the colorscheme.
  * @param {string} css
  */
-const setCustomStyling = css => {
+const setCustomStyling = async css => {
     customStyling = css
-    updateCustomStyling()
+    await updateCustomStyling()
 }
 
 /** Return a list of all settings with default, type and allowed values. */
@@ -2177,7 +2183,7 @@ const updateObjectSetting = (setting, value) => {
  * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
 const set = async(src, setting, value) => {
-    if (isValidSetting(src, setting, value)) {
+    if (await isValidSetting(src, setting, value)) {
         const {applyLayout} = require("./pagelayout")
         if (isBooleanSetting(setting)) {
             allSettings[setting] = value === "true" || value === true
@@ -2211,7 +2217,7 @@ const set = async(src, setting, value) => {
             }
             allSettings.mouse = newval
         }
-        updateSettings()
+        await updateSettings()
         // Update settings elsewhere
         if (setting === "adblocker") {
             if (value === "off") {
@@ -2224,11 +2230,11 @@ const set = async(src, setting, value) => {
             updateContainerSettings()
         }
         if (setting.startsWith("useragent") && typeof value === "string") {
-            ipcRenderer.sendSync("override-global-useragent",
+            await ipcRenderer.invoke("override-global-useragent",
                 userAgentTemplated(allSettings.useragent[0]))
         }
         if (setting === "guifontsize") {
-            updateCustomStyling()
+            await updateCustomStyling()
         }
         if (setting === "guiscrollbar") {
             const {hideScrollbar, showScrollbar} = require("./pagelayout")
@@ -2242,23 +2248,27 @@ const set = async(src, setting, value) => {
             await updateDownloadSettings()
         }
         if (setting.startsWith("gui")) {
-            updateGuiVisibility()
+            await updateGuiVisibility()
+        }
+        if (setting === "lang") {
+            const {updateLang} = require("../translate")
+            updateLang(allSettings.lang)
         }
         if (setting === "mintabwidth") {
             for (const tab of listTabs()) {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             }
             currentTab()?.scrollIntoView({"inline": "center"})
-            applyLayout()
+            await applyLayout()
         }
         if (setting === "mouse" || setting === "mousedisabledbehavior") {
             updateMouseSettings()
         }
         if (setting === "nativetheme") {
-            updateNativeTheme()
+            await updateNativeTheme()
         }
         if (setting === "pdfbehavior") {
-            updatePdfOption()
+            await updatePdfOption()
         }
         if (setting === "showsearchresults") {
             const searchResultsEl = document.getElementById("search-results")
@@ -2274,16 +2284,16 @@ const set = async(src, setting, value) => {
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {
-                ipcRenderer.send("set-spelllang", allSettings.spelllang)
+                await ipcRenderer.invoke("set-spelllang", allSettings.spelllang)
             } else {
-                ipcRenderer.send("set-spelllang", "")
+                await ipcRenderer.invoke("set-spelllang", "")
             }
         }
         if (setting === "requestheaders") {
-            updateRequestHeaders()
+            await updateRequestHeaders()
         }
         if (setting.includes("resource")) {
-            ipcRenderer.send("update-resource-settings",
+            await ipcRenderer.invoke("update-resource-settings",
                 allSettings.resourcetypes,
                 allSettings.resourcesblocked,
                 allSettings.resourcesallowed)
@@ -2295,7 +2305,7 @@ const set = async(src, setting, value) => {
                 tabs?.classList.add(value)
             }
             currentTab()?.scrollIntoView({"inline": "center"})
-            applyLayout()
+            await applyLayout()
         }
         if (setting.startsWith("darkreader")) {
             for (const p of listReadyPages()) {
@@ -2332,17 +2342,17 @@ const set = async(src, setting, value) => {
             }
         }
         if (setting.startsWith("permission")) {
-            updatePermissionSettings()
+            await updatePermissionSettings()
         }
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
         }
         if (setting === "suspendtimeout") {
             const {restartSuspendTimeouts} = require("./pagelayout")
-            restartSuspendTimeouts()
+            await restartSuspendTimeouts()
         }
         if (setting === "windowtitle") {
-            updateWindowTitle()
+            await updateWindowTitle()
         }
         await updateHelpPage(src)
         return true
@@ -2358,13 +2368,13 @@ const set = async(src, setting, value) => {
 const loadFromDisk = async(firstRun, src = "source") => {
     const {pause, resume} = require("./commandhistory")
     pause()
-    const config = appConfig()
+    const config = await appConfig()
     const files = config?.files ?? []
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
-        updateSettings()
+        await updateSettings()
     }
-    if (isFile(joinPath(appData(), "erwicmode"))) {
+    if (isFile(joinPath(await appData(), "erwicmode"))) {
         /** @type {typeof defaultErwicSettings} */
         const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
         for (const [t, value] of Object.entries(erwicDefaults)) {
@@ -2377,7 +2387,7 @@ const loadFromDisk = async(firstRun, src = "source") => {
         }
         const parsed = readFile(conf)
         if (!parsed) {
-            notify({
+            await notify({
                 "fields": [conf],
                 "id": "settings.errors.fileload",
                 src,
@@ -2395,12 +2405,12 @@ const loadFromDisk = async(firstRun, src = "source") => {
     }
     updateContainerSettings()
     await updateDownloadSettings()
-    updatePermissionSettings()
-    updateSettings()
+    await updatePermissionSettings()
+    await updateSettings()
     updateMouseSettings()
-    updateNativeTheme()
-    updateRequestHeaders()
-    updatePdfOption()
+    await updateNativeTheme()
+    await updateRequestHeaders()
+    await updatePdfOption()
     resume()
 }
 
@@ -2417,7 +2427,7 @@ const reset = async(src, setting) => {
     } else if (isExistingSetting(setting)) {
         await set(src, setting, defaultSettings[setting])
     } else {
-        notify({
+        await notify({
             "fields": [setting],
             "id": "settings.errors.missing",
             src,
@@ -2441,12 +2451,12 @@ const escapeValueChars = value => {
  * List all current settings, optionally with defaults included.
  * @param {boolean} full
  */
-const listCurrentSettings = (full = false) => {
+const listCurrentSettings = async(full = false) => {
     /** @type {typeof defaultSettings} */
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
-        if (isFile(joinPath(appData(), "erwicmode"))) {
+        if (isFile(joinPath(await appData(), "erwicmode"))) {
             const erwicDefaults = JSON.parse(
                 JSON.stringify(defaultErwicSettings)
             )
@@ -2492,15 +2502,16 @@ const listCurrentSettings = (full = false) => {
  * @param {import("./common").RunSource} src
  * @param {boolean} full
  */
-const saveToDisk = (src, full) => {
-    const options = listCurrentSettings(full).split("\n").filter(Boolean)
+const saveToDisk = async(src, full) => {
+    const currentSettingsString = await listCurrentSettings(full)
+    const options = currentSettingsString.split("\n").filter(Boolean)
         .map(s => `set ${s}`).join("\n").trim()
     const {listMappingsAsCommandList} = require("./input")
-    const mappings = listMappingsAsCommandList(src).trim()
+    const mappings = await listMappingsAsCommandList(src)
     const {customCommandsAsCommandList} = require("./command")
     const commands = customCommandsAsCommandList(full).trim()
     if (!options && !mappings && !commands) {
-        notify({"id": "settings.errors.unchanged", src})
+        await notify({"id": "settings.errors.unchanged", src})
         return
     }
     let settingsAsCommands = ""
@@ -2514,18 +2525,19 @@ const saveToDisk = (src, full) => {
         settingsAsCommands += `" Commands\n${commands}\n\n`
     }
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
-    const destFile = appConfig()?.config
+    const config = await appConfig()
+    const destFile = config?.config
     if (destFile) {
         const success = writeFile(destFile, settingsAsCommands)
         if (success) {
-            notify({
+            await notify({
                 "fields": ["Viebrc", destFile],
                 "id": "settings.files.success",
                 src,
                 "type": "success"
             })
         } else {
-            notify({
+            await notify({
                 "fields": [destFile],
                 "id": "settings.files.failed",
                 src,
@@ -2533,21 +2545,19 @@ const saveToDisk = (src, full) => {
             })
         }
     } else {
-        notify({"id": "settings.files.missingloc", src, "type": "error"})
+        await notify({"id": "settings.files.missingloc", src, "type": "error"})
     }
 }
 
 /** Load the settings from disk and prepare setting-related listeners. */
 const init = async() => {
     await loadFromDisk(true)
-    ipcRenderer.invoke("list-spelllangs").then(async langs => {
-        spelllangs = langs || []
-        spelllangs.push("system")
-        if (!isValidSetting("source", "spelllang", allSettings.spelllang)) {
-            await set("source", "spelllang", ["system"])
-        }
-        ipcRenderer.send("set-spelllang", allSettings.spelllang)
-    }).catch(() => null)
+    spelllangs = await ipcRenderer.invoke("list-spelllangs") || []
+    spelllangs.push("system")
+    if (!isValidSetting("source", "spelllang", allSettings.spelllang)) {
+        await set("source", "spelllang", ["system"])
+    }
+    await ipcRenderer.invoke("set-spelllang", allSettings.spelllang)
     ipcRenderer.on("set-permission", (
         _, name, value) => set("user", name, value))
     ipcRenderer.on("pdf-url-hit", async(_, url) => {
@@ -2558,14 +2568,14 @@ const init = async() => {
             await commonAction("other", "link", "external", {"link": url})
         }
     })
-    ipcRenderer.on("notify", (_, opts) => {
+    ipcRenderer.on("notify", async(_, opts) => {
         if (getMouseConf("notification")
             && opts.action?.type === "download-success") {
             /** If a download function is provided, add the right action. */
             opts.action.func = () => ipcRenderer.send(
                 "open-download", opts.action.path)
         }
-        notify(opts)
+        await notify(opts)
     })
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
     ipcRenderer.send("create-session", `persist:main`,
@@ -2576,6 +2586,7 @@ module.exports = {
     defaultSettings,
     freeText,
     getCustomStyling,
+    getMouseConf,
     init,
     isArraySetting,
     isEnumSetting,

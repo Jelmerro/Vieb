@@ -24,11 +24,6 @@ const {
     getSetting, userAgentPlatform, userAgentResolvedSystem
 } = require("../util")
 
-const platformString = userAgentPlatform()
-const oscpuString = {
-    "linux": "Linux x86_64", "mac": "MacIntel", "windows": "Win32"
-}[userAgentResolvedSystem()]
-
 /**
  * Send a notification to the renderer thread.
  * @param {import("../util").NotificationInfo} opts
@@ -269,10 +264,19 @@ const privacyOverrides = (oscpu, platform) => {
     privacyOverridesInScope(window)
 }
 
-contextBridge.executeInMainWorld({
-    "args": [oscpuString, platformString],
-    "func": privacyOverrides
-})
+/** Load the useragent setting and run privacy overrides in the page context. */
+const loadUseragentAndRunPrivacyOverrides = async() => {
+    const platformString = await userAgentPlatform()
+    const oscpuString = {
+        "linux": "Linux x86_64", "mac": "MacIntel", "windows": "Win32"
+    }[await userAgentResolvedSystem()]
+    contextBridge.executeInMainWorld({
+        "args": [oscpuString, platformString],
+        "func": privacyOverrides
+    })
+}
+
+loadUseragentAndRunPrivacyOverrides().catch(() => null)
 
 /** Handle media device permission requests within the enumerateDevices func. */
 const deviceEnumeratePermissionHandler = () => {
@@ -319,8 +323,8 @@ const deviceEnumeratePermissionHandler = () => {
         }))
     }
     /** Override the device list based on permission settings. */
-    return () => {
-        let setting = getSetting("permissionmediadevices") ?? "block"
+    return async() => {
+        let setting = await getSetting("permissionmediadevices") ?? "block"
         const valid = ["block", "allow", "allowkind", "allowfull"]
         if (!valid.includes(setting)) {
             setting = "block"
@@ -331,8 +335,7 @@ const deviceEnumeratePermissionHandler = () => {
         /** @type {("block"|"allow")[]} */
         const permissionOverrideTypes = ["block", "allow"]
         for (const type of permissionOverrideTypes) {
-            const permList = getSetting(
-                `permissions${type}ed`)
+            const permList = await getSetting(`permissions${type}ed`)
             for (const r of permList ?? []) {
                 if (!r.trim() || settingRule) {
                     continue

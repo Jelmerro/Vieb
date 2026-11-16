@@ -36,6 +36,7 @@ for (const f of files) {
  * @param {string} folder
  */
 const listKeys = (obj, folder = "") => {
+    /** @type {string[]} */
     const keys = []
     for (const l of Object.keys(obj)) {
         let path = l

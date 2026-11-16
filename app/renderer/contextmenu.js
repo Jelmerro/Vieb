@@ -36,7 +36,6 @@ const {
     currentMode,
     currentPage,
     currentTab,
-    getMouseConf,
     getUrl,
     listReadyPages,
     listTabs,
@@ -156,7 +155,7 @@ const createMenuGroup = name => {
 
 /**
  * Create a new menu item.
- * @param {{title: string, action: () => void}} options
+ * @param {{title: string, action: () => Promise<void>|void}} options
  */
 const createMenuItem = options => {
     if (!contextMenu) {
@@ -171,8 +170,8 @@ const createMenuItem = options => {
         }
         item.classList.add("selected")
     })
-    item.addEventListener("click", () => {
-        options.action()
+    item.addEventListener("click", async() => {
+        await options.action()
         clear()
     })
     contextMenu.append(item)
@@ -195,7 +194,7 @@ const top = () => {
 /** Returns true if at the top of any section. */
 const topOfSection = () => {
     if (!contextMenu) {
-        return
+        return true
     }
     const selected = contextMenu.querySelector(".selected")
     if (selected?.previousSibling) {
@@ -305,7 +304,7 @@ const commonAction = async(src, type, action, options) => {
     const {add} = require("./pagelayout")
     const {addTab} = require("./tabs")
     if (action === "copyimage") {
-        ipcRenderer.sendSync("clear-clipboard")
+        await ipcRenderer.invoke("clear-clipboard")
         const el = document.createElement("img")
         const canvas = document.createElement("canvas")
         /** Once the image is loaded, draw it to a canvas, then copy. */
@@ -321,70 +320,73 @@ const commonAction = async(src, type, action, options) => {
     }
     if (action === "open") {
         const {navigateTo} = require("./tabs")
-        await navigateTo(src, stringToUrl(relevantData))
+        await navigateTo(src, await stringToUrl(relevantData))
     } else if (action === "newtab") {
-        await addTab({src, "url": stringToUrl(relevantData)})
+        await addTab({src, "url": await stringToUrl(relevantData)})
     } else if (action === "copy") {
         let urlData = relevantData
         if (isUrl(relevantData)) {
-            if (getSetting("encodeurlcopy") === "spacesonly") {
+            if (await getSetting("encodeurlcopy") === "spacesonly") {
                 urlData = relevantData.replace(/ /g, "%20")
-            } else if (getSetting("encodeurlcopy") === "nospaces") {
-                urlData = urlToString(relevantData).replace(/ /g, "%20")
-            } else if (getSetting("encodeurlcopy") === "decode") {
-                urlData = urlToString(relevantData)
-            } else if (getSetting("encodeurlcopy") === "encode") {
-                urlData = stringToUrl(relevantData)
+            } else if (await getSetting("encodeurlcopy") === "nospaces") {
+                const stringified = await urlToString(relevantData)
+                urlData = stringified.replace(/ /g, "%20")
+            } else if (await getSetting("encodeurlcopy") === "decode") {
+                urlData = await urlToString(relevantData)
+            } else if (await getSetting("encodeurlcopy") === "encode") {
+                urlData = await stringToUrl(relevantData)
             }
         }
         ipcRenderer.invoke("write-clipboard", urlData).catch(() => null)
     } else if (action === "download") {
         const {updateDownloadSettings} = require("./settings")
         await updateDownloadSettings(src)
-        currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
+        currentPage()?.downloadURL(await stringToUrl(relevantData ?? ""))
     } else if (action === "split") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
             await addTab({
-                "container": getSetting("containersplitpage"),
+                "container": await getSetting("containersplitpage"),
                 src,
                 "url": relevantData
             })
-            add(currentTabId, "ver", getSetting("splitbelow"))
+            await add(currentTabId, "ver", await getSetting("splitbelow"))
         }
     } else if (action === "vsplit") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
             await addTab({
-                "container": getSetting("containersplitpage"),
+                "container": await getSetting("containersplitpage"),
                 src,
                 "url": relevantData
             })
-            add(currentTabId, "hor", getSetting("splitright"))
+            await add(currentTabId, "hor", await getSetting("splitright"))
         }
     } else if (action === "external") {
-        const ext = getSetting("externalcommand")
+        const ext = await getSetting("externalcommand")
         if (!ext.trim()) {
-            notify({
+            await notify({
                 "id": "commands.externalcommand.missing", src, "type": "warning"
             })
             return
         }
         if (relevantData) {
             let extData = relevantData
-            if (getSetting("encodeurlext") === "spacesonly") {
+            if (await getSetting("encodeurlext") === "spacesonly") {
                 extData = relevantData.replace(/ /g, "%20")
-            } else if (getSetting("encodeurlext") === "nospaces") {
-                extData = urlToString(relevantData).replace(/ /g, "%20")
-            } else if (getSetting("encodeurlext") === "decode") {
-                extData = urlToString(relevantData)
-            } else if (getSetting("encodeurlext") === "encode") {
-                extData = stringToUrl(relevantData)
+            } else if (await getSetting("encodeurlext") === "nospaces") {
+                const stringified = await urlToString(relevantData)
+                extData = stringified.replace(/ /g, "%20")
+            } else if (await getSetting("encodeurlext") === "decode") {
+                extData = await urlToString(relevantData)
+            } else if (await getSetting("encodeurlext") === "encode") {
+                extData = await stringToUrl(relevantData)
             }
-            execCommand(`${ext} "${extData}"`, (err, stdout) => {
-                const reportExit = getSetting("notificationforsystemcommands")
+            await execCommand(`${ext} "${extData}"`, async(err, stdout) => {
+                const reportExit = await getSetting(
+                    "notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify({
+                    await notify({
                         "fields": [`${err}`],
                         "id": "actions.command.failed",
                         src,
@@ -393,14 +395,14 @@ const commonAction = async(src, type, action, options) => {
                 } else if (reportExit === "all") {
                     const output = stdout.toString()
                     if (output) {
-                        notify({
+                        await notify({
                             "fields": [output],
                             "id": "actions.command.successWithOutput",
                             src,
                             "type": "success"
                         })
                     } else {
-                        notify({
+                        await notify({
                             "id": "actions.command.success",
                             src,
                             "type": "success"
@@ -411,7 +413,7 @@ const commonAction = async(src, type, action, options) => {
         }
     } else if (action === "search") {
         const {incrementalSearch} = require("./actions")
-        incrementalSearch({src, "value": relevantData})
+        await incrementalSearch({src, "value": relevantData})
     }
 }
 
@@ -421,7 +423,7 @@ const commonAction = async(src, type, action, options) => {
  * @param {MouseEvent | {path: Element[], x: number, y: number}} options
  * @param {boolean} force
  */
-const viebMenu = (src, options, force = false) => {
+const viebMenu = async(src, options, force = false) => {
     if (!contextMenu) {
         return
     }
@@ -442,16 +444,16 @@ const viebMenu = (src, options, force = false) => {
         refreshTab,
         useEnteredData
     } = require("./actions")
-    const menuSetting = getSetting("menuvieb")
+    const menuSetting = await getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar" || force
     if (pathEls.some(el => matchesQuery(el, "#url")) && navMenu) {
         const url = getUrl()
         createMenuItem({
             /** Menu item: Select all. */
-            "action": () => {
+            "action": async() => {
                 if (!"sec".includes(currentMode()[0])) {
                     const {setMode} = require("./modes")
-                    setMode("explore")
+                    await setMode("explore")
                 }
                 url?.select()
             },
@@ -467,22 +469,22 @@ const viebMenu = (src, options, force = false) => {
         if (window.getSelection()?.toString().trim()) {
             createMenuItem({
                 /** Menu item: Cut selection. */
-                "action": () => {
+                "action": async() => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
-                        setMode("explore")
+                        await setMode("explore")
                     }
                     const {cutInput} = require("./input")
-                    cutInput()
+                    await cutInput()
                 },
                 "title": translate("contextmenu.text.cut")
             })
             createMenuItem({
                 /** Menu item: Copy selection. */
-                "action": () => {
+                "action": async() => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
-                        setMode("explore")
+                        await setMode("explore")
                     }
                     const {copyInput} = require("./input")
                     copyInput()
@@ -490,16 +492,18 @@ const viebMenu = (src, options, force = false) => {
                 "title": translate("contextmenu.text.copy")
             })
         }
-        if (ipcRenderer.sendSync("read-clipboard").trim()) {
+        const clipboardTextFull = await ipcRenderer.invoke("read-clipboard")
+        const clipboardText = clipboardTextFull.trim()
+        if (clipboardText) {
             createMenuItem({
                 /** Menu item: Paste. */
-                "action": () => {
+                "action": async() => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
-                        setMode("explore")
+                        await setMode("explore")
                     }
                     const {pasteInput} = require("./input")
-                    pasteInput()
+                    await pasteInput()
                 },
                 "title": translate("contextmenu.text.paste")
             })
@@ -508,10 +512,10 @@ const viebMenu = (src, options, force = false) => {
                 "action": async() => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
-                        setMode("explore")
+                        await setMode("explore")
                     }
                     const {pasteInput} = require("./input")
-                    pasteInput()
+                    await pasteInput()
                     await useEnteredData({src})
                 },
                 "title": translate("contextmenu.text.pasteGo")
@@ -590,7 +594,7 @@ const viebMenu = (src, options, force = false) => {
         createMenuItem({
             /** Add a tab next to the selected tab. */
             "action": async() => {
-                const tabnewposition = getSetting("tabnewposition")
+                const tabnewposition = await getSetting("tabnewposition")
                 let index = listTabs().indexOf(tab)
                 if (tabnewposition === "right") {
                     index += 1
@@ -601,8 +605,12 @@ const viebMenu = (src, options, force = false) => {
         })
         createMenuItem({
             /** Menu item: Copy url. */
-            "action": () => ipcRenderer.invoke("write-clipboard", urlToString(
-                page.getAttribute("src") ?? "").replace(/ /g, "%20")),
+            "action": async() => {
+                const stringified = await urlToString(
+                    page.getAttribute("src") ?? "")
+                await ipcRenderer.invoke("write-clipboard",
+                    stringified.replace(/ /g, "%20"))
+            },
             "title": translate("contextmenu.tab.copy")
         })
         createMenuItem({
@@ -613,7 +621,7 @@ const viebMenu = (src, options, force = false) => {
         createMenuItem({
             /** Menu item: Open a new tab with the current url and navigate. */
             "action": async() => {
-                const tabnewposition = getSetting("tabnewposition")
+                const tabnewposition = await getSetting("tabnewposition")
                 let index = listTabs().indexOf(tab)
                 if (tabnewposition === "right") {
                     index += 1
@@ -634,7 +642,9 @@ const viebMenu = (src, options, force = false) => {
         createMenuGroup("general")
         createMenuItem({
             /** Menu item: Add tab. */
-            "action": () => addTab({src}),
+            "action": async() => {
+                await addTab({src})
+            },
             "title": translate("contextmenu.tab.add")
         })
         createMenuItem({
@@ -676,13 +686,18 @@ const linkMenu = (src, options) => {
     })
     createMenuItem({
         /** Menu item: Link in new tab. */
-        "action": () => addTab({src, "url": options.link}),
+        "action": async() => {
+            await addTab({src, "url": options.link})
+        },
         "title": translate("contextmenu.general.newtab")
     })
     createMenuItem({
         /** Menu item: Link to clipboard. */
-        "action": () => ipcRenderer.invoke("write-clipboard",
-            urlToString(options.link).replace(/ /g, "%20")),
+        "action": async() => {
+            const stringified = await urlToString(options.link)
+            await ipcRenderer.invoke("write-clipboard",
+                stringified.replace(/ /g, "%20"))
+        },
         "title": translate("contextmenu.general.copy")
     })
     createMenuItem({
@@ -731,7 +746,7 @@ const commandMenu = (src, options) => {
         /** Menu item: Execute the command. */
         "action": async() => {
             const {setMode} = require("./modes")
-            setMode("normal")
+            await setMode("normal")
             const {execute} = require("./command")
             await execute(options.command, {src})
         },
@@ -751,20 +766,21 @@ const commandMenu = (src, options) => {
  * @param {webviewData} options
  * @param {boolean} force
  */
-const webviewMenu = (src, options, force = false) => {
+const webviewMenu = async(src, options, force = false) => {
     clear()
     if (!contextMenu) {
         return
     }
     if (!"ipv".includes(currentMode()[0])) {
         const {setMode} = require("./modes")
-        setMode("normal")
+        await setMode("normal")
     }
     if (!force) {
+        const {getMouseConf} = require("./settings")
         if (!pointerRightClick && !getMouseConf("menupage")) {
             return
         }
-        const menuSetting = getSetting("menupage")
+        const menuSetting = await getSetting("menupage")
         if (menuSetting === "never") {
             return
         }
@@ -821,7 +837,7 @@ const webviewMenu = (src, options, force = false) => {
         "title": translate("contextmenu.tab.inspect")
     })
     const {updateKeysOnScreen} = require("./input")
-    updateKeysOnScreen()
+    await updateKeysOnScreen()
     if (options.canEdit && options.inputVal && (options.inputSel ?? 0) >= 0) {
         const wordRegex = specialChars.source.replace("[", "[^")
         const words = options.inputVal.split(new RegExp(`(${
@@ -902,7 +918,8 @@ const webviewMenu = (src, options, force = false) => {
             "title": translate("contextmenu.text.copy")
         })
     }
-    if (options.canEdit && ipcRenderer.sendSync("read-clipboard").trim()) {
+    const clipboardTextFull = await ipcRenderer.invoke("read-clipboard")
+    if (options.canEdit && clipboardTextFull.trim()) {
         createMenuItem({
             /** Menu item: Paste text from clipboard at the pointed location. */
             "action": () => sendToPageOrSubFrame("action", "selectionPaste",
@@ -1105,7 +1122,7 @@ const handleContextMenuClick = async(_, info) => {
         await commonAction(info.extraData.src ?? "user", info.extraData.type,
             info.extraData.action, info)
     } else {
-        webviewMenu(info.extraData?.src ?? "user",
+        await webviewMenu(info.extraData?.src ?? "user",
             info, info?.extraData?.force)
     }
 }

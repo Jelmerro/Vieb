@@ -168,24 +168,15 @@ const currentMode = () => {
 }
 
 /**
- * Check if a specific mouse feature is enabled.
- * @param {string} val
- */
-const getMouseConf = val => {
-    const mouse = getSetting("mouse")
-    return mouse === "all" || mouse.includes(val)
-}
-
-/**
  * Get the current gui status value depending on window status.
  * @param {"navbar"|"tabbar"} type
- * @returns {"always"|"onupdate"|"oninput"|"never"}
+ * @returns {Promise<"always"|"onupdate"|"oninput"|"never">}
  */
-const getGuiStatus = type => {
-    let setting = getSetting(`gui${type}`)
+const getGuiStatus = async type => {
+    let setting = await getSetting(`gui${type}`)
     const {ipcRenderer} = require("electron")
-    if (ipcRenderer.sendSync("is-fullscreen")) {
-        setting = getSetting(`guifullscreen${type}`)
+    if (await ipcRenderer.invoke("is-fullscreen")) {
+        setting = await getSetting(`guifullscreen${type}`)
     }
     if (topOfPageWithMouse && setting !== "never") {
         setting = "always"
@@ -194,9 +185,9 @@ const getGuiStatus = type => {
 }
 
 /** Update the GUI visibility based on navbar and tabbar settings. */
-const updateGuiVisibility = () => {
-    const navbar = getGuiStatus("navbar")
-    const tabbar = getGuiStatus("tabbar")
+const updateGuiVisibility = async() => {
+    const navbar = await getGuiStatus("navbar")
+    const tabbar = await getGuiStatus("tabbar")
     if (!navbarGuiTimer) {
         const navigationhidden = navbar === "never"
             || navbar !== "always" && !"ces".includes(currentMode()[0])
@@ -206,10 +197,10 @@ const updateGuiVisibility = () => {
         document.body.classList.toggle("tabshidden", tabbar !== "always")
     }
     const {applyLayout} = require("./pagelayout")
-    applyLayout()
+    await applyLayout()
     if (currentMode() === "pointer") {
         const {updateElement} = require("./pointer")
-        updateElement()
+        await updateElement()
     }
 }
 
@@ -217,12 +208,12 @@ const updateGuiVisibility = () => {
  * Update the mouse state to reflect if it's at the top of the page or not.
  * @param {boolean} status
  */
-const setTopOfPageWithMouse = status => {
+const setTopOfPageWithMouse = async status => {
     if (topOfPageWithMouse === status) {
         return
     }
     topOfPageWithMouse = status
-    updateGuiVisibility()
+    await updateGuiVisibility()
 }
 
 /**
@@ -279,26 +270,26 @@ const updateScreenshotHighlight = (hide = false) => {
  * Update the GUI to briefly show it again if configured.
  * @param {"navbar"|"tabbar"} type
  */
-const guiRelatedUpdate = type => {
-    updateGuiVisibility()
-    const timeout = getSetting("guihidetimeout")
-    if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
+const guiRelatedUpdate = async type => {
+    await updateGuiVisibility()
+    const timeout = await getSetting("guihidetimeout")
+    if (type === "navbar" && await getGuiStatus("navbar") === "onupdate") {
         clearTimeout(navbarGuiTimer ?? undefined)
         document.body.classList.remove("navigationhidden")
         if (timeout) {
-            navbarGuiTimer = setTimeout(() => {
+            navbarGuiTimer = setTimeout(async() => {
                 navbarGuiTimer = null
-                updateGuiVisibility()
+                await updateGuiVisibility()
             }, timeout)
         }
     }
-    if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
+    if (type === "tabbar" && await getGuiStatus("tabbar") === "onupdate") {
         clearTimeout(tabbarGuiTimer ?? undefined)
         document.body.classList.remove("tabshidden")
         if (timeout) {
-            tabbarGuiTimer = setTimeout(() => {
+            tabbarGuiTimer = setTimeout(async() => {
                 tabbarGuiTimer = null
-                updateGuiVisibility()
+                await updateGuiVisibility()
             }, timeout)
         }
     }
@@ -308,7 +299,6 @@ module.exports = {
     currentMode,
     currentPage,
     currentTab,
-    getMouseConf,
     getUrl,
     guiRelatedUpdate,
     listFakePages,

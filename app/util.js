@@ -138,10 +138,10 @@ const getAppRootDir = () => {
 /**
  * Returns the app configuration settings.
  */
-const appConfig = () => {
+const appConfig = async() => {
     if (!configSettings) {
         const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config")
+        configSettings = await ipcRenderer.invoke("app-config")
         if (!configSettings) {
             return null
         }
@@ -172,7 +172,7 @@ const appConfig = () => {
 /**
  * Returns the appdata path (works from both main, renderer and preloads).
  */
-const appData = () => {
+const appData = async() => {
     if (!appDataPath) {
         try {
             const {app} = require("electron")
@@ -180,7 +180,8 @@ const appData = () => {
         } catch {
             // Not in main thread
         }
-        appDataPath = appConfig()?.appdata ?? ""
+        const config = await appConfig()
+        appDataPath = config?.appdata ?? ""
     }
     return appDataPath
 }
@@ -217,10 +218,10 @@ const readJSON = loc => {
  * Get a setting from the settings file.
  * @template {keyof validSetting} T Valid setting names.
  * @param {T} set
- * @returns {validSetting[T]}
+ * @returns {Promise<validSetting[T]>}
  */
-const getSetting = set => {
-    const settings = readJSON(joinPath(appData(), "settings")) ?? {}
+const getSetting = async set => {
+    const settings = readJSON(joinPath(await appData(), "settings")) ?? {}
     // @ts-expect-error JSON isn't type safe, return null if a key is missing.
     return settings[set] ?? null
 }
@@ -274,8 +275,8 @@ const isUrl = location => {
  * Match a searchword and return the word and filled url.
  * @param {string} location
  */
-const searchword = location => {
-    const searchwords = getSetting("searchwords")
+const searchword = async location => {
+    const searchwords = await getSetting("searchwords")
     for (const [word, url] of Object.entries(searchwords)) {
         if (!(word && url)) {
             continue
@@ -304,8 +305,13 @@ const searchword = location => {
 const listNotificationHistory = () => notificationHistory
 
 /** Return the resolved system that should be exposed via useragent. */
-const userAgentResolvedSystem = () => {
-    const desired = getSetting("useragentsys") || "auto"
+const userAgentResolvedSystem = async() => {
+    let desired = "auto"
+    try {
+        desired = await getSetting("useragentsys")
+    } catch {
+        // Fall back to auto
+    }
     const current = process.platform
     if (desired === "auto" && current === "win32" || desired === "windows") {
         return "windows"
@@ -317,16 +323,16 @@ const userAgentResolvedSystem = () => {
 }
 
 /** Return per operating system the result of navigator.platform. */
-const userAgentPlatform = () => ({
+const userAgentPlatform = async() => ({
     "linux": "X11; Linux x86_64",
     "mac": "Macintosh; Intel Mac OS X 10_15_7",
     "windows": "Windows NT 10.0; Win64; x64"
-}[userAgentResolvedSystem()])
+}[await userAgentResolvedSystem()])
 
 /** Return the default navigator.userAgent. */
-const defaultUseragent = () => {
+const defaultUseragent = async() => {
     const [version] = process.versions.chrome.split(".", 1)
-    const sys = userAgentPlatform()
+    const sys = await userAgentPlatform()
     return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
         + `Chrome/${version}.0.0.0 Safari/537.36`
 }
@@ -339,9 +345,9 @@ const firefoxVersion = () => {
 }
 
 /** Return the Firefox navigator.userAgent. */
-const firefoxUseragent = () => {
+const firefoxUseragent = async() => {
     const ver = firefoxVersion()
-    const sys = userAgentPlatform()
+    const sys = await userAgentPlatform()
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
@@ -349,18 +355,18 @@ const firefoxUseragent = () => {
  * Template a user agent with value with version and browser info.
  * @param {string} agent
  */
-const userAgentTemplated = agent => {
+const userAgentTemplated = async agent => {
     if (!agent) {
         return ""
     }
     const version = `${process.versions.chrome.split(".", 1)[0]}.0.0.0`
     return agent
-        .replace(/%sys/g, userAgentPlatform())
+        .replace(/%sys/g, await userAgentPlatform())
         .replace(/%firefoxversion/g, firefoxVersion())
         .replace(/%fullversion/g, process.versions.chrome)
         .replace(/%version/g, version)
-        .replace(/%firefox/g, firefoxUseragent())
-        .replace(/%default/g, defaultUseragent())
+        .replace(/%firefox/g, await firefoxUseragent())
+        .replace(/%default/g, await defaultUseragent())
 }
 
 /**
@@ -975,15 +981,15 @@ const pageOffset = page => {
  *   error: import("child_process").ExecException|null,
  *   stdout: string|Buffer,
  *   stderr: string|Buffer
- * ) => void} callback
+ * ) => Promise<void>} callback
  */
-const execCommand = (command, callback) => {
+const execCommand = async(command, callback) => {
     let shell = null
     if (process.platform === "win32") {
         shell = process.env.ComSpec || shell
     }
     shell = process.env.SHELL || shell
-    shell = getSetting("shell") || shell
+    shell = await getSetting("shell") || shell
     const {exec} = require("node:child_process")
     if (shell) {
         return exec(command, {shell}, callback)
@@ -1057,15 +1063,15 @@ const intervalValueToDate = value => {
  * Show the user a notification bubble and store it in the history.
  * @param {NotificationInfo} opts
  */
-const notify = opts => {
+const notify = async opts => {
     const {translate} = require("./translate")
     const message = translate(opts.id, {"fields": opts.fields ?? []})
     if (opts.src === "execute") {
         const {appendFileSync} = require("node:fs")
-        appendFileSync(
-            joinPath(appData(), ".tmp-execute-output"), `${message}\t\t\t`)
+        appendFileSync(joinPath(
+            await appData(), ".tmp-execute-output"), `${message}\t\t\t`)
     }
-    if (getSetting("notificationduration") === 0) {
+    if (await getSetting("notificationduration") === 0) {
         return
     }
     const properType = opts.type ?? "info"
@@ -1074,7 +1080,7 @@ const notify = opts => {
         clickInfo = {...opts.action}
         delete clickInfo.func
     }
-    const notifyForPerm = getSetting("notificationforpermissions")
+    const notifyForPerm = await getSetting("notificationforpermissions")
     if (properType === "permission" && notifyForPerm === "none") {
         return
     }
@@ -1098,15 +1104,16 @@ const notify = opts => {
             return
         }
     }
-    const native = getSetting("nativenotification")
-    const shortLimitNotify = getSetting("notificationlimitsmall")
+    const native = await getSetting("nativenotification")
+    const shortLimitNotify = await getSetting("notificationlimitsmall")
     const showLong = message.split("\n").length > shortLimitNotify
         && properType !== "dialog"
     const shortAndSmallNative = !showLong && native === "smallonly"
     const longAndLargeNative = showLong && native === "largeonly"
     if (native === "always" || shortAndSmallNative || longAndLargeNative) {
+        const config = await appConfig()
         const n = new Notification(
-            `${appConfig()?.name} ${properType}`, {"body": message})
+            `${config?.name} ${properType}`, {"body": message})
         if (opts?.action && opts?.action?.func) {
             /** Assin the onclick of the notification. */
             // @ts-expect-error Func type could be undefined according to TS...
@@ -1123,7 +1130,7 @@ const notify = opts => {
     if (!notificationsElement) {
         return
     }
-    notificationsElement.className = getSetting("notificationposition")
+    notificationsElement.className = await getSetting("notificationposition")
     const notification = document.createElement("span")
     notification.className = properType
     notification.textContent = message
@@ -1133,12 +1140,18 @@ const notify = opts => {
     }
     notificationsElement.append(notification)
     setTimeout(() => notification.remove(),
-        getSetting("notificationduration"))
+        await getSetting("notificationduration"))
 }
 
 /** Return the location of the downloads, either via setting or OS default. */
-const downloadPath = () => expandPath(getSetting("downloadpath")
-    || appConfig()?.downloads || "~/Downloads")
+const downloadPath = async() => {
+    const settingVal = await getSetting("downloadpath")
+    if (settingVal) {
+        return expandPath(settingVal)
+    }
+    const config = await appConfig()
+    return expandPath(config?.downloads || "~/Downloads")
+}
 
 /**
  * Return the last part of the path, usually the filename.
@@ -1478,7 +1491,7 @@ const pathToSpecialPageName = urlPath => {
  * Translate a string from the explore mode input to a valid url.
  * @param {string} location
  */
-const stringToUrl = location => {
+const stringToUrl = async location => {
     let url = location
     const specialPage = pathToSpecialPageName(url)
     if (specialPage?.name) {
@@ -1494,7 +1507,7 @@ const stringToUrl = location => {
         url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
     }
     if (!isUrl(url)) {
-        const engines = getSetting("searchengine")
+        const engines = await getSetting("searchengine")
         const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""
@@ -1516,10 +1529,11 @@ const stringToUrl = location => {
  * Translate a valid url to the explore mode input representation.
  * @param {string} url
  */
-const urlToString = url => {
+const urlToString = async url => {
     const special = pathToSpecialPageName(url)
     if (special?.name) {
-        let specialUrl = `${appConfig()?.name.toLowerCase()}://${special.name}`
+        const config = await appConfig()
+        let specialUrl = `${config?.name.toLowerCase()}://${special.name}`
         if (special.section) {
             specialUrl += `#${special.section}`
         }
@@ -1543,20 +1557,22 @@ const urlToString = url => {
 }
 
 /** Clear all temporary containers (those that start with temp) from disk. */
-const clearTempContainers = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
+const clearTempContainers = async() => {
+    const partitionDir = joinPath(await appData(), "Partitions")
     for (const partition of listDir(partitionDir, false, true)
         ?.filter(part => part.startsWith("temp"))
         .map(part => joinPath(partitionDir, part)) ?? []) {
         rm(partition)
     }
-    rm(joinPath(appData(), "erwicmode"))
+    rm(joinPath(await appData(), "erwicmode"))
 }
 
 /** Clear the Chromium and Electron cache dirs plus the Vieb cache files. */
-const clearCache = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+const clearCache = async() => {
+    const partitionDir = joinPath(await appData(), "Partitions")
+    const partitions = [
+        await appData(), ...listDir(partitionDir, true, true) || []
+    ]
     /** @type {string[]} */
     let subNodes = []
     for (const part of partitions) {
@@ -1580,14 +1596,16 @@ const clearCache = () => {
             rm(joinPath(part, node))
         }
     }
-    rm(joinPath(appData(), "vimformedits"))
-    rm(joinPath(appData(), "settings"))
+    rm(joinPath(await appData(), "vimformedits"))
+    rm(joinPath(await appData(), "settings"))
 }
 
 /** Claer all cookies, including those inside partition dirs. */
-const clearCookies = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+const clearCookies = async() => {
+    const partitionDir = joinPath(await appData(), "Partitions")
+    const partitions = [
+        await appData(), ...listDir(partitionDir, true, true) || []
+    ]
     /** @type {string[]} */
     let subNodes = []
     for (const part of partitions) {
@@ -1605,9 +1623,11 @@ const clearCookies = () => {
 }
 
 /** Claer all localstorage, including that inside partition dirs. */
-const clearLocalStorage = () => {
-    const partitionDir = joinPath(appData(), "Partitions")
-    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+const clearLocalStorage = async() => {
+    const partitionDir = joinPath(await appData(), "Partitions")
+    const partitions = [
+        await appData(), ...listDir(partitionDir, true, true) || []
+    ]
     /** @type {string[]} */
     let subNodes = []
     for (const part of partitions) {

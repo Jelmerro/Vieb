@@ -39,7 +39,6 @@ const {
 const {
     currentMode,
     currentPage,
-    getMouseConf,
     getUrl,
     listTabs,
     pageForTab,
@@ -54,7 +53,7 @@ let originalValue = ""
  * Update the explore border colors based on the input type.
  * @param {string|null} searchStr
  */
-const updateColors = (searchStr = null) => {
+const updateColors = async(searchStr = null) => {
     const urlElement = getUrl()
     const search = searchStr || urlElement?.value
     if (search !== undefined && urlElement && currentMode() === "explore") {
@@ -69,10 +68,13 @@ const updateColors = (searchStr = null) => {
             urlElement.className = "url"
         } else if (isAbsolutePath(local) && pathExists(local)) {
             urlElement.className = "file"
-        } else if (searchword(search.trim()).word) {
-            urlElement.className = "searchwords"
         } else {
-            urlElement.className = "search"
+            const match = await searchword(search.trim())
+            if (match.word) {
+                urlElement.className = "searchwords"
+            } else {
+                urlElement.className = "search"
+            }
         }
     }
 }
@@ -81,17 +83,17 @@ const updateColors = (searchStr = null) => {
  * Set the url value correctly formatted and update border colors.
  * @param {string} url
  */
-const setUrlValue = url => {
+const setUrlValue = async url => {
     const urlInput = getUrl()
     if (!urlInput) {
         return
     }
     if (currentMode() === "explore") {
-        urlInput.value = urlToString(url)
+        urlInput.value = await urlToString(url)
     } else {
         urlInput.value = url
     }
-    updateColors()
+    await updateColors()
 }
 
 /** Check if the currently selected suggestion is the very first one (yet). */
@@ -106,7 +108,7 @@ const topOfSection = () => {
 }
 
 /** Select the previous suggestion from the list. */
-const previous = () => {
+const previous = async() => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -123,12 +125,12 @@ const previous = () => {
         l.className = ""
     }
     if (id === 0) {
-        setUrlValue(originalValue)
+        await setUrlValue(originalValue)
         return
     }
     list[id - 1].className = "selected"
     list[id - 1].scrollIntoView({"block": "center"})
-    setUrlValue(suggestions[id - 1])
+    await setUrlValue(suggestions[id - 1])
     const index = suggestions[id - 1].indexOf("%s")
     if (index !== -1) {
         url?.setSelectionRange(index, index + 2)
@@ -136,15 +138,15 @@ const previous = () => {
 }
 
 /** Go the previous section in the suggestion list. */
-const previousSection = () => {
-    previous()
+const previousSection = async() => {
+    await previous()
     while (!topOfSection()) {
-        previous()
+        await previous()
     }
 }
 
 /** Select the next suggestion from the list. */
-const next = () => {
+const next = async() => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -161,12 +163,12 @@ const next = () => {
         l.className = ""
     }
     if (id === list.length - 1) {
-        setUrlValue(originalValue)
+        await setUrlValue(originalValue)
         return
     }
     list[id + 1].className = "selected"
     list[id + 1].scrollIntoView({"block": "center"})
-    setUrlValue(suggestions[id + 1])
+    await setUrlValue(suggestions[id + 1])
     const index = suggestions[id + 1].indexOf("%s")
     if (index !== -1) {
         url?.setSelectionRange(index, index + 2)
@@ -174,10 +176,10 @@ const next = () => {
 }
 
 /** Go the next section in the suggestion list. */
-const nextSection = () => {
-    next()
+const nextSection = async() => {
+    await next()
     while (!topOfSection()) {
-        next()
+        await next()
     }
 }
 
@@ -197,11 +199,11 @@ const emptySuggestions = () => {
  * Translate a location to an informative object that can be suggested.
  * @param {string} base
  * @param {string} loc
- * @returns {{path: string, title: string, type: "file", url: string}}
+ * @returns {Promise<{path: string, title: string, type: "file", url: string}>}
  */
-const locationToSuggestion = (base, loc) => {
+const locationToSuggestion = async(base, loc) => {
     let absPath = joinPath(base, loc)
-    let fullPath = stringToUrl(absPath)
+    let fullPath = await stringToUrl(absPath)
     let location = loc
     if (isDir(absPath)) {
         fullPath += "/"
@@ -218,7 +220,7 @@ const locationToSuggestion = (base, loc) => {
  * Suggest files based on current path entry.
  * @param {string} loc
  */
-const suggestFiles = loc => {
+const suggestFiles = async loc => {
     let location = expandPath(loc.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
         location = expandPath(loc.replace(/^file:\/+/g, ""))
@@ -231,8 +233,9 @@ const suggestFiles = loc => {
          */
         let matching = []
         if (dirname(location) !== location) {
-            matching = listDir(dirname(location))?.map(
-                p => locationToSuggestion(dirname(location), p)) || []
+            const dirfiles = listDir(dirname(location)) ?? []
+            matching = await Promise.all(dirfiles.map(
+                p => locationToSuggestion(dirname(location), p)))
             matching = matching.filter(p => {
                 if (!basePath(p.url).startsWith(basePath(location))) {
                     return false
@@ -240,8 +243,8 @@ const suggestFiles = loc => {
                 return basePath(p.url) !== basePath(location)
             })
         }
-        const inDir = listDir(location)?.map(
-            p => locationToSuggestion(location, p)) || []
+        const inDir = await Promise.all((listDir(location) ?? [])?.map(
+            p => locationToSuggestion(location, p)))
         return [...matching, ...inDir]
     }
     return []
@@ -251,7 +254,7 @@ const suggestFiles = loc => {
  * Add a suggestion to the explore mode suggestions.
  * @param {{title: string, type?: string, url: string, icon?: string}} explore
  */
-const addExplore = explore => {
+const addExplore = async explore => {
     if (suggestions.includes(explore.url)) {
         return
     }
@@ -260,15 +263,16 @@ const addExplore = explore => {
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", async e => {
         e.preventDefault()
+        const {getMouseConf} = require("./settings")
         if (e.button === 2) {
-            if (getMouseConf("suggestselect")
-                && ["both", "explore"].includes(getSetting("menusuggest"))) {
+            if (getMouseConf("suggestselect") && ["both", "explore"]
+                .includes(await getSetting("menusuggest"))) {
                 const {linkMenu} = require("./contextmenu")
                 linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
             }
         } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
-            setMode("normal")
+            await setMode("normal")
             const {clear} = require("./contextmenu")
             clear()
             if (e.button === 0) {
@@ -281,11 +285,11 @@ const addExplore = explore => {
             }
         }
     })
-    if (explore.icon && getSetting("favicons") !== "disabled") {
+    if (explore.icon && await getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(explore.icon) || "img/empty.png"
+        thumbnail.src = await forSite(explore.icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const title = document.createElement("span")
@@ -300,7 +304,7 @@ const addExplore = explore => {
     if (explore.type === "searchword") {
         url.className = "searchwords"
     }
-    url.textContent = urlToString(explore.url)
+    url.textContent = await urlToString(explore.url)
     element.append(url)
     document.getElementById("suggest-dropdown")?.append(element)
     setTimeout(() => {
@@ -312,14 +316,15 @@ const addExplore = explore => {
  * Suggest urls, files and searchwords based on the current input and settings.
  * @param {string} search
  */
-const suggestExplore = search => {
+const suggestExplore = async search => {
     emptySuggestions()
-    updateColors(search)
+    await updateColors(search)
     if (!search.trim()) {
         return
     }
     const {suggestHist} = require("./history")
-    for (const suggest of getSetting("suggestorder").filter(Boolean)) {
+    const suggestorder = await getSetting("suggestorder")
+    for (const suggest of suggestorder.filter(Boolean)) {
         const args = suggest.split("~")
         const type = args.shift()
         let count = 10
@@ -336,32 +341,35 @@ const suggestExplore = search => {
             if (!order) {
                 order = "relevance"
             }
-            suggestHist(search, order, count)
+            await suggestHist(search, order, count)
         }
         if (type === "file") {
-            for (const f of suggestFiles(search).slice(0, count)) {
-                addExplore(f)
+            const suggestedFiles = await suggestFiles(search)
+            for (const f of suggestedFiles.slice(0, count)) {
+                await addExplore(f)
             }
         }
         if (type === "searchword") {
             if (!order) {
                 order = "alpha"
             }
-            const searchwords = getSetting("searchwords")
-            const words = Object.entries(searchwords).map(([title, url]) => {
-                let filledUrl = searchword(search).url
-                if (filledUrl === search) {
-                    filledUrl = url
-                }
-                return {title, "type": "searchword", "url": filledUrl}
-            })
+            const searchwords = await getSetting("searchwords")
+            const words = await Promise.all(Object.entries(searchwords)
+                .map(async([title, url]) => {
+                    const match = await searchword(search)
+                    let filledUrl = match.url
+                    if (filledUrl === search) {
+                        filledUrl = url
+                    }
+                    return {title, "type": "searchword", "url": filledUrl}
+                }))
             if (order === "alpha") {
                 words.sort((a, b) => a.title.localeCompare(b.title))
             }
             const searchStr = search.split(" ").find(Boolean)?.trim() ?? ""
             for (const word of words.filter(
                 s => s.title.startsWith(searchStr))) {
-                addExplore(word)
+                await addExplore(word)
             }
         }
     }
@@ -375,10 +383,10 @@ const suggestExplore = search => {
  * @param {string|null} icon
  * @param {boolean} allowDuplicate
  */
-const addCommand = (
+const addCommand = async(
     command, subtext = null, url = null, icon = null, allowDuplicate = false
 ) => {
-    if (suggestions.length + 1 > getSetting("suggestcommands")) {
+    if (suggestions.length + 1 > await getSetting("suggestcommands")) {
         return
     }
     if (suggestions.includes(command) && !allowDuplicate) {
@@ -389,26 +397,27 @@ const addCommand = (
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", async e => {
         e.preventDefault()
+        const {getMouseConf} = require("./settings")
         if (e.button === 2) {
-            if (getMouseConf("suggestselect")
-                && ["both", "command"].includes(getSetting("menusuggest"))) {
+            if (getMouseConf("suggestselect") && ["both", "command"]
+                .includes(await getSetting("menusuggest"))) {
                 const {commandMenu} = require("./contextmenu")
                 commandMenu("user", {command, "x": e.x, "y": e.y})
             }
         } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
-            setMode("normal")
+            await setMode("normal")
             const {execute} = require("./command")
             await execute(command, {"src": "user"})
             const {clear} = require("./contextmenu")
             clear()
         }
     })
-    if (icon && getSetting("favicons") !== "disabled") {
+    if (icon && await getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(icon) || "img/empty.png"
+        thumbnail.src = await forSite(icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const commandElement = document.createElement("span")
@@ -423,7 +432,7 @@ const addCommand = (
     }
     if (url) {
         const urlElement = document.createElement("span")
-        urlElement.textContent = urlToString(url)
+        urlElement.textContent = await urlToString(url)
         urlElement.className = "url"
         element.append(urlElement)
     }
@@ -437,7 +446,7 @@ const addCommand = (
  * Suggest a command based on the current input text.
  * @param {string} searchStr
  */
-const suggestCommand = searchStr => {
+const suggestCommand = async searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
@@ -467,7 +476,7 @@ const suggestCommand = searchStr => {
         commandList, customCommandsAsCommandList, rangeToTabIdxs
     } = require("./command")
     for (const cmd of commandList().filter(c => c.startsWith(search))) {
-        addCommand(cmd)
+        await addCommand(cmd)
     }
     const {validOptions} = require("./settings")
     // Command: screenshot and screencopy
@@ -498,55 +507,60 @@ const suggestCommand = searchStr => {
         const dimsSuggest = `${rect.width},${rect.height},${rect.x},${rect.y}`
         location = expandPath(location || "")
         if (location && !isAbsolutePath(location)) {
-            location = joinPath(downloadPath(), location)
+            location = joinPath(await downloadPath(), location)
         }
         if (fullCommand === "screencopy") {
             if (!dims) {
-                addCommand(`${fullCommand}`)
+                await addCommand(`${fullCommand}`)
             }
-            addCommand(`${fullCommand} ${dimsSuggest}`)
+            await addCommand(`${fullCommand} ${dimsSuggest}`)
         } else if (location) {
-            const fileSuggestions = suggestFiles(location)
+            const fileSuggestions = await suggestFiles(location)
             for (const l of fileSuggestions) {
                 let loc = l.path
                 if (l.path.includes(" ")) {
                     loc = `"${loc}"`
                 }
                 if (dimsFirst) {
-                    addCommand(`${fullCommand} ${dimsSuggest} ${loc}`)
+                    await addCommand(`${fullCommand} ${dimsSuggest} ${loc}`)
                 } else if (dims) {
-                    addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
+                    await addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
                 } else {
-                    addCommand(`${fullCommand} ${loc}`)
-                    addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
+                    await addCommand(`${fullCommand} ${loc}`)
+                    await addCommand(`${fullCommand} ${loc} ${dimsSuggest}`)
                 }
             }
             if (fileSuggestions.length === 0) {
                 if (dimsFirst) {
-                    addCommand(`${fullCommand} ${dimsSuggest} ${location}`)
+                    await addCommand(
+                        `${fullCommand} ${dimsSuggest} ${location}`)
                 } else if (dims) {
-                    addCommand(`${fullCommand} ${location} ${dimsSuggest}`)
+                    await addCommand(
+                        `${fullCommand} ${location} ${dimsSuggest}`)
                 } else {
-                    addCommand(`${fullCommand} ${location}`)
-                    addCommand(`${fullCommand} ${location} ${dimsSuggest}`)
+                    await addCommand(`${fullCommand} ${location}`)
+                    await addCommand(
+                        `${fullCommand} ${location} ${dimsSuggest}`)
                 }
             }
         } else {
             if (!dims) {
-                addCommand(`${fullCommand} ~`)
+                await addCommand(`${fullCommand} ~`)
             }
-            addCommand(`${fullCommand} ~ ${dimsSuggest}`)
-            addCommand(`${fullCommand} ${dimsSuggest} ~`)
+            await addCommand(`${fullCommand} ~ ${dimsSuggest}`)
+            await addCommand(`${fullCommand} ${dimsSuggest} ~`)
             if (!dims) {
-                addCommand(`${fullCommand} /`)
+                await addCommand(`${fullCommand} /`)
             }
-            addCommand(`${fullCommand} / ${dimsSuggest}`)
-            addCommand(`${fullCommand} ${dimsSuggest} /`)
+            await addCommand(`${fullCommand} / ${dimsSuggest}`)
+            await addCommand(`${fullCommand} ${dimsSuggest} /`)
             if (!dims) {
-                addCommand(`${fullCommand} ${downloadPath()}`)
+                await addCommand(`${fullCommand} ${await downloadPath()}`)
             }
-            addCommand(`${fullCommand} ${downloadPath()} ${dimsSuggest}`)
-            addCommand(`${fullCommand} ${dimsSuggest} ${downloadPath()}`)
+            await addCommand(
+                `${fullCommand} ${await downloadPath()} ${dimsSuggest}`)
+            await addCommand(
+                `${fullCommand} ${dimsSuggest} ${await downloadPath()}`)
         }
     }
     updateScreenshotHighlight()
@@ -557,11 +571,11 @@ const suggestCommand = searchStr => {
             for (const c of suggestionList().filter(
                 s => s.startsWith(args.at(-1) ?? "")).map(s => `${command} ${
                 args.slice(0, -1).join(" ")} ${s}`.replace(/ +/g, " "))) {
-                addCommand(c)
+                await addCommand(c)
             }
         } else {
             for (const c of suggestionList().map(s => `${command} ${s}`)) {
-                addCommand(c)
+                await addCommand(c)
             }
         }
     }
@@ -572,8 +586,8 @@ const suggestCommand = searchStr => {
             location = location.slice(1, -1)
         }
         if (isAbsolutePath(location)) {
-            for (const l of suggestFiles(location)) {
-                addCommand(`source ${l.path}`)
+            for (const l of await suggestFiles(location)) {
+                await addCommand(`source ${l.path}`)
             }
         }
     }
@@ -592,78 +606,80 @@ const suggestCommand = searchStr => {
         if (!path && !range) {
             if (type) {
                 if (args[0] === type) {
-                    addCommand(`write ${typeSuggest}`)
-                    addCommand(`write ${typeSuggest} ~`)
-                    addCommand(`write ${typeSuggest} /`)
-                    addCommand(`write ${typeSuggest} ${downloadPath()}`)
+                    await addCommand(`write ${typeSuggest}`)
+                    await addCommand(`write ${typeSuggest} ~`)
+                    await addCommand(`write ${typeSuggest} /`)
+                    await addCommand(
+                        `write ${typeSuggest} ${await downloadPath()}`)
                 } else {
-                    addCommand(`write ~ ${typeSuggest}`)
-                    addCommand(`write / ${typeSuggest}`)
-                    addCommand(`write ${downloadPath()} ${typeSuggest}`)
+                    await addCommand(`write ~ ${typeSuggest}`)
+                    await addCommand(`write / ${typeSuggest}`)
+                    await addCommand(
+                        `write ${await downloadPath()} ${typeSuggest}`)
                 }
             } else {
-                addCommand(`write`.trim())
-                addCommand(`write ~`.trim())
-                addCommand(`write ~ html`.trim())
-                addCommand(`write html ~`.trim())
-                addCommand(`write ~ mhtml`.trim())
-                addCommand(`write mhtml ~`.trim())
-                addCommand(`write /`.trim())
-                addCommand(`write / html`.trim())
-                addCommand(`write html /`.trim())
-                addCommand(`write / mhtml`.trim())
-                addCommand(`write mhtml /`.trim())
-                addCommand(`write ${downloadPath()}`.trim())
-                addCommand(`write ${downloadPath()} html`.trim())
-                addCommand(`write html ${downloadPath()}`.trim())
-                addCommand(`write ${downloadPath()} mhtml`.trim())
-                addCommand(`write mhtml ${downloadPath()}`.trim())
+                await addCommand(`write`)
+                await addCommand(`write ~`)
+                await addCommand(`write ~ html`)
+                await addCommand(`write html ~`)
+                await addCommand(`write ~ mhtml`)
+                await addCommand(`write mhtml ~`)
+                await addCommand(`write /`)
+                await addCommand(`write / html`)
+                await addCommand(`write html /`)
+                await addCommand(`write / mhtml`)
+                await addCommand(`write mhtml /`)
+                await addCommand(`write ${await downloadPath()}`.trim())
+                await addCommand(`write ${await downloadPath()} html`)
+                await addCommand(`write html ${await downloadPath()}`.trim())
+                await addCommand(`write ${await downloadPath()} mhtml`)
+                await addCommand(`write mhtml ${await downloadPath()}`.trim())
             }
         }
         if ((path || search.endsWith(" ")) && !range) {
             if (!isAbsolutePath(path)) {
-                path = joinPath(downloadPath(), path)
+                path = joinPath(await downloadPath(), path)
             }
-            const fileSuggestions = suggestFiles(path)
+            const fileSuggestions = await suggestFiles(path)
             for (const l of fileSuggestions) {
                 let loc = l.path
                 if (l.path.includes(" ")) {
                     loc = `"${loc}"`
                 }
                 if (type && args[0] === type) {
-                    addCommand(`write ${typeSuggest} ${loc}`)
+                    await addCommand(`write ${typeSuggest} ${loc}`)
                 } else if (type) {
-                    addCommand(`write ${loc} ${typeSuggest}`)
+                    await addCommand(`write ${loc} ${typeSuggest}`)
                 } else {
-                    addCommand(`write ${loc}`)
-                    addCommand(`write ${loc} html`)
-                    addCommand(`write ${loc} mhtml`)
-                    addCommand(`write html ${loc}`)
-                    addCommand(`write mtml ${loc}`)
+                    await addCommand(`write ${loc}`)
+                    await addCommand(`write ${loc} html`)
+                    await addCommand(`write ${loc} mhtml`)
+                    await addCommand(`write html ${loc}`)
+                    await addCommand(`write mtml ${loc}`)
                 }
             }
             if (fileSuggestions.length === 0) {
                 if (type && args[0] === type) {
-                    addCommand(`write ${typeSuggest} ${path}`)
+                    await addCommand(`write ${typeSuggest} ${path}`)
                 } else if (type) {
-                    addCommand(`write ${path} ${typeSuggest}`)
+                    await addCommand(`write ${path} ${typeSuggest}`)
                 } else {
-                    addCommand(`write ${path}`)
-                    addCommand(`write ${path} html`)
-                    addCommand(`write ${path} mhtml`)
+                    await addCommand(`write ${path}`)
+                    await addCommand(`write ${path} html`)
+                    await addCommand(`write ${path} mhtml`)
                 }
             }
         }
         if (range) {
             if (type) {
-                addCommand(`${range}write ${typeSuggest}`)
+                await addCommand(`${range}write ${typeSuggest}`)
             } else {
-                addCommand(`${range}write`)
-                addCommand(`${range}write html`)
-                addCommand(`${range}write mhtml`)
+                await addCommand(`${range}write`)
+                await addCommand(`${range}write html`)
+                await addCommand(`${range}write mhtml`)
             }
             const tabs = listTabs()
-            const indexes = rangeToTabIdxs("user", range, true)
+            const indexes = await rangeToTabIdxs("user", range, true)
             const cmds = indexes.tabs.map(num => {
                 const tab = tabs.at(num)
                 if (!tab) {
@@ -678,20 +694,20 @@ const suggestCommand = searchStr => {
                 }
             }).filter(Boolean)
             for (const c of cmds) {
-                addCommand(c.command, c.title, c.url, c.icon, true)
+                await addCommand(c.command, c.title, c.url, c.icon, true)
             }
         }
     }
     // Command: mkviebrc
     if ("mkviebrc full".startsWith(search) && !range) {
-        addCommand("mkviebrc full")
+        await addCommand("mkviebrc full")
     }
     // Command: devtools
     if ("devtools".startsWith(command)
     && !confirm && args.length < 2 && !range) {
         for (const option of validOptions.devtoolsposition) {
             if (!args[0] || option.startsWith(args[0])) {
-                addCommand(`devtools ${option}`)
+                await addCommand(`devtools ${option}`)
             }
         }
     }
@@ -706,7 +722,7 @@ const suggestCommand = searchStr => {
             themes[part.replace(/\.css$/g, "")] = "built-in"
         }
         const customDirs = [
-            joinPath(appData(), "colors"),
+            joinPath(await appData(), "colors"),
             expandPath("~/.vieb/colors")
         ]
         for (const dir of customDirs) {
@@ -721,7 +737,7 @@ const suggestCommand = searchStr => {
         }
         for (const [themeName, themePath] of Object.entries(themes)) {
             if (themeName.startsWith(args[0] || "")) {
-                addCommand(`colorscheme ${themeName}`, themePath)
+                await addCommand(`colorscheme ${themeName}`, themePath)
             }
         }
     }
@@ -733,7 +749,7 @@ const suggestCommand = searchStr => {
                 .filter(c => c.split(" ", 1)[0] === "command")
                 .map(c => c.split(" ", 2)[1])
                 .filter(c => !args[0] || c.startsWith(args[0]))) {
-                addCommand(`${custom} ${cmd}`)
+                await addCommand(`${custom} ${cmd}`)
             }
         }
     }
@@ -742,6 +758,8 @@ const suggestCommand = searchStr => {
         const {
             listMappingsAsCommandList, listSupportedActions
         } = require("./input")
+        const mapCommandString = await listMappingsAsCommandList(
+            "user", null, true)
         const sections = [
             "intro",
             "commands",
@@ -793,10 +811,8 @@ const suggestCommand = searchStr => {
             ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
             ...listSupportedActions(),
-            ...listMappingsAsCommandList("user", null, true).split("\n")
-                .map(m => m.split(" ", 2)[1])
+            ...mapCommandString.split("\n").map(m => m.split(" ", 2)[1])
         ]
-        const mapCommandString = listMappingsAsCommandList("user", null, true)
         for (const map of mapCommandString.split("\n")) {
             const mode = map.split(" ", 1)[0].replace(/(nore)?map$/g, "")
             const [, keys] = map.split(" ", 2)
@@ -818,14 +834,16 @@ const suggestCommand = searchStr => {
                 .startsWith(`${command} ${simpleSearch}`.trim())
             || `${command} ${simpleSection}`.startsWith(
                 `${command} ${simpleSearch}`.trim())
-        })) { addCommand(`help${confirmChar} ${section}`) }
+        })) {
+            await addCommand(`help${confirmChar} ${section}`)
+        }
     }
     // Command: translatepage
     if ("translatepage".startsWith(command)
     && !confirm && args.length < 2 && !range) {
         for (const option of validOptions.translatelang) {
             if (!args[0] || option.startsWith(args[0])) {
-                addCommand(`translatepage ${option}`)
+                await addCommand(`translatepage ${option}`)
             }
         }
     }
@@ -851,15 +869,15 @@ const suggestCommand = searchStr => {
         }
         if (range) {
             if (!confirm || args.length === 0) {
-                addCommand(`${range}${bufferCommand}${confirmChar}`)
+                await addCommand(`${range}${bufferCommand}${confirmChar}`)
                 if (acceptsConfirm.has(bufferCommand) && !confirm) {
-                    addCommand(`${range}${bufferCommand}!`)
+                    await addCommand(`${range}${bufferCommand}!`)
                 }
             }
             let a = ""
             if (["mute", "pin"].includes(bufferCommand) && confirm) {
-                addCommand(`${range}${bufferCommand}${confirmChar} true`)
-                addCommand(`${range}${bufferCommand}${confirmChar} false`)
+                await addCommand(`${range}${bufferCommand}${confirmChar} true`)
+                await addCommand(`${range}${bufferCommand}${confirmChar} false`)
                 a = " true"
                 if (args.join("").trimStart().startsWith("f")) {
                     a = " false"
@@ -868,7 +886,7 @@ const suggestCommand = searchStr => {
                 continue
             }
             const tabs = listTabs()
-            const indexes = rangeToTabIdxs("user", range, true)
+            const indexes = await rangeToTabIdxs("user", range, true)
             const cmds = indexes.tabs.map(num => {
                 const tab = tabs.at(num)
                 if (!tab) {
@@ -883,18 +901,19 @@ const suggestCommand = searchStr => {
                 }
             }).filter(Boolean)
             for (const c of cmds) {
-                addCommand(c.command, c.title, c.url, c.icon, true)
+                await addCommand(c.command, c.title, c.url, c.icon, true)
             }
             continue
         }
         if (["mute", "pin"].includes(bufferCommand) && confirm) {
-            addCommand(`${bufferCommand}${confirmChar} true`)
-            addCommand(`${bufferCommand}${confirmChar} false`)
+            await addCommand(`${bufferCommand}${confirmChar} true`)
+            await addCommand(`${bufferCommand}${confirmChar} false`)
             continue
         }
         const {allTabsForBufferArg} = require("./command")
         const tabs = listTabs()
-        for (const t of allTabsForBufferArg(args).map(b => {
+        const relevantTabs = await allTabsForBufferArg(args)
+        for (const t of relevantTabs.map(b => {
             if (!b?.tab) {
                 return null
             }
@@ -907,7 +926,7 @@ const suggestCommand = searchStr => {
             }
         })) {
             if (t) {
-                addCommand(t.command, t.title, t.url, t.icon)
+                await addCommand(t.command, t.title, t.url, t.icon)
             }
         }
     }
@@ -931,7 +950,7 @@ const suggestCommand = searchStr => {
         ]
         for (const suggest of clearSuggestionList) {
             if (suggest.startsWith(argStr)) {
-                addCommand(suggest)
+                await addCommand(suggest)
             }
         }
     }

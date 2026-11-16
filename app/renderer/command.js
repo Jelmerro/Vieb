@@ -69,18 +69,18 @@ const {
  * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
  */
-const listSetting = (src, setting) => {
+const listSetting = async(src, setting) => {
     if (setting === "all") {
         const {listCurrentSettings} = require("./settings")
-        notify({
-            "fields": [listCurrentSettings(true)],
+        await notify({
+            "fields": [await listCurrentSettings(true)],
             "id": "commands.settings.optionsList",
             src
         })
         return
     }
-    notify({
-        "fields": [setting, JSON.stringify(getSetting(setting))],
+    await notify({
+        "fields": [setting, JSON.stringify(await getSetting(setting))],
         "id": "commands.settings.listSingle",
         src
     })
@@ -152,7 +152,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
     try {
         parsed = JSON.parse(value)
     } catch {
-        notify({
+        await notify({
             "fields": [setting, value],
             "id": "commands.settings.invalidJSON",
             src,
@@ -162,7 +162,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
     }
     if (!isStringArray(parsed)
         && !isStringArrayArray(parsed) && !isStringObject(parsed)) {
-        notify({
+        await notify({
             "fields": [setting, value],
             "id": "commands.settings.invalidStructure",
             src,
@@ -188,7 +188,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
             }
             addition = additionList
         }
-        let current = getSetting(setting)
+        let current = await getSetting(setting)
         if (current === "all") {
             current = mouseFeatures
         }
@@ -237,7 +237,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
             await set(src, setting, addition)
             return
         }
-        const newValue = getSetting(setting)
+        const newValue = await getSetting(setting)
         if (method === "append") {
             for (const [key, val] of Object.entries(addition)) {
                 newValue[key] = val
@@ -249,7 +249,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
             }
         }
         if (method === "special") {
-            notify({
+            await notify({
                 "id": "commands.settings.reserved",
                 src,
                 "type": "warning"
@@ -311,7 +311,7 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
         return
     }
     if (!isNumber && !isText && !isList && !isObject) {
-        notify({
+        await notify({
             "fields": [setting],
             "id": "commands.settings.noModify",
             src,
@@ -321,33 +321,33 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
     }
     if (method === "append") {
         if (isObject) {
-            const obj = getSetting(setting)
+            const obj = await getSetting(setting)
             obj[value.split("~", 1)[0]] = value
                 .split("~").slice(1).join("~") ?? ""
             await set(src, setting, obj)
         }
         if (isList) {
-            let current = getSetting(setting)
+            let current = await getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
             await set(src, setting, [...current, value])
         }
         if (isNumber) {
-            await set(src, setting, getSetting(setting) + Number(value))
+            await set(src, setting, await getSetting(setting) + Number(value))
         }
         if (isText) {
-            await set(src, setting, getSetting(setting) + value)
+            await set(src, setting, await getSetting(setting) + value)
         }
     }
     if (method === "remove") {
         if (isObject) {
-            const obj = getSetting(setting)
+            const obj = await getSetting(setting)
             delete obj[value.split("~", 1)[0]]
             await set(src, setting, obj)
         }
         if (isList) {
-            let current = getSetting(setting)
+            let current = await getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
@@ -359,32 +359,33 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
             await set(src, setting, newValue)
         }
         if (isNumber) {
-            await set(src, setting, getSetting(setting) - Number(value))
+            await set(src, setting, await getSetting(setting) - Number(value))
         }
         if (isText) {
-            await set(src, setting, getSetting(setting).replace(value, ""))
+            const newval = await getSetting(setting)
+            await set(src, setting, newval.replace(value, ""))
         }
     }
     if (method === "special") {
         if (isObject) {
-            notify({
+            await notify({
                 "id": "commands.settings.reserved",
                 src,
                 "type": "warning"
             })
         }
         if (isList) {
-            let current = getSetting(setting)
+            let current = await getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
             await set(src, setting, [value, ...current])
         }
         if (isNumber) {
-            await set(src, setting, getSetting(setting) * Number(value))
+            await set(src, setting, await getSetting(setting) * Number(value))
         }
         if (isText) {
-            await set(src, setting, value + getSetting(setting))
+            await set(src, setting, value + await getSetting(setting))
         }
     }
 }
@@ -397,15 +398,15 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
 const setCommand = async(src, args) => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
-        const allChanges = listCurrentSettings()
+        const allChanges = await listCurrentSettings()
         if (allChanges) {
-            notify({
+            await notify({
                 "fields": [allChanges],
                 "id": "commands.settings.optionsList",
                 src
             })
         } else {
-            notify({"id": "commands.settings.noChanges", src})
+            await notify({"id": "commands.settings.noChanges", src})
         }
         return
     }
@@ -415,7 +416,7 @@ const setCommand = async(src, args) => {
             if (isValidSettingName(setting) && setting !== "all") {
                 await modifySetting(src, setting, value, "append")
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -427,7 +428,7 @@ const setCommand = async(src, args) => {
             if (isValidSettingName(setting) && setting !== "all") {
                 await modifySetting(src, setting, value, "remove")
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -439,7 +440,7 @@ const setCommand = async(src, args) => {
             if (isValidSettingName(setting) && setting !== "all") {
                 await modifySetting(src, setting, value, "special")
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -451,7 +452,7 @@ const setCommand = async(src, args) => {
             if (isValidSettingName(setting) && setting !== "all") {
                 await modifySetting(src, setting, value)
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -463,7 +464,7 @@ const setCommand = async(src, args) => {
             if (isValidSettingName(setting) && setting !== "all") {
                 await modifySetting(src, setting, value)
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -474,11 +475,11 @@ const setCommand = async(src, args) => {
             const [setting] = part.split("!", 1)
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
-                const index = values.indexOf(String(getSetting(setting)))
+                const index = values.indexOf(String(await getSetting(setting)))
                 await modifySetting(src,
                     setting, values[index + 1] || values[0])
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -488,7 +489,7 @@ const setCommand = async(src, args) => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             if (isValidSettingName(setting) && setting !== "all") {
-                const value = getSetting(setting)
+                const value = await getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
                     await modifySetting(src, setting, String(!value))
@@ -498,7 +499,7 @@ const setCommand = async(src, args) => {
                         validOptions[setting][index + 1]
                         || validOptions[setting][0])
                 } else {
-                    notify({
+                    await notify({
                         "fields": [setting],
                         "id": "commands.settings.noFlipping",
                         src,
@@ -506,7 +507,7 @@ const setCommand = async(src, args) => {
                     })
                 }
             } else {
-                notify({
+                await notify({
                     "fields": [setting],
                     "id": "commands.settings.missing",
                     src,
@@ -519,9 +520,9 @@ const setCommand = async(src, args) => {
         } else if (part.endsWith("?")) {
             const settingName = part.slice(0, -1)
             if (isValidSettingName(settingName)) {
-                listSetting(src, settingName)
+                await listSetting(src, settingName)
             } else {
-                notify({
+                await notify({
                     "fields": [settingName],
                     "id": "commands.settings.missing",
                     src,
@@ -529,16 +530,16 @@ const setCommand = async(src, args) => {
                 })
             }
         } else if (isValidSettingName(part) && part !== "all"
-            && typeof getSetting(part) === "boolean") {
+            && typeof await getSetting(part) === "boolean") {
             await modifySetting(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
-                const value = getSetting(settingName)
+                const value = await getSetting(settingName)
                 if (typeof value === "boolean") {
                     await modifySetting(src, settingName, String(!value))
                 } else {
-                    notify({
+                    await notify({
                         "fields": [settingName],
                         "id": "commands.settings.noFlipping",
                         src,
@@ -546,9 +547,9 @@ const setCommand = async(src, args) => {
                     })
                 }
             } else if (isValidSettingName(part)) {
-                listSetting(src, part)
+                await listSetting(src, part)
             } else {
-                notify({
+                await notify({
                     "fields": [part],
                     "id": "commands.settings.missing",
                     src,
@@ -558,7 +559,7 @@ const setCommand = async(src, args) => {
         } else if (part.startsWith("no")) {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
-                const value = getSetting(settingName)
+                const value = await getSetting(settingName)
                 const {
                     isArraySetting, isNumberSetting, isObjectSetting
                 } = require("./settings")
@@ -570,12 +571,12 @@ const setCommand = async(src, args) => {
                 } else if (isNumberSetting(settingName)) {
                     await modifySetting(src, settingName, "0")
                 } else {
-                    listSetting(src, settingName)
+                    await listSetting(src, settingName)
                 }
             } else if (isValidSettingName(part)) {
-                listSetting(src, part)
+                await listSetting(src, part)
             } else {
-                notify({
+                await notify({
                     "fields": [part],
                     "id": "commands.settings.missing",
                     src,
@@ -583,9 +584,9 @@ const setCommand = async(src, args) => {
                 })
             }
         } else if (isValidSettingName(part)) {
-            listSetting(src, part)
+            await listSetting(src, part)
         } else {
-            notify({
+            await notify({
                 "fields": [part],
                 "id": "commands.settings.missing",
                 src,
@@ -606,7 +607,7 @@ const sourcedFiles = []
  */
 const source = async(src, origin, args) => {
     if (args.length !== 1) {
-        notify({"id": "commands.source.argCount", src, "type": "warning"})
+        await notify({"id": "commands.source.argCount", src, "type": "warning"})
         return
     }
     let [absFile] = args
@@ -615,22 +616,23 @@ const source = async(src, origin, args) => {
         if (origin) {
             absFile = joinPath(dirname(origin), absFile)
         } else {
-            notify({"id": "commands.source.absolute", src, "type": "error"})
+            await notify({
+                "id": "commands.source.absolute", src, "type": "error"
+            })
             return
         }
     }
     if (absFile === origin) {
-        notify({"id": "commands.source.recursive", src, "type": "error"})
+        await notify({"id": "commands.source.recursive", src, "type": "error"})
         return
     }
-    if ([
-        appConfig()?.override, ...appConfig()?.files ?? []
-    ].includes(absFile)) {
-        notify({"id": "commands.source.startup", src, "type": "error"})
+    const config = await appConfig()
+    if ([config?.override, ...config?.files ?? []].includes(absFile)) {
+        await notify({"id": "commands.source.startup", src, "type": "error"})
         return
     }
     if (!isFile(absFile)) {
-        notify({
+        await notify({
             "fields": [absFile],
             "id": "commands.source.missing",
             src,
@@ -640,7 +642,7 @@ const source = async(src, origin, args) => {
     }
     const parsed = readFile(absFile)
     if (!parsed) {
-        notify({
+        await notify({
             "fields": [absFile],
             "id": "commands.source.readError",
             src,
@@ -665,12 +667,12 @@ const source = async(src, origin, args) => {
  * @param {string} range
  * @param {boolean} silent
  */
-const translateSearchRangeToIdx = (src, range, silent) => {
+const translateSearchRangeToIdx = async(src, range, silent) => {
     const [flags] = range.split("/", 1)
     const allFlags = new Set("giaszrtupn")
     if ([...flags].some(f => !allFlags.has(f))) {
         if (!silent) {
-            notify({
+            await notify({
                 "fields": [range],
                 "id": "commands.ranges.flags",
                 src,
@@ -731,13 +733,14 @@ const translateSearchRangeToIdx = (src, range, silent) => {
  * @param {string} rangePart
  * @param {boolean} silent
  */
-const translateRangePosToIdx = (src, start, rangePart, silent) => {
+const translateRangePosToIdx = async(src, start, rangePart, silent) => {
     const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
     const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
     /** @type {(string | number)[]} */
     let [charOrNum] = rangePart.split(/[+-]/g, 1)
     if (rangePart.split("/").length > 2) {
-        const searchResult = translateSearchRangeToIdx(src, rangePart, silent)
+        const searchResult = await translateSearchRangeToIdx(
+            src, rangePart, silent)
         charOrNum = searchResult.tabs.find(i => i >= start) ?? -1
         if (charOrNum < 0 || !searchResult.valid) {
             return {"num": Number.NaN, "valid": searchResult.valid}
@@ -774,7 +777,7 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
     }
     const valid = !Number.isNaN(number)
     if (!valid && !silent) {
-        notify({
+        await notify({
             "fields": [rangePart],
             "id": "commands.ranges.indexOrSearch",
             src,
@@ -790,7 +793,7 @@ const translateRangePosToIdx = (src, start, rangePart, silent) => {
  * @param {string} range
  * @param {boolean} silent
  */
-const rangeToTabIdxs = (src, range, silent = false) => {
+const rangeToTabIdxs = async(src, range, silent = false) => {
     if (range === "%") {
         return {"tabs": listTabs().map((_, i) => i), "valid": true}
     }
@@ -798,7 +801,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
         const [start, end, tooManyArgs] = range.split(",", 3)
         if (tooManyArgs !== undefined) {
             if (!silent) {
-                notify({
+                await notify({
                     "fields": [range],
                     "id": "commands.ranges.commas",
                     src,
@@ -809,7 +812,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
         }
         if (/^.*g.*\/.*\/[+-]?\d?$/.test(start) || /^.*g.*\/.*\/[+-]?\d?$/.test(end)) {
             if (!silent) {
-                notify({
+                await notify({
                     "fields": [range],
                     "id": "commands.ranges.combined",
                     src,
@@ -818,10 +821,10 @@ const rangeToTabIdxs = (src, range, silent = false) => {
             }
             return {"tabs": [], "valid": false}
         }
-        const startPos = translateRangePosToIdx(src, 0, start, silent)
+        const startPos = await translateRangePosToIdx(src, 0, start, silent)
         if (!startPos.valid) {
             if (!silent) {
-                notify({
+                await notify({
                     "fields": [start],
                     "id": "commands.ranges.invalid",
                     src,
@@ -830,10 +833,11 @@ const rangeToTabIdxs = (src, range, silent = false) => {
             }
             return {"tabs": [], "valid": false}
         }
-        const endPos = translateRangePosToIdx(src, startPos.num, end, silent)
+        const endPos = await translateRangePosToIdx(
+            src, startPos.num, end, silent)
         if (!endPos.valid) {
             if (!silent) {
-                notify({
+                await notify({
                     "fields": [end],
                     "id": "commands.ranges.invalid",
                     src,
@@ -854,7 +858,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
             return translateSearchRangeToIdx(src, range, silent)
         }
     }
-    const result = translateRangePosToIdx(src, 0, range, silent)
+    const result = await translateRangePosToIdx(src, 0, range, silent)
     if (result.valid) {
         return {"tabs": [result.num], "valid": true}
     }
@@ -866,7 +870,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
  * @param {string[]|[number]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
-const allTabsForBufferArg = (args, filter = null) => {
+const allTabsForBufferArg = async(args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
         if (!Number.isNaN(number)) {
@@ -920,22 +924,26 @@ const allTabsForBufferArg = (args, filter = null) => {
     const allWordsAnywhere = (search, simpleUrl, name) => search.every(
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
     const simpleSearch = args.join(" ").split(specialChars).filter(Boolean)
-    return listTabs().filter(t => !filter || filter(t)).map(t => {
-        const url = pageForTab(t)?.getAttribute("src") ?? ""
-        const simpleUrl = getSimpleUrl(url)
-        const name = t.querySelector("span")?.textContent ?? ""
-        let relevance = 1
-        if (simpleSearch.every(w => simpleUrl.includes(w))) {
-            relevance = 5
-        }
-        if (url.toLowerCase().includes(args.join(""))) {
-            relevance *= 10
-        }
-        if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
-            return {"tab": t, "title": name, "top": relevance, url}
-        }
-        return null
-    }).filter(Boolean).toSorted((a, b) => (b?.top ?? 0) - (a?.top ?? 0))
+    const tabs = await Promise.all(listTabs().filter(t => !filter || filter(t))
+        .map(async t => {
+            const url = pageForTab(t)?.getAttribute("src") ?? ""
+            const simpleUrl = await getSimpleUrl(url)
+            const name = t.querySelector("span")?.textContent ?? ""
+            let relevance = 1
+            if (simpleSearch.every(w => simpleUrl.includes(w))) {
+                relevance = 5
+            }
+            if (url.toLowerCase().includes(args.join(""))) {
+                relevance *= 10
+            }
+            if (relevance > 1
+                || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
+                return {"tab": t, "title": name, "top": relevance, url}
+            }
+            return null
+        }))
+    return tabs.filter(Boolean).toSorted(
+        (a, b) => (b?.top ?? 0) - (a?.top ?? 0))
 }
 
 /**
@@ -943,8 +951,8 @@ const allTabsForBufferArg = (args, filter = null) => {
  * @param {string[]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
-const tabForBufferArg = (args, filter = null) => {
-    const tabs = allTabsForBufferArg(args, filter)
+const tabForBufferArg = async(args, filter = null) => {
+    const tabs = await allTabsForBufferArg(args, filter)
     if (tabs[0]) {
         return tabs[0].tab ?? null
     }
@@ -954,7 +962,7 @@ const tabForBufferArg = (args, filter = null) => {
 /** Quit the entire app entirely, including all quit settings and cleanup. */
 const quitall = async() => {
     ipcRenderer.send("hide-window")
-    const keepQuickmarkNames = getSetting("quickmarkpersistence")
+    const keepQuickmarkNames = await getSetting("quickmarkpersistence")
     /** @type {("scroll"|"marks"|"pointer")[]} */
     let clearMark = ["scroll", "marks", "pointer"]
     clearMark = clearMark.filter(t => !keepQuickmarkNames.includes(t))
@@ -962,18 +970,18 @@ const quitall = async() => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     for (const markType of clearMark) {
         delete qm[markType]
     }
     if (Object.keys(qm).length > 0) {
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
     } else {
-        deleteFile(joinPath(appData(), "quickmarks"))
+        deleteFile(joinPath(await appData(), "quickmarks"))
     }
-    const clearHistory = getSetting("clearhistoryinterval")
+    const clearHistory = await getSetting("clearhistoryinterval")
     if (clearHistory === "session") {
-        deleteFile(joinPath(appData(), "hist"))
+        deleteFile(joinPath(await appData(), "hist"))
     } else if (clearHistory === "none") {
         const {writeHistToFile} = require("./history")
         await writeHistToFile(true)
@@ -987,15 +995,15 @@ const quitall = async() => {
     if (pagesContainer) {
         pagesContainer.textContent = ""
     }
-    clearTempContainers()
-    if (getSetting("cache") !== "full") {
-        clearCache()
+    await clearTempContainers()
+    if (await getSetting("cache") !== "full") {
+        await clearCache()
     }
-    if (getSetting("clearcookiesonquit")) {
-        clearCookies()
+    if (await getSetting("clearcookiesonquit")) {
+        await clearCookies()
     }
-    if (getSetting("clearlocalstorageonquit")) {
-        clearLocalStorage()
+    if (await getSetting("clearlocalstorageonquit")) {
+        await clearLocalStorage()
     }
     const {updateMappings} = require("./favicons")
     await updateMappings({"now": true})
@@ -1010,7 +1018,8 @@ const quitall = async() => {
 const quit = async(src, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
             await closeTab(src, t)
         }
         return
@@ -1030,13 +1039,15 @@ let currentscheme = "default"
  * @param {string|null} name
  * @param {string|null} trailingArgs
  */
-const colorscheme = (src, name = null, trailingArgs = null) => {
+const colorscheme = async(src, name = null, trailingArgs = null) => {
     if (trailingArgs) {
-        notify({"id": "commands.colorscheme.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.colorscheme.argCount", src, "type": "warning"
+        })
         return
     }
     if (!name) {
-        notify({
+        await notify({
             "fields": [currentscheme],
             "id": "commands.colorscheme.current",
             src
@@ -1045,13 +1056,13 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
     }
     let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
     if (!css) {
-        css = readFile(joinPath(appData(), `colors/${name}.css`))
+        css = readFile(joinPath(await appData(), `colors/${name}.css`))
     }
     if (!css) {
         css = readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
     }
     if (!css) {
-        notify({
+        await notify({
             "fields": [name],
             "id": "commands.colorscheme.missing",
             src,
@@ -1071,9 +1082,10 @@ const colorscheme = (src, name = null, trailingArgs = null) => {
     if (customStyle) {
         customStyle.textContent = css
     }
-    ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
+    await ipcRenderer.invoke("set-custom-styling",
+        await getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
-    setCustomStyling(css)
+    await setCustomStyling(css)
     currentscheme = name
 }
 
@@ -1091,10 +1103,12 @@ const restart = async() => {
  */
 const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
-        notify({"id": "commands.devtools.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.devtools.argCount", src, "type": "warning"
+        })
         return
     }
-    const position = userPosition || getSetting("devtoolsposition")
+    const position = userPosition || await getSetting("devtoolsposition")
     const {add} = require("./pagelayout")
     const {addTab} = require("./tabs")
     if (position === "window") {
@@ -1105,17 +1119,17 @@ const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
             await addTab({"devtools": true, src})
-            add(id, "hor", getSetting("splitright"))
+            await add(id, "hor", await getSetting("splitright"))
         }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
             await addTab({"devtools": true, src})
-            add(id, "ver", getSetting("splitbelow"))
+            await add(id, "ver", await getSetting("splitbelow"))
         }
     } else {
         const valid = argsAsHumanList(["window", "vsplit", "split", "tab"])
-        notify({
+        await notify({
             "fields": [position, valid],
             "id": "commands.devtools.invalid",
             src,
@@ -1142,10 +1156,10 @@ const openSpecialPage = async(
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+    const newtabUrl = await stringToUrl(await getSetting("newtaburl"))
     const isNewtab = currentSpecial === "newtab"
-        || (url?.replace(/\/+$/g, "") ?? "")
-        === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
-    const replaceSpecial = getSetting("replacespecial")
+        || (url?.replace(/\/+$/g, "") ?? "") === newtabUrl.replace(/\/+$/g, "")
+    const replaceSpecial = await getSetting("replacespecial")
     const {addTab, navigateTo} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
         await addTab({src, "url": newSpecialUrl})
@@ -1167,7 +1181,7 @@ const openSpecialPage = async(
  */
 const help = async(src, forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify({"id": "commands.help.argCount", src, "type": "warning"})
+        await notify({"id": "commands.help.argCount", src, "type": "warning"})
         return
     }
     await openSpecialPage(src, "help", forceNewtab, section)
@@ -1184,9 +1198,10 @@ const reloadconfig = async() => {
  * @param {import("./common").RunSource} src
  * @param {string} range
  */
-const hardcopy = (src, range) => {
+const hardcopy = async(src, range) => {
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
             const page = pageForTab(listTabs()[t])
             if (!(page instanceof HTMLDivElement)) {
                 page?.send("action", "print").catch(() => null)
@@ -1204,17 +1219,17 @@ const hardcopy = (src, range) => {
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
  */
-const resolveFileArg = (src, locationArg, type, customPage = null) => {
+const resolveFileArg = async(src, locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
     const tab = tabForPage(page)
     const name = `${tab?.querySelector("span")?.textContent?.replace(
         specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
         .replace(/:/g, "-")}`.replace(/\s/g, "_")
-    let loc = joinPath(downloadPath(), name)
+    let loc = joinPath(await downloadPath(), name)
     if (locationArg) {
         let file = expandPath(locationArg)
         if (!isAbsolutePath(file)) {
-            file = joinPath(downloadPath(), file)
+            file = joinPath(await downloadPath(), file)
         }
         let pathSep = "/"
         if (process.platform === "win32") {
@@ -1224,7 +1239,7 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
             file = joinPath(`${file}${pathSep}`, name)
         }
         if (!isDir(dirname(file))) {
-            notify({
+            await notify({
                 "fields": [dirname(file)],
                 "id": "commands.arguments.folderMissing",
                 src,
@@ -1247,7 +1262,7 @@ const resolveFileArg = (src, locationArg, type, customPage = null) => {
  * @param {"mhtml"|"html"} extension
  * @param {number|null} tabIdx
  */
-const writePage = (src, customLoc, extension, tabIdx = null) => {
+const writePage = async(src, customLoc, extension, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
@@ -1260,26 +1275,27 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
     if (extension === "mhtml") {
         type = "MHTML"
     }
-    const loc = resolveFileArg(src, customLoc, extension, page)
+    const loc = await resolveFileArg(src, customLoc, extension, page)
     if (!loc) {
         return
     }
     const webContentsId = page.getWebContentsId()
-    ipcRenderer.invoke("save-page", webContentsId, loc, type).then(() => {
-        notify({
+    try {
+        await ipcRenderer.invoke("save-page", webContentsId, loc, type)
+        await notify({
             "fields": [loc],
             "id": "commands.write.success",
             src,
             "type": "success"
         })
-    }).catch(error => {
-        notify({
-            "fields": [error],
+    } catch(error) {
+        await notify({
+            "fields": [String(error)],
             "id": "commands.write.failed",
             src,
             "type": "error"
         })
-    })
+    }
 }
 
 /**
@@ -1288,9 +1304,9 @@ const writePage = (src, customLoc, extension, tabIdx = null) => {
  * @param {string[]} args
  * @param {string} range
  */
-const write = (src, args, range) => {
+const write = async(src, args, range) => {
     if (args.length > 2) {
-        notify({"id": "commands.write.argCount", src, "type": "warning"})
+        await notify({"id": "commands.write.argCount", src, "type": "warning"})
         return
     }
     let [path, type = "html"] = args
@@ -1298,7 +1314,7 @@ const write = (src, args, range) => {
         [type, path] = args
     }
     if (type !== "html" && type !== "mhtml") {
-        notify({
+        await notify({
             "fields": [type],
             "id": "commands.write.type",
             src,
@@ -1307,16 +1323,17 @@ const write = (src, args, range) => {
         return
     }
     if (range && path) {
-        notify({"id": "commands.write.combined", src, "type": "warning"})
+        await notify({"id": "commands.write.combined", src, "type": "warning"})
         return
     }
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
-            writePage(src, null, type, t)
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
+            await writePage(src, null, type, t)
         }
         return
     }
-    writePage(src, path, type)
+    await writePage(src, path, type)
 }
 
 /**
@@ -1356,13 +1373,17 @@ const translateDimsToRect = dims => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const screencopy = (src, args) => {
+const screencopy = async(src, args) => {
     if (args.length > 1) {
-        notify({"id": "commands.screencopy.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.screencopy.argCount", src, "type": "warning"
+        })
         return
     }
     if (args[0] && !/^(?:\d+,){3}\d+$/g.test(args[0])) {
-        notify({"id": "commands.screencopy.dimensions", src, "type": "warning"})
+        await notify({
+            "id": "commands.screencopy.dimensions", src, "type": "warning"
+        })
         return
     }
     if (!currentPage()) {
@@ -1382,24 +1403,24 @@ const screencopy = (src, args) => {
  * @param {string} dims
  * @param {string} location
  */
-const takeScreenshot = (src, dims, location) => {
+const takeScreenshot = async(src, dims, location) => {
     const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(src, location, "png", currentPage())
+    const loc = await resolveFileArg(src, location, "png", currentPage())
     if (!loc) {
         return
     }
     setTimeout(() => {
-        currentPage()?.capturePage(rect).then(img => {
+        currentPage()?.capturePage(rect).then(async img => {
             const success = writeFile(loc, img.toPNG())
             if (success) {
-                notify({
+                await notify({
                     "fields": [loc],
                     "id": "commands.screenshot.success",
                     src,
                     "type": "success"
                 })
             } else {
-                notify({
+                await notify({
                     "fields": [loc],
                     "id": "commands.screenshot.failed",
                     src,
@@ -1415,9 +1436,11 @@ const takeScreenshot = (src, dims, location) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const screenshot = (src, args) => {
+const screenshot = async(src, args) => {
     if (args.length > 2) {
-        notify({"id": "commands.screenshot.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.screenshot.argCount", src, "type": "warning"
+        })
         return
     }
     let [dims, location] = args
@@ -1425,10 +1448,12 @@ const screenshot = (src, args) => {
         [location, dims] = args
     }
     if (dims && !/^(?:\d+,){3}\d+$/g.test(dims)) {
-        notify({"id": "commands.screenshot.dimensions", src, "type": "warning"})
+        await notify({
+            "id": "commands.screenshot.dimensions", src, "type": "warning"
+        })
         return
     }
-    takeScreenshot(src, dims, location)
+    await takeScreenshot(src, dims, location)
 }
 
 /**
@@ -1437,9 +1462,11 @@ const screenshot = (src, args) => {
  * @param {string|null} full
  * @param {boolean} trailingArgs
  */
-const mkviebrc = (src, full = null, trailingArgs = false) => {
+const mkviebrc = async(src, full = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify({"id": "commands.mkviebrc.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.mkviebrc.argCount", src, "type": "warning"
+        })
         return
     }
     let exportAll = false
@@ -1447,7 +1474,7 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
         if (full === "full") {
             exportAll = true
         } else {
-            notify({
+            await notify({
                 "fields": [full],
                 "id": "commands.mkviebrc.invalid",
                 src,
@@ -1457,7 +1484,7 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
         }
     }
     const {saveToDisk} = require("./settings")
-    saveToDisk(src, exportAll)
+    await saveToDisk(src, exportAll)
 }
 
 /**
@@ -1469,13 +1496,13 @@ const buffer = async(src, args) => {
     if (args.length === 0) {
         return
     }
-    const tab = tabForBufferArg(args)
+    const tab = await tabForBufferArg(args)
     if (tab) {
         const {switchToTab} = require("./tabs")
         await switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        await navigateTo(src, stringToUrl(args.join(" ")))
+        await navigateTo(src, await stringToUrl(args.join(" ")))
     }
 }
 
@@ -1483,15 +1510,16 @@ const buffer = async(src, args) => {
  * List all the buffers currently opened by tab index.
  * @param {import("./common").RunSource} src
  */
-const buffers = src => {
-    const output = listTabs().map((tab, index) => {
+const buffers = async src => {
+    const tabStrings = await Promise.all(listTabs().map(async(tab, index) => {
         const page = pageForTab(tab)
         if (!page) {
             return `${index}: `
         }
-        return `${index}: ${urlToString(page.getAttribute("src") ?? "")}`
-    }).join("\n")
-    notify({"fields": [output], "id": "commands.buffers", src})
+        return `${index}: ${await urlToString(page.getAttribute("src") ?? "")}`
+    }))
+    const output = tabStrings.join("\n")
+    await notify({"fields": [output], "id": "commands.buffers", src})
 }
 
 /**
@@ -1504,7 +1532,7 @@ const open = async(src, args) => {
         return
     }
     const {navigateTo} = require("./tabs")
-    await navigateTo(src, stringToUrl(args.join(" ")))
+    await navigateTo(src, await stringToUrl(args.join(" ")))
 }
 
 /**
@@ -1515,11 +1543,12 @@ const open = async(src, args) => {
  */
 const suspend = async(src, args, range = null) => {
     if (range && args.length > 0) {
-        notify({"id": "commands.suspend.range", src, "type": "warning"})
+        await notify({"id": "commands.suspend.range", src, "type": "warning"})
         return
     }
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
             await suspend(src, [`${t}`])
         }
         return
@@ -1528,12 +1557,14 @@ const suspend = async(src, args, range = null) => {
     if (args.length === 0) {
         tab = currentTab()
     } else {
-        tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab")
-                && !t.hasAttribute("suspended"))
+        tab = await tabForBufferArg(args, t => !t.classList.contains(
+            "visible-tab") && !t.hasAttribute("suspended"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify({"id": "commands.suspend.visible", src, "type": "warning"})
+            await notify({
+                "id": "commands.suspend.visible", src, "type": "warning"
+            })
         } else {
             const {suspendTab} = require("./tabs")
             await suspendTab(src, tab)
@@ -1549,11 +1580,12 @@ const suspend = async(src, args, range = null) => {
  */
 const hideCommand = async(src, args, range = null) => {
     if (range && args.length > 0) {
-        notify({"id": "commands.hide.range", src, "type": "warning"})
+        await notify({"id": "commands.hide.range", src, "type": "warning"})
         return
     }
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
             await hideCommand(src, [`${t}`])
         }
         return
@@ -1562,7 +1594,8 @@ const hideCommand = async(src, args, range = null) => {
     if (args.length === 0) {
         tab = currentTab()
     } else {
-        tab = tabForBufferArg(args, t => t.classList.contains("visible-tab"))
+        tab = await tabForBufferArg(args, t => t.classList.contains(
+            "visible-tab"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
@@ -1572,7 +1605,9 @@ const hideCommand = async(src, args, range = null) => {
                 await hide(page)
             }
         } else {
-            notify({"id": "commands.hide.visible", src, "type": "warning"})
+            await notify({
+                "id": "commands.hide.visible", src, "type": "warning"
+            })
         }
     }
 }
@@ -1585,13 +1620,14 @@ const hideCommand = async(src, args, range = null) => {
  */
 const setMute = async(src, args, range) => {
     if (args.length !== 1 || !["false", "true"].includes(args[0])) {
-        notify({"id": "commands.mute.argCount", src, "type": "warning"})
+        await notify({"id": "commands.mute.argCount", src, "type": "warning"})
         return
     }
     let targets = [currentTab()]
     if (range) {
         const tabs = listTabs()
-        targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
+        const tabIdx = await rangeToTabIdxs(src, range)
+        targets = tabIdx.tabs.map(id => tabs[id])
     }
     for (const tab of targets) {
         tab?.toggleAttribute("muted", args[0] === "true")
@@ -1612,21 +1648,22 @@ const setMute = async(src, args, range) => {
  */
 const mute = async(src, args, range = null) => {
     if (range && args.length > 0) {
-        notify({"id": "commands.mute.range", src, "type": "warning"})
+        await notify({"id": "commands.mute.range", src, "type": "warning"})
         return
     }
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
             await mute(src, [`${t}`])
         }
         return
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args)
+        tab = await tabForBufferArg(args)
     }
     if (!tab) {
-        notify({"id": "commands.mute.noMatch", src, "type": "warning"})
+        await notify({"id": "commands.mute.noMatch", src, "type": "warning"})
         return
     }
     tab.toggleAttribute("muted")
@@ -1646,13 +1683,14 @@ const mute = async(src, args, range = null) => {
  */
 const setPin = async(src, args, range) => {
     if (args.length !== 1 || !["false", "true"].includes(args[0])) {
-        notify({"id": "commands.pin.argCount", src, "type": "warning"})
+        await notify({"id": "commands.pin.argCount", src, "type": "warning"})
         return
     }
     let targets = [currentTab()]
     const tabs = listTabs()
     if (range) {
-        targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
+        const tabIdx = await rangeToTabIdxs(src, range)
+        targets = tabIdx.tabs.map(id => tabs[id])
     }
     const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
     for (const tab of targets) {
@@ -1680,15 +1718,15 @@ const setPin = async(src, args, range) => {
  */
 const pin = async(src, args, range) => {
     if (range && args.length > 0) {
-        notify({"id": "commands.pin.range", src, "type": "warning"})
+        await notify({"id": "commands.pin.range", src, "type": "warning"})
         return
     }
     if (range) {
         const tabs = listTabs()
         const tabContainer = document.getElementById("tabs")
         const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
-        for (const target of rangeToTabIdxs(
-            src, range).tabs.map(id => tabs[id])) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const target of tabIdx.tabs.map(id => tabs[id])) {
             if (target.classList.contains("pinned")) {
                 tabContainer?.insertBefore(target, firstUnpinned ?? null)
                 target.classList.remove("pinned")
@@ -1702,10 +1740,10 @@ const pin = async(src, args, range) => {
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args, t => !t.hasAttribute("suspended"))
+        tab = await tabForBufferArg(args, t => !t.hasAttribute("suspended"))
     }
     if (!tab) {
-        notify({"id": "commands.pin.noMatch", src, "type": "warning"})
+        await notify({"id": "commands.pin.noMatch", src, "type": "warning"})
         return
     }
     const tabContainer = document.getElementById("tabs")
@@ -1737,11 +1775,12 @@ const pin = async(src, args, range) => {
 const addSplit = async opts => {
     const {args, leftOrAbove, method, range, src, switchTo} = opts
     if (range && args.length > 0) {
-        notify({"id": "commands.split.range", src, "type": "warning"})
+        await notify({"id": "commands.split.range", src, "type": "warning"})
         return
     }
     if (range) {
-        for (const t of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const t of tabIdx.tabs) {
             await addSplit({
                 "args": [`${t}`],
                 leftOrAbove,
@@ -1760,49 +1799,52 @@ const addSplit = async opts => {
     }
     if (args.length === 0) {
         const newTab = await addTab({
-            "container": getSetting("containersplitpage"),
+            "container": await getSetting("containersplitpage"),
             "lazy": false,
             src,
             switchTo
         })
         const newTabId = newTab?.getAttribute("link-id") ?? ""
         if (switchTo) {
-            add(id, method, !leftOrAbove)
+            await add(id, method, !leftOrAbove)
         } else {
-            add(newTabId, method, leftOrAbove)
+            await add(newTabId, method, leftOrAbove)
         }
         return
     }
-    const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
+    const tab = await tabForBufferArg(args, t => !t.classList.contains(
+        "visible-tab"))
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify({"id": "commands.split.visible", src, "type": "warning"})
+            await notify({
+                "id": "commands.split.visible", src, "type": "warning"
+            })
         } else {
             const page = pageForTab(tab)
             if (page) {
-                add(page, method, leftOrAbove)
+                await add(page, method, leftOrAbove)
                 if (switchTo) {
                     await switchToTab(tab)
                 } else {
                     await unsuspendPage(page)
                     const {applyLayout} = require("./pagelayout")
-                    applyLayout()
+                    await applyLayout()
                 }
             }
         }
     } else {
         const newTab = await addTab({
-            "container": getSetting("containersplitpage"),
+            "container": await getSetting("containersplitpage"),
             "lazy": false,
             src,
             switchTo,
-            "url": stringToUrl(args.join(" "))
+            "url": await stringToUrl(args.join(" "))
         })
         const newTabId = newTab?.getAttribute("link-id") ?? ""
         if (switchTo) {
-            add(id, method, !leftOrAbove)
+            await add(id, method, !leftOrAbove)
         } else {
-            add(newTabId, method, leftOrAbove)
+            await add(newTabId, method, leftOrAbove)
         }
     }
 }
@@ -1816,14 +1858,14 @@ const addSplit = async opts => {
  */
 const close = async(src, force, args, range) => {
     if (range && args.length > 0) {
-        notify({"id": "commands.close.range", src, "type": "warning"})
+        await notify({"id": "commands.close.range", src, "type": "warning"})
         return
     }
     const {closeTab} = require("./tabs")
     if (range) {
         const tabs = listTabs()
-        const rangeSelectedTabs = rangeToTabIdxs(
-            src, range).tabs.map(id => tabs[id])
+        const tabIdx = await rangeToTabIdxs(src, range)
+        const rangeSelectedTabs = tabIdx.tabs.map(id => tabs[id])
         for (const tab of rangeSelectedTabs) {
             await closeTab(src, listTabs().indexOf(tab), force)
         }
@@ -1833,12 +1875,12 @@ const close = async(src, force, args, range) => {
         await closeTab(src, null, force)
         return
     }
-    const tab = tabForBufferArg(args)
+    const tab = await tabForBufferArg(args)
     if (tab) {
         await closeTab(src, listTabs().indexOf(tab), force)
         return
     }
-    notify({"id": "commands.close.noMatch", src, "type": "warning"})
+    await notify({"id": "commands.close.noMatch", src, "type": "warning"})
 }
 
 /**
@@ -1849,7 +1891,7 @@ const close = async(src, force, args, range) => {
 const callAction = (args, src) => {
     setTimeout(async() => {
         const {executeMapString, sanitiseMapString} = require("./input")
-        await executeMapString(sanitiseMapString(
+        await executeMapString(await sanitiseMapString(
             src, args.join(" "), true), true, {"initial": true, src})
     }, 5)
 }
@@ -1858,46 +1900,50 @@ const callAction = (args, src) => {
  * Make Vieb the default browser of the operating system if possible.
  * @param {import("./common").RunSource} src
  */
-const makedefault = src => {
+const makedefault = async src => {
     if (process.execPath.endsWith("electron")) {
-        notify({"id": "commands.makedefault.installed", src, "type": "error"})
+        await notify({
+            "id": "commands.makedefault.installed", src, "type": "error"
+        })
         return
     }
-    ipcRenderer.send("make-default-app")
+    await ipcRenderer.invoke("make-default-app")
     if (process.platform === "linux" || process.platform.includes("bsd")) {
         execCommand(
-            "xdg-settings set default-web-browser vieb.desktop", err => {
+            "xdg-settings set default-web-browser vieb.desktop", async err => {
                 if (err?.message) {
-                    notify({
+                    await notify({
                         "fields": [err.message],
                         "id": "commands.makedefault.failed",
                         src,
                         "type": "error"
                     })
                 }
-            })
+            }).catch(() => null)
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
             getAppRootDir(), "defaultapp/windows.bat"))
-        const tempFile = joinPath(appData(), "defaultapp.bat")
+        const tempFile = joinPath(await appData(), "defaultapp.bat")
         if (scriptContents) {
             writeFile(tempFile, scriptContents)
         }
         execCommand(`Powershell Start ${tempFile} -ArgumentList `
-            + `"""${process.execPath}""" -Verb Runas`, err => {
+            + `"""${process.execPath}""" -Verb Runas`, async err => {
             if (err?.message) {
-                notify({
+                await notify({
                     "fields": [err.message],
                     "id": "commands.makedefault.failed",
                     src,
                     "type": "error"
                 })
             }
-        })
+        }).catch(() => null)
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
-        notify({"id": "commands.makedefault.other", src, "type": "warning"})
+        await notify({
+            "id": "commands.makedefault.other", src, "type": "warning"
+        })
     }
 }
 
@@ -1948,21 +1994,22 @@ const rclose = async(src, force = false) => {
  * @param {string} raw
  * @param {string} range
  */
-const runjsinpage = (src, raw, range) => {
+const runjsinpage = async(src, raw, range) => {
     let javascript = raw.split(" ").slice(1).join(" ")
     const filePath = expandPath(javascript)
     if (isAbsolutePath(filePath)) {
         javascript = readFile(filePath) || javascript
     }
     if (range) {
-        for (const tabId of rangeToTabIdxs(src, range).tabs) {
+        const tabIdx = await rangeToTabIdxs(src, range)
+        for (const tabId of tabIdx.tabs) {
             const page = pageForTab(listTabs()[tabId])
             if (page && !(page instanceof HTMLDivElement)) {
-                page.executeJavaScript(javascript, true).catch(() => null)
+                await page.executeJavaScript(javascript, true)
             }
         }
     } else {
-        currentPage()?.executeJavaScript(javascript, true).catch(() => null)
+        await currentPage()?.executeJavaScript(javascript, true)
     }
 }
 
@@ -1981,7 +2028,7 @@ const tabnew = async(src, session = null, url = null) => {
      */
     const options = {src}
     if (url?.trim()) {
-        options.url = stringToUrl(url)
+        options.url = await stringToUrl(url)
     }
     if (session?.trim()) {
         options.session = session
@@ -1994,17 +2041,17 @@ const tabnew = async(src, session = null, url = null) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const marks = (src, args) => {
+const marks = async(src, args) => {
     if (args.length > 2) {
-        notify({"id": "commands.marks.argCount", src, "type": "warning"})
+        await notify({"id": "commands.marks.argCount", src, "type": "warning"})
         return
     }
     if (args.length === 2) {
         const {makeMark} = require("./actions")
         if (isUrl(args[1])) {
-            makeMark({"key": args[0], src, "url": args[1]})
+            await makeMark({"key": args[0], src, "url": args[1]})
         } else {
-            notify({
+            await notify({
                 "fields": [args[1]],
                 "id": "commands.marks.url",
                 src,
@@ -2017,7 +2064,7 @@ const marks = (src, args) => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
@@ -2040,17 +2087,17 @@ const marks = (src, args) => {
     }
     if (relevantMarks.length === 0) {
         if (args.length > 0 && Object.keys(qm.marks ?? {}).length > 0) {
-            notify({
+            await notify({
                 "fields": args,
                 "id": "commands.marks.noKey",
                 src,
                 "type": "warning"
             })
         } else {
-            notify({"id": "commands.marks.none", src, "type": "warning"})
+            await notify({"id": "commands.marks.none", src, "type": "warning"})
         }
     } else {
-        notify({
+        await notify({
             "fields": [relevantMarks.join("\n")],
             "id": "commands.marks.list",
             src,
@@ -2066,11 +2113,15 @@ const marks = (src, args) => {
  */
 const restoremark = async(src, args) => {
     if (args.length > 2) {
-        notify({"id": "commands.restoremark.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.restoremark.argCount", src, "type": "warning"
+        })
         return
     }
     if (args.length === 0) {
-        notify({"id": "commands.restoremark.keyname", src, "type": "warning"})
+        await notify({
+            "id": "commands.restoremark.keyname", src, "type": "warning"
+        })
         return
     }
     const {restoreMark} = require("./actions")
@@ -2086,7 +2137,7 @@ const restoremark = async(src, args) => {
     if (isValidPosition(position)) {
         await restoreMark({key, position, src})
     } else {
-        notify({
+        await notify({
             "fields": [
                 position, argsAsHumanList(validOptions.markpositionshifted)
             ],
@@ -2103,30 +2154,34 @@ const restoremark = async(src, args) => {
  * @param {boolean} all
  * @param {string[]} args
  */
-const delmarks = (src, all, args) => {
+const delmarks = async(src, all, args) => {
     if (all && args.length > 0) {
-        notify({"id": "commands.delmarks.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.delmarks.argCount", src, "type": "warning"
+        })
         return
     }
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (all) {
         qm.marks = {}
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
         return
     }
     if (args.length !== 1) {
-        notify({"id": "commands.delmarks.keyname", src, "type": "warning"})
+        await notify({
+            "id": "commands.delmarks.keyname", src, "type": "warning"
+        })
         return
     }
     const [key] = args
     if (qm.marks?.[key] !== undefined) {
         delete qm.marks[key]
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
@@ -2136,7 +2191,9 @@ const delmarks = (src, all, args) => {
  */
 const scrollpos = async(src, args) => {
     if (args.length > 3) {
-        notify({"id": "commands.scrollpos.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.scrollpos.argCount", src, "type": "warning"
+        })
         return
     }
     if (args.length === 2 || args.length === 3) {
@@ -2150,7 +2207,7 @@ const scrollpos = async(src, args) => {
                 path = pathOrPixels
             }
             if (Number.isNaN(pixels)) {
-                notify({
+                await notify({
                     "fields": [pixelsOrPath],
                     "id": "commands.scrollpos.pixels",
                     src,
@@ -2169,7 +2226,7 @@ const scrollpos = async(src, args) => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -2209,17 +2266,19 @@ const scrollpos = async(src, args) => {
         const notEmpty = Object.keys(qm.scroll.global).length > 0
             || Object.keys(qm.scroll.local).length > 0
         if (args.length > 0 && notEmpty) {
-            notify({
+            await notify({
                 "fields": args,
                 "id": "commands.scrollpos.noKey",
                 src,
                 "type": "warning"
             })
         } else {
-            notify({"id": "commands.scrollpos.none", src, "type": "warning"})
+            await notify({
+                "id": "commands.scrollpos.none", src, "type": "warning"
+            })
         }
     } else {
-        notify({
+        await notify({
             "fields": [relevantPos.join("\n")],
             "id": "commands.scrollpos.list",
             src
@@ -2232,22 +2291,22 @@ const scrollpos = async(src, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const restorescrollpos = (src, args) => {
+const restorescrollpos = async(src, args) => {
     if (args.length > 2) {
-        notify({
+        await notify({
             "id": "commands.restorescrollpos.argCount", src, "type": "warning"
         })
         return
     }
     if (args.length === 0) {
-        notify({
+        await notify({
             "id": "commands.restorescrollpos.keyname", src, "type": "warning"
         })
         return
     }
     const {restoreScrollPos} = require("./actions")
     const [key, path] = args
-    restoreScrollPos({key, path, src})
+    await restoreScrollPos({key, path, src})
 }
 
 /**
@@ -2256,27 +2315,28 @@ const restorescrollpos = (src, args) => {
  * @param {boolean} all
  * @param {string[]} args
  */
-const delscrollpos = (src, all, args) => {
+const delscrollpos = async(src, all, args) => {
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
-    const scrollPosId = getSetting("scrollposlocalid")
+    const scrollPosId = await getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
-        path = domainName(urlToString(currentPage()?.src ?? ""))
+        path = domainName(await urlToString(currentPage()?.src ?? ""))
             || domainName(currentPage()?.src ?? "") || ""
     }
     if (scrollPosId === "url" || !path) {
-        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+        path = await urlToString(currentPage()?.src ?? "")
+            || currentPage()?.src || ""
     }
     if (all) {
         if (args.length > 1) {
-            notify({
+            await notify({
                 "id": "commands.deletescrollpos.overridePath",
                 src,
                 "type": "warning"
@@ -2296,17 +2356,17 @@ const delscrollpos = (src, all, args) => {
         } else {
             delete qm.scroll.local[path]
         }
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
         return
     }
     if (args.length === 0) {
-        notify({
+        await notify({
             "id": "commands.deletescrollpos.toofew", src, "type": "warning"
         })
         return
     }
     if (args.length > 2) {
-        notify({
+        await notify({
             "id": "commands.deletescrollpos.toomany", src, "type": "warning"
         })
         return
@@ -2336,7 +2396,7 @@ const delscrollpos = (src, all, args) => {
         && Object.keys(qm.scroll.global).length === 0) {
         delete qm.scroll
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
@@ -2344,9 +2404,11 @@ const delscrollpos = (src, all, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const pointerpos = (src, args) => {
+const pointerpos = async(src, args) => {
     if (args.length > 4) {
-        notify({"id": "commands.pointerpos.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.pointerpos.argCount", src, "type": "warning"
+        })
         return
     }
     if (args.length > 1) {
@@ -2354,19 +2416,19 @@ const pointerpos = (src, args) => {
         const [key, x, y, path] = args
         const location = {"x": Number(x), "y": Number(y)}
         if (Number.isNaN(location.x) || Number.isNaN(location.y)) {
-            notify({
+            await notify({
                 "id": "commands.pointerpos.location", src, "type": "warning"
             })
             return
         }
-        storePos({key, location, path})
+        await storePos({key, location, path})
         return
     }
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
@@ -2413,17 +2475,19 @@ const pointerpos = (src, args) => {
         const notEmpty = Object.keys(qm.pointer.global).length > 0
             || Object.keys(qm.pointer.local).length > 0
         if (args.length > 0 && notEmpty) {
-            notify({
+            await notify({
                 "fields": args,
                 "id": "commands.pointerpos.noKey",
                 src,
                 "type": "warning"
             })
         } else {
-            notify({"id": "commands.pointerpos.none", src, "type": "warning"})
+            await notify({
+                "id": "commands.pointerpos.none", src, "type": "warning"
+            })
         }
     } else {
-        notify({
+        await notify({
             "fields": [relevantPos.join("\n")],
             "id": "commands.pointerpos.list",
             src
@@ -2436,22 +2500,22 @@ const pointerpos = (src, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const restorepointerpos = (src, args) => {
+const restorepointerpos = async(src, args) => {
     if (args.length > 2) {
-        notify({
+        await notify({
             "id": "commands.restorepointerpos.argCount", src, "type": "warning"
         })
         return
     }
     if (args.length === 0) {
-        notify({
+        await notify({
             "id": "commands.restorepointerpos.keyname", src, "type": "warning"
         })
         return
     }
     const {restorePos} = require("./pointer")
     const [key, path] = args
-    restorePos({key, path})
+    await restorePos({key, path})
 }
 
 /**
@@ -2460,27 +2524,28 @@ const restorepointerpos = (src, args) => {
  * @param {boolean} all
  * @param {string[]} args
  */
-const delpointerpos = (src, all, args) => {
+const delpointerpos = async(src, all, args) => {
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
-    const pointerPosId = getSetting("pointerposlocalid")
+    const pointerPosId = await getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {
-        path = domainName(urlToString(currentPage()?.src ?? ""))
+        path = domainName(await urlToString(currentPage()?.src ?? ""))
             || domainName(currentPage()?.src ?? "") || ""
     }
     if (pointerPosId === "url" || !path) {
-        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+        path = await urlToString(currentPage()?.src ?? "")
+            || currentPage()?.src || ""
     }
     if (all) {
         if (args.length > 1) {
-            notify({
+            await notify({
                 "id": "commands.deletepointerpos.overridePath",
                 src,
                 "type": "warning"
@@ -2500,17 +2565,17 @@ const delpointerpos = (src, all, args) => {
         } else {
             delete qm.pointer.local[path]
         }
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        writeJSON(joinPath(await appData(), "quickmarks"), qm)
         return
     }
     if (args.length === 0) {
-        notify({
+        await notify({
             "id": "commands.deletepointerpos.toofew", src, "type": "warning"
         })
         return
     }
     if (args.length > 2) {
-        notify({
+        await notify({
             "id": "commands.deletepointerpos.toomany", src, "type": "warning"
         })
         return
@@ -2540,7 +2605,7 @@ const delpointerpos = (src, all, args) => {
         && Object.keys(qm.pointer.global).length === 0) {
         delete qm.pointer
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
@@ -2548,15 +2613,16 @@ const delpointerpos = (src, all, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const translatepage = (src, args) => {
+const translatepage = async(src, args) => {
     if (args.length > 1) {
-        notify({
+        await notify({
             "id": "commands.translatepage.argCount", src, "type": "warning"
         })
         return
     }
-    const url = getSetting("translateurl").replace(/\/*$/g, "")
-    let api = getSetting("translateapi")
+    const translateUrl = await getSetting("translateurl")
+    const url = translateUrl.replace(/\/*$/g, "")
+    let api = await getSetting("translateapi")
     if (api === "auto") {
         if (url.includes("deepl.com")) {
             api = "deepl"
@@ -2564,15 +2630,17 @@ const translatepage = (src, args) => {
             api = "libretranslate"
         }
     }
-    const apiKey = getSetting("translatekey").trim()
+    const apiKey = await getSetting("translatekey")
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
-        notify({"id": "commands.translatepage.apiKey", src, "type": "warning"})
+        await notify({
+            "id": "commands.translatepage.apiKey", src, "type": "warning"
+        })
         return
     }
     const {validOptions} = require("./settings")
     let [lang] = args
     if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
-        notify({
+        await notify({
             "fields": [lang],
             "id": "commands.translatepage.language",
             src,
@@ -2580,7 +2648,7 @@ const translatepage = (src, args) => {
         })
         return
     }
-    lang = lang?.toLowerCase() ?? getSetting("translatelang")
+    lang = lang?.toLowerCase() ?? await getSetting("translatelang")
     if (lang === "jp") {
         lang = "ja"
     }
@@ -2609,19 +2677,25 @@ const translatepage = (src, args) => {
  */
 const clear = async(src, type, interval, trailingArgs = null) => {
     if (trailingArgs) {
-        notify({"id": "commands.clear.argCount", src, "type": "warning"})
+        await notify({"id": "commands.clear.argCount", src, "type": "warning"})
         return
     }
     if (!type) {
-        notify({"id": "commands.clear.typeMissing", src, "type": "warning"})
+        await notify({
+            "id": "commands.clear.typeMissing", src, "type": "warning"
+        })
         return
     }
     if (!interval) {
-        notify({"id": "commands.clear.intervalMissing", src, "type": "warning"})
+        await notify({
+            "id": "commands.clear.intervalMissing", src, "type": "warning"
+        })
         return
     }
     if (!["history"].includes(type)) {
-        notify({"id": "commands.clear.typeInvalid", src, "type": "warning"})
+        await notify({
+            "id": "commands.clear.typeInvalid", src, "type": "warning"
+        })
         return
     }
     if (type === "history") {
@@ -2640,7 +2714,7 @@ const clear = async(src, type, interval, trailingArgs = null) => {
             const {removeHistoryByPartialUrl} = require("./history")
             await removeHistoryByPartialUrl(interval)
         } else {
-            notify({
+            await notify({
                 "id": "commands.clear.intervalInvalid", src, "type": "warning"
             })
         }
@@ -2761,9 +2835,9 @@ const commands = {
     "notifications": ({src}) => openSpecialPage(src, "notifications", false),
     "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
     "o": ({args, src}) => open(src, args),
-    "only": () => {
+    "only": async() => {
         const {only} = require("./pagelayout")
-        only()
+        await only()
     },
     "open": ({args, src}) => open(src, args),
     "pin": ({args, range, src}) => pin(src, args, range),
@@ -2785,33 +2859,35 @@ const commands = {
     "s": ({args, src}) => setCommand(src, args),
     "screencopy": ({args, src}) => screencopy(src, args),
     "screenshot": ({args, src}) => screenshot(src, args),
-    "scriptnames": ({args, src}) => {
+    "scriptnames": async({args, src}) => {
         if (args?.length) {
-            notify({
+            await notify({
                 "id": "commands.scriptnames.noArgs", src, "type": "warning"
             })
             return
         }
-        const names = appConfig()?.files.map(
+        const config = await appConfig()
+        const names = config?.files.map(
             (f, i) => `${i + 1}: ${f}`).join("\n") ?? ""
-        notify({"fields": [names], "id": "util.untranslated", src})
+        await notify({"fields": [names], "id": "util.untranslated", src})
     },
-    "scriptnames!": ({args, src}) => {
-        const scripts = [...appConfig()?.files ?? [], ...sourcedFiles]
+    "scriptnames!": async({args, src}) => {
+        const config = await appConfig()
+        const scripts = [...config?.files ?? [], ...sourcedFiles]
         if (args.length === 0) {
             const names = scripts.map((f, i) => `${i + 1}: ${f}`).join("\n")
-            notify({"fields": [names], "id": "util.untranslated", src})
+            await notify({"fields": [names], "id": "util.untranslated", src})
         } else if (args.length === 1) {
             const number = Number(args[0])
             if (Number.isNaN(number)) {
-                notify({
+                await notify({
                     "id": "commands.scriptnames.argType", src, "type": "warning"
                 })
                 return
             }
             const script = scripts[number - 1]
             if (!script) {
-                notify({
+                await notify({
                     "fields": [String(number)],
                     "id": "commands.scriptnames.notFound",
                     src,
@@ -2819,17 +2895,18 @@ const commands = {
                 })
                 return
             }
-            execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
-                if (err) {
-                    notify({
-                        "id": "commands.scriptnames.editor",
-                        src,
-                        "type": "error"
-                    })
-                }
-            })
+            await execCommand(`${await getSetting("vimcommand")} "${script}"`,
+                async err => {
+                    if (err) {
+                        await notify({
+                            "id": "commands.scriptnames.editor",
+                            src,
+                            "type": "error"
+                        })
+                    }
+                })
         } else {
-            notify({
+            await notify({
                 "id": "commands.scriptnames.singleArg",
                 src,
                 "type": "error"
@@ -2838,34 +2915,34 @@ const commands = {
     },
     "scrollpos": ({args, src}) => scrollpos(src, args),
     "set": ({args, src}) => setCommand(src, args),
-    "Sexplore": ({args, range, src}) => addSplit({
+    "Sexplore": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitbelow"),
+        "leftOrAbove": !await getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
         "switchTo": true
     }),
-    "Sexplore!": ({args, range, src}) => addSplit({
+    "Sexplore!": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitbelow"),
+        "leftOrAbove": !await getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
         "switchTo": false
     }),
     "source": ({args, src}) => source(src, null, args),
-    "split": ({args, range, src}) => addSplit({
+    "split": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitbelow"),
+        "leftOrAbove": !await getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
         "switchTo": true
     }),
-    "split!": ({args, range, src}) => addSplit({
+    "split!": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitbelow"),
+        "leftOrAbove": !await getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
@@ -2881,33 +2958,33 @@ const commands = {
     "v!": ({src}) => openSpecialPage(src, "version", true),
     "version": ({src}) => openSpecialPage(src, "version", false),
     "version!": ({src}) => openSpecialPage(src, "version", true),
-    "Vexplore": ({args, range, src}) => addSplit({
+    "Vexplore": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitright"),
+        "leftOrAbove": !await getSetting("splitright"),
         "method": "hor",
         range,
         src,
         "switchTo": true
     }),
-    "Vexplore!": ({args, range, src}) => addSplit({
+    "Vexplore!": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitright"),
+        "leftOrAbove": !await getSetting("splitright"),
         "method": "hor",
         range,
         src,
         "switchTo": false
     }),
-    "vsplit": ({args, range, src}) => addSplit({
+    "vsplit": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitright"),
+        "leftOrAbove": !await getSetting("splitright"),
         "method": "hor",
         range,
         src,
         "switchTo": true
     }),
-    "vsplit!": ({args, range, src}) => addSplit({
+    "vsplit!": async({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !getSetting("splitright"),
+        "leftOrAbove": !await getSetting("splitright"),
         "method": "hor",
         range,
         src,
@@ -2961,9 +3038,11 @@ for (const prefix of " nicsefpvm") {
  * @param {boolean} overwrite
  * @param {string[]} args
  */
-const addCommand = (src, overwrite, args) => {
+const addCommand = async(src, overwrite, args) => {
     if (overwrite && args.length < 2) {
-        notify({"id": "commands.command.combined", src, "type": "warning"})
+        await notify({
+            "id": "commands.command.combined", src, "type": "warning"
+        })
         return
     }
     if (args.length === 0) {
@@ -2972,25 +3051,25 @@ const addCommand = (src, overwrite, args) => {
                 "commands.command.listSingle", {"fields": [c, value]})
             ).join("\n").trim()
         if (commandString) {
-            notify({
+            await notify({
                 "fields": [commandString], "id": "commands.command.list", src
             })
         } else {
-            notify({"id": "commands.command.none", src})
+            await notify({"id": "commands.command.none", src})
         }
         return
     }
     const command = args[0].replace(/^[ "':]*/, "")
     if (command.includes("/") || command.includes("\\")) {
-        notify({"id": "commands.command.slashes", src, "type": "warning"})
+        await notify({"id": "commands.command.slashes", src, "type": "warning"})
         return
     }
     if (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
-        notify({"id": "commands.command.special", src, "type": "warning"})
+        await notify({"id": "commands.command.special", src, "type": "warning"})
         return
     }
     if (commands[command]) {
-        notify({
+        await notify({
             "fields": [command],
             "id": "commands.command.builtin",
             src,
@@ -3001,13 +3080,13 @@ const addCommand = (src, overwrite, args) => {
     const params = args.slice(1)
     if (params.length === 0) {
         if (userCommands[command]) {
-            notify({
+            await notify({
                 "fields": [command, userCommands[command]],
                 "id": "commands.command.listSingle",
                 src
             })
         } else {
-            notify({
+            await notify({
                 "fields": [command],
                 "id": "commands.command.missing",
                 src,
@@ -3017,7 +3096,7 @@ const addCommand = (src, overwrite, args) => {
         return
     }
     if (!overwrite && userCommands[command]) {
-        notify({
+        await notify({
             "fields": [command],
             "id": "commands.command.duplicate",
             src,
@@ -3026,7 +3105,7 @@ const addCommand = (src, overwrite, args) => {
         return
     }
     const {sanitiseMapString} = require("./input")
-    userCommands[command] = sanitiseMapString(src, params.join(" "), true)
+    userCommands[command] = await sanitiseMapString(src, params.join(" "), true)
 }
 
 /**
@@ -3034,16 +3113,18 @@ const addCommand = (src, overwrite, args) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const deleteCommand = (src, args) => {
+const deleteCommand = async(src, args) => {
     if (args.length !== 1) {
-        notify({"id": "commands.delcommand.argCount", src, "type": "warning"})
+        await notify({
+            "id": "commands.delcommand.argCount", src, "type": "warning"
+        })
         return
     }
     const command = args[0].replace(/^[ "':]*/, "")
     if (userCommands[command]) {
         delete userCommands[args[0]]
     } else {
-        notify({
+        await notify({
             "fields": [command],
             "id": "commands.delcommand.missing",
             src,
@@ -3176,16 +3257,22 @@ const getPageTitle = () => currentTab()?.querySelector("span")
     ?.textContent ?? ""
 
 /** Return the page url as a URL object. */
-const getPageUrlClass = () => {
+const getPageUrlClass = async() => {
     const {getPageUrl} = require("./actions")
-    return new URL(getPageUrl())
+    return new URL(await getPageUrl())
 }
 
 /** Return the current page url origin. */
-const getPageOrigin = () => getPageUrlClass().origin
+const getPageOrigin = async() => {
+    const pageUrl = await getPageUrlClass()
+    return pageUrl.origin
+}
 
 /** Return the current page url domain. */
-const getPageDomain = () => getPageUrlClass().host
+const getPageDomain = async() => {
+    const pageUrl = await getPageUrlClass()
+    return pageUrl.host
+}
 
 /**
  * Execute a command.
@@ -3211,35 +3298,37 @@ const execute = async(com, opts = {}) => {
         && holdUseCommands.every(command => !commandStr.startsWith(command))) {
         const {getPageUrl} = require("./actions")
         // Replace all occurrences of <useCurrent for their values
-        commandStr = commandStr.replace("<useCurrentUrl>", `${getPageUrl()}`)
-            .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
+        commandStr = commandStr.replace("<useCurrentUrl>",
+            `${await getPageUrl()}`)
+            .replace("<useCurrentOrigin>", `${await getPageOrigin()}`)
             .replace("<useCurrentTitle>", `${getPageTitle()}`)
-            .replace("<useCurrentDomain>", `${getPageDomain()}`)
+            .replace("<useCurrentDomain>", `${await getPageDomain()}`)
     }
     const {push} = require("./commandhistory")
-    push(commandStr, src === "user")
+    await push(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
-            execCommand(commandStr.replace("!", ""), (err, stdout) => {
-                const reportExit = getSetting("notificationforsystemcommands")
+            await execCommand(commandStr.replace("!", ""), async(err, out) => {
+                const reportExit = await getSetting(
+                    "notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify({
+                    await notify({
                         "fields": [`${err}`],
                         "id": "actions.command.failed",
                         src,
                         "type": "error"
                     })
                 } else if (reportExit === "all") {
-                    const output = stdout.toString()
+                    const output = out.toString()
                     if (output) {
-                        notify({
+                        await notify({
                             "fields": [output],
                             "id": "actions.command.successWithOutput",
                             src,
                             "type": "success"
                         })
                     } else {
-                        notify({
+                        await notify({
                             "id": "actions.command.success",
                             src,
                             "type": "success"
@@ -3255,14 +3344,14 @@ const execute = async(com, opts = {}) => {
     const {args, confirm, error, range, valid} = p
     if (!valid) {
         if ("set".startsWith(command)) {
-            notify({
+            await notify({
                 "fields": [commandStr, error ?? ""],
                 "id": "commands.execute.invalidJSON",
                 src,
                 "type": "warning"
             })
         } else {
-            notify({
+            await notify({
                 "fields": [commandStr],
                 "id": "commands.execute.unmatched",
                 src,
@@ -3281,7 +3370,7 @@ const execute = async(com, opts = {}) => {
         if (command === "source" && opts.settingsFile) {
             await source(src, opts.settingsFile, args)
         } else if (noArgumentComands.includes(command) && args.length > 0) {
-            notify({
+            await notify({
                 "fields": [command],
                 "id": "commands.execute.argCount",
                 src,
@@ -3289,7 +3378,7 @@ const execute = async(com, opts = {}) => {
             })
         } else if (commands[command]) {
             if (!rangeCompatibleCommands.includes(command) && range) {
-                notify({
+                await notify({
                     "fields": [command],
                     "id": "commands.execute.noRange",
                     src,
@@ -3300,7 +3389,7 @@ const execute = async(com, opts = {}) => {
             if (confirm) {
                 command += "!"
                 if (!commands[command]) {
-                    notify({
+                    await notify({
                         "fields": [command.slice(0, -1)],
                         "id": "commands.execute.noConfirm",
                         src,
@@ -3318,14 +3407,14 @@ const execute = async(com, opts = {}) => {
             }, 5)
         }
     } else if (matches.length > 1) {
-        notify({
+        await notify({
             "fields": [command],
             "id": "commands.execute.ambiguous",
             src,
             "type": "warning"
         })
     } else {
-        notify({
+        await notify({
             "fields": [command],
             "id": "commands.execute.notFound",
             src,

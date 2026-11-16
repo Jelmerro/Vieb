@@ -76,7 +76,7 @@ const removeRedundantContainers = () => {
 }
 
 /** Apply all layout changes from the div elements to the actual webviews. */
-const applyLayout = () => {
+const applyLayout = async() => {
     const pagelayout = document.getElementById("pagelayout")
     if (!pagelayout) {
         return
@@ -148,9 +148,10 @@ const applyLayout = () => {
     const susCall = async(tab, linkId, timeout) => {
         const index = listTabs().indexOf(tab)
         let shouldSuspend = true
-        for (const ignore of getSetting("suspendtimeoutignore")) {
+        for (const ignore of await getSetting("suspendtimeoutignore")) {
             const {rangeToTabIdxs} = require("./command")
-            if (rangeToTabIdxs("other", ignore).tabs.includes(index)) {
+            const tabIdx = await rangeToTabIdxs("other", ignore)
+            if (tabIdx.tabs.includes(index)) {
                 shouldSuspend = false
             }
         }
@@ -163,7 +164,7 @@ const applyLayout = () => {
                 () => susCall(tab, linkId, timeout), timeout)
         }
     }
-    const timeout = getSetting("suspendtimeout")
+    const timeout = await getSetting("suspendtimeout")
     for (const tab of listTabs()) {
         const linkId = tab.getAttribute("link-id") ?? ""
         if (visibleTabs.includes(tab)) {
@@ -205,7 +206,7 @@ const applyLayout = () => {
  * @param {Electron.WebviewTag|HTMLDivElement|null} oldViewOrId
  * @param {Electron.WebviewTag|HTMLDivElement} newView
  */
-const switchView = (oldViewOrId, newView) => {
+const switchView = async(oldViewOrId, newView) => {
     const pagelayoutEl = document.getElementById("pagelayout")
     const oldId = oldViewOrId?.getAttribute("link-id")
     const newId = newView.getAttribute("link-id") ?? "none"
@@ -219,7 +220,7 @@ const switchView = (oldViewOrId, newView) => {
         singleView.setAttribute("link-id", newId)
         pagelayoutEl.append(singleView)
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /**
@@ -285,7 +286,7 @@ const hide = async(view, close = false) => {
         }
         view.remove()
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /**
@@ -294,7 +295,7 @@ const hide = async(view, close = false) => {
  * @param {"ver"|"hor"} method
  * @param {boolean} leftOrAbove
  */
-const add = (viewOrId, method, leftOrAbove) => {
+const add = async(viewOrId, method, leftOrAbove) => {
     const pagelayoutEl = document.getElementById("pagelayout")
     if (!pagelayoutEl) {
         return
@@ -346,11 +347,11 @@ const add = (viewOrId, method, leftOrAbove) => {
             element.style.flexGrow = ""
         }
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /** Rotate the current subelement forward in the current split. */
-const rotateForward = () => {
+const rotateForward = async() => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -360,11 +361,11 @@ const rotateForward = () => {
     if (parent?.lastChild) {
         parent?.insertBefore(parent?.lastChild, parent.firstChild)
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /** Rotate the current subelement backward in the current split. */
-const rotateReverse = () => {
+const rotateReverse = async() => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -374,7 +375,7 @@ const rotateReverse = () => {
     if (parent?.firstChild) {
         parent?.append(parent.firstChild)
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /** Exchange the current split position for the next on in the split list. */
@@ -407,24 +408,24 @@ const exchange = async() => {
         const {switchToTab} = require("./tabs")
         await switchToTab(tab)
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /** Remove any custom grow CSS rules to reset all custom split sizes. */
-const resetResizing = () => {
+const resetResizing = async() => {
     for (const element of document.querySelectorAll("#pagelayout *")) {
         if (element instanceof HTMLElement) {
             element.style.flexGrow = ""
         }
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /**
  * Move a split to the top of the layout grid.
  * @param {"top"|"left"|"right"|"bottom"} direction
  */
-const toTop = direction => {
+const toTop = async direction => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -460,7 +461,7 @@ const toTop = direction => {
             layout.append(current)
         }
     }
-    resetResizing()
+    await resetResizing()
 }
 
 /**
@@ -515,7 +516,7 @@ const moveFocus = async direction => {
  * @param {"ver"|"hor"} orientation
  * @param {"grow"|"shrink"} change
  */
-const resize = (orientation, change) => {
+const resize = async(orientation, change) => {
     removeRedundantContainers()
     if (!document.getElementById("pages")?.classList.contains("multiple")) {
         return
@@ -567,7 +568,7 @@ const resize = (orientation, change) => {
     if (element instanceof HTMLElement) {
         element.style.flexGrow = `${flexGrow}`
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /** Go to the first split based on position in the list. */
@@ -626,7 +627,7 @@ const lastSplit = async() => {
 }
 
 /** Make the current split/page the only visible one by hiding all others. */
-const only = () => {
+const only = async() => {
     const linkId = currentPage()?.getAttribute("link-id") ?? ""
     const singleView = document.createElement("div")
     singleView.setAttribute("link-id", linkId)
@@ -635,14 +636,14 @@ const only = () => {
         pagelayoutEl.textContent = ""
         pagelayoutEl.append(singleView)
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /**
  * Add an id to the last used tab id list.
  * @param {string|null} id
  */
-const setLastUsedTab = id => {
+const setLastUsedTab = async id => {
     if (recentlySwitched || !id) {
         return
     }
@@ -651,17 +652,17 @@ const setLastUsedTab = id => {
         recentlySwitched = true
         setTimeout(() => {
             recentlySwitched = false
-        }, getSetting("timeoutlen"))
+        }, await getSetting("timeoutlen"))
     }
 }
 
 /** Restart all suspend timeouts when the setting is changed. */
-const restartSuspendTimeouts = () => {
+const restartSuspendTimeouts = async() => {
     for (const linkId of Object.keys(timers)) {
         clearTimeout(timers[linkId])
         delete timers[linkId]
     }
-    applyLayout()
+    await applyLayout()
 }
 
 /** Show the scrollbar for all pages. */
@@ -691,9 +692,9 @@ const hideScrollbar = () => {
  * Reset the scrollbar time based on an event.
  * @param {"none"|"scroll"|"move"} event
  */
-const resetScrollbarTimer = (event = "none") => {
-    const setting = getSetting("guiscrollbar")
-    const timeout = getSetting("guihidetimeout")
+const resetScrollbarTimer = async(event = "none") => {
+    const setting = await getSetting("guiscrollbar")
+    const timeout = await getSetting("guihidetimeout")
     if (setting === "onmove" || setting === "onscroll") {
         if (event === "scroll" || setting === "onmove" && event !== "none") {
             clearTimeout(scrollbarHideTimer ?? undefined)

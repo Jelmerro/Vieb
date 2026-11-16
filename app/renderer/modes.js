@@ -20,7 +20,6 @@
 const {
     currentMode,
     currentPage,
-    getMouseConf,
     getUrl,
     guiRelatedUpdate,
     updateScreenshotHighlight
@@ -30,25 +29,27 @@ const {
 /* eslint-disable perfectionist/sort-objects */
 /**
  * @type {{[K in import("./common").Mode]: {
- *   onLeave?: (newMode: import("./common").Mode) => void, onEnter?: () => void
+ *   onLeave?: (newMode: import("./common").Mode) => Promise<void>|void,
+ *   onEnter?: () => Promise<void>|void
  * }}}
  */
 const modes = {
     "normal": {},
     "insert": {
         /** When entering or leaving insert mode, reset the leave timeout. */
-        "onEnter": () => {
+        "onEnter": async() => {
             const {resetInsertLeaveTimeout} = require("./input")
-            resetInsertLeaveTimeout()
+            await resetInsertLeaveTimeout()
         },
         /**
          * When leaving insert mode, all page elements should be unfocused.
          * @param {import("./common").Mode} newMode
          */
-        "onLeave": newMode => {
+        "onLeave": async newMode => {
             if (currentPage()?.hasAttribute("dom-ready")) {
                 currentPage()?.send("action", "blur").catch(() => null)
             }
+            const {getMouseConf} = require("./settings")
             if (newMode !== "pointer" && !getMouseConf("pageoutsideinsert")) {
                 const hoverEl = document.getElementById("url-hover")
                 if (hoverEl) {
@@ -57,7 +58,7 @@ const modes = {
                 }
             }
             const {resetInsertLeaveTimeout} = require("./input")
-            resetInsertLeaveTimeout()
+            await resetInsertLeaveTimeout()
         }
     },
     "command": {
@@ -92,28 +93,28 @@ const modes = {
             resetInputHistory()
         },
         /** Clear any temporary searches and remove selection. */
-        "onLeave": () => {
+        "onLeave": async() => {
             const url = getUrl()
             const {resetIncrementalSearch} = require("./actions")
-            resetIncrementalSearch({"src": "user"})
+            await resetIncrementalSearch({"src": "user"})
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
         }
     },
     "explore": {
         /** Select the url value and restart explore history. */
-        "onEnter": () => {
+        "onEnter": async() => {
             const url = getUrl()
             const {updateUrl} = require("./tabs")
             const page = currentPage()
             if (page) {
-                updateUrl(page, true)
+                await updateUrl(page, true)
             }
             const {resetPosition} = require("./explorehistory")
             resetPosition()
             const {resetInputHistory, requestSuggestUpdate} = require("./input")
             resetInputHistory()
-            requestSuggestUpdate()
+            await requestSuggestUpdate()
             if (!document.getSelection()?.toString() && url) {
                 url.select()
             }
@@ -151,6 +152,7 @@ const modes = {
                 const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
+            const {getMouseConf} = require("./settings")
             if (newMode !== "insert" && !getMouseConf("pageoutsideinsert")) {
                 const hoverEl = document.getElementById("url-hover")
                 if (hoverEl) {
@@ -179,7 +181,7 @@ const modes = {
  * Set the current mode.
  * @param {import("./common").Mode} mode
  */
-const setMode = mode => {
+const setMode = async mode => {
     const page = currentPage()
     if (!modes[mode] || currentMode() === mode || !page) {
         return
@@ -188,16 +190,16 @@ const setMode = mode => {
         && page.isCrashed() && "fipv".includes(mode[0])) {
         return
     }
-    modes[currentMode()].onLeave?.(mode)
+    await modes[currentMode()].onLeave?.(mode)
     const modeEl = document.getElementById("mode")
     if (modeEl) {
         modeEl.textContent = mode
     }
     document.body.setAttribute("current-mode", mode)
-    modes[mode]?.onEnter?.()
-    guiRelatedUpdate("navbar")
+    await modes[mode]?.onEnter?.()
+    await guiRelatedUpdate("navbar")
     const {setFocusCorrectly} = require("./actions")
-    setFocusCorrectly()
+    await setFocusCorrectly()
 }
 
 /** Generate the mode suggestions dropdown with click actions. */
@@ -207,26 +209,26 @@ const init = () => {
         const modeEntry = document.createElement("div")
         modeEntry.textContent = mode
         modeEntry.className = `no-focus-reset ${mode}`
-        modeEntry.addEventListener("click", e => {
+        modeEntry.addEventListener("click", async e => {
+            e.preventDefault()
             if (currentMode() === mode) {
                 return
             }
             if (mode === "follow") {
                 const {startFollow} = require("./follow")
-                startFollow("current")
+                await startFollow("current")
             } else if (mode === "search") {
                 const {toSearchMode} = require("./actions")
-                toSearchMode({"src": "user"})
+                await toSearchMode({"src": "user"})
             } else if (mode === "pointer") {
                 const {start} = require("./pointer")
-                start()
+                await start()
             } else if (mode === "visual") {
                 const {startVisualSelect} = require("./pointer")
-                startVisualSelect()
+                await startVisualSelect()
             } else {
-                setMode(mode)
+                await setMode(mode)
             }
-            e.preventDefault()
         })
         modeList?.append(modeEntry)
     }

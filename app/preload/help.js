@@ -21,7 +21,6 @@ const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {appConfig, getAppRootDir, joinPath, readFile} = require("../util")
 
-const {icon} = appConfig() ?? {}
 const modes = [..."nicsefpvm"]
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allActionsByKeys = modes.reduce((a, m) => {
@@ -324,7 +323,8 @@ window.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".example-buttons")?.append(button)
     }
 })
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
+    const {icon} = await appConfig() ?? {}
     const mainImg = document.querySelector("img")
     if (icon && mainImg) {
         mainImg.src = icon

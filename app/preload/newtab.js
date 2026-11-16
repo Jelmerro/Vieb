@@ -26,7 +26,7 @@ const {urlToString} = require("../util")
  * @param {"topsites"|"favorites"} listname
  * @param {{url: string, icon?: string, name: string}} site
  */
-const addSiteToList = (listname, site) => {
+const addSiteToList = async(listname, site) => {
     const link = document.createElement("a")
     link.href = encodeURI(site.url)
     const icon = document.createElement("img")
@@ -37,13 +37,13 @@ const addSiteToList = (listname, site) => {
     title.textContent = site.name
     text.append(title)
     const url = document.createElement("small")
-    url.textContent = urlToString(site.url)
+    url.textContent = await urlToString(site.url)
     text.append(url)
     link.append(text)
     document.getElementById(listname)?.append(link)
 }
 
-ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
+ipcRenderer.on("insert-new-tab-info", async(_, topsites, favorites) => {
     document.body.style.display = "flex"
     const topsitesEl = document.getElementById("topsites")
     if (topsites?.length && topsitesEl) {
@@ -53,7 +53,7 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
         topsitesEl.textContent = ""
         topsitesEl.append(heading)
         for (const site of topsites) {
-            addSiteToList("topsites", site)
+            await addSiteToList("topsites", site)
         }
     }
     const favoritesEl = document.getElementById("favorites")
@@ -64,7 +64,7 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
         favoritesEl.textContent = ""
         favoritesEl.append(heading)
         for (const site of favorites) {
-            addSiteToList("favorites", site)
+            await addSiteToList("favorites", site)
         }
     }
 })

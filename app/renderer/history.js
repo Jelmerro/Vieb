@@ -35,7 +35,7 @@ const {
 
 /** @typedef {{visits: string[], title: string}} HistItem */
 
-const histFile = joinPath(appData(), "hist")
+let histFile = ""
 /** @type {{[url: string]: string}} */
 const simpleUrls = {}
 /** @type {{[url: string]: string}} */
@@ -59,7 +59,8 @@ const isValidHistItem = item => {
 }
 
 /** Load the history file from disk to memory. */
-const init = () => {
+const init = async() => {
+    histFile = joinPath(await appData(), "hist")
     const allHist = readJSON(histFile) || {}
     if (isObject(allHist)) {
         for (const [key, histItem] of Object.entries(allHist)) {
@@ -74,10 +75,11 @@ const init = () => {
  * Get a simplified url for a given regular url, result is cached for speed.
  * @param {string} url
  */
-const getSimpleUrl = url => {
+const getSimpleUrl = async url => {
     let simpleUrl = simpleUrls[url]
     if (simpleUrl === undefined) {
-        simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
+        const stringified = await urlToString(url)
+        simpleUrl = stringified.replace(specialChars, "").toLowerCase()
         simpleUrls[url] = simpleUrl
     }
     return simpleUrl
@@ -117,8 +119,8 @@ const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
  * @param {string} order
  * @param {number} count
  */
-const suggestHist = (searchStr, order, count) => {
-    if (!isFile(histFile)) {
+const suggestHist = async(searchStr, order, count) => {
+    if (!histFile || !isFile(histFile)) {
         // No need to suggest history if it's not stored
         return
     }
@@ -127,30 +129,33 @@ const suggestHist = (searchStr, order, count) => {
     // In turn, exact matches get priority over ordered matches.
     const search = searchStr.toLowerCase().trim()
     const simpleSearch = search.split(specialChars).filter(Boolean)
-    const entries = Object.entries(groupedHistory).map(([url, histItem]) => {
-        if (!histItem) {
-            return null
-        }
-        const simpleUrl = getSimpleUrl(url)
-        const name = histItem.title
-        let relevance = 1
-        if (simpleSearch.every(w => simpleUrl.includes(w))) {
-            relevance = 5
-        }
-        if (url.toLowerCase().includes(search)) {
-            relevance *= 10
-        }
-        if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
-            return {
-                "icon": url,
-                "last": new Date(histItem?.visits?.at(-1) ?? ""),
-                "title": name,
-                "top": relevance * visitCount(url),
-                url
+    const allEntries = await Promise.all(Object.entries(groupedHistory)
+        .map(async([url, histItem]) => {
+            if (!histItem) {
+                return null
             }
-        }
-        return null
-    }).flatMap(h => h ?? [])
+            const simpleUrl = await getSimpleUrl(url)
+            const name = histItem.title
+            let relevance = 1
+            if (simpleSearch.every(w => simpleUrl.includes(w))) {
+                relevance = 5
+            }
+            if (url.toLowerCase().includes(search)) {
+                relevance *= 10
+            }
+            if (relevance > 1
+                || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
+                return {
+                    "icon": url,
+                    "last": new Date(histItem?.visits?.at(-1) ?? ""),
+                    "title": name,
+                    "top": relevance * visitCount(url),
+                    url
+                }
+            }
+            return null
+        }))
+    const entries = allEntries.filter(Boolean)
     if (order === "alpha") {
         entries.sort((a, b) => {
             const first = a.url.replace(/^\w+:\/\/(www\.)?/g, "")
@@ -172,7 +177,7 @@ const suggestHist = (searchStr, order, count) => {
     }
     const {addExplore} = require("./suggest")
     for (const entry of entries.slice(0, count)) {
-        addExplore(entry)
+        await addExplore(entry)
     }
 }
 
@@ -207,7 +212,7 @@ const addToHist = async url => {
     if (url.startsWith("devtools://")) {
         return
     }
-    const saveTypes = getSetting("storenewvisits")
+    const saveTypes = await getSetting("storenewvisits")
     if (pathToSpecialPageName(url)?.name) {
         if (!saveTypes.includes("special")) {
             return
@@ -323,7 +328,7 @@ const handleRequest = async(webview, action = null, entries = []) => {
         for (const visit of histItem.visits) {
             history.push({
                 "date": new Date(visit),
-                "icon": forSite(url),
+                "icon": await forSite(url),
                 "title": histItem.title,
                 url,
                 "visits": histItem.visits.length
@@ -336,15 +341,16 @@ const handleRequest = async(webview, action = null, entries = []) => {
 }
 
 /** Return a list of top sites by visit count, depending on suggesttopsites. */
-const suggestTopSites = () => {
+const suggestTopSites = async() => {
     const {forSite} = require("./favicons")
-    return Object.keys(groupedHistory).filter(g => groupedHistory[g])
+    const topUrls = Object.keys(groupedHistory).filter(g => groupedHistory[g])
         .toSorted((a, b) => visitCount(b) - visitCount(a))
-        .slice(0, getSetting("suggesttopsites")).map(site => ({
-            "icon": forSite(site),
-            "name": groupedHistory[site]?.title,
-            "url": urlToString(site)
-        }))
+        .slice(0, await getSetting("suggesttopsites"))
+    return Promise.all(topUrls.map(async site => ({
+        "icon": await forSite(site),
+        "name": groupedHistory[site]?.title,
+        "url": await urlToString(site)
+    })))
 }
 
 /**

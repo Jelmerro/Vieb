@@ -378,7 +378,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     await new Promise(r => {
         setTimeout(r, 3)
     })
-    const inputfocusalignment = getSetting("inputfocusalignment")
+    const inputfocusalignment = await getSetting("inputfocusalignment")
         ?? "rememberend"
     focusEl.click()
     focusEl.focus()
@@ -933,10 +933,10 @@ window.addEventListener("scroll", () => {
     }
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
 })
-ipcRenderer.on("search-element-location", (_, pos) => {
+ipcRenderer.on("search-element-location", async(_, pos) => {
     let {x} = pos
     const {height, width} = pos
-    const alignment = getSetting("searchpointeralignment")
+    const alignment = await getSetting("searchpointeralignment")
     if (alignment === "center") {
         x += width / 2
     } else if (alignment === "right") {

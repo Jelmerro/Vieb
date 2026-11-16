@@ -86,8 +86,8 @@ let potentialNewSearchDirection = "forward"
  * Empty the current search by scope.
  * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
  */
-const emptySearch = args => {
-    const scope = args.scope || getSetting("searchemptyscope")
+const emptySearch = async args => {
+    const scope = args.scope || await getSetting("searchemptyscope")
     /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
@@ -113,16 +113,16 @@ const emptySearch = args => {
  * Check if the search should be case sensitive or not.
  * @param {string} search
  */
-const matchCase = search => {
-    if (getSetting("smartcase")) {
+const matchCase = async search => {
+    if (await getSetting("smartcase")) {
         return search !== search.toLowerCase()
     }
-    return !getSetting("ignorecase")
+    return !await getSetting("ignorecase")
 }
 
 /** Highlight the next search match based on the scope. */
-const nextSearchMatch = () => {
-    const scope = getSetting("searchscope")
+const nextSearchMatch = async() => {
+    const scope = await getSetting("searchscope")
     let search = globalSearch
     let pages = []
     if (scope === "local") {
@@ -136,10 +136,10 @@ const nextSearchMatch = () => {
     }
     /** @type {"searchreachtraverse"|"searchreach"} */
     let reachSetting = "searchreach"
-    if (getSetting("searchreachtraverse") !== "same") {
+    if (await getSetting("searchreachtraverse") !== "same") {
         reachSetting = "searchreachtraverse"
     }
-    const reach = getSetting(reachSetting)
+    const reach = await getSetting(reachSetting)
     if (reach === "all") {
         pages = listRealPages()
     } else {
@@ -153,7 +153,7 @@ const nextSearchMatch = () => {
     for (const p of pages) {
         p?.findInPage(search, {
             "forward": searchDirection === "forward",
-            "matchCase": matchCase(search)
+            "matchCase": await matchCase(search)
         })
     }
 }
@@ -162,11 +162,11 @@ const nextSearchMatch = () => {
  * Switch to search mode.
  * @param {ActionParam} args
  */
-const toSearchMode = args => {
+const toSearchMode = async args => {
     const {setMode} = require("./modes")
-    setMode("search")
+    await setMode("search")
     let search = globalSearch
-    if (getSetting("searchscope") !== "global") {
+    if (await getSetting("searchscope") !== "global") {
         search = currentTab()?.getAttribute("localsearch") || search
     }
     lastProperSearch = search
@@ -180,13 +180,13 @@ const toSearchMode = args => {
         url.value = search
         url.select()
         const {requestSuggestUpdate} = require("./input")
-        requestSuggestUpdate()
+        await requestSuggestUpdate()
     }
 }
 
 /** Highlight the previous search match based on the scope. */
-const previousSearchMatch = () => {
-    const scope = getSetting("searchscope")
+const previousSearchMatch = async() => {
+    const scope = await getSetting("searchscope")
     let search = globalSearch
     let pages = []
     if (scope === "local") {
@@ -200,10 +200,10 @@ const previousSearchMatch = () => {
     }
     /** @type {"searchreachtraverse"|"searchreach"} */
     let reachSetting = "searchreach"
-    if (getSetting("searchreachtraverse") !== "same") {
+    if (await getSetting("searchreachtraverse") !== "same") {
         reachSetting = "searchreachtraverse"
     }
-    const reach = getSetting(reachSetting)
+    const reach = await getSetting(reachSetting)
     if (reach === "all") {
         pages = listRealPages()
     } else {
@@ -217,7 +217,7 @@ const previousSearchMatch = () => {
     for (const p of pages) {
         p?.findInPage(search, {
             "forward": searchDirection === "backward",
-            "matchCase": matchCase(search)
+            "matchCase": await matchCase(search)
         })
     }
 }
@@ -226,8 +226,8 @@ const previousSearchMatch = () => {
  * Search for the string incrementally while typing if enabled, by scope.
  * @param {ActionParam&{value?: string}|null} args
  */
-const incrementalSearch = args => {
-    let scope = getSetting("searchscope")
+const incrementalSearch = async args => {
+    let scope = await getSetting("searchscope")
     const isIncSearch = args?.value === undefined
     lastSearchLocal = scope === "local"
     if (scope === "inclocal") {
@@ -242,7 +242,7 @@ const incrementalSearch = args => {
     const search = args?.value || url?.value || ""
     if (lastProperSearch === search) {
         if (!lastSearchInc && !isIncSearch) {
-            nextSearchMatch()
+            await nextSearchMatch()
             return
         }
         if (lastIncSearch === search && isIncSearch) {
@@ -266,10 +266,10 @@ const incrementalSearch = args => {
     }
     /** @type {"searchreachinc"|"searchreach"} */
     let reachSetting = "searchreach"
-    if (isIncSearch && getSetting("searchreachinc") !== "same") {
+    if (isIncSearch && await getSetting("searchreachinc") !== "same") {
         reachSetting = "searchreachinc"
     }
-    const reach = getSetting(reachSetting)
+    const reach = await getSetting(reachSetting)
     if (reach === "all") {
         pages = listRealPages()
     } else {
@@ -286,11 +286,11 @@ const incrementalSearch = args => {
     if (search) {
         for (const p of pages) {
             p?.findInPage(search, {
-                "findNext": true, "matchCase": matchCase(search)
+                "findNext": true, "matchCase": await matchCase(search)
             })
         }
     } else {
-        emptySearch({scope, "src": args?.src ?? "other"})
+        await emptySearch({scope, "src": args?.src ?? "other"})
     }
 }
 
@@ -298,16 +298,17 @@ const incrementalSearch = args => {
  * Reset the incremental search match.
  * @param {ActionParam} args
  */
-const resetIncrementalSearch = args => {
-    if (getSetting("searchscope") === "inclocal" && lastSearchLocal) {
-        emptySearch({"scope": "local", "src": args?.src ?? "other"})
-    } else if (getSetting("incsearch") && lastProperSearch !== lastIncSearch) {
+const resetIncrementalSearch = async args => {
+    if (await getSetting("searchscope") === "inclocal" && lastSearchLocal) {
+        await emptySearch({"scope": "local", "src": args?.src ?? "other"})
+    } else if (await getSetting("incsearch")
+        && lastProperSearch !== lastIncSearch) {
         if (lastProperSearch) {
-            incrementalSearch({
+            await incrementalSearch({
                 "src": args.src ?? "other", "value": lastProperSearch
             })
         } else {
-            emptySearch({"scope": "both", "src": args?.src ?? "other"})
+            await emptySearch({"scope": "both", "src": args?.src ?? "other"})
         }
     }
 }
@@ -749,18 +750,18 @@ const toggleMarkdownViewerNewTab = async args => {
 }
 
 /** Go to explore mode using regular mode switching. */
-const toExploreMode = () => {
+const toExploreMode = async() => {
     const {setMode} = require("./modes")
-    setMode("explore")
+    await setMode("explore")
 }
 
 /** Go to insert mode at the very first visible input element on the page. */
 const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
 
 /** Go to insert mode using regular mode switching. */
-const toInsertMode = () => {
+const toInsertMode = async() => {
     const {setMode} = require("./modes")
-    setMode("insert")
+    await setMode("insert")
 }
 
 /** Scroll to the very top of the page. */
@@ -820,8 +821,8 @@ const refreshTab = async args => {
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
-        rerollUserAgent(page)
-        resetTabInfo(page)
+        await rerollUserAgent(page)
+        await resetTabInfo(page)
         page.reload()
     }
 }
@@ -836,33 +837,33 @@ const reopenTab = async args => {
 }
 
 /** Switch to follow mode to copy a link. */
-const startFollowCopyLink = () => {
+const startFollowCopyLink = async() => {
     const {startFollow} = require("./follow")
-    startFollow("copylink")
+    await startFollow("copylink")
 }
 
 /** Switch to follow mode to open a horizontal split. */
-const startFollowNewSplit = () => {
+const startFollowNewSplit = async() => {
     const {startFollow} = require("./follow")
-    startFollow("ver")
+    await startFollow("ver")
 }
 
 /** Switch to follow mode to open a vertical split. */
-const startFollowNewVerSplit = () => {
+const startFollowNewVerSplit = async() => {
     const {startFollow} = require("./follow")
-    startFollow("hor")
+    await startFollow("hor")
 }
 
 /** Switch to follow mode to open a new tab. */
-const startFollowNewTab = () => {
+const startFollowNewTab = async() => {
     const {startFollow} = require("./follow")
-    startFollow("newtab")
+    await startFollow("newtab")
 }
 
 /** Switch to follow mode to click on links in the current tab. */
-const startFollowCurrentTab = () => {
+const startFollowCurrentTab = async() => {
     const {startFollow} = require("./follow")
-    startFollow("current")
+    await startFollow("current")
 }
 
 /**
@@ -883,8 +884,8 @@ const backInHistory = async args => {
                 tabTitleEl.textContent = ""
             }
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
-            rerollUserAgent(page)
-            resetTabInfo(page)
+            await rerollUserAgent(page)
+            await resetTabInfo(page)
             page.goBack()
         }
     }
@@ -908,8 +909,8 @@ const forwardInHistory = async args => {
                 tabTitleEl.textContent = ""
             }
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
-            rerollUserAgent(page)
-            resetTabInfo(page)
+            await rerollUserAgent(page)
+            await resetTabInfo(page)
             page.goForward()
         }
     }
@@ -928,8 +929,8 @@ const refreshTabWithoutCache = async args => {
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
-        rerollUserAgent(page)
-        resetTabInfo(page)
+        await rerollUserAgent(page)
+        await resetTabInfo(page)
         page.reloadIgnoringCache()
     }
 }
@@ -951,7 +952,7 @@ const openNewTabWithCurrentUrl = async args => {
         if (!tab) {
             return
         }
-        const tabnewposition = getSetting("tabnewposition")
+        const tabnewposition = await getSetting("tabnewposition")
         let index = listTabs().indexOf(tab)
         if (tabnewposition === "right") {
             index += 1
@@ -963,17 +964,17 @@ const openNewTabWithCurrentUrl = async args => {
         await addTab({pinned, "src": args.src})
     }
     const {setMode} = require("./modes")
-    setMode("explore")
+    await setMode("explore")
     const urlEl = getUrl()
     if (urlEl) {
-        urlEl.value = urlToString(url)
+        urlEl.value = await urlToString(url)
     }
 }
 
 /** Go to command mode using regular mode switching. */
-const toCommandMode = () => {
+const toCommandMode = async() => {
     const {setMode} = require("./modes")
-    setMode("command")
+    await setMode("command")
 }
 
 /** Stop loading the page for now, might still start new fetch requests. */
@@ -1039,15 +1040,15 @@ const zoomIn = args => {
 }
 
 /** Go to normal mode using regular mode switching. */
-const toNormalMode = () => {
+const toNormalMode = async() => {
     const {setMode} = require("./modes")
-    setMode("normal")
+    await setMode("normal")
 }
 
 /** Go to the previous mode used before follow, or back to normal. */
-const stopFollowMode = () => {
+const stopFollowMode = async() => {
     const {stopFollow} = require("./follow")
-    stopFollow()
+    await stopFollow()
 }
 
 /**
@@ -1063,7 +1064,7 @@ const repeatLastAction = async args => {
  * Edit the current insert mode input or navbar mode text.
  * @param {ActionParam} args
  */
-const editWithVim = args => {
+const editWithVim = async args => {
     const page = currentPage()
     if (!page) {
         return
@@ -1079,17 +1080,18 @@ const editWithVim = args => {
     if (!typeOfEdit) {
         return
     }
-    const fileFolder = joinPath(appData(), "vimformedits")
+    const fileFolder = joinPath(await appData(), "vimformedits")
     makeDir(fileFolder)
     let tempFile = joinPath(fileFolder, String(Date.now()))
-    const domain = domainName(urlToString(page.src)) || domainName(page.src)
+    const domain = domainName(await urlToString(page.src))
+        || domainName(page.src)
     if (domain && typeOfEdit === "input") {
         tempFile += `_${domain}`
     }
     tempFile += ".txt"
     /** @type {import("child_process").ChildProcess|null} */
     let command = null
-    watchFile(tempFile, () => {
+    watchFile(tempFile, async() => {
         if (command) {
             const contents = readFile(tempFile)
             if (contents === null) {
@@ -1104,14 +1106,15 @@ const editWithVim = args => {
                     url.value = contents
                 }
                 const {requestSuggestUpdate} = require("./input")
-                requestSuggestUpdate()
+                await requestSuggestUpdate()
             }
         } else {
-            const commandStr = `${getSetting("vimcommand")} "${tempFile}"`
-            command = execCommand(commandStr, (err, stdout) => {
-                const reportExit = getSetting("notificationforsystemcommands")
+            const commandStr = `${await getSetting("vimcommand")} "${tempFile}"`
+            command = await execCommand(commandStr, async(err, stdout) => {
+                const reportExit = await getSetting(
+                    "notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify({
+                    await notify({
                         "fields": [`${err}`],
                         "id": "actions.command.failed",
                         "src": args.src,
@@ -1120,14 +1123,14 @@ const editWithVim = args => {
                 } else if (reportExit === "all") {
                     const output = stdout.toString()
                     if (output) {
-                        notify({
+                        await notify({
                             "fields": [output],
                             "id": "actions.command.successWithOutput",
                             "src": args.src,
                             "type": "success"
                         })
                     } else {
-                        notify({
+                        await notify({
                             "id": "actions.command.success",
                             "src": args.src,
                             "type": "success"
@@ -1166,20 +1169,17 @@ const openLinkExternal = async args => {
 }
 
 /** Completely reset any focus issues there could be in the app. */
-const setFocusCorrectly = () => {
+const setFocusCorrectly = async() => {
     const urlElement = document.getElementById("url")
     const {followFiltering} = require("./follow")
     const {updateUrl} = require("./tabs")
     const page = currentPage()
     if (page) {
-        updateUrl(page)
+        await updateUrl(page)
     }
     if (currentMode() === "insert") {
         urlElement?.blur()
         page?.focus()
-        if (!document.getElementById("context-menu")?.children.length) {
-            page?.click()
-        }
     } else if ("sec".includes(currentMode()[0]) || followFiltering()) {
         if (document.activeElement !== urlElement) {
             window.focus()
@@ -1193,91 +1193,91 @@ const setFocusCorrectly = () => {
 }
 
 /** Go to the next suggestion in the list. */
-const nextSuggestion = () => {
+const nextSuggestion = async() => {
     const {next} = require("./suggest")
-    next()
-    setFocusCorrectly()
+    await next()
+    await setFocusCorrectly()
 }
 
 /** Go to the previous suggestion in the list. */
-const prevSuggestion = () => {
+const prevSuggestion = async() => {
     const {previous} = require("./suggest")
-    previous()
-    setFocusCorrectly()
+    await previous()
+    await setFocusCorrectly()
 }
 
 /** Go to the next section in the suggestion list. */
-const nextSuggestionSection = () => {
+const nextSuggestionSection = async() => {
     const {nextSection} = require("./suggest")
-    nextSection()
-    setFocusCorrectly()
+    await nextSection()
+    await setFocusCorrectly()
 }
 
 /** Go to the previous section in the suggestion list. */
-const prevSuggestionSection = () => {
+const prevSuggestionSection = async() => {
     const {previousSection} = require("./suggest")
-    previousSection()
-    setFocusCorrectly()
+    await previousSection()
+    await setFocusCorrectly()
 }
 
 /** Go back in history to previously run commands. */
-const commandHistoryPrevious = () => {
+const commandHistoryPrevious = async() => {
     const {previous} = require("./commandhistory")
-    previous()
+    await previous()
 }
 
 /** Go forward in history to previously run commands, or back to current. */
-const commandHistoryNext = () => {
+const commandHistoryNext = async() => {
     const {next} = require("./commandhistory")
-    next()
+    await next()
 }
 
 /** Go back in history to previously navigated sites. */
-const exploreHistoryPrevious = () => {
+const exploreHistoryPrevious = async() => {
     const {previous} = require("./explorehistory")
-    previous()
+    await previous()
 }
 
 /** Go forward in history to previously navigated sites, or back to current. */
-const exploreHistoryNext = () => {
+const exploreHistoryNext = async() => {
     const {next} = require("./explorehistory")
-    next()
+    await next()
 }
 
 /** Rotate the current window split forward. */
-const rotateSplitWindowForward = () => {
+const rotateSplitWindowForward = async() => {
     const {rotateForward} = require("./pagelayout")
-    rotateForward()
+    await rotateForward()
 }
 
 /** Rotate the current window split backward. */
-const rotateSplitWindowBackward = () => {
+const rotateSplitWindowBackward = async() => {
     const {rotateReverse} = require("./pagelayout")
-    rotateReverse()
+    await rotateReverse()
 }
 
 /** Make the current window split the entire left side. */
-const leftHalfSplitWindow = () => {
+const leftHalfSplitWindow = async() => {
     const {toTop} = require("./pagelayout")
-    toTop("left")
+    await toTop("left")
 }
 
 /** Make the current window split the entire bottom half. */
-const bottomHalfSplitWindow = () => {
+const bottomHalfSplitWindow = async() => {
     const {toTop} = require("./pagelayout")
-    toTop("bottom")
+    await toTop("bottom")
 }
 
 /** Make the current window split the entire top half. */
-const topHalfSplitWindow = () => {
+const topHalfSplitWindow = async() => {
     const {toTop} = require("./pagelayout")
-    toTop("top")
+    await toTop("top")
 }
 
 /** Make the current window split the entire right side. */
-const rightHalfSplitWindow = () => {
+const rightHalfSplitWindow = async() => {
     const {toTop} = require("./pagelayout")
-    toTop("right")
+    await toTop("right")
 }
 
 /** Move the focus to the split to the left of the current one. */
@@ -1335,33 +1335,33 @@ const exchangeSplitWindow = async() => {
 }
 
 /** Increase the height of the current window split within the same level. */
-const increaseHeightSplitWindow = () => {
+const increaseHeightSplitWindow = async() => {
     const {resize} = require("./pagelayout")
-    resize("ver", "grow")
+    await resize("ver", "grow")
 }
 
 /** Decrease the height of the current window split within the same level. */
-const decreaseHeightSplitWindow = () => {
+const decreaseHeightSplitWindow = async() => {
     const {resize} = require("./pagelayout")
-    resize("ver", "shrink")
+    await resize("ver", "shrink")
 }
 
 /** Increase the width of the current window split within the same level. */
-const increaseWidthSplitWindow = () => {
+const increaseWidthSplitWindow = async() => {
     const {resize} = require("./pagelayout")
-    resize("hor", "grow")
+    await resize("hor", "grow")
 }
 
 /** Decrease the width of the current window split within the same level. */
-const decreaseWidthSplitWindow = () => {
+const decreaseWidthSplitWindow = async() => {
     const {resize} = require("./pagelayout")
-    resize("hor", "shrink")
+    await resize("hor", "shrink")
 }
 
 /** Distribute the space each window split take equally within each level. */
-const distrubuteSpaceSplitWindow = () => {
+const distrubuteSpaceSplitWindow = async() => {
     const {resetResizing} = require("./pagelayout")
-    resetResizing()
+    await resetResizing()
 }
 
 /** Toggle the always on top functionality of the app. */
@@ -1370,23 +1370,24 @@ const toggleAlwaysOnTop = () => ipcRenderer.invoke("toggle-always-on-top")
 /** Toggle the fullscreen functionality of the app, then update the GUI. */
 const toggleFullscreen = async() => {
     await ipcRenderer.invoke("toggle-fullscreen")
-    updateGuiVisibility()
+    await updateGuiVisibility()
 }
 
 /**
  * Get a url with the right chars escaped, either a custom or current url.
  * @param {string} customUrl
  */
-const getPageUrl = (customUrl = "") => {
+const getPageUrl = async(customUrl = "") => {
     let url = customUrl || currentPage()?.src || ""
-    if (getSetting("encodeurlcopy") === "spacesonly") {
+    if (await getSetting("encodeurlcopy") === "spacesonly") {
         url = url.replace(/ /g, "%20")
-    } else if (getSetting("encodeurlcopy") === "nospaces") {
-        url = urlToString(url).replace(/ /g, "%20")
-    } else if (getSetting("encodeurlcopy") === "decode") {
-        url = urlToString(url)
-    } else if (getSetting("encodeurlcopy") === "encode") {
-        url = stringToUrl(url)
+    } else if (await getSetting("encodeurlcopy") === "nospaces") {
+        const stringified = await urlToString(url)
+        url = stringified.replace(/ /g, "%20")
+    } else if (await getSetting("encodeurlcopy") === "decode") {
+        url = await urlToString(url)
+    } else if (await getSetting("encodeurlcopy") === "encode") {
+        url = await stringToUrl(url)
     }
     return url
 }
@@ -1397,6 +1398,7 @@ const getPageUrl = (customUrl = "") => {
  * @returns {Promise<string[]|null>}
  */
 const getPageRSSLinks = async args => {
+    /** @type {string[]} */
     const feedUrls = await currentPage()?.executeJavaScript(
         `Array.from(document.querySelectorAll("link[type]")).map(link => [
             "application/rss+xml",
@@ -1414,17 +1416,18 @@ const getPageRSSLinks = async args => {
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
-        notify({
+        await notify({
             "id": "actions.rss.notFound", "src": args.src, "type": "warning"
         })
         return null
     }
-    return feedUrls.slice(0, 10).map((feed = "") => {
+    return Promise.all(feedUrls.slice(0, 10).map(async(feed = "") => {
         if (!isUrl(feed)) {
-            return getPageUrl(`${new URL(getPageUrl()).origin}${feed}`)
+            const pageurl = await getPageUrl()
+            return getPageUrl(`${new URL(pageurl).origin}${feed}`)
         }
         return getPageUrl(feed)
-    })
+    }))
 }
 
 /**
@@ -1437,7 +1440,7 @@ const pageRSSLinksList = async args => {
         return
     }
     const feedsString = feedUrls.map((url, i) => `${i} - ${url}`).join("\n")
-    notify({
+    await notify({
         "fields": [feedsString],
         "id": "actions.rss.header",
         "src": args.src,
@@ -1460,7 +1463,7 @@ const pageRSSLinkToClipboard = async args => {
     const feedkey = !Number.isNaN(Number(args.key)) && Number(args.key) || 0
     const feedUrl = feedUrls[feedkey] ?? ""
     await ipcRenderer.invoke("write-clipboard", feedUrl)
-    notify({
+    await notify({
         "fields": [feedUrl],
         "id": "actions.rss.clipboard",
         "src": args.src,
@@ -1469,8 +1472,8 @@ const pageRSSLinkToClipboard = async args => {
 }
 
 /** Copy the current page url to the system clipboard. */
-const pageToClipboard = () => ipcRenderer.invoke(
-    "write-clipboard", getPageUrl())
+const pageToClipboard = async() => ipcRenderer.invoke(
+    "write-clipboard", await getPageUrl())
 
 /** Copy the current page title to the system clipboard. */
 const pageTitleToClipboard = async() => {
@@ -1480,40 +1483,40 @@ const pageTitleToClipboard = async() => {
 
 /** Copy the current page to the system clipboard formatted as HTML. */
 const pageToClipboardHTML = async() => {
-    const url = getPageUrl()
+    const url = await getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     await ipcRenderer.invoke("write-clipboard", `<a href="${url}">${title}</a>`)
 }
 
 /** Copy the current page to the system clipboard formatted as Markdown. */
 const pageToClipboardMarkdown = async() => {
-    const url = getPageUrl()
+    const url = await getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     await ipcRenderer.invoke("write-clipboard", `[${title}](${url})`)
 }
 
 /** Copy the current page to the system clipboard formatted as RST. */
 const pageToClipboardRST = async() => {
-    const url = getPageUrl()
+    const url = await getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     await ipcRenderer.invoke("write-clipboard", `\`${title} <${url}>\`_`)
 }
 
 /** Copy the current page to the system clipboard formatted as Emacs. */
 const pageToClipboardEmacs = async() => {
-    const url = getPageUrl()
+    const url = await getPageUrl()
     const title = currentTab()?.querySelector("span")?.textContent
     await ipcRenderer.invoke("write-clipboard", `[[${url}][${title}]]`)
 }
 
 /** Paste the contents of the clipboard into the page programmatically. */
-const pasteText = () => {
+const pasteText = async() => {
     if (currentMode() === "insert") {
         sendToPageOrSubFrame("action", "paste",
-            ipcRenderer.sendSync("read-clipboard"))
+            await ipcRenderer.invoke("read-clipboard"))
     } else {
         const {typeCharacterIntoNavbar} = require("./input")
-        typeCharacterIntoNavbar("<C-v>")
+        await typeCharacterIntoNavbar("<C-v>")
     }
 }
 
@@ -1522,10 +1525,11 @@ const pasteText = () => {
  * @param {ActionParam} args
  */
 const openFromClipboard = async args => {
-    const text = ipcRenderer.sendSync("read-clipboard").trim()
+    const textFull = await ipcRenderer.invoke("read-clipboard")
+    const text = textFull.trim()
     if (text) {
         const {navigateTo} = require("./tabs")
-        await navigateTo(args.src, stringToUrl(text))
+        await navigateTo(args.src, await stringToUrl(text))
     }
 }
 
@@ -1537,7 +1541,7 @@ const storeScrollPos = async args => {
     if (!args.key) {
         return
     }
-    let scrollType = getSetting("scrollpostype")
+    let scrollType = await getSetting("scrollpostype")
     if (scrollType !== "local" && scrollType !== "global") {
         scrollType = "global"
         if (args.key !== args.key.toUpperCase()) {
@@ -1545,7 +1549,7 @@ const storeScrollPos = async args => {
         }
     }
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("scroll" in qm) || !qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -1559,13 +1563,13 @@ const storeScrollPos = async args => {
     }
     if (scrollType === "local") {
         let path = ""
-        const scrollPosId = getSetting("scrollposlocalid")
+        const scrollPosId = await getSetting("scrollposlocalid")
         if (scrollPosId === "domain") {
-            path = domainName(urlToString(currentPage()?.src ?? ""))
+            path = domainName(await urlToString(currentPage()?.src ?? ""))
                 || domainName(currentPage()?.src ?? "") || ""
         }
         if (scrollPosId === "url" || !path) {
-            path = urlToString(currentPage()?.src ?? "")
+            path = await urlToString(currentPage()?.src ?? "")
                 || currentPage()?.src || ""
         }
         path = args.path ?? path
@@ -1576,30 +1580,31 @@ const storeScrollPos = async args => {
     } else {
         qm.scroll.global[args.key] = args.pixels ?? pixels
     }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored scroll position based on key.
  * @param {ActionParam&{path?: string}} args
  */
-const restoreScrollPos = args => {
+const restoreScrollPos = async args => {
     const {key} = args
     if (!key) {
         return
     }
-    const scrollPosId = getSetting("scrollposlocalid")
+    const scrollPosId = await getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
-        path = domainName(urlToString(currentPage()?.src ?? ""))
+        path = domainName(await urlToString(currentPage()?.src ?? ""))
             || domainName(currentPage()?.src ?? "") || ""
     }
     if (scrollPosId === "url" || !path) {
-        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+        path = await urlToString(currentPage()?.src ?? "")
+            || currentPage()?.src || ""
     }
     path = args.path ?? path
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
         currentPage()?.executeJavaScript(`
@@ -1615,17 +1620,17 @@ const restoreScrollPos = args => {
  * Make a new mark based on a key.
  * @param {ActionParam&{url?: string}} args
  */
-const makeMark = args => {
+const makeMark = async args => {
     if (!args.key) {
         return
     }
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
-    qm.marks[args.key] = urlToString(args.url ?? currentPage()?.src ?? "")
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
+    qm.marks[args.key] = await urlToString(args.url ?? currentPage()?.src ?? "")
+    writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
@@ -1637,13 +1642,13 @@ const restoreMark = async args => {
         return
     }
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
     const {commonAction} = require("./contextmenu")
-    let position = getSetting("markposition")
-    const shiftedPosition = getSetting("markpositionshifted")
+    let position = await getSetting("markposition")
+    const shiftedPosition = await getSetting("markpositionshifted")
     if (args.key === args.key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
@@ -1655,11 +1660,11 @@ const restoreMark = async args => {
  * Run a stored macro recording by key.
  * @param {ActionParam} args
  */
-const runRecording = args => {
+const runRecording = async args => {
     if (!args.key) {
         return
     }
-    const recordings = readJSON(joinPath(appData(), "recordings"))
+    const recordings = readJSON(joinPath(await appData(), "recordings"))
     if (!isFlatStringObject(recordings)) {
         return
     }
@@ -1669,7 +1674,7 @@ const runRecording = args => {
     }
     setTimeout(async() => {
         const {executeMapString, sanitiseMapString} = require("./input")
-        await executeMapString(sanitiseMapString(
+        await executeMapString(await sanitiseMapString(
             args.src, recording, true),
         true, {"initial": true, "src": args.src})
     }, 5)
@@ -1679,16 +1684,16 @@ const runRecording = args => {
  * Start a macro recording by key.
  * @param {ActionParam} args
  */
-const startRecording = args => {
+const startRecording = async args => {
     if (!args.key) {
         return
     }
     const {"startRecording": start} = require("./input")
-    start(args.key, args.src)
+    await start(args.key, args.src)
 }
 
 /** Stop the current macro recording if active. */
-const stopRecording = () => {
+const stopRecording = async() => {
     const {"stopRecording": stop} = require("./input")
     const record = stop()
     if (!record) {
@@ -1696,12 +1701,12 @@ const stopRecording = () => {
     }
     /** @type {{[property: string]: string}} */
     let recordings = {}
-    const recordingFileData = readJSON(joinPath(appData(), "recordings"))
+    const recordingFileData = readJSON(joinPath(await appData(), "recordings"))
     if (isFlatStringObject(recordingFileData)) {
         recordings = recordingFileData
     }
     recordings[record.name] = record.string
-    writeJSON(joinPath(appData(), "recordings"), recordings)
+    writeJSON(joinPath(await appData(), "recordings"), recordings)
 }
 
 /** Change the z-index order of the follow mode elements by type. */
@@ -1714,14 +1719,14 @@ const reorderFollowLinks = () => {
  * Open the menu, either for system elements or the current insert element.
  * @param {ActionParam} args
  */
-const menuOpen = args => {
+const menuOpen = async args => {
     const {viebMenu} = require("./contextmenu")
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab?.getBoundingClientRect()
         const tabs = document.getElementById("tabs")
         if (tab && bounds && tabs) {
-            viebMenu(args.src, {
+            await viebMenu(args.src, {
                 "path": [tab, tabs],
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
@@ -1750,8 +1755,8 @@ const menuOpen = args => {
             const url = getUrl()
             bounds = url?.getBoundingClientRect()
             if (url && bounds) {
-                const charWidth = getSetting("guifontsize") * 0.60191
-                viebMenu(args.src, {
+                const charWidth = await getSetting("guifontsize") * 0.60191
+                await viebMenu(args.src, {
                     "path": [url],
                     "x": bounds.x + charWidth
                         * (url.selectionStart ?? 0) - url.scrollLeft,
@@ -1814,9 +1819,9 @@ const menuClose = () => {
 }
 
 /** Show the table of contents on the current page. */
-const showTOC = () => {
+const showTOC = async() => {
     const {getCustomStyling} = require("./settings")
-    const fontsize = getSetting("guifontsize")
+    const fontsize = await getSetting("guifontsize")
     sendToPageOrSubFrame("action", "showTOC", getCustomStyling(), fontsize)
 }
 
@@ -1824,9 +1829,9 @@ const showTOC = () => {
 const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
 
 /** Toggle the table of contents on the current page. */
-const toggleTOC = () => {
+const toggleTOC = async() => {
     const {getCustomStyling} = require("./settings")
-    const fontsize = getSetting("guifontsize")
+    const fontsize = await getSetting("guifontsize")
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
 
@@ -1842,24 +1847,25 @@ const useEnteredData = async args => {
     }
     if (currentMode() === "command") {
         const command = url.value.trim()
-        setMode("normal")
+        await setMode("normal")
         const {execute} = require("./command")
         await execute(command, {"src": "user"})
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        incrementalSearch({"src": args.src, "value": url.value})
-        setMode("normal")
+        await incrementalSearch({"src": args.src, "value": url.value})
+        await setMode("normal")
     }
     if (currentMode() === "explore") {
         const location = url.value.trim()
-        setMode("normal")
+        await setMode("normal")
         if (location) {
-            const modifiedLoc = searchword(location).url
+            const wordInfo = await searchword(location)
+            const modifiedLoc = wordInfo.url
             const {push} = require("./explorehistory")
-            push(urlToString(modifiedLoc))
+            await push(await urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
-            await navigateTo(args.src, stringToUrl(modifiedLoc))
+            await navigateTo(args.src, await stringToUrl(modifiedLoc))
         }
     }
 }

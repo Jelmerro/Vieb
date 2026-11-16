@@ -18,13 +18,13 @@
 "use strict"
 
 window.addEventListener("DOMContentLoaded", async() => {
-    require("./input").init()
+    await require("./input").init()
     await require("./settings").init()
-    require("./history").init()
-    require("./favicons").init()
+    await require("./history").init()
+    await require("./favicons").init()
     require("./modes").init()
-    require("./commandhistory").init()
-    require("./explorehistory").init()
+    await require("./commandhistory").init()
+    await require("./explorehistory").init()
     require("./follow").init()
     require("./contextmenu").init()
     require("./pointer").init()

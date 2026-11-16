@@ -20,19 +20,20 @@
 const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
 const {currentMode, getUrl} = require("./common")
 
-const exploreFile = joinPath(appData(), "explorehist")
+let exploreFile = ""
 /** @type {string[]} */
 let previousSites = []
 let previousIndex = -1
 let originalSite = ""
 
 /** Load the explore hist of the previous session if stored. */
-const init = () => {
+const init = async() => {
+    exploreFile = joinPath(await appData(), "explorehist")
     previousSites = readFile(exploreFile)?.split("\n").filter(Boolean) || []
 }
 
 /** Show the right entry based on new index set by previous or next. */
-const updateNavWithSite = () => {
+const updateNavWithSite = async() => {
     let exploreText = originalSite
     if (previousIndex !== -1) {
         exploreText = previousSites[previousIndex]
@@ -42,11 +43,11 @@ const updateNavWithSite = () => {
         url.value = exploreText
     }
     const {suggestExplore} = require("./suggest")
-    suggestExplore(exploreText)
+    await suggestExplore(exploreText)
 }
 
 /** Go to the previous item in the explore history. */
-const previous = () => {
+const previous = async() => {
     if (currentMode() !== "explore") {
         return
     }
@@ -56,11 +57,11 @@ const previous = () => {
     } else if (previousIndex > 0) {
         previousIndex -= 1
     }
-    updateNavWithSite()
+    await updateNavWithSite()
 }
 
 /** Go to the next item in the explore history, or back to typed text. */
-const next = () => {
+const next = async() => {
     if (currentMode() !== "explore" || previousIndex === -1) {
         return
     }
@@ -69,7 +70,7 @@ const next = () => {
     } else if (previousIndex === previousSites.length - 1) {
         previousIndex = -1
     }
-    updateNavWithSite()
+    await updateNavWithSite()
 }
 
 /** Reset the position info for the explore history. */
@@ -82,8 +83,8 @@ const resetPosition = () => {
  * Push a new user navigation to the list.
  * @param {string} explore
  */
-const push = explore => {
-    const setting = getSetting("explorehist")
+const push = async explore => {
+    const setting = await getSetting("explorehist")
     if (setting === "none") {
         return
     }
@@ -91,7 +92,7 @@ const push = explore => {
         return
     }
     previousSites.push(explore)
-    if (setting === "persist") {
+    if (setting === "persist" && exploreFile) {
         appendFile(exploreFile, `${explore}\n`)
     }
 }

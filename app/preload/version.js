@@ -21,10 +21,10 @@ const {translate, translateAsHTML} = require("../translate")
 const {appConfig, compareVersions} = require("../util")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const {icon, name, version} = appConfig() ?? {}
 
 /** Check for updates to Vieb on button click via Github. */
-const checkForUpdates = () => {
+const checkForUpdates = async() => {
+    const {version} = await appConfig() ?? {}
     const versionCheck = document.getElementById("version-check")
     const button = document.querySelector("button")
     if (!versionCheck || !button || !version) {
@@ -69,7 +69,7 @@ const checkForUpdates = () => {
     req.send(null)
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
     // Translations
     const subtitleEl = document.getElementById("subtitle")
     if (subtitleEl) {
@@ -127,6 +127,7 @@ window.addEventListener("DOMContentLoaded", () => {
             {"fields": [process.versions.electron, process.versions.chrome]}))
     }
     // Regular init
+    const {icon, name, version} = await appConfig() ?? {}
     const nameEl = document.getElementById("name")
     if (nameEl) {
         nameEl.textContent = name ?? "Vieb"

@@ -43,12 +43,12 @@ const specialPage = pathToSpecialPageName(window.location.href)
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
 /** Apply the current theme styling from the parent process. */
-const applyThemeStyling = () => {
+const applyThemeStyling = async() => {
     const style = `html {
-        color: ${getSetting("fg") || "#eee"};
-        background: ${getSetting("bg") || "#333"};
-        font-size: ${getSetting("guifontsize") || 14}px;
-    } a {color: ${getSetting("linkcolor") || "#0cf"};}`
+        color: ${await getSetting("fg") || "#eee"};
+        background: ${await getSetting("bg") || "#333"};
+        font-size: ${await getSetting("guifontsize") || 14}px;
+    } a {color: ${await getSetting("linkcolor") || "#0cf"};}`
     ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
 
@@ -87,35 +87,35 @@ const enableDarkReader = async() => {
         const themeDict = {"dark": 1, "light": 0}
         /** @type {Partial<import("darkreader").Theme>} */
         const darkreaderOpts = {}
-        const darkreaderbrightness = getSetting("darkreaderbrightness")
+        const darkreaderbrightness = await getSetting("darkreaderbrightness")
         if (darkreaderbrightness) {
             darkreaderOpts.brightness = darkreaderbrightness
         }
-        const darkreadercontrast = getSetting("darkreadercontrast")
+        const darkreadercontrast = await getSetting("darkreadercontrast")
         if (darkreadercontrast) {
             darkreaderOpts.contrast = darkreadercontrast
         }
-        const darkreaderbg = getSetting("darkreaderbg")
+        const darkreaderbg = await getSetting("darkreaderbg")
         if (darkreaderbg) {
             darkreaderOpts.darkSchemeBackgroundColor = darkreaderbg
             darkreaderOpts.lightSchemeBackgroundColor = darkreaderbg
         }
-        const darkreaderfg = getSetting("darkreaderfg")
+        const darkreaderfg = await getSetting("darkreaderfg")
         if (darkreaderfg) {
             darkreaderOpts.darkSchemeTextColor = darkreaderfg
             darkreaderOpts.lightSchemeTextColor = darkreaderfg
         }
-        const darkreadergrayscale = getSetting("darkreadergrayscale")
+        const darkreadergrayscale = await getSetting("darkreadergrayscale")
         if (darkreadergrayscale) {
             darkreaderOpts.grayscale = darkreadergrayscale
         }
-        const darkreadermode = getSetting("darkreadermode") ?? "dark"
+        const darkreadermode = await getSetting("darkreadermode") ?? "dark"
         darkreaderOpts.mode = themeDict[darkreadermode]
-        const darkreadersepia = getSetting("darkreadersepia")
+        const darkreadersepia = await getSetting("darkreadersepia")
         if (darkreadersepia) {
             darkreaderOpts.sepia = darkreadersepia
         }
-        const darkreadertextstroke = getSetting("darkreadertextstroke")
+        const darkreadertextstroke = await getSetting("darkreadertextstroke")
         if (darkreadertextstroke) {
             darkreaderOpts.textStroke = darkreadertextstroke
         }
@@ -134,8 +134,8 @@ const hideScrollbar = () => {
 }
 
 /** Hide the scrollbar if not configured to always show. */
-const updateScrollbar = () => {
-    if (getSetting("guiscrollbar") !== "always") {
+const updateScrollbar = async() => {
+    if (await getSetting("guiscrollbar") !== "always") {
         hideScrollbar()
     }
 }
@@ -150,14 +150,14 @@ const loadThemes = async(loadedFully = false) => {
         return
     }
     if (document.location.ancestorOrigins.length > 0) {
-        updateScrollbar()
+        await updateScrollbar()
         return
     }
     if (!document.head?.children.length) {
         if (!specialPage?.name) {
-            applyThemeStyling()
+            await applyThemeStyling()
         }
-        updateScrollbar()
+        await updateScrollbar()
         return
     }
     if (loadedFully && !specialPage?.name) {
@@ -182,11 +182,11 @@ const loadThemes = async(loadedFully = false) => {
                 if (noXMLOrSpecial) {
                     html.style.background = "white"
                 } else {
-                    applyThemeStyling()
+                    await applyThemeStyling()
                 }
             }
         } else if (window.location.href.startsWith("chrome://")) {
-            applyThemeStyling()
+            await applyThemeStyling()
         }
     }
     let domain = domainName(window.location.href)
@@ -199,37 +199,41 @@ const loadThemes = async(loadedFully = false) => {
         domain = "file"
         scope = "file"
     }
-    if (getSetting("darkreader")
-        && getSetting("darkreaderscope")?.includes(scope)) {
-        const blocked = (getSetting("darkreaderblocklist") ?? [])
+    const darkreader = await getSetting("darkreader")
+    const darkreaderscope = darkreader && await getSetting(
+        "darkreaderscope") || []
+    if (darkreaderscope?.includes(scope)) {
+        const blocked = (await getSetting("darkreaderblocklist") ?? [])
             .some(m => window.location.href.match(m))
         if (!blocked) {
             await enableDarkReader()
         }
     }
     if (webFrame.getZoomFactor() === 1) {
-        const zoom = getSetting("zoomdefault")
+        const zoom = await getSetting("zoomdefault")
         if (zoom !== 100) {
             webFrame.setZoomFactor(zoom / 100)
         }
     }
-    if (getSetting("userstyle")
-        && getSetting("userstylescope")?.includes(scope)) {
+    const userstyle = await getSetting("userstyle")
+    const userstylescope = userstyle && await getSetting("userstylescope") || []
+    if (userstylescope?.includes(scope)) {
+        const appdata = await appData()
         const userStyleFiles = [
-            ...(listDir(joinPath(appData(), "userstyle/global"), true)
+            ...(listDir(joinPath(appdata, "userstyle/global"), true)
                 || []).filter(f => f.endsWith(".css")),
-            joinPath(appData(), "userstyle/global.css"),
+            joinPath(appdata, "userstyle/global.css"),
             ...(listDir(expandPath("~/.vieb/userstyle/global"), true)
                 || []).filter(f => f.endsWith(".css")),
             expandPath("~/.vieb/userstyle/global.css"),
-            joinPath(appData(), `userstyle/${domain}.css`),
+            joinPath(appdata, `userstyle/${domain}.css`),
             expandPath(`~/.vieb/userstyle/${domain}.css`)
         ]
         const style = userStyleFiles.map(f => readFile(f))
             .filter(Boolean).join("\n")
         ipcRenderer.sendToHost("custom-style-inject", "userstyle", style)
     }
-    updateScrollbar()
+    await updateScrollbar()
 }
 
 ipcRenderer.on("enable-darkreader", () => loadThemes(true))
