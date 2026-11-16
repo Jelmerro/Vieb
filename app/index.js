@@ -44,7 +44,6 @@ const {
     expandPath,
     formatDate,
     formatSize,
-    getSetting,
     isAbsolutePath,
     isDir,
     isFile,
@@ -1323,6 +1322,8 @@ let downloads = []
 let redirects = []
 /** @type {import("@ghostery/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
+/** @type {"all"|"done"|"error"|"none"} */
+let adblockerNotify = "all"
 /** @type {"view"|"block"|"download"|"external"} */
 let pdfbehavior = "view"
 /** @type {string[]|null} */
@@ -1522,6 +1523,10 @@ ipcMain.handle("update-resource-settings", (_, resources, block, allow) => {
 /** Generate a 403 forbidden response to block the PDF viewer entirely. */
 const blockPdf = () => new Response("", {"status": 403})
 
+ipcMain.on("adblock-notification-update", (_, newValue) => {
+    adblockerNotify = newValue
+})
+
 /**
  * Load a blocklist with extra newline if it has contents.
  * @param {string} file
@@ -1552,7 +1557,7 @@ const disableAdblocker = () => {
 }
 
 /** Reload the adblocker optionally including the default lists. */
-const reloadAdblocker = async() => {
+const reloadAdblocker = () => {
     if (blocker) {
         disableAdblocker()
     }
@@ -1577,7 +1582,7 @@ const reloadAdblocker = async() => {
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
         notify({
             "id": "adblocker.missing",
-            "silent": await getSetting("adblockernotifications") === "none",
+            "silent": adblockerNotify === "none",
             "src": "user",
             "type": "error"
         })
@@ -1606,7 +1611,7 @@ const reloadAdblocker = async() => {
  * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
  */
-const enableAdblocker = async type => {
+const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     /** @type {{[property: string]: string}} */
     let blocklists = {}
@@ -1626,7 +1631,6 @@ const enableAdblocker = async type => {
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        const adblockerNotify = await getSetting("adblockernotifications")
         /** @type {{[property: string]: string}} */
         let extraLists = {}
         const extralistFileData = readJSON(joinPath(
@@ -1649,9 +1653,9 @@ const enableAdblocker = async type => {
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
                 let body = ""
-                res.on("end", async() => {
+                res.on("end", () => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
-                    await reloadAdblocker()
+                    reloadAdblocker()
                     notify({
                         "fields": [list],
                         "id": "adblocker.updated",
@@ -1681,7 +1685,7 @@ const enableAdblocker = async type => {
             request.end()
         }
     } else {
-        await reloadAdblocker()
+        reloadAdblocker()
     }
 }
 
@@ -1862,10 +1866,10 @@ const clientHintPlatform = async() => ({
     "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
 }[await userAgentResolvedSystem()])
 
-ipcMain.on("adblock-enable", async(_, type) => {
+ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
-        await enableAdblocker(type)
+        enableAdblocker(type)
     }
 })
 ipcMain.on("adblock-disable", disableAdblocker)
@@ -1882,7 +1886,7 @@ ipcMain.handle("update-pdf-option", (_, newPdfValue) => {
         }
     }
 })
-ipcMain.on("create-session", async(_, name, adblock, cache) => {
+ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
@@ -1919,9 +1923,9 @@ ipcMain.on("create-session", async(_, name, adblock, cache) => {
     sessionList.push(name)
     if (adblock !== "off") {
         if (blocker) {
-            await reloadAdblocker()
+            reloadAdblocker()
         } else {
-            await enableAdblocker(adblock)
+            enableAdblocker(adblock)
         }
     }
     if (pdfbehavior !== "view") {

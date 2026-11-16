@@ -2226,6 +2226,10 @@ const set = async(src, setting, value) => {
                 ipcRenderer.send("adblock-enable", allSettings.adblocker)
             }
         }
+        if (setting === "adblockernotifications") {
+            ipcRenderer.send("adblock-notification-update",
+                allSettings.adblockernotifications)
+        }
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
@@ -2403,6 +2407,8 @@ const loadFromDisk = async(firstRun, src = "source") => {
             await execute(line, {"settingsFile": conf, src})
         }
     }
+    ipcRenderer.send("adblock-notification-update",
+        allSettings.adblockernotifications)
     updateContainerSettings()
     await updateDownloadSettings()
     await updatePermissionSettings()
