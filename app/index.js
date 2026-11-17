@@ -62,6 +62,7 @@ const {
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
+app.setDesktopName("com.github.Jelmerro.Vieb")
 if (!app.getName().toLowerCase().startsWith("vieb")) {
     app.setName("Vieb")
 }
