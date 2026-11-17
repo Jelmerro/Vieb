@@ -31,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Setting "pdfbehavior" values "download" and "external" not doing anything recently
+- Unset desktopName leading to Alt-Tab related bugs on Wayland
 
 ### Versions
 
@@ -1310,7 +1311,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Link color is now also taken from the current colorscheme for unstyled pages, making links more readable by default
 - Setting "startuppages" now accepts optional container name, pinned status and muted status options using "~"
-- Unsupported startup arguments are now passed to Chromium, which makes running Vieb on wayland possible
+- Unsupported startup arguments are now passed to Chromium, which makes running Vieb on Wayland possible
 - Logo is now an SVG image with a slightly bolder font for the letters
 - Strip packaged builds of unused assets by only including files using opt-in filters
 - Apply search actions to all visible splits
