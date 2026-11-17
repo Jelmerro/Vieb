@@ -33,19 +33,6 @@ const specialPages = new Set([
     "notifications",
     "version"
 ])
-/**
- * @typedef {{
- *   click: {
- *     type: "download-success",
- *     path: string,
- *   }|null
- *   date: Date,
- *   message: string,
- *   type: string
- * }[]} notificationHistory
- */
-/** @type {notificationHistory} */
-const notificationHistory = []
 let appDataPath = ""
 let homeDirPath = ""
 /**
@@ -208,25 +195,6 @@ const readJSON = loc => {
 }
 
 /**
- * @typedef {(typeof import("./renderer/settings").defaultSettings & {
- *   "fg": string
- *   "bg": string
- *   "linkcolor": string
- * })} validSetting
- */
-/**
- * Get a setting from the settings file.
- * @template {keyof validSetting} T Valid setting names.
- * @param {T} set
- * @returns {Promise<validSetting[T]>}
- */
-const getSetting = async set => {
-    const settings = readJSON(joinPath(await appData(), "settings")) ?? {}
-    // @ts-expect-error JSON isn't type safe, return null if a key is missing.
-    return settings[set] ?? null
-}
-
-/**
  * Check if any string has a valid protocol or dataUri.
  * @param {string} loc
  */
@@ -272,45 +240,18 @@ const isUrl = location => {
 }
 
 /**
- * Match a searchword and return the word and filled url.
- * @param {string} location
+ * Return the resolved system that should be exposed via useragent.
+ * @param {string} useragentsys
  */
-const searchword = async location => {
-    const searchwords = await getSetting("searchwords")
-    for (const [word, url] of Object.entries(searchwords)) {
-        if (!(word && url)) {
-            continue
+const userAgentResolvedSystem = (useragentsys = "auto") => {
+    let desired = useragentsys ?? "auto"
+    if (desired === "auto") {
+        try {
+            const {getSetting} = require("./renderer/settings")
+            desired = getSetting("useragentsys")
+        } catch {
+            // Fall back to auto
         }
-        const q = location.replace(`${word} `, "")
-        if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
-            const queries = q.split(",")
-            let urlString = url
-            let counter = 1
-            const patternMatches = (urlString.match(/%s/g) || []).length
-            while (urlString.includes("%s") && counter < patternMatches) {
-                urlString = urlString.replace(/%s/,
-                    encodeURIComponent(queries.shift()?.trim() || ""))
-                counter += 1
-            }
-            const remainderString = queries.join(",").trim()
-            urlString = urlString.replace(/%s/,
-                encodeURIComponent(remainderString))
-            return {"url": urlString, word}
-        }
-    }
-    return {"url": location, "word": null}
-}
-
-/** Return the notification history. */
-const listNotificationHistory = () => notificationHistory
-
-/** Return the resolved system that should be exposed via useragent. */
-const userAgentResolvedSystem = async() => {
-    let desired = "auto"
-    try {
-        desired = await getSetting("useragentsys")
-    } catch {
-        // Fall back to auto
     }
     const current = process.platform
     if (desired === "auto" && current === "win32" || desired === "windows") {
@@ -322,17 +263,20 @@ const userAgentResolvedSystem = async() => {
     return "linux"
 }
 
-/** Return per operating system the result of navigator.platform. */
-const userAgentPlatform = async() => ({
+/**
+ * Return per operating system the result of navigator.platform.
+ * @param {string} useragentsys
+ */
+const userAgentPlatform = (useragentsys = "auto") => ({
     "linux": "X11; Linux x86_64",
     "mac": "Macintosh; Intel Mac OS X 10_15_7",
     "windows": "Windows NT 10.0; Win64; x64"
-}[await userAgentResolvedSystem()])
+}[userAgentResolvedSystem(useragentsys)])
 
 /** Return the default navigator.userAgent. */
-const defaultUseragent = async() => {
+const defaultUseragent = () => {
     const [version] = process.versions.chrome.split(".", 1)
-    const sys = await userAgentPlatform()
+    const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
         + `Chrome/${version}.0.0.0 Safari/537.36`
 }
@@ -345,9 +289,9 @@ const firefoxVersion = () => {
 }
 
 /** Return the Firefox navigator.userAgent. */
-const firefoxUseragent = async() => {
+const firefoxUseragent = () => {
     const ver = firefoxVersion()
-    const sys = await userAgentPlatform()
+    const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
@@ -355,18 +299,18 @@ const firefoxUseragent = async() => {
  * Template a user agent with value with version and browser info.
  * @param {string} agent
  */
-const userAgentTemplated = async agent => {
+const userAgentTemplated = agent => {
     if (!agent) {
         return ""
     }
     const version = `${process.versions.chrome.split(".", 1)[0]}.0.0.0`
     return agent
-        .replace(/%sys/g, await userAgentPlatform())
+        .replace(/%sys/g, userAgentPlatform())
         .replace(/%firefoxversion/g, firefoxVersion())
         .replace(/%fullversion/g, process.versions.chrome)
         .replace(/%version/g, version)
-        .replace(/%firefox/g, await firefoxUseragent())
-        .replace(/%default/g, await defaultUseragent())
+        .replace(/%firefox/g, firefoxUseragent())
+        .replace(/%default/g, defaultUseragent())
 }
 
 /**
@@ -975,29 +919,6 @@ const pageOffset = page => {
 }
 
 /**
- * Run any system command in the user's preferred shell.
- * @param {string} command
- * @param {(
- *   error: import("child_process").ExecException|null,
- *   stdout: string|Buffer,
- *   stderr: string|Buffer
- * ) => Promise<void>} callback
- */
-const execCommand = async(command, callback) => {
-    let shell = null
-    if (process.platform === "win32") {
-        shell = process.env.ComSpec || shell
-    }
-    shell = process.env.SHELL || shell
-    shell = await getSetting("shell") || shell
-    const {exec} = require("node:child_process")
-    if (shell) {
-        return exec(command, {shell}, callback)
-    }
-    return exec(command, callback)
-}
-
-/**
  * Check if the given value is a valid interval value.
  * @param {string} value
  * @param {boolean} invertedRangesSupported
@@ -1042,115 +963,6 @@ const intervalValueToDate = value => {
             - Number(value.replace(/[a-z]/g, "")))
     }
     return date
-}
-
-/**
- * @typedef {{
- *   id: import("../types/i18n").TranslationKeys,
- *   fields?: string[],
- *   action?: {
- *     type: "download-success",
- *     path: string,
- *     func?: () => void
- *   }|false,
- *   type?: "permission"|"success"|"warning"|"error"|"dialog",
- *   src: import("./renderer/common").RunSource,
- *   silent?: boolean
- * }} NotificationInfo
- */
-
-/**
- * Show the user a notification bubble and store it in the history.
- * @param {NotificationInfo} opts
- */
-const notify = async opts => {
-    const {translate} = require("./translate")
-    const message = translate(opts.id, {"fields": opts.fields ?? []})
-    if (opts.src === "execute") {
-        const {appendFileSync} = require("node:fs")
-        appendFileSync(joinPath(
-            await appData(), ".tmp-execute-output"), `${message}\t\t\t`)
-    }
-    if (await getSetting("notificationduration") === 0) {
-        return
-    }
-    const properType = opts.type ?? "info"
-    let clickInfo = null
-    if (opts?.action) {
-        clickInfo = {...opts.action}
-        delete clickInfo.func
-    }
-    const notifyForPerm = await getSetting("notificationforpermissions")
-    if (properType === "permission" && notifyForPerm === "none") {
-        return
-    }
-    notificationHistory.push({
-        "click": clickInfo,
-        "date": new Date(),
-        message,
-        "type": properType
-    })
-    if (opts.silent) {
-        return
-    }
-    if (properType === "permission") {
-        if (notifyForPerm === "silent") {
-            return
-        }
-        if (notifyForPerm === "allowed" && !message.replace(/'.*?'/g, "").includes("allowed")) {
-            return
-        }
-        if (notifyForPerm === "blocked" && !message.replace(/'.*?'/g, "").includes("blocked")) {
-            return
-        }
-    }
-    const native = await getSetting("nativenotification")
-    const shortLimitNotify = await getSetting("notificationlimitsmall")
-    const showLong = message.split("\n").length > shortLimitNotify
-        && properType !== "dialog"
-    const shortAndSmallNative = !showLong && native === "smallonly"
-    const longAndLargeNative = showLong && native === "largeonly"
-    if (native === "always" || shortAndSmallNative || longAndLargeNative) {
-        const config = await appConfig()
-        const n = new Notification(
-            `${config?.name} ${properType}`, {"body": message})
-        if (opts?.action && opts?.action?.func) {
-            /** Assin the onclick of the notification. */
-            // @ts-expect-error Func type could be undefined according to TS...
-            n.addEventListener("click", () => opts?.action?.func?.())
-        }
-        return
-    }
-    if (showLong) {
-        const {ipcRenderer} = require("electron")
-        ipcRenderer.send("show-notification", message, properType)
-        return
-    }
-    const notificationsElement = document.getElementById("notifications")
-    if (!notificationsElement) {
-        return
-    }
-    notificationsElement.className = await getSetting("notificationposition")
-    const notification = document.createElement("span")
-    notification.className = properType
-    notification.textContent = message
-    if (opts.action && opts.action.func) {
-        // @ts-expect-error Func type could be undefined according to TS...
-        notification.addEventListener("click", () => opts.action?.func?.())
-    }
-    notificationsElement.append(notification)
-    setTimeout(() => notification.remove(),
-        await getSetting("notificationduration"))
-}
-
-/** Return the location of the downloads, either via setting or OS default. */
-const downloadPath = async() => {
-    const settingVal = await getSetting("downloadpath")
-    if (settingVal) {
-        return expandPath(settingVal)
-    }
-    const config = await appConfig()
-    return expandPath(config?.downloads || "~/Downloads")
 }
 
 /**
@@ -1488,44 +1300,6 @@ const pathToSpecialPageName = urlPath => {
 }
 
 /**
- * Translate a string from the explore mode input to a valid url.
- * @param {string} location
- */
-const stringToUrl = async location => {
-    let url = location
-    const specialPage = pathToSpecialPageName(url)
-    if (specialPage?.name) {
-        return specialPagePath(specialPage.name, specialPage.section)
-    }
-    let fileName = url.replace(/^file:\/+/, "/")
-    if (process.platform === "win32") {
-        fileName = url.replace(/^file:\/+/, "")
-    }
-    const local = expandPath(fileName)
-    if (isDir(local) || isFile(local)) {
-        const escapedPath = local.replace(/\?/g, "%3F").replace(/#/g, "%23")
-        url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
-    }
-    if (!isUrl(url)) {
-        const engines = await getSetting("searchengine")
-        const engine = engines.at(Math.random() * engines.length)
-        if (!engine) {
-            return ""
-        }
-        url = engine.replace(/%s/g, encodeURIComponent(location))
-    }
-    if (!hasProtocol(url)) {
-        url = `https://${url}`
-    }
-    try {
-        return new URL(url).href
-    } catch {
-        // Can't be re-encoded
-    }
-    return encodeURI(url)
-}
-
-/**
  * Translate a valid url to the explore mode input representation.
  * @param {string} url
  */
@@ -1660,8 +1434,6 @@ module.exports = {
     deleteFile,
     dirname,
     domainName,
-    downloadPath,
-    execCommand,
     expandPath,
     fetchJSON,
     fetchUrl,
@@ -1674,7 +1446,6 @@ module.exports = {
     formatSize,
     framePosition,
     getAppRootDir,
-    getSetting,
     hasProtocol,
     intervalValueToDate,
     isAbsolutePath,
@@ -1698,11 +1469,9 @@ module.exports = {
     joinPath,
     listDir,
     listDirAsync,
-    listNotificationHistory,
     makeDir,
     matchesQuery,
     modifiedAt,
-    notify,
     pageContainerPos,
     pageOffset,
     pathExists,
@@ -1713,11 +1482,9 @@ module.exports = {
     readJSON,
     rm,
     sameDomain,
-    searchword,
     specialChars,
     specialCharsAllowSpaces,
     specialPagePath,
-    stringToUrl,
     urlToString,
     userAgentPlatform,
     userAgentResolvedSystem,

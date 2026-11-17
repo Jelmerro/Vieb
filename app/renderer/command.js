@@ -29,12 +29,9 @@ const {
     deleteFile,
     dirname,
     domainName,
-    downloadPath,
-    execCommand,
     expandPath,
     formatDate,
     getAppRootDir,
-    getSetting,
     intervalValueToDate,
     isAbsolutePath,
     isDir,
@@ -42,7 +39,6 @@ const {
     isUrl,
     isValidIntervalValue,
     joinPath,
-    notify,
     pathToSpecialPageName,
     propPixels,
     readFile,
@@ -50,7 +46,6 @@ const {
     specialChars,
     specialCharsAllowSpaces,
     specialPagePath,
-    stringToUrl,
     urlToString,
     writeFile,
     writeJSON
@@ -58,11 +53,16 @@ const {
 const {
     currentPage,
     currentTab,
+    downloadPath,
+    execCommand,
     listRealPages,
     listTabs,
+    notify,
     pageForTab,
+    stringToUrl,
     tabForPage
 } = require("./common")
+const {getSetting} = require("./settings")
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
@@ -80,7 +80,7 @@ const listSetting = async(src, setting) => {
         return
     }
     await notify({
-        "fields": [setting, JSON.stringify(await getSetting(setting))],
+        "fields": [setting, JSON.stringify(getSetting(setting))],
         "id": "commands.settings.listSingle",
         src
     })
@@ -188,7 +188,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
             }
             addition = additionList
         }
-        let current = await getSetting(setting)
+        let current = getSetting(setting)
         if (current === "all") {
             current = mouseFeatures
         }
@@ -237,7 +237,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
             await set(src, setting, addition)
             return
         }
-        const newValue = await getSetting(setting)
+        const newValue = getSetting(setting)
         if (method === "append") {
             for (const [key, val] of Object.entries(addition)) {
                 newValue[key] = val
@@ -321,33 +321,33 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
     }
     if (method === "append") {
         if (isObject) {
-            const obj = await getSetting(setting)
+            const obj = getSetting(setting)
             obj[value.split("~", 1)[0]] = value
                 .split("~").slice(1).join("~") ?? ""
             await set(src, setting, obj)
         }
         if (isList) {
-            let current = await getSetting(setting)
+            let current = getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
             await set(src, setting, [...current, value])
         }
         if (isNumber) {
-            await set(src, setting, await getSetting(setting) + Number(value))
+            await set(src, setting, getSetting(setting) + Number(value))
         }
         if (isText) {
-            await set(src, setting, await getSetting(setting) + value)
+            await set(src, setting, getSetting(setting) + value)
         }
     }
     if (method === "remove") {
         if (isObject) {
-            const obj = await getSetting(setting)
+            const obj = getSetting(setting)
             delete obj[value.split("~", 1)[0]]
             await set(src, setting, obj)
         }
         if (isList) {
-            let current = await getSetting(setting)
+            let current = getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
@@ -359,10 +359,10 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
             await set(src, setting, newValue)
         }
         if (isNumber) {
-            await set(src, setting, await getSetting(setting) - Number(value))
+            await set(src, setting, getSetting(setting) - Number(value))
         }
         if (isText) {
-            const newval = await getSetting(setting)
+            const newval = getSetting(setting)
             await set(src, setting, newval.replace(value, ""))
         }
     }
@@ -375,17 +375,17 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
             })
         }
         if (isList) {
-            let current = await getSetting(setting)
+            let current = getSetting(setting)
             if (current === "all") {
                 current = mouseFeatures
             }
             await set(src, setting, [value, ...current])
         }
         if (isNumber) {
-            await set(src, setting, await getSetting(setting) * Number(value))
+            await set(src, setting, getSetting(setting) * Number(value))
         }
         if (isText) {
-            await set(src, setting, value + await getSetting(setting))
+            await set(src, setting, value + getSetting(setting))
         }
     }
 }
@@ -475,7 +475,7 @@ const setCommand = async(src, args) => {
             const [setting] = part.split("!", 1)
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
-                const index = values.indexOf(String(await getSetting(setting)))
+                const index = values.indexOf(String(getSetting(setting)))
                 await modifySetting(src,
                     setting, values[index + 1] || values[0])
             } else {
@@ -489,7 +489,7 @@ const setCommand = async(src, args) => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             if (isValidSettingName(setting) && setting !== "all") {
-                const value = await getSetting(setting)
+                const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
                     await modifySetting(src, setting, String(!value))
@@ -530,12 +530,12 @@ const setCommand = async(src, args) => {
                 })
             }
         } else if (isValidSettingName(part) && part !== "all"
-            && typeof await getSetting(part) === "boolean") {
+            && typeof getSetting(part) === "boolean") {
             await modifySetting(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
-                const value = await getSetting(settingName)
+                const value = getSetting(settingName)
                 if (typeof value === "boolean") {
                     await modifySetting(src, settingName, String(!value))
                 } else {
@@ -559,7 +559,7 @@ const setCommand = async(src, args) => {
         } else if (part.startsWith("no")) {
             const settingName = part.replace("no", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
-                const value = await getSetting(settingName)
+                const value = getSetting(settingName)
                 const {
                     isArraySetting, isNumberSetting, isObjectSetting
                 } = require("./settings")
@@ -962,7 +962,7 @@ const tabForBufferArg = async(args, filter = null) => {
 /** Quit the entire app entirely, including all quit settings and cleanup. */
 const quitall = async() => {
     ipcRenderer.send("hide-window")
-    const keepQuickmarkNames = await getSetting("quickmarkpersistence")
+    const keepQuickmarkNames = getSetting("quickmarkpersistence")
     /** @type {("scroll"|"marks"|"pointer")[]} */
     let clearMark = ["scroll", "marks", "pointer"]
     clearMark = clearMark.filter(t => !keepQuickmarkNames.includes(t))
@@ -979,7 +979,7 @@ const quitall = async() => {
     } else {
         deleteFile(joinPath(await appData(), "quickmarks"))
     }
-    const clearHistory = await getSetting("clearhistoryinterval")
+    const clearHistory = getSetting("clearhistoryinterval")
     if (clearHistory === "session") {
         deleteFile(joinPath(await appData(), "hist"))
     } else if (clearHistory === "none") {
@@ -996,13 +996,13 @@ const quitall = async() => {
         pagesContainer.textContent = ""
     }
     await clearTempContainers()
-    if (await getSetting("cache") !== "full") {
+    if (getSetting("cache") !== "full") {
         await clearCache()
     }
-    if (await getSetting("clearcookiesonquit")) {
+    if (getSetting("clearcookiesonquit")) {
         await clearCookies()
     }
-    if (await getSetting("clearlocalstorageonquit")) {
+    if (getSetting("clearlocalstorageonquit")) {
         await clearLocalStorage()
     }
     const {updateMappings} = require("./favicons")
@@ -1083,7 +1083,7 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
         customStyle.textContent = css
     }
     await ipcRenderer.invoke("set-custom-styling",
-        await getSetting("guifontsize"), css)
+        getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     await setCustomStyling(css)
     currentscheme = name
@@ -1108,7 +1108,7 @@ const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
         })
         return
     }
-    const position = userPosition || await getSetting("devtoolsposition")
+    const position = userPosition || getSetting("devtoolsposition")
     const {add} = require("./pagelayout")
     const {addTab} = require("./tabs")
     if (position === "window") {
@@ -1119,13 +1119,13 @@ const openDevTools = async(src, userPosition = null, trailingArgs = null) => {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
             await addTab({"devtools": true, src})
-            await add(id, "hor", await getSetting("splitright"))
+            add(id, "hor", getSetting("splitright"))
         }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
             await addTab({"devtools": true, src})
-            await add(id, "ver", await getSetting("splitbelow"))
+            add(id, "ver", getSetting("splitbelow"))
         }
     } else {
         const valid = argsAsHumanList(["window", "vsplit", "split", "tab"])
@@ -1156,10 +1156,10 @@ const openSpecialPage = async(
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
-    const newtabUrl = await stringToUrl(await getSetting("newtaburl"))
+    const newtabUrl = stringToUrl(getSetting("newtaburl"))
     const isNewtab = currentSpecial === "newtab"
         || (url?.replace(/\/+$/g, "") ?? "") === newtabUrl.replace(/\/+$/g, "")
-    const replaceSpecial = await getSetting("replacespecial")
+    const replaceSpecial = getSetting("replacespecial")
     const {addTab, navigateTo} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
         await addTab({src, "url": newSpecialUrl})
@@ -1502,7 +1502,7 @@ const buffer = async(src, args) => {
         await switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        await navigateTo(src, await stringToUrl(args.join(" ")))
+        await navigateTo(src, stringToUrl(args.join(" ")))
     }
 }
 
@@ -1532,7 +1532,7 @@ const open = async(src, args) => {
         return
     }
     const {navigateTo} = require("./tabs")
-    await navigateTo(src, await stringToUrl(args.join(" ")))
+    await navigateTo(src, stringToUrl(args.join(" ")))
 }
 
 /**
@@ -1799,16 +1799,16 @@ const addSplit = async opts => {
     }
     if (args.length === 0) {
         const newTab = await addTab({
-            "container": await getSetting("containersplitpage"),
+            "container": getSetting("containersplitpage"),
             "lazy": false,
             src,
             switchTo
         })
         const newTabId = newTab?.getAttribute("link-id") ?? ""
         if (switchTo) {
-            await add(id, method, !leftOrAbove)
+            add(id, method, !leftOrAbove)
         } else {
-            await add(newTabId, method, leftOrAbove)
+            add(newTabId, method, leftOrAbove)
         }
         return
     }
@@ -1822,29 +1822,29 @@ const addSplit = async opts => {
         } else {
             const page = pageForTab(tab)
             if (page) {
-                await add(page, method, leftOrAbove)
+                add(page, method, leftOrAbove)
                 if (switchTo) {
                     await switchToTab(tab)
                 } else {
                     await unsuspendPage(page)
                     const {applyLayout} = require("./pagelayout")
-                    await applyLayout()
+                    applyLayout()
                 }
             }
         }
     } else {
         const newTab = await addTab({
-            "container": await getSetting("containersplitpage"),
+            "container": getSetting("containersplitpage"),
             "lazy": false,
             src,
             switchTo,
-            "url": await stringToUrl(args.join(" "))
+            "url": stringToUrl(args.join(" "))
         })
         const newTabId = newTab?.getAttribute("link-id") ?? ""
         if (switchTo) {
-            await add(id, method, !leftOrAbove)
+            add(id, method, !leftOrAbove)
         } else {
-            await add(newTabId, method, leftOrAbove)
+            add(newTabId, method, leftOrAbove)
         }
     }
 }
@@ -1919,7 +1919,7 @@ const makedefault = async src => {
                         "type": "error"
                     })
                 }
-            }).catch(() => null)
+            })
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
             getAppRootDir(), "defaultapp/windows.bat"))
@@ -1937,7 +1937,7 @@ const makedefault = async src => {
                     "type": "error"
                 })
             }
-        }).catch(() => null)
+        })
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
@@ -2028,7 +2028,7 @@ const tabnew = async(src, session = null, url = null) => {
      */
     const options = {src}
     if (url?.trim()) {
-        options.url = await stringToUrl(url)
+        options.url = stringToUrl(url)
     }
     if (session?.trim()) {
         options.session = session
@@ -2324,7 +2324,7 @@ const delscrollpos = async(src, all, args) => {
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
-    const scrollPosId = await getSetting("scrollposlocalid")
+    const scrollPosId = getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(await urlToString(currentPage()?.src ?? ""))
@@ -2533,7 +2533,7 @@ const delpointerpos = async(src, all, args) => {
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
-    const pointerPosId = await getSetting("pointerposlocalid")
+    const pointerPosId = getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {
         path = domainName(await urlToString(currentPage()?.src ?? ""))
@@ -2620,9 +2620,9 @@ const translatepage = async(src, args) => {
         })
         return
     }
-    const translateUrl = await getSetting("translateurl")
+    const translateUrl = getSetting("translateurl")
     const url = translateUrl.replace(/\/*$/g, "")
-    let api = await getSetting("translateapi")
+    let api = getSetting("translateapi")
     if (api === "auto") {
         if (url.includes("deepl.com")) {
             api = "deepl"
@@ -2630,7 +2630,7 @@ const translatepage = async(src, args) => {
             api = "libretranslate"
         }
     }
-    const apiKey = await getSetting("translatekey")
+    const apiKey = getSetting("translatekey")
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
         await notify({
             "id": "commands.translatepage.apiKey", src, "type": "warning"
@@ -2648,7 +2648,7 @@ const translatepage = async(src, args) => {
         })
         return
     }
-    lang = lang?.toLowerCase() ?? await getSetting("translatelang")
+    lang = lang?.toLowerCase() ?? getSetting("translatelang")
     if (lang === "jp") {
         lang = "ja"
     }
@@ -2835,9 +2835,9 @@ const commands = {
     "notifications": ({src}) => openSpecialPage(src, "notifications", false),
     "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
     "o": ({args, src}) => open(src, args),
-    "only": async() => {
+    "only": () => {
         const {only} = require("./pagelayout")
-        await only()
+        only()
     },
     "open": ({args, src}) => open(src, args),
     "pin": ({args, range, src}) => pin(src, args, range),
@@ -2895,7 +2895,7 @@ const commands = {
                 })
                 return
             }
-            await execCommand(`${await getSetting("vimcommand")} "${script}"`,
+            execCommand(`${getSetting("vimcommand")} "${script}"`,
                 async err => {
                     if (err) {
                         await notify({
@@ -2915,34 +2915,34 @@ const commands = {
     },
     "scrollpos": ({args, src}) => scrollpos(src, args),
     "set": ({args, src}) => setCommand(src, args),
-    "Sexplore": async({args, range, src}) => addSplit({
+    "Sexplore": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitbelow"),
+        "leftOrAbove": !getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
         "switchTo": true
     }),
-    "Sexplore!": async({args, range, src}) => addSplit({
+    "Sexplore!": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitbelow"),
+        "leftOrAbove": !getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
         "switchTo": false
     }),
     "source": ({args, src}) => source(src, null, args),
-    "split": async({args, range, src}) => addSplit({
+    "split": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitbelow"),
+        "leftOrAbove": !getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
         "switchTo": true
     }),
-    "split!": async({args, range, src}) => addSplit({
+    "split!": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitbelow"),
+        "leftOrAbove": !getSetting("splitbelow"),
         "method": "ver",
         range,
         src,
@@ -2958,33 +2958,33 @@ const commands = {
     "v!": ({src}) => openSpecialPage(src, "version", true),
     "version": ({src}) => openSpecialPage(src, "version", false),
     "version!": ({src}) => openSpecialPage(src, "version", true),
-    "Vexplore": async({args, range, src}) => addSplit({
+    "Vexplore": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitright"),
+        "leftOrAbove": !getSetting("splitright"),
         "method": "hor",
         range,
         src,
         "switchTo": true
     }),
-    "Vexplore!": async({args, range, src}) => addSplit({
+    "Vexplore!": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitright"),
+        "leftOrAbove": !getSetting("splitright"),
         "method": "hor",
         range,
         src,
         "switchTo": false
     }),
-    "vsplit": async({args, range, src}) => addSplit({
+    "vsplit": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitright"),
+        "leftOrAbove": !getSetting("splitright"),
         "method": "hor",
         range,
         src,
         "switchTo": true
     }),
-    "vsplit!": async({args, range, src}) => addSplit({
+    "vsplit!": ({args, range, src}) => addSplit({
         args,
-        "leftOrAbove": !await getSetting("splitright"),
+        "leftOrAbove": !getSetting("splitright"),
         "method": "hor",
         range,
         src,
@@ -3305,12 +3305,11 @@ const execute = async(com, opts = {}) => {
             .replace("<useCurrentDomain>", `${await getPageDomain()}`)
     }
     const {push} = require("./commandhistory")
-    await push(commandStr, src === "user")
+    push(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
-            await execCommand(commandStr.replace("!", ""), async(err, out) => {
-                const reportExit = await getSetting(
-                    "notificationforsystemcommands")
+            execCommand(commandStr.replace("!", ""), async(err, out) => {
+                const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     await notify({
                         "fields": [`${err}`],

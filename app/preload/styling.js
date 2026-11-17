@@ -27,20 +27,14 @@ const {
     expandPath,
     fetchUrl,
     getAppRootDir,
-    getSetting,
     joinPath,
     listDir,
     pathToSpecialPageName,
     readFile
 } = require("../util")
+const {getSetting, notify} = require("./util")
 
 const specialPage = pathToSpecialPageName(window.location.href)
-
-/**
- * Send a notification to the renderer thread.
- * @param {import("../util").NotificationInfo} opts
- */
-const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
 /** Apply the current theme styling from the parent process. */
 const applyThemeStyling = async() => {

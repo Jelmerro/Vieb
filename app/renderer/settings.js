@@ -22,22 +22,20 @@ const {argsAsHumanList, validLanguages} = require("../translate")
 const {
     appConfig,
     appData,
+    defaultUseragent,
     expandPath,
     isDir,
     isFile,
     isUrl,
     isValidIntervalValue,
     joinPath,
-    notify,
     pathExists,
     pathToSpecialPageName,
     readFile,
     specialChars,
-    stringToUrl,
     urlToString,
     userAgentTemplated,
-    writeFile,
-    writeJSON
+    writeFile
 } = require("../util")
 const {
     currentPage,
@@ -45,6 +43,8 @@ const {
     listPages,
     listReadyPages,
     listTabs,
+    notify,
+    stringToUrl,
     tabForPage,
     updateGuiVisibility
 } = require("./common")
@@ -1148,7 +1148,7 @@ const checkOther = async(src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        const stringified = await stringToUrl(value)
+        const stringified = stringToUrl(value)
         if (value && !isUrl(stringified.replace(/^https?:\/\//g, ""))) {
             await notify({
                 "fields": [value],
@@ -1652,7 +1652,7 @@ const checkOther = async(src, setting, value) => {
         if (typeof value !== "string") {
             return false
         }
-        const url = await stringToUrl(value)
+        const url = stringToUrl(value)
         if (!isUrl(url.replace(/^https?:\/\//g, ""))) {
             await notify({
                 "fields": [value],
@@ -1828,6 +1828,10 @@ const updateNativeTheme = () => ipcRenderer.invoke(
 const updatePdfOption = () => ipcRenderer.invoke(
     "update-pdf-option", allSettings.pdfbehavior)
 
+/** Update the adblock notification setting in the main thread. */
+const updateAdblockerNotification = () => ipcRenderer.invoke(
+    "adblock-notification-update", allSettings.adblockernotifications)
+
 /**
  * Update container related settings on change and update labels/colors.
  * @param {boolean} full
@@ -1870,6 +1874,11 @@ const updateContainerSettings = (full = true) => {
     }
 }
 
+/** Update the useragent related settings in the main thread. */
+const updateUseragentSettings = () => ipcRenderer.invoke(
+    "override-global-useragent", userAgentTemplated(allSettings.useragent[0])
+        || defaultUseragent(), allSettings.useragentsys)
+
 /**
  * Update download related settings in the main thread on change.
  * @param {import("./common").RunSource} src
@@ -1887,23 +1896,29 @@ const updateDownloadSettings = async(src = "other") => {
     await ipcRenderer.invoke("set-download-settings", downloads)
 }
 
-/** Update the settings in the file so they are updated in main/preload. */
-const updateSettings = async() => {
-    const settingsFile = joinPath(await appData(), "settings")
-    /**
-     * @type {{[setting: string]: boolean|number|string|string[]
-     *   |{[key: string]: string}}}
-     */
+/**
+ * @typedef {(typeof defaultSettings & {
+ *   "fg": string
+ *   "bg": string
+ *   "linkcolor": string
+ * })} validSetting
+ */
+/**
+ * Get a setting by name directly from the settings object.
+ * @template {keyof validSetting} T Valid setting names.
+ * @param {T} setting
+ * @returns {validSetting[T]}
+ */
+const getSetting = setting => {
+    /** @type {validSetting} */
     const data = {
         "bg": document.body.computedStyleMap().get("--bg")?.toString() ?? "",
         "fg": document.body.computedStyleMap().get("--fg")?.toString() ?? "",
         "linkcolor": document.body.computedStyleMap().get(
-            "--link-color")?.toString() ?? ""
+            "--link-color")?.toString() ?? "",
+        ...allSettings
     }
-    for (const [setting, value] of Object.entries(allSettings)) {
-        data[setting] = value
-    }
-    writeJSON(settingsFile, data)
+    return data[setting]
 }
 
 /** Update the permissions in the main thread on change. */
@@ -2007,13 +2022,12 @@ const getCustomStyling = () => customStyling
 /** Update the custom styling in the webview using colorscheme and fontsize. */
 const updateCustomStyling = async() => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
-    await updateSettings()
     const {addColorschemeStylingToWebview} = require("./tabs")
     for (const p of listReadyPages()) {
-        await addColorschemeStylingToWebview(p)
+        addColorschemeStylingToWebview(p)
     }
     const {applyLayout} = require("./pagelayout")
-    await applyLayout()
+    applyLayout()
     await ipcRenderer.invoke("set-custom-styling",
         allSettings.guifontsize, customStyling)
 }
@@ -2217,7 +2231,6 @@ const set = async(src, setting, value) => {
             }
             allSettings.mouse = newval
         }
-        await updateSettings()
         // Update settings elsewhere
         if (setting === "adblocker") {
             if (value === "off") {
@@ -2227,15 +2240,18 @@ const set = async(src, setting, value) => {
             }
         }
         if (setting === "adblockernotifications") {
-            ipcRenderer.send("adblock-notification-update",
-                allSettings.adblockernotifications)
+            await updateAdblockerNotification()
         }
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
+        if (setting.startsWith("dialog")) {
+            for (const p of listReadyPages()) {
+                await p.send("updated-dialog-settings")
+            }
+        }
         if (setting.startsWith("useragent") && typeof value === "string") {
-            await ipcRenderer.invoke("override-global-useragent",
-                userAgentTemplated(allSettings.useragent[0]))
+            await updateUseragentSettings()
         }
         if (setting === "guifontsize") {
             await updateCustomStyling()
@@ -2263,7 +2279,7 @@ const set = async(src, setting, value) => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             }
             currentTab()?.scrollIntoView({"inline": "center"})
-            await applyLayout()
+            applyLayout()
         }
         if (setting === "mouse" || setting === "mousedisabledbehavior") {
             updateMouseSettings()
@@ -2309,7 +2325,7 @@ const set = async(src, setting, value) => {
                 tabs?.classList.add(value)
             }
             currentTab()?.scrollIntoView({"inline": "center"})
-            await applyLayout()
+            applyLayout()
         }
         if (setting.startsWith("darkreader")) {
             for (const p of listReadyPages()) {
@@ -2353,7 +2369,7 @@ const set = async(src, setting, value) => {
         }
         if (setting === "suspendtimeout") {
             const {restartSuspendTimeouts} = require("./pagelayout")
-            await restartSuspendTimeouts()
+            restartSuspendTimeouts()
         }
         if (setting === "windowtitle") {
             await updateWindowTitle()
@@ -2376,7 +2392,6 @@ const loadFromDisk = async(firstRun, src = "source") => {
     const files = config?.files ?? []
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
-        await updateSettings()
     }
     if (isFile(joinPath(await appData(), "erwicmode"))) {
         /** @type {typeof defaultErwicSettings} */
@@ -2407,12 +2422,11 @@ const loadFromDisk = async(firstRun, src = "source") => {
             await execute(line, {"settingsFile": conf, src})
         }
     }
-    ipcRenderer.send("adblock-notification-update",
-        allSettings.adblockernotifications)
+    await updateAdblockerNotification()
     updateContainerSettings()
+    await updateUseragentSettings()
     await updateDownloadSettings()
     await updatePermissionSettings()
-    await updateSettings()
     updateMouseSettings()
     await updateNativeTheme()
     await updateRequestHeaders()
@@ -2593,6 +2607,7 @@ module.exports = {
     freeText,
     getCustomStyling,
     getMouseConf,
+    getSetting,
     init,
     isArraySetting,
     isEnumSetting,

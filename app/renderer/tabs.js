@@ -23,21 +23,17 @@ const {
     appConfig,
     defaultUseragent,
     deleteFile,
-    getSetting,
     hasProtocol,
     isDir,
     isFile,
     joinPath,
     listDir,
-    listNotificationHistory,
-    notify,
     pathToSpecialPageName,
     propPixels,
     readFile,
     readJSON,
     sameDomain,
     specialPagePath,
-    stringToUrl,
     urlToString,
     userAgentTemplated,
     writeJSON
@@ -48,15 +44,19 @@ const {
     currentTab,
     getUrl,
     guiRelatedUpdate,
+    listNotificationHistory,
     listPages,
     listReadyPages,
     listTabs,
+    notify,
     pageForTab,
     sendToPageOrSubFrame,
     setTopOfPageWithMouse,
+    stringToUrl,
     tabForPage
 } = require("./common")
 const {setMode} = require("./modes")
+const {getSetting} = require("./settings")
 
 /**
  * @typedef {(
@@ -115,24 +115,24 @@ const updateUrl = async(webview, force = false) => {
  * Reset the tab information for a given page.
  * @param {Electron.WebviewTag} webview
  */
-const resetTabInfo = async webview => {
+const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
     const {loading} = require("./favicons")
-    await loading(webview, true)
+    loading(webview, true)
 }
 
 /**
  * Pick a new useragent for the page if multiple are configured.
  * @param {Electron.WebviewTag} webview
  */
-const rerollUserAgent = async webview => {
-    const agents = await getSetting("useragent")
+const rerollUserAgent = webview => {
+    const agents = getSetting("useragent")
     if (agents.length > 0) {
-        const agent = await userAgentTemplated(
+        const agent = userAgentTemplated(
             agents.at(Math.random() * agents.length) ?? "")
         webview.setUserAgent(agent)
     } else {
-        webview.setUserAgent(await defaultUseragent())
+        webview.setUserAgent(defaultUseragent())
     }
 }
 
@@ -179,7 +179,7 @@ const suspendTab = async(src, tab, force = false) => {
     tab.classList.remove("crashed")
     tab.removeAttribute("media-playing")
     const {show} = require("./favicons")
-    await show(page)
+    show(page)
     const placeholder = document.createElement("div")
     placeholder.classList.add("webview")
     for (const attr of sharedAttributes) {
@@ -233,7 +233,7 @@ const recreateWebview = async(src, webview, customSrc = null) => {
  */
 const checkContainerNames = async(src, webview, location) => {
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    const containernames = await getSetting("containernames")
+    const containernames = getSetting("containernames")
     const sessionName = containernames.find(
         c => loc.match(c.split("~", 1)[0]) && c.split("~", 3)[2] !== "newtab")
         ?.split("~", 2)[1]
@@ -275,9 +275,9 @@ const navigateTo = async(src, location, customPage = null) => {
     if (wasRecreated) {
         return
     }
-    await rerollUserAgent(webview)
+    rerollUserAgent(webview)
     webview.loadURL(loc).catch(() => null)
-    await resetTabInfo(webview)
+    resetTabInfo(webview)
     const tabTitleEl = currentTab()?.querySelector("span")
     if (tabTitleEl) {
         tabTitleEl.textContent = await urlToString(loc)
@@ -295,8 +295,8 @@ const saveTabs = async() => {
      * }}
      */
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
-    const restoreTabs = await getSetting("restoretabs")
-    const keepRecentlyClosed = await getSetting("keeprecentlyclosed")
+    const restoreTabs = getSetting("restoretabs")
+    const keepRecentlyClosed = getSetting("keeprecentlyclosed")
     if (keepRecentlyClosed) {
         data.closed = JSON.parse(JSON.stringify(recentlyClosed))
     }
@@ -366,14 +366,14 @@ const switchToTab = async tabOrIndex => {
     if (typeof tabOrIndex === "number") {
         let index = tabOrIndex
         while (index < 0) {
-            if (await getSetting("tabcycle")) {
+            if (getSetting("tabcycle")) {
                 index = tabs.length + index
             } else {
                 index = 0
             }
         }
         while (tabs.length <= index) {
-            if (await getSetting("tabcycle")) {
+            if (getSetting("tabcycle")) {
                 index -= tabs.length
             } else {
                 index = tabs.length - 1
@@ -400,7 +400,7 @@ const switchToTab = async tabOrIndex => {
     tab.scrollIntoView({"block": "center", "inline": "center"})
     const {setLastUsedTab, switchView} = require("./pagelayout")
     if (newCurrentPage) {
-        await switchView(oldPage, newCurrentPage)
+        switchView(oldPage, newCurrentPage)
     }
     await saveTabs()
     await setMode("normal")
@@ -420,7 +420,7 @@ const switchToTab = async tabOrIndex => {
     const searchResultsEl = document.getElementById("search-results")
     const searchResults = tab.getAttribute("search-results")
     if (searchResultsEl) {
-        if (searchResults && await getSetting("showsearchresults")) {
+        if (searchResults && getSetting("showsearchresults")) {
             searchResultsEl.style.display = "flex"
         } else {
             searchResultsEl.style.display = "none"
@@ -430,10 +430,10 @@ const switchToTab = async tabOrIndex => {
     await guiRelatedUpdate("tabbar")
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
-    await setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
+    setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
     const loadingProgress = document.getElementById("loading-progress")
     if (loadingProgress) {
-        if (["all", "line"].includes(await getSetting("loadingindicator"))) {
+        if (["all", "line"].includes(getSetting("loadingindicator"))) {
             try {
                 if (newCurrentPage?.isLoading()) {
                     loadingProgress.style.display = "flex"
@@ -465,14 +465,14 @@ const closeTab = async(src, index = null, force = false) => {
     if (!tab || !page) {
         return
     }
-    if (!await getSetting("closablepinnedtabs")
+    if (!getSetting("closablepinnedtabs")
         && !force && tab.classList.contains("pinned")) {
         return
     }
     const tabLinkId = tab.getAttribute("link-id")
     const url = await urlToString(page.getAttribute("src") || "")
     const oldTabIdx = listTabs().indexOf(tab)
-    if (await getSetting("keeprecentlyclosed") && url) {
+    if (getSetting("keeprecentlyclosed") && url) {
         /** @type {TabInfo} */
         const tabInfo = {
             "container": page.getAttribute("container") ?? "",
@@ -510,12 +510,12 @@ const closeTab = async(src, index = null, force = false) => {
         }
         page.remove()
         if (listTabs().length === 0) {
-            if (await getSetting("quitonlasttabclose")) {
+            if (getSetting("quitonlasttabclose")) {
                 const {execute} = require("./command")
                 await execute("quitall")
                 return
             }
-            const containernewtab = await getSetting("containernewtab")
+            const containernewtab = getSetting("containernewtab")
             if (containernewtab.startsWith("s:")) {
                 /* eslint-disable-next-line no-use-before-define */
                 await addTab({"container": "main", src})
@@ -525,13 +525,13 @@ const closeTab = async(src, index = null, force = false) => {
             }
         }
         if (isClosingCurrent) {
-            if (await getSetting("tabclosefocus") === "right") {
+            if (getSetting("tabclosefocus") === "right") {
                 if (oldTabIdx >= listTabs().length) {
                     await switchToTab(listTabs().length - 1)
                 } else {
                     await switchToTab(oldTabIdx)
                 }
-            } else if (await getSetting("tabclosefocus") === "previous") {
+            } else if (getSetting("tabclosefocus") === "previous") {
                 const {getLastTabIds} = require("./pagelayout")
                 const tabs = listTabs()
                 const lastTab = getLastTabIds().map(id => {
@@ -581,7 +581,7 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
  * @param {Electron.WebviewTag} webview
  * @param {boolean} force
  */
-const addColorschemeStylingToWebview = async(webview, force = false) => {
+const addColorschemeStylingToWebview = (webview, force = false) => {
     const isSpecialPage = pathToSpecialPageName(webview.src)?.name
     const isLocal = webview.src.startsWith("file:/")
     const isErrorPage = webview.hasAttribute("failed-to-load")
@@ -590,7 +590,7 @@ const addColorschemeStylingToWebview = async(webview, force = false) => {
         || webview.src.startsWith("markdownviewer:")
     const {getCustomStyling} = require("./settings")
     const customStyling = getCustomStyling()
-    const fontsize = await getSetting("guifontsize")
+    const fontsize = getSetting("guifontsize")
     webview.send("action", "rerenderTOC", customStyling, fontsize)
         .catch(() => null)
     if (!isSpecialPage && !isLocal && !isErrorPage && !isCustomView) {
@@ -623,7 +623,7 @@ const addColorschemeStylingToWebview = async(webview, force = false) => {
             return
         }
     }
-    webview.send("add-colorscheme-styling", await getSetting("guifontsize"),
+    webview.send("add-colorscheme-styling", getSetting("guifontsize"),
         customStyling).catch(() => null)
 }
 
@@ -633,7 +633,7 @@ const addColorschemeStylingToWebview = async(webview, force = false) => {
  */
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", async e => {
-        if (!e.isMainFrame) {
+        if (!e.isMainFrame || !webview.hasAttribute("dom-ready")) {
             return
         }
         const oldUrl = webview.getAttribute("src") ?? ""
@@ -641,13 +641,13 @@ const addWebviewListeners = webview => {
             const {copyMapping} = require("./favicons")
             copyMapping(oldUrl, e.url)
         }
-        await rerollUserAgent(webview)
-        await resetTabInfo(webview)
+        rerollUserAgent(webview)
+        resetTabInfo(webview)
         const name = tabForPage(webview)?.querySelector("span")
         if (name && !name?.textContent) {
             name.textContent = await urlToString(e.url)
         }
-        const timeout = await getSetting("requesttimeout")
+        const timeout = getSetting("requesttimeout")
         const id = webview.getAttribute("link-id")
         if (!id) {
             return
@@ -667,7 +667,7 @@ const addWebviewListeners = webview => {
         if (e.details.reason === "clean-exit") {
             return
         }
-        if (await getSetting("reloadtaboncrash")) {
+        if (getSetting("reloadtaboncrash")) {
             await recreateWebview("other", webview)
         } else {
             tabForPage(webview)?.classList.add("crashed")
@@ -678,7 +678,7 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("close", async() => {
-        if (await getSetting("permissionclosepage") !== "allow") {
+        if (getSetting("permissionclosepage") !== "allow") {
             return
         }
         const tab = tabForPage(webview)
@@ -706,11 +706,17 @@ const addWebviewListeners = webview => {
         await checkContainerNames("other", webview, e.url)
     })
     webview.addEventListener("did-start-loading", async() => {
+        if (!webview.hasAttribute("dom-ready")) {
+            return
+        }
         const {loading} = require("./favicons")
-        await loading(webview)
+        loading(webview)
         await updateUrl(webview)
     })
     webview.addEventListener("did-fail-load", async e => {
+        if (!webview.hasAttribute("dom-ready")) {
+            return
+        }
         if (e.errorDescription === "" || !e.isMainFrame) {
             // Request was aborted before another error could occur,
             // or some request made by the page failed (which can be ignored).
@@ -721,7 +727,7 @@ const addWebviewListeners = webview => {
         const isSSLError = (e.errorDescription.includes("_SSL_")
             || e.errorDescription.includes("_CERT_"))
             && webview.src.startsWith("https://")
-        if (isSSLError && await getSetting("redirecttohttp")) {
+        if (isSSLError && getSetting("redirecttohttp")) {
             webview.loadURL(webview.src.replace(/^https?:\/\//g, "http://"))
                 .catch(() => null)
             return
@@ -740,7 +746,7 @@ const addWebviewListeners = webview => {
             webview.loadURL(specialPagePath(page)).catch(() => null)
             return
         }
-        await addColorschemeStylingToWebview(webview, true)
+        addColorschemeStylingToWebview(webview, true)
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND"
             // Any number of slashes after file is fine
@@ -773,8 +779,11 @@ const addWebviewListeners = webview => {
         webview.setAttribute("failed-to-load", "true")
     })
     webview.addEventListener("did-stop-loading", async() => {
+        if (!webview.hasAttribute("dom-ready")) {
+            return
+        }
         const {show} = require("./favicons")
-        await show(webview)
+        show(webview)
         await updateUrl(webview)
         clearTimeout(timeouts[webview.getAttribute("link-id") ?? ""])
         const specialPageName = pathToSpecialPageName(webview.src)?.name
@@ -782,7 +791,7 @@ const addWebviewListeners = webview => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview:")
             || webview.src.startsWith("markdownviewer:")
-        await addColorschemeStylingToWebview(webview)
+        addColorschemeStylingToWebview(webview)
         if (specialPageName === "help") {
             const {rangeCompatibleCommands} = require("./command")
             const {
@@ -798,11 +807,11 @@ const addWebviewListeners = webview => {
             webview.send("notification-history", listNotificationHistory())
                 .catch(() => null)
         }
-        const tocPages = await getSetting("tocpages")
+        const tocPages = getSetting("tocpages")
         const readableUrl = await urlToString(webview.src)
         if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
             const {getCustomStyling} = require("./settings")
-            const fontsize = await getSetting("guifontsize")
+            const fontsize = getSetting("guifontsize")
             setTimeout(() => {
                 sendToPageOrSubFrame("action", "showTOC",
                     getCustomStyling(), fontsize)
@@ -834,7 +843,7 @@ const addWebviewListeners = webview => {
                 }
             }
         }
-        if (await getSetting("userscript")) {
+        if (getSetting("userscript")) {
             const {loadUserscripts} = require("./extensions")
             await loadUserscripts(webview)
         }
@@ -870,7 +879,7 @@ const addWebviewListeners = webview => {
         if (wasRecreated) {
             return
         }
-        await resetTabInfo(webview)
+        resetTabInfo(webview)
         const tabTitleEl = tabForPage(webview)?.querySelector("span")
         if (tabTitleEl) {
             tabTitleEl.textContent = await urlToString(e.url)
@@ -893,12 +902,16 @@ const addWebviewListeners = webview => {
         document.body.classList.remove("fullscreen")
         await setMode("normal")
         const {applyLayout} = require("./pagelayout")
-        await applyLayout()
+        applyLayout()
     })
     webview.addEventListener("ipc-message", async e => {
         const {backInHistory, forwardInHistory} = require("./actions")
         const {resetScrollbarTimer} = require("./pagelayout")
         const {getMouseConf} = require("./settings")
+        if (e.channel === "setting-query") {
+            await webview.send(`setting-query-response-${e.args[0]}`,
+                getSetting(e.args[0]))
+        }
         if (e.channel === "notify") {
             await notify(e.args[0])
         }
@@ -925,12 +938,12 @@ const addWebviewListeners = webview => {
                 justSearched = false
             } else if (e.args[0]) {
                 const {handleScrollDiffEvent} = require("./pointer")
-                await handleScrollDiffEvent(e.args[0])
+                handleScrollDiffEvent(e.args[0])
             }
             if (e.args[0]) {
-                await resetScrollbarTimer("scroll")
+                resetScrollbarTimer("scroll")
                 const {resetInsertLeaveTimeout} = require("./input")
-                await resetInsertLeaveTimeout()
+                resetInsertLeaveTimeout()
             }
         }
         if (e.channel === "history-list-request") {
@@ -950,20 +963,20 @@ const addWebviewListeners = webview => {
             }
             const {forSite} = require("./favicons")
             const {suggestTopSites, titleForPage} = require("./history")
-            const favUrls = await getSetting("favoritepages")
+            const favUrls = getSetting("favoritepages")
             const favoritePages = await Promise.all(favUrls.map(async u => {
                 let url = u
                 if (!hasProtocol(url)) {
                     url = `https://${url}`
                 }
                 return {
-                    "icon": await forSite(url) || await forSite(`${url}/`),
+                    "icon": forSite(url) || forSite(`${url}/`),
                     "name": titleForPage(url) || titleForPage(`${url}/`),
                     "url": await urlToString(url)
                 }
             }))
             const topPages = await suggestTopSites()
-            if (await getSetting("suggesttopsites") && topPages.length > 0) {
+            if (getSetting("suggesttopsites") && topPages.length > 0) {
                 webview.send("insert-new-tab-info", topPages, favoritePages)
                     .catch(() => null)
             } else if (favoritePages.length > 0) {
@@ -980,7 +993,7 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "mousemove") {
             await setTopOfPageWithMouse(getMouseConf("guiontop") && !e.args[1])
-            if (await getSetting("mousefocus")) {
+            if (getSetting("mousefocus")) {
                 const tab = tabForPage(webview)
                 if (tab && currentTab() !== tab) {
                     await switchToTab(tab)
@@ -996,18 +1009,18 @@ const addWebviewListeners = webview => {
                 await moveScreenshotFrame(
                     e.args[0] + pageLeft, e.args[1] + pageTop)
             }
-            await resetScrollbarTimer("move")
+            resetScrollbarTimer("move")
         }
         if (e.channel === "search-element-location"
             && currentMode() === "pointer") {
             const {move} = require("./pointer")
-            await move(e.args[0], e.args[1])
+            move(e.args[0], e.args[1])
         }
         if (e.channel === "custom-style-inject") {
             await injectCustomStyleRequest(webview, e.args[0], e.args[1])
         }
     })
-    webview.addEventListener("found-in-page", async e => {
+    webview.addEventListener("found-in-page", e => {
         const current = e.result.activeMatchOrdinal
         const total = e.result.matches
         const location = e.result.selectionArea
@@ -1021,7 +1034,7 @@ const addWebviewListeners = webview => {
         tabForPage(webview)?.setAttribute("search-results", text)
         const searchResultsEl = document.getElementById("search-results")
         if (webview === currentPage() && searchResultsEl) {
-            if (await getSetting("showsearchresults")) {
+            if (getSetting("showsearchresults")) {
                 searchResultsEl.style.display = "flex"
             } else {
                 searchResultsEl.style.display = "none"
@@ -1135,22 +1148,23 @@ const unsuspendPage = async page => {
     webview.setAttribute("webpreferences", prefs)
     const url = page.getAttribute("src") || ""
     const loc = url.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    const containernames = await getSetting("containernames")
+    const containernames = getSetting("containernames")
     const sessionName = containernames.find(
         c => loc.match(c.split("~", 1)[0]) && c.split("~", 3)[2] !== "newtab")
         ?.split("~", 2)[1] ?? page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
-        await getSetting("adblocker"), await getSetting("cache") !== "none")
+        getSetting("adblocker"), getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
     await guiRelatedUpdate("tabbar")
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
     const {setLastUsedTab} = require("./pagelayout")
-    await setLastUsedTab(page?.getAttribute("link-id") ?? null)
+    setLastUsedTab(page?.getAttribute("link-id") ?? null)
     const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
     const isDevtoolsTab = !!currentPageId
     const name = tab.querySelector("span")
     let indexToJumpBackTo = null
+    addWebviewListeners(webview)
     if (isDevtoolsTab) {
         if (name) {
             name.textContent = "Devtools"
@@ -1160,8 +1174,8 @@ const unsuspendPage = async page => {
         if (name) {
             name.textContent = await urlToString(url)
         }
-        await resetTabInfo(webview)
-        const newtabUrl = await getSetting("newtaburl")
+        resetTabInfo(webview)
+        const newtabUrl = getSetting("newtaburl")
         /** @type {Electron.RestoreOptions|null} */
         let history = null
         try {
@@ -1179,8 +1193,7 @@ const unsuspendPage = async page => {
             }
             webview.src = lastHistoryUrl
         }
-        webview.src = url || await stringToUrl(newtabUrl)
-            || specialPagePath("newtab")
+        webview.src = url || stringToUrl(newtabUrl) || specialPagePath("newtab")
     }
     const completed = new Promise(res => {
         webview.addEventListener("dom-ready", () => {
@@ -1190,7 +1203,6 @@ const unsuspendPage = async page => {
             if (tab.hasAttribute("muted")) {
                 webview.setAudioMuted(true)
             }
-            addWebviewListeners(webview)
             if (isDevtoolsTab) {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
@@ -1229,7 +1241,7 @@ const addTab = async opts => {
     // url, customIndex, switchTo, pinned, session (override of container)
     // container (suggestion), devtools, lazy, script, muted, startup
     // Defaults for these options vary depending on app state and user settings
-    const stringified = await stringToUrl(opts.url || "")
+    const stringified = stringToUrl(opts.url || "")
     let url = stringified.replace(/view-?source:\/?\/?/g, "sourceviewer://")
     if (opts.history) {
         url = opts.history?.entries.at(-1)?.url ?? url
@@ -1273,11 +1285,11 @@ const addTab = async opts => {
         oldTab?.setAttribute("devtools-id", `${linkId}`)
         isDevtoolsTab = true
     }
-    let sessionName = await getSetting("containernewtab")
+    let sessionName = getSetting("containernewtab")
     if (opts.container) {
         sessionName = opts.container
     } else if (opts.startup) {
-        sessionName = await getSetting("containerstartuppage")
+        sessionName = getSetting("containerstartuppage")
     }
     if (sessionName === "s:external" && url && !opts.session) {
         const isSpecialPage = pathToSpecialPageName(url)?.name
@@ -1285,7 +1297,7 @@ const addTab = async opts => {
             sessionName = "main"
         } else {
             if ((/^https?:\/\//).test(url)) {
-                const externalcommand = await getSetting("externalcommand")
+                const externalcommand = getSetting("externalcommand")
                 if (externalcommand.trim()) {
                     const {commonAction} = require("./contextmenu")
                     await commonAction(
@@ -1328,7 +1340,7 @@ const addTab = async opts => {
     if (opts.session) {
         sessionName = opts.session
     } else if (url) {
-        const contanernames = await getSetting("containernames")
+        const contanernames = getSetting("containernames")
         sessionName = contanernames.find(
             c => url?.match(c.split("~", 1)[0]))?.split("~", 2)[1]
             || sessionName
@@ -1343,7 +1355,7 @@ const addTab = async opts => {
     if (opts.pinned) {
         tab.classList.add("pinned")
     }
-    tab.style.minWidth = `${await getSetting("mintabwidth")}px`
+    tab.style.minWidth = `${getSetting("mintabwidth")}px`
     favicon.src = "img/empty.png"
     favicon.className = "favicon"
     statusIcon.src = "img/spinner.gif"
@@ -1354,7 +1366,7 @@ const addTab = async opts => {
     tab.append(statusIcon)
     tab.append(name)
     const activeTab = currentTab()
-    const tabnewposition = await getSetting("tabnewposition")
+    const tabnewposition = getSetting("tabnewposition")
     if (opts.customIndex !== undefined && activeTab) {
         if (opts.customIndex >= listTabs().length) {
             tabs?.append(tab)
@@ -1398,7 +1410,7 @@ const addTab = async opts => {
         tabs?.append(tab)
     }
     tab.setAttribute("link-id", `${linkId}`)
-    const containercolors = await getSetting("containercolors")
+    const containercolors = getSetting("containercolors")
     const color = containercolors.find(
         c => sessionName.match(c.split("~", 1)[0]))
     if (color) {
@@ -1423,11 +1435,11 @@ const addTab = async opts => {
     let {muted} = opts
     const {lazy, startup, switchTo} = opts
     if (startup) {
-        const tabreopenmuted = await getSetting("tabreopenmuted")
+        const tabreopenmuted = getSetting("tabreopenmuted")
         muted = tabreopenmuted === "always"
             || tabreopenmuted === "remember" && muted
     } else if (muted === undefined || muted === null) {
-        const tabopenmuted = await getSetting("tabopenmuted")
+        const tabopenmuted = getSetting("tabopenmuted")
         muted = tabopenmuted === "always"
             || tabopenmuted === "background" && !switchTo
     }
@@ -1436,14 +1448,14 @@ const addTab = async opts => {
         page.setAttribute("muted", "muted")
     }
     pages?.append(page)
-    const suspend = (lazy ?? await getSetting("suspendbackgroundtab"))
+    const suspend = (lazy ?? getSetting("suspendbackgroundtab"))
         && !switchTo
     tab.setAttribute("suspended", "suspended")
     if (suspend) {
         const {titleForPage} = require("./history")
         name.textContent = titleForPage(url) || url
         const {forSite} = require("./favicons")
-        favicon.src = await forSite(url) || favicon.src
+        favicon.src = forSite(url) || favicon.src
     } else if (!switchTo) {
         await unsuspendPage(page)
     }
@@ -1451,7 +1463,7 @@ const addTab = async opts => {
         await switchToTab(tab)
     } else {
         const {applyLayout} = require("./pagelayout")
-        await applyLayout()
+        applyLayout()
     }
     return tab
 }
@@ -1480,8 +1492,8 @@ const reopenTab = async src => {
     if (!restore) {
         return
     }
-    restore.url = await stringToUrl(restore.url)
-    if (restore.container && await getSetting("containerkeeponreopen")) {
+    restore.url = stringToUrl(restore.url)
+    if (restore.container && getSetting("containerkeeponreopen")) {
         restore.session = restore.container
     } else {
         delete restore.container
@@ -1493,14 +1505,14 @@ const reopenTab = async src => {
     if (!tab) {
         return
     }
-    const tabreopenposition = await getSetting("tabreopenposition")
+    const tabreopenposition = getSetting("tabreopenposition")
     if (tabreopenposition === "left") {
         restore.customIndex = listTabs().indexOf(tab)
     }
     if (tabreopenposition === "right") {
         restore.customIndex = listTabs().indexOf(tab) + 1
     }
-    const rememberMuted = await getSetting("tabreopenmuted")
+    const rememberMuted = getSetting("tabreopenmuted")
     restore.muted = rememberMuted === "always"
         || rememberMuted === "remember" && restore.muted
     await addTab({...restore, src})
@@ -1516,9 +1528,9 @@ const reopenTab = async src => {
  * }} tabs
  */
 const loadPreviousSessionTabs = async tabs => {
-    const s = await getSetting("suspendonrestore")
-    const restoreTabs = await getSetting("restoretabs")
-    const keepRecentlyClosed = await getSetting("keeprecentlyclosed")
+    const s = getSetting("suspendonrestore")
+    const restoreTabs = getSetting("restoretabs")
+    const keepRecentlyClosed = getSetting("keeprecentlyclosed")
     if (Array.isArray(tabs.closed) && keepRecentlyClosed) {
         recentlyClosed = tabs.closed
     }
@@ -1570,7 +1582,7 @@ const init = async() => {
             && parsed && !Array.isArray(parsed)) {
             await loadPreviousSessionTabs(parsed)
         }
-        const startup = await getSetting("startuppages")
+        const startup = getSetting("startuppages")
         for (const tab of startup) {
             const parts = tab.split("~")
             const url = parts.shift() ?? ""
@@ -1589,19 +1601,18 @@ const init = async() => {
     }
     ipcRenderer.on("urls", async(_, pages) => {
         for (const page of pages) {
-            const replaceStartup = await getSetting("replacestartup")
+            const replaceStartup = getSetting("replacestartup")
             if (replaceStartup !== "never") {
                 try {
                     const url = currentPage()?.src ?? ""
                     const specialName = pathToSpecialPageName(url)?.name
-                    const newtabUrl = await stringToUrl(
-                        await getSetting("newtaburl"))
+                    const newtabUrl = stringToUrl(getSetting("newtaburl"))
                     const isNewtab = specialName === "newtab"
                         || url.replace(/\/+$/g, "")
                         === newtabUrl.replace(/\/+$/g, "")
                     if (isNewtab || replaceStartup === "always") {
                         await navigateTo("source",
-                            await stringToUrl(page?.url || page))
+                            stringToUrl(page?.url || page))
                         continue
                     }
                 } catch {
@@ -1612,7 +1623,7 @@ const init = async() => {
                 await addTab({
                     "src": "source",
                     "startup": true,
-                    "url": await stringToUrl(page)
+                    "url": stringToUrl(page)
                 })
             } else if (typeof page === "object" && page.url) {
                 await addTab({
@@ -1624,8 +1635,8 @@ const init = async() => {
             }
         }
     })
-    ipcRenderer.on("navigate-to", async(_, url) => navigateTo(
-        "user", await stringToUrl(url)))
+    ipcRenderer.on("navigate-to", (_, url) => navigateTo(
+        "user", stringToUrl(url)))
     ipcRenderer.on("unresponsive", (_, id) => {
         for (const webview of listReadyPages()) {
             if (webview.getWebContentsId() === id) {
@@ -1640,10 +1651,10 @@ const init = async() => {
             }
         }
     })
-    ipcRenderer.on("new-tab", async(_, url) => addTab({
+    ipcRenderer.on("new-tab", (_, url) => addTab({
         "src": "user",
-        "switchTo": await getSetting("mousenewtabswitch"),
-        "url": await stringToUrl(url)
+        "switchTo": getSetting("mousenewtabswitch"),
+        "url": stringToUrl(url)
     }))
     if (listTabs().length === 0 && !erwicMode) {
         if (parsed) {
@@ -1654,10 +1665,10 @@ const init = async() => {
         }
     }
     await ipcRenderer.invoke("window-state-init", {
-        "full": await getSetting("windowfullscreen"),
-        "max": await getSetting("windowmaximize"),
-        "pos": await getSetting("windowposition"),
-        "size": await getSetting("windowsize")
+        "full": getSetting("windowfullscreen"),
+        "max": getSetting("windowmaximize"),
+        "pos": getSetting("windowposition"),
+        "size": getSetting("windowsize")
     })
 }
 

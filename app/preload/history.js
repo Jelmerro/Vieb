@@ -19,9 +19,8 @@
 
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {
-    formatDate, getAppRootDir, getSetting, joinPath, urlToString
-} = require("../util")
+const {formatDate, getAppRootDir, joinPath, urlToString} = require("../util")
+const {getSetting} = require("./util")
 
 let currentlyRemoving = false
 let virtualList = document.createElement("div")

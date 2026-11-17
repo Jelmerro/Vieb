@@ -594,7 +594,7 @@ const currentInputMatches = key => {
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("./util").NotificationInfo} opts
+ * @param {import("./renderer/common").NotificationInfo} opts
  */
 const notify = opts => mainWindow?.webContents.send("notify", opts)
 
@@ -880,7 +880,7 @@ const permissionHandler = (_, pm, callback, details) => {
 let navHistoryToRestore = null
 const minWindowSize = 500
 app.whenReady().then(async() => {
-    app.userAgentFallback = await defaultUseragent()
+    app.userAgentFallback = defaultUseragent()
     const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
     deleteFile(executeOut)
     if (!argUnsafeMultiwin) {
@@ -1334,6 +1334,8 @@ let resourcesAllowed = []
 let resourcesBlocked = []
 /** @type {{[key: string]: string}} */
 let requestHeaders = {}
+/** @type {"windows"|"linux"|"mac"} */
+let currentUserAgentResolvedSystem = userAgentResolvedSystem()
 /** @type {string[]} */
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
@@ -1523,7 +1525,7 @@ ipcMain.handle("update-resource-settings", (_, resources, block, allow) => {
 /** Generate a 403 forbidden response to block the PDF viewer entirely. */
 const blockPdf = () => new Response("", {"status": 403})
 
-ipcMain.on("adblock-notification-update", (_, newValue) => {
+ipcMain.handle("adblock-notification-update", (_, newValue) => {
     adblockerNotify = newValue
 })
 
@@ -1862,9 +1864,9 @@ const handleDesktopCapture = async(request, callback, desktopSources) => {
 }
 
 /** Return the system matching sec-ch-ua-platform client hint platform. */
-const clientHintPlatform = async() => ({
+const clientHintPlatform = () => ({
     "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
-}[await userAgentResolvedSystem()])
+}[currentUserAgentResolvedSystem])
 
 ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {
@@ -2000,7 +2002,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         blocker.onHeadersReceived(details, callback)
     })
-    newSess.webRequest.onBeforeSendHeaders(async(details, callback) => {
+    newSess.webRequest.onBeforeSendHeaders((details, callback) => {
         const headers = details.requestHeaders
         for (const [head, headerInfo] of Object.entries(requestHeaders)) {
             if (head.startsWith("-")) {
@@ -2011,7 +2013,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         for (const head of Object.keys(headers)) {
             if (head.toLowerCase() === "sec-ch-ua-platform") {
-                headers[head] = await clientHintPlatform()
+                headers[head] = clientHintPlatform()
             }
         }
         return callback({"cancel": false, "requestHeaders": headers})
@@ -2742,8 +2744,9 @@ ipcMain.handle("list-navigation-history", (_, id) => {
 ipcMain.handle("restore-navigation-history", (_, history) => {
     navHistoryToRestore = history
 })
-ipcMain.handle("override-global-useragent", async(_, globalUseragent) => {
-    app.userAgentFallback = globalUseragent || await defaultUseragent()
+ipcMain.handle("override-global-useragent", (_, globalUseragent, platform) => {
+    currentUserAgentResolvedSystem = platform
+    app.userAgentFallback = globalUseragent || defaultUseragent()
     for (const ses of sessionList) {
         session.fromPartition(ses).setUserAgent(app.userAgentFallback)
     }

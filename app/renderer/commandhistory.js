@@ -17,8 +17,9 @@
 */
 "use strict"
 
-const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
+const {appData, appendFile, joinPath, readFile} = require("../util")
 const {currentMode, getUrl} = require("./common")
+const {getSetting} = require("./settings")
 
 let commandsFile = ""
 /** @type {string[]} */
@@ -95,8 +96,8 @@ const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-const push = async(command, user) => {
-    const setting = await getSetting("commandhist")
+const push = (command, user) => {
+    const setting = getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return
     }

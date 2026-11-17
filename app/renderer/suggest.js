@@ -21,10 +21,8 @@ const {
     appData,
     basePath,
     dirname,
-    downloadPath,
     expandPath,
     getAppRootDir,
-    getSetting,
     isAbsolutePath,
     isDir,
     isUrl,
@@ -32,18 +30,20 @@ const {
     listDir,
     pathExists,
     readFile,
-    searchword,
-    stringToUrl,
     urlToString
 } = require("../util")
 const {
     currentMode,
     currentPage,
+    downloadPath,
     getUrl,
     listTabs,
     pageForTab,
+    searchword,
+    stringToUrl,
     updateScreenshotHighlight
 } = require("./common")
+const {getSetting} = require("./settings")
 
 /** @type {string[]} */
 let suggestions = []
@@ -53,7 +53,7 @@ let originalValue = ""
  * Update the explore border colors based on the input type.
  * @param {string|null} searchStr
  */
-const updateColors = async(searchStr = null) => {
+const updateColors = (searchStr = null) => {
     const urlElement = getUrl()
     const search = searchStr || urlElement?.value
     if (search !== undefined && urlElement && currentMode() === "explore") {
@@ -69,7 +69,7 @@ const updateColors = async(searchStr = null) => {
         } else if (isAbsolutePath(local) && pathExists(local)) {
             urlElement.className = "file"
         } else {
-            const match = await searchword(search.trim())
+            const match = searchword(search.trim())
             if (match.word) {
                 urlElement.className = "searchwords"
             } else {
@@ -93,7 +93,7 @@ const setUrlValue = async url => {
     } else {
         urlInput.value = url
     }
-    await updateColors()
+    updateColors()
 }
 
 /** Check if the currently selected suggestion is the very first one (yet). */
@@ -199,11 +199,11 @@ const emptySuggestions = () => {
  * Translate a location to an informative object that can be suggested.
  * @param {string} base
  * @param {string} loc
- * @returns {Promise<{path: string, title: string, type: "file", url: string}>}
+ * @returns {{path: string, title: string, type: "file", url: string}}
  */
-const locationToSuggestion = async(base, loc) => {
+const locationToSuggestion = (base, loc) => {
     let absPath = joinPath(base, loc)
-    let fullPath = await stringToUrl(absPath)
+    let fullPath = stringToUrl(absPath)
     let location = loc
     if (isDir(absPath)) {
         fullPath += "/"
@@ -266,7 +266,7 @@ const addExplore = async explore => {
         const {getMouseConf} = require("./settings")
         if (e.button === 2) {
             if (getMouseConf("suggestselect") && ["both", "explore"]
-                .includes(await getSetting("menusuggest"))) {
+                .includes(getSetting("menusuggest"))) {
                 const {linkMenu} = require("./contextmenu")
                 linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
             }
@@ -285,11 +285,11 @@ const addExplore = async explore => {
             }
         }
     })
-    if (explore.icon && await getSetting("favicons") !== "disabled") {
+    if (explore.icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = await forSite(explore.icon) || "img/empty.png"
+        thumbnail.src = forSite(explore.icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const title = document.createElement("span")
@@ -318,12 +318,12 @@ const addExplore = async explore => {
  */
 const suggestExplore = async search => {
     emptySuggestions()
-    await updateColors(search)
+    updateColors(search)
     if (!search.trim()) {
         return
     }
     const {suggestHist} = require("./history")
-    const suggestorder = await getSetting("suggestorder")
+    const suggestorder = getSetting("suggestorder")
     for (const suggest of suggestorder.filter(Boolean)) {
         const args = suggest.split("~")
         const type = args.shift()
@@ -353,16 +353,15 @@ const suggestExplore = async search => {
             if (!order) {
                 order = "alpha"
             }
-            const searchwords = await getSetting("searchwords")
-            const words = await Promise.all(Object.entries(searchwords)
-                .map(async([title, url]) => {
-                    const match = await searchword(search)
-                    let filledUrl = match.url
-                    if (filledUrl === search) {
-                        filledUrl = url
-                    }
-                    return {title, "type": "searchword", "url": filledUrl}
-                }))
+            const searchwords = getSetting("searchwords")
+            const words = Object.entries(searchwords).map(([title, url]) => {
+                const match = searchword(search)
+                let filledUrl = match.url
+                if (filledUrl === search) {
+                    filledUrl = url
+                }
+                return {title, "type": "searchword", "url": filledUrl}
+            })
             if (order === "alpha") {
                 words.sort((a, b) => a.title.localeCompare(b.title))
             }
@@ -386,7 +385,7 @@ const suggestExplore = async search => {
 const addCommand = async(
     command, subtext = null, url = null, icon = null, allowDuplicate = false
 ) => {
-    if (suggestions.length + 1 > await getSetting("suggestcommands")) {
+    if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
     if (suggestions.includes(command) && !allowDuplicate) {
@@ -400,7 +399,7 @@ const addCommand = async(
         const {getMouseConf} = require("./settings")
         if (e.button === 2) {
             if (getMouseConf("suggestselect") && ["both", "command"]
-                .includes(await getSetting("menusuggest"))) {
+                .includes(getSetting("menusuggest"))) {
                 const {commandMenu} = require("./contextmenu")
                 commandMenu("user", {command, "x": e.x, "y": e.y})
             }
@@ -413,11 +412,11 @@ const addCommand = async(
             clear()
         }
     })
-    if (icon && await getSetting("favicons") !== "disabled") {
+    if (icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = await forSite(icon) || "img/empty.png"
+        thumbnail.src = forSite(icon) || "img/empty.png"
         element.append(thumbnail)
     }
     const commandElement = document.createElement("span")

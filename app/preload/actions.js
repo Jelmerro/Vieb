@@ -37,12 +37,7 @@ const {
     readFile,
     writeFile
 } = require("../util")
-
-/**
- * Send a notification to the renderer thread.
- * @param {import("../util").NotificationInfo} opts
- */
-const notify = opts => ipcRenderer.sendToHost("notify", opts)
+const {notify} = require("./util")
 
 /**
  * Navigate to the next page if available.

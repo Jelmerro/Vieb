@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    getSetting, isElement, isUrl, matchesQuery, notify, pageOffset, specialChars
+    isElement, isUrl, matchesQuery, pageOffset, specialChars
 } = require("../util")
 const ACTIONS = require("./actions")
 const {
@@ -29,12 +29,14 @@ const {
     getUrl,
     listReadyPages,
     listTabs,
+    notify,
     sendToPageOrSubFrame,
     setTopOfPageWithMouse,
     updateGuiVisibility,
     updateScreenshotHighlight
 } = require("./common")
 const POINTER = require("./pointer")
+const {getSetting} = require("./settings")
 
 /**
  * @type {{[mode: string]: {
@@ -947,8 +949,8 @@ const updateSuggestions = async() => {
     } else if (mode === "command") {
         const {suggestCommand} = require("./suggest")
         await suggestCommand(url.value)
-    } else if (mode === "search" && await getSetting("incsearch")) {
-        await ACTIONS.incrementalSearch({"src": "other"})
+    } else if (mode === "search" && getSetting("incsearch")) {
+        ACTIONS.incrementalSearch({"src": "other"})
     }
 }
 
@@ -958,7 +960,7 @@ const updateSuggestions = async() => {
  */
 const requestSuggestUpdate = async(updateHistory = true) => {
     const url = getUrl()
-    const suggestBounceDelay = await getSetting("suggestbouncedelay")
+    const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory
         && url?.value !== inputHistoryList[inputHistoryIndex]?.value) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
@@ -1046,12 +1048,12 @@ const moveScreenshotFrame = async(x, y) => {
 }
 
 /** Update the scroll position in the navbar while typing. */
-const updateNavbarScrolling = async() => {
+const updateNavbarScrolling = () => {
     const url = getUrl()
     if (!url) {
         return
     }
-    const charWidth = await getSetting("guifontsize") * 0.60191
+    const charWidth = getSetting("guifontsize") * 0.60191
     const end = (url.selectionStart ?? 0) * charWidth - charWidth
     const start = (url.selectionEnd ?? 0) * charWidth
         - url.clientWidth + charWidth + 2
@@ -1091,7 +1093,7 @@ const cutInput = async(event = null) => {
     url.value = url.value.slice(0, cur) + url.value.slice(end)
     url.setSelectionRange(cur, cur)
     await requestSuggestUpdate()
-    await updateNavbarScrolling()
+    updateNavbarScrolling()
 }
 
 /**
@@ -1123,7 +1125,7 @@ const pasteInput = async(event = null) => {
     url.value = url.value.slice(0, cur) + pastedText + url.value.slice(end)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
     await requestSuggestUpdate()
-    await updateNavbarScrolling()
+    updateNavbarScrolling()
 }
 
 /**
@@ -1312,29 +1314,29 @@ const updateKeysOnScreen = async() => {
     repeatCounterEl.textContent = `${repeatCounter}`
     pressedKeysEl.textContent = pressedKeys
     recordNameEl.textContent = `recording @${recordingName}`
-    if (repeatCounter && await getSetting("showcmd")) {
+    if (repeatCounter && getSetting("showcmd")) {
         repeatCounterEl.style.display = "flex"
     } else {
         repeatCounterEl.style.display = "none"
     }
-    if (pressedKeys && await getSetting("showcmd")) {
+    if (pressedKeys && getSetting("showcmd")) {
         pressedKeysEl.style.display = "flex"
     } else {
         pressedKeysEl.style.display = "none"
     }
-    if (recordingName && await getSetting("showcmd")) {
+    if (recordingName && getSetting("showcmd")) {
         recordNameEl.style.display = "flex"
     } else {
         recordNameEl.style.display = "none"
     }
-    const mapsuggestcount = await getSetting("mapsuggest")
+    const mapsuggestcount = getSetting("mapsuggest")
     const mapsuggestElement = document.getElementById("mapsuggest")
     if (mapsuggestElement) {
         mapsuggestElement.style.display = "none"
     }
     const {active} = require("./contextmenu")
     if (mapsuggestcount > 0 && mapsuggestElement) {
-        const mapsuggestPosition = await getSetting("mapsuggestposition")
+        const mapsuggestPosition = getSetting("mapsuggestposition")
         mapsuggestElement.className = mapsuggestPosition
         mapsuggestElement.textContent = ""
         if (pressedKeys) {
@@ -1510,11 +1512,11 @@ const executeMapString = async(mapStr, recursive, opts) => {
     repeatCounter = 0
     await updateKeysOnScreen()
     for (let i = 0; i < repeater; i++) {
-        if (recursiveCounter > await getSetting("maxmapdepth")) {
+        if (recursiveCounter > getSetting("maxmapdepth")) {
             break
         }
         for (const key of splitMapString(mapStr).maps) {
-            if (recursiveCounter > await getSetting("maxmapdepth")) {
+            if (recursiveCounter > getSetting("maxmapdepth")) {
                 break
             }
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
@@ -1624,12 +1626,12 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             url.selectionEnd = url.selectionStart
         }
         url.setSelectionRange(0, url.selectionEnd, "backward")
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<Home>", "<C-Home>"], ["<M-Left>", "<M-Up>"], id)) {
         url.setSelectionRange(0, 0)
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right>", "<M-S-Down>"], id)) {
@@ -1637,12 +1639,12 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             url.selectionStart = url.selectionEnd
         }
         url.setSelectionRange(url.selectionStart, url.value.length)
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
         url.setSelectionRange(url.value.length, url.value.length)
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (id === "<Right>") {
@@ -1656,7 +1658,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             url.selectionEnd += 1
         }
         url.selectionStart = url.selectionEnd
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Right>") {
@@ -1672,7 +1674,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             && url.selectionStart < url.value.length) {
             url.selectionStart += 1
         }
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     const wordRegex = specialChars.source.replace("[", "[^")
@@ -1691,7 +1693,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                 break
             }
         }
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Right>"], ["<A-S-Right>"], id)) {
@@ -1707,7 +1709,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                 } else {
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
-                await updateNavbarScrolling()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1723,7 +1725,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             url.selectionStart -= 1
         }
         url.selectionEnd = url.selectionStart
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Left>") {
@@ -1738,7 +1740,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
         } else if (url.selectionEnd !== null && url.selectionEnd > 0) {
             url.selectionEnd -= 1
         }
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
@@ -1750,7 +1752,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                 break
             }
         }
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
@@ -1772,14 +1774,14 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                 }
                 url.setSelectionRange(url.selectionStart, wordPosition)
             }
-            await updateNavbarScrolling()
+            updateNavbarScrolling()
             return
         }
         return
     }
     if (keyForOs(["<C-a>"], ["<M-a>"], id)) {
         url.setSelectionRange(0, url.value.length)
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-x>", "<S-Del>"], ["<M-x>"], id)) {
@@ -1802,7 +1804,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             await requestSuggestUpdate(false)
         }
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-y>"], ["<M-Z>"], id)) {
@@ -1813,7 +1815,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             await requestSuggestUpdate(false)
         }
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         return
     }
     if (url.selectionStart !== url.selectionEnd
@@ -1828,7 +1830,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
             + url.value.slice(Math.max(0, url.selectionEnd))
         url.setSelectionRange(cur, cur)
         await requestSuggestUpdate()
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
         if (id === "<Del>" || id.endsWith("-Del>")) {
             return
         }
@@ -1845,7 +1847,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                 Math.max(0, url.selectionEnd + 1))}`
             url.setSelectionRange(cur, cur)
             await requestSuggestUpdate()
-            await updateNavbarScrolling()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1861,7 +1863,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                     Math.max(0, wordPosition))}`
                 url.setSelectionRange(cur, cur)
                 await requestSuggestUpdate()
-                await updateNavbarScrolling()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1876,7 +1878,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                 Math.max(0, url.selectionEnd))}`
             url.setSelectionRange(cur - 1, cur - 1)
             await requestSuggestUpdate()
-            await updateNavbarScrolling()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1890,7 +1892,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
                     url.value.slice(Math.max(0, url.selectionStart))}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 await requestSuggestUpdate()
-                await updateNavbarScrolling()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1922,7 +1924,7 @@ const typeCharacterIntoNavbar = async(character, force = false) => {
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
         await requestSuggestUpdate()
-        await updateNavbarScrolling()
+        updateNavbarScrolling()
     }
 }
 
@@ -2037,12 +2039,12 @@ const sanitiseMapString = async(src, mapString, allowSpecials = false) => {
 }
 
 /** Restart or clear the insert mode leave timeout timer. */
-const resetInsertLeaveTimeout = async() => {
+const resetInsertLeaveTimeout = () => {
     clearTimeout(insertleavetimeoutTimer ?? undefined)
     if (currentMode() !== "insert") {
         return
     }
-    const timeout = await getSetting("insertleavetimeout")
+    const timeout = getSetting("insertleavetimeout")
     if (!timeout) {
         return
     }
@@ -2076,7 +2078,7 @@ const handleKeyboard = async e => {
         await ACTIONS.toInsertMode()
         return
     }
-    if (recursiveCounter > await getSetting("maxmapdepth")) {
+    if (recursiveCounter > getSetting("maxmapdepth")) {
         return
     }
     if (e.passedOnFromInsert && blockNextInsertKey) {
@@ -2086,13 +2088,13 @@ const handleKeyboard = async e => {
         return
     }
     const id = toIdentifier(e)
-    const mods = await getSetting("modifiers")
+    const mods = getSetting("modifiers")
     const matchingMod = mods.some(mod => mod === id
         || id.endsWith(`-${mod.slice(1, -1)}>`))
     if (matchingMod) {
         return
     }
-    const passthroughkeys = await getSetting("passthroughkeys")
+    const passthroughkeys = getSetting("passthroughkeys")
     if (currentMode() === "normal" && !isEmptyObject(passthroughkeys)) {
         const url = currentPage()?.src ?? ""
         const matchedUrl = Object.keys(passthroughkeys).find(k => url.match(k))
@@ -2114,9 +2116,9 @@ const handleKeyboard = async e => {
     const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
     clearTimeout(timeoutTimer ?? undefined)
-    await resetInsertLeaveTimeout()
+    resetInsertLeaveTimeout()
     const {active, clear} = require("./contextmenu")
-    if (await getSetting("timeout")) {
+    if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
             if (pressedKeys) {
@@ -2155,7 +2157,7 @@ const handleKeyboard = async e => {
             }
             repeatCounter = 0
             await updateKeysOnScreen()
-        }, await getSetting("timeoutlen"))
+        }, getSetting("timeoutlen"))
     }
     if ("npv".includes(currentMode()[0]) || active()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
@@ -2163,7 +2165,7 @@ const handleKeyboard = async e => {
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
         if (!Number.isNaN(keyNumber) && noFutureActions && shouldCount) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
-            const countlimit = await getSetting("countlimit")
+            const countlimit = getSetting("countlimit")
             if (repeatCounter > countlimit) {
                 repeatCounter = countlimit
             }
@@ -2750,7 +2752,7 @@ const init = async() => {
         if (e.y === 0) {
             await setTopOfPageWithMouse(getMouseConf("guiontop"))
         }
-        if (await getSetting("mousefocus")) {
+        if (getSetting("mousefocus")) {
             for (const n of document.elementsFromPoint(e.x, e.y)) {
                 if (!matchesQuery(n, tabSelector)) {
                     continue
@@ -2781,13 +2783,13 @@ const init = async() => {
         }
         await ACTIONS.setFocusCorrectly()
     })
-    window.addEventListener("resize", async() => {
+    window.addEventListener("resize", () => {
         const {clear} = require("./contextmenu")
         clear()
         const {applyLayout} = require("./pagelayout")
-        await applyLayout()
+        applyLayout()
         if (["pointer", "visual"].includes(currentMode())) {
-            await POINTER.updateElement()
+            POINTER.updateElement()
         }
     })
     window.addEventListener("blur", () => {

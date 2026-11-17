@@ -17,7 +17,8 @@
 */
 "use strict"
 
-const {fetchJSON, getSetting} = require("../util")
+const {fetchJSON} = require("../util")
+const {getSetting} = require("./util")
 
 /** If enabled via settings, cut out sponsored Youtube video segments. */
 const loadSponsorblock = async() => {

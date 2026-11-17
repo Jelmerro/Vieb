@@ -17,8 +17,9 @@
 */
 "use strict"
 
-const {appData, appendFile, getSetting, joinPath, readFile} = require("../util")
+const {appData, appendFile, joinPath, readFile} = require("../util")
 const {currentMode, getUrl} = require("./common")
+const {getSetting} = require("./settings")
 
 let exploreFile = ""
 /** @type {string[]} */
@@ -83,8 +84,8 @@ const resetPosition = () => {
  * Push a new user navigation to the list.
  * @param {string} explore
  */
-const push = async explore => {
-    const setting = await getSetting("explorehist")
+const push = explore => {
+    const setting = getSetting("explorehist")
     if (setting === "none") {
         return
     }

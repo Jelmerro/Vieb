@@ -20,29 +20,29 @@
 const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {
-    execCommand,
-    getSetting,
     isElement,
     isUrl,
     matchesQuery,
-    notify,
     pageContainerPos,
     propPixels,
     specialChars,
-    stringToUrl,
     urlToString
 } = require("../util")
 const {
     currentMode,
     currentPage,
     currentTab,
+    execCommand,
     getUrl,
     listReadyPages,
     listTabs,
+    notify,
     pageForTab,
     sendToPageOrSubFrame,
+    stringToUrl,
     tabForPage
 } = require("./common")
+const {getSetting} = require("./settings")
 
 /**
  * @typedef {(
@@ -320,50 +320,51 @@ const commonAction = async(src, type, action, options) => {
     }
     if (action === "open") {
         const {navigateTo} = require("./tabs")
-        await navigateTo(src, await stringToUrl(relevantData))
+        await navigateTo(src, stringToUrl(relevantData))
     } else if (action === "newtab") {
-        await addTab({src, "url": await stringToUrl(relevantData)})
+        await addTab({src, "url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         let urlData = relevantData
         if (isUrl(relevantData)) {
-            if (await getSetting("encodeurlcopy") === "spacesonly") {
+            const encodeurlcopy = getSetting("encodeurlcopy")
+            if (encodeurlcopy === "spacesonly") {
                 urlData = relevantData.replace(/ /g, "%20")
-            } else if (await getSetting("encodeurlcopy") === "nospaces") {
+            } else if (encodeurlcopy === "nospaces") {
                 const stringified = await urlToString(relevantData)
                 urlData = stringified.replace(/ /g, "%20")
-            } else if (await getSetting("encodeurlcopy") === "decode") {
+            } else if (encodeurlcopy === "decode") {
                 urlData = await urlToString(relevantData)
-            } else if (await getSetting("encodeurlcopy") === "encode") {
-                urlData = await stringToUrl(relevantData)
+            } else if (encodeurlcopy === "encode") {
+                urlData = stringToUrl(relevantData)
             }
         }
         ipcRenderer.invoke("write-clipboard", urlData).catch(() => null)
     } else if (action === "download") {
         const {updateDownloadSettings} = require("./settings")
         await updateDownloadSettings(src)
-        currentPage()?.downloadURL(await stringToUrl(relevantData ?? ""))
+        currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
     } else if (action === "split") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
             await addTab({
-                "container": await getSetting("containersplitpage"),
+                "container": getSetting("containersplitpage"),
                 src,
                 "url": relevantData
             })
-            await add(currentTabId, "ver", await getSetting("splitbelow"))
+            add(currentTabId, "ver", getSetting("splitbelow"))
         }
     } else if (action === "vsplit") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
             await addTab({
-                "container": await getSetting("containersplitpage"),
+                "container": getSetting("containersplitpage"),
                 src,
                 "url": relevantData
             })
-            await add(currentTabId, "hor", await getSetting("splitright"))
+            add(currentTabId, "hor", getSetting("splitright"))
         }
     } else if (action === "external") {
-        const ext = await getSetting("externalcommand")
+        const ext = getSetting("externalcommand")
         if (!ext.trim()) {
             await notify({
                 "id": "commands.externalcommand.missing", src, "type": "warning"
@@ -372,19 +373,19 @@ const commonAction = async(src, type, action, options) => {
         }
         if (relevantData) {
             let extData = relevantData
-            if (await getSetting("encodeurlext") === "spacesonly") {
+            const encodeurlext = getSetting("encodeurlext")
+            if (encodeurlext === "spacesonly") {
                 extData = relevantData.replace(/ /g, "%20")
-            } else if (await getSetting("encodeurlext") === "nospaces") {
+            } else if (encodeurlext === "nospaces") {
                 const stringified = await urlToString(relevantData)
                 extData = stringified.replace(/ /g, "%20")
-            } else if (await getSetting("encodeurlext") === "decode") {
+            } else if (encodeurlext === "decode") {
                 extData = await urlToString(relevantData)
-            } else if (await getSetting("encodeurlext") === "encode") {
-                extData = await stringToUrl(relevantData)
+            } else if (encodeurlext === "encode") {
+                extData = stringToUrl(relevantData)
             }
-            await execCommand(`${ext} "${extData}"`, async(err, stdout) => {
-                const reportExit = await getSetting(
-                    "notificationforsystemcommands")
+            execCommand(`${ext} "${extData}"`, async(err, stdout) => {
+                const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     await notify({
                         "fields": [`${err}`],
@@ -413,7 +414,7 @@ const commonAction = async(src, type, action, options) => {
         }
     } else if (action === "search") {
         const {incrementalSearch} = require("./actions")
-        await incrementalSearch({src, "value": relevantData})
+        incrementalSearch({src, "value": relevantData})
     }
 }
 
@@ -444,7 +445,7 @@ const viebMenu = async(src, options, force = false) => {
         refreshTab,
         useEnteredData
     } = require("./actions")
-    const menuSetting = await getSetting("menuvieb")
+    const menuSetting = getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar" || force
     if (pathEls.some(el => matchesQuery(el, "#url")) && navMenu) {
         const url = getUrl()
@@ -594,7 +595,7 @@ const viebMenu = async(src, options, force = false) => {
         createMenuItem({
             /** Add a tab next to the selected tab. */
             "action": async() => {
-                const tabnewposition = await getSetting("tabnewposition")
+                const tabnewposition = getSetting("tabnewposition")
                 let index = listTabs().indexOf(tab)
                 if (tabnewposition === "right") {
                     index += 1
@@ -621,7 +622,7 @@ const viebMenu = async(src, options, force = false) => {
         createMenuItem({
             /** Menu item: Open a new tab with the current url and navigate. */
             "action": async() => {
-                const tabnewposition = await getSetting("tabnewposition")
+                const tabnewposition = getSetting("tabnewposition")
                 let index = listTabs().indexOf(tab)
                 if (tabnewposition === "right") {
                     index += 1
@@ -780,7 +781,7 @@ const webviewMenu = async(src, options, force = false) => {
         if (!pointerRightClick && !getMouseConf("menupage")) {
             return
         }
-        const menuSetting = await getSetting("menupage")
+        const menuSetting = getSetting("menupage")
         if (menuSetting === "never") {
             return
         }

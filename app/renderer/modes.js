@@ -37,15 +37,15 @@ const modes = {
     "normal": {},
     "insert": {
         /** When entering or leaving insert mode, reset the leave timeout. */
-        "onEnter": async() => {
+        "onEnter": () => {
             const {resetInsertLeaveTimeout} = require("./input")
-            await resetInsertLeaveTimeout()
+            resetInsertLeaveTimeout()
         },
         /**
          * When leaving insert mode, all page elements should be unfocused.
          * @param {import("./common").Mode} newMode
          */
-        "onLeave": async newMode => {
+        "onLeave": newMode => {
             if (currentPage()?.hasAttribute("dom-ready")) {
                 currentPage()?.send("action", "blur").catch(() => null)
             }
@@ -58,7 +58,7 @@ const modes = {
                 }
             }
             const {resetInsertLeaveTimeout} = require("./input")
-            await resetInsertLeaveTimeout()
+            resetInsertLeaveTimeout()
         }
     },
     "command": {
@@ -93,10 +93,10 @@ const modes = {
             resetInputHistory()
         },
         /** Clear any temporary searches and remove selection. */
-        "onLeave": async() => {
+        "onLeave": () => {
             const url = getUrl()
             const {resetIncrementalSearch} = require("./actions")
-            await resetIncrementalSearch({"src": "user"})
+            resetIncrementalSearch({"src": "user"})
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
         }
@@ -189,6 +189,14 @@ const setMode = async mode => {
     if (page.hasAttribute("dom-ready")
         && page.isCrashed() && "fipv".includes(mode[0])) {
         return
+    }
+    if (mode === "insert") {
+        const isCustomView = page?.src.startsWith("sourceviewer:")
+            || page?.src.startsWith("readerview:")
+            || page?.src.startsWith("markdownviewer:")
+        if (isCustomView) {
+            return
+        }
     }
     await modes[currentMode()].onLeave?.(mode)
     const modeEl = document.getElementById("mode")

@@ -21,7 +21,6 @@ const {translate} = require("../translate")
 const {
     appData,
     deleteFile,
-    getSetting,
     hasProtocol,
     isFile,
     isObject,
@@ -32,6 +31,7 @@ const {
     urlToString,
     writeJSONAsync
 } = require("../util")
+const {getSetting} = require("./settings")
 
 /** @typedef {{visits: string[], title: string}} HistItem */
 
@@ -212,7 +212,7 @@ const addToHist = async url => {
     if (url.startsWith("devtools://")) {
         return
     }
-    const saveTypes = await getSetting("storenewvisits")
+    const saveTypes = getSetting("storenewvisits")
     if (pathToSpecialPageName(url)?.name) {
         if (!saveTypes.includes("special")) {
             return
@@ -328,7 +328,7 @@ const handleRequest = async(webview, action = null, entries = []) => {
         for (const visit of histItem.visits) {
             history.push({
                 "date": new Date(visit),
-                "icon": await forSite(url),
+                "icon": forSite(url),
                 "title": histItem.title,
                 url,
                 "visits": histItem.visits.length
@@ -341,13 +341,13 @@ const handleRequest = async(webview, action = null, entries = []) => {
 }
 
 /** Return a list of top sites by visit count, depending on suggesttopsites. */
-const suggestTopSites = async() => {
+const suggestTopSites = () => {
     const {forSite} = require("./favicons")
     const topUrls = Object.keys(groupedHistory).filter(g => groupedHistory[g])
         .toSorted((a, b) => visitCount(b) - visitCount(a))
-        .slice(0, await getSetting("suggesttopsites"))
+        .slice(0, getSetting("suggesttopsites"))
     return Promise.all(topUrls.map(async site => ({
-        "icon": await forSite(site),
+        "icon": forSite(site),
         "name": groupedHistory[site]?.title,
         "url": await urlToString(site)
     })))

@@ -21,7 +21,6 @@ const {ipcRenderer} = require("electron")
 const {
     appData,
     domainName,
-    getSetting,
     joinPath,
     matchesQuery,
     pageContainerPos,
@@ -37,6 +36,7 @@ const {
     sendToPageOrSubFrame,
     tabForPage
 } = require("./common")
+const {getSetting} = require("./settings")
 
 let X = 0
 let Y = 0
@@ -55,14 +55,14 @@ const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
 const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
 
 /** Update the pointer position to respect bounds and send the new hover. */
-const updateElement = async() => {
+const updateElement = () => {
     const pointerEl = document.getElementById("pointer")
     const page = currentPage()
     if (!pointerEl || !page) {
         return
     }
     const {bottom, left, right, top} = pageOffset(page)
-    const guifontsize = await getSetting("guifontsize")
+    const guifontsize = getSetting("guifontsize")
     X = Math.max(0, Math.min(X, right - left - guifontsize * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - guifontsize))
     pointerEl.style.left = `${X + left}px`
@@ -87,21 +87,21 @@ const updateElement = async() => {
  * @param {number} x
  * @param {number} y
  */
-const move = async(x, y) => {
+const move = (x, y) => {
     X = x
     Y = y
-    await updateElement()
+    updateElement()
 }
 
 /**
  * Handle a difference in scroll height.
  * @param {number} diff
  */
-const handleScrollDiffEvent = async diff => {
+const handleScrollDiffEvent = diff => {
     startY += diff
     if (listenForScroll) {
         Y += diff
-        await updateElement()
+        updateElement()
         listenForScroll = false
     }
 }
@@ -138,7 +138,7 @@ const start = async(args = null) => {
     const {setMode} = require("./modes")
     await setMode("pointer")
     sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the current mouse position. */
@@ -159,7 +159,7 @@ const moveToMouse = async() => {
             if (currentMode() === "visual") {
                 X = mousePos.x - containerPos.left
                 Y = mousePos.y - containerPos.top
-                await updateElement()
+                updateElement()
             } else {
                 await start({
                     "x": mousePos.x - containerPos.left,
@@ -176,7 +176,7 @@ const restoreSelection = async() => {
     mouseSelection = null
     const {setMode} = require("./modes")
     await setMode("visual")
-    await updateElement()
+    updateElement()
 }
 
 /**
@@ -777,19 +777,19 @@ const startOfPage = async() => {
     const {scrollTop} = require("./actions")
     await scrollTop()
     Y = 0
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 100px left. */
-const moveFastLeft = async() => {
+const moveFastLeft = () => {
     X -= 100
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 10px left. */
-const moveLeft = async() => {
+const moveLeft = () => {
     X -= 10
-    await updateElement()
+    updateElement()
 }
 
 /** Focus an input at the pointer position (goes to insert mode if found). */
@@ -805,14 +805,14 @@ const moveDown = async() => {
         return
     }
     const {bottom, top} = pageOffset(page)
-    if (Y === bottom - top - await getSetting("guifontsize")) {
+    if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         await scroll()
         listenForScroll = true
     } else {
         Y += 10
     }
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 10px up, scrolling the page as needed. */
@@ -824,13 +824,13 @@ const moveUp = async() => {
     } else {
         Y -= 10
     }
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 10px right. */
-const moveRight = async() => {
+const moveRight = () => {
     X += 10
-    await updateElement()
+    updateElement()
 }
 
 /** Right click on the current hover element. */
@@ -852,7 +852,7 @@ const openMenu = args => {
 
 /** Switch to visual mode and store start location. */
 const startVisualSelect = async() => {
-    if (mouseSelection && await getSetting("mousevisualmode") !== "never") {
+    if (mouseSelection && getSetting("mousevisualmode") !== "never") {
         await restoreSelection()
     } else {
         const {setMode} = require("./modes")
@@ -863,94 +863,94 @@ const startVisualSelect = async() => {
 }
 
 /** Swap the current start location and the pointer while in visual mode. */
-const swapPosition = async() => {
+const swapPosition = () => {
     if (currentMode() !== "visual") {
         return
     }
     [startX, X] = [X, startX]
     ;[startY, Y] = [Y, startY]
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 100px right. */
-const moveFastRight = async() => {
+const moveFastRight = () => {
     X += 100
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the center of the view vertically. */
-const centerOfView = async() => {
+const centerOfView = () => {
     const page = currentPage()
     if (!page) {
         return
     }
     const {bottom, top} = pageOffset(page)
     Y = (bottom - top) / 2
-    await updateElement()
+    updateElement()
 }
 
 /** Scroll 100px down at the current hover element. */
-const scrollDown = async() => {
+const scrollDown = () => {
     sendToPageOrSubFrame("send-input-event",
         {"deltaY": -100, "type": "scroll", "x": X, "y": Y})
-    await updateElement()
+    updateElement()
 }
 
 /** Scroll 100px up at the current hover element. */
-const scrollUp = async() => {
+const scrollUp = () => {
     sendToPageOrSubFrame("send-input-event",
         {"deltaY": 100, "type": "scroll", "x": X, "y": Y})
-    await updateElement()
+    updateElement()
 }
 
 /** Scroll 100px left at the current hover element. */
-const scrollLeft = async() => {
+const scrollLeft = () => {
     sendToPageOrSubFrame("send-input-event",
         {"deltaX": 100, "type": "scroll", "x": X, "y": Y})
-    await updateElement()
+    updateElement()
 }
 
 /** Scroll 100px right at the current hover element. */
-const scrollRight = async() => {
+const scrollRight = () => {
     sendToPageOrSubFrame("send-input-event",
         {"deltaX": -100, "type": "scroll", "x": X, "y": Y})
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the top of the view. */
-const startOfView = async() => {
+const startOfView = () => {
     Y = 0
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 1px left. */
-const moveSlowLeft = async() => {
+const moveSlowLeft = () => {
     X -= 1
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 1px down. */
-const moveSlowDown = async() => {
+const moveSlowDown = () => {
     Y += 1
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 1px up. */
-const moveSlowUp = async() => {
+const moveSlowUp = () => {
     Y -= 1
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 1px right. */
-const moveSlowRight = async() => {
+const moveSlowRight = () => {
     X += 1
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the end of the view. */
-const endOfView = async() => {
+const endOfView = () => {
     Y = window.innerHeight
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the end of the page with scrolling. */
@@ -958,19 +958,19 @@ const endOfPage = async() => {
     const {scrollBottom} = require("./actions")
     await scrollBottom()
     Y = window.innerHeight
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the right of the view. */
-const moveRightMax = async() => {
+const moveRightMax = () => {
     X = window.innerWidth
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer to the left of the view. */
-const moveLeftMax = async() => {
+const moveLeftMax = () => {
     X = 0
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 100px down, scrolling the page as needed. */
@@ -980,14 +980,14 @@ const moveFastDown = async() => {
         return
     }
     const {bottom, top} = pageOffset(page)
-    if (Y === bottom - top - await getSetting("guifontsize")) {
+    if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         await scroll()
         listenForScroll = true
     } else {
         Y += 100
     }
-    await updateElement()
+    updateElement()
 }
 
 /** Move the pointer 100px up, scrolling the page as needed. */
@@ -999,7 +999,7 @@ const moveFastUp = async() => {
     } else {
         Y -= 100
     }
-    await updateElement()
+    updateElement()
 }
 
 /**
@@ -1011,7 +1011,7 @@ const storePos = async args => {
     if (!key) {
         return
     }
-    let posType = await getSetting("pointerpostype")
+    let posType = getSetting("pointerpostype")
     if (posType !== "local" && posType !== "global") {
         posType = "global"
         if (key !== key.toUpperCase()) {
@@ -1031,7 +1031,7 @@ const storePos = async args => {
     }
     if (posType === "local") {
         let path = ""
-        const pointerPosId = await getSetting("pointerposlocalid")
+        const pointerPosId = getSetting("pointerposlocalid")
         if (pointerPosId === "domain") {
             path = domainName(await urlToString(currentPage()?.src ?? ""))
                 || domainName(currentPage()?.src ?? "") || ""
@@ -1062,7 +1062,7 @@ const restorePos = async args => {
     if (!key) {
         return
     }
-    const pointerPosId = await getSetting("pointerposlocalid")
+    const pointerPosId = getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {
         path = domainName(await urlToString(currentPage()?.src ?? ""))
@@ -1080,7 +1080,7 @@ const restorePos = async args => {
     const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
     if (pos) {
-        await move(pos.x, pos.y)
+        move(pos.x, pos.y)
     }
 }
 
@@ -1090,7 +1090,7 @@ const init = () => {
     ipcRenderer.on("mouse-down-location", async(_, clickInfo) => {
         const {resetInsertLeaveTimeout} = require("./input")
         const {getMouseConf} = require("./settings")
-        await resetInsertLeaveTimeout()
+        resetInsertLeaveTimeout()
         if ("ces".includes(currentMode()[0]) && getMouseConf("leaveinput")) {
             await setMode("normal")
         }
@@ -1115,9 +1115,9 @@ const init = () => {
             }
             if (getMouseConf("movepointer")) {
                 const factor = currentPage()?.getZoomFactor() ?? 1
-                await move(clickInfo.x * factor, clickInfo.y * factor)
+                move(clickInfo.x * factor, clickInfo.y * factor)
             } else {
-                await updateElement()
+                updateElement()
             }
         }
         const {setFocusCorrectly} = require("./actions")
@@ -1125,13 +1125,13 @@ const init = () => {
     })
     ipcRenderer.on("mouse-click-info", async(_, clickInfo) => {
         const {resetInsertLeaveTimeout} = require("./input")
-        await resetInsertLeaveTimeout()
+        resetInsertLeaveTimeout()
         if (skipNextClick) {
             skipNextClick = false
             return
         }
         if (["pointer", "visual"].includes(currentMode())) {
-            await updateElement()
+            updateElement()
             return
         }
         const {getMouseConf} = require("./settings")
@@ -1159,7 +1159,7 @@ const init = () => {
             }
             return
         }
-        const switchToVisual = await getSetting("mousevisualmode")
+        const switchToVisual = getSetting("mousevisualmode")
         if (switchToVisual !== "never" || currentMode() === "visual") {
             skipNextClick = true
             const factor = currentPage()?.getZoomFactor() ?? 1

@@ -17,7 +17,18 @@
 */
 "use strict"
 
-const {getSetting} = require("../util")
+const {
+    appConfig,
+    appData,
+    expandPath,
+    hasProtocol,
+    isDir,
+    isFile,
+    isUrl,
+    joinPath,
+    pathToSpecialPageName,
+    specialPagePath
+} = require("../util")
 
 /** @typedef {"execute"|"user"|"source"|"other"} RunSource */
 
@@ -26,6 +37,19 @@ let topOfPageWithMouse = false
 let navbarGuiTimer = null
 /** @type {NodeJS.Timeout|null} */
 let tabbarGuiTimer = null
+/**
+ * @typedef {{
+ *   click: {
+ *     type: "download-success",
+ *     path: string,
+ *   }|null
+ *   date: Date,
+ *   message: string,
+ *   type: string
+ * }[]} notificationHistory
+ */
+/** @type {notificationHistory} */
+const notificationHistory = []
 
 /** Get the current url input element if available. */
 const getUrl = () => {
@@ -167,21 +191,230 @@ const currentMode = () => {
     return "normal"
 }
 
+/** Return the location of the downloads, either via setting or OS default. */
+const downloadPath = async() => {
+    const {getSetting} = require("./settings")
+    const settingVal = getSetting("downloadpath")
+    if (settingVal) {
+        return expandPath(settingVal)
+    }
+    const config = await appConfig()
+    return expandPath(config?.downloads || "~/Downloads")
+}
+
+/**
+ * Run any system command in the user's preferred shell.
+ * @param {string} command
+ * @param {(
+ *   error: import("child_process").ExecException|null,
+ *   stdout: string|Buffer,
+ *   stderr: string|Buffer
+ * ) => Promise<void>} callback
+ */
+const execCommand = (command, callback) => {
+    let shell = null
+    if (process.platform === "win32") {
+        shell = process.env.ComSpec || shell
+    }
+    shell = process.env.SHELL || shell
+    const {getSetting} = require("./settings")
+    shell = getSetting("shell") || shell
+    const {exec} = require("node:child_process")
+    if (shell) {
+        return exec(command, {shell}, callback)
+    }
+    return exec(command, callback)
+}
+
+/**
+ * Match a searchword and return the word and filled url.
+ * @param {string} location
+ */
+const searchword = location => {
+    const {getSetting} = require("./settings")
+    const searchwords = getSetting("searchwords")
+    for (const [word, url] of Object.entries(searchwords)) {
+        if (!(word && url)) {
+            continue
+        }
+        const q = location.replace(`${word} `, "")
+        if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
+            const queries = q.split(",")
+            let urlString = url
+            let counter = 1
+            const patternMatches = (urlString.match(/%s/g) || []).length
+            while (urlString.includes("%s") && counter < patternMatches) {
+                urlString = urlString.replace(/%s/,
+                    encodeURIComponent(queries.shift()?.trim() || ""))
+                counter += 1
+            }
+            const remainderString = queries.join(",").trim()
+            urlString = urlString.replace(/%s/,
+                encodeURIComponent(remainderString))
+            return {"url": urlString, word}
+        }
+    }
+    return {"url": location, "word": null}
+}
+
+/**
+ * @typedef {{
+ *   id: import("../../types/i18n").TranslationKeys,
+ *   fields?: string[],
+ *   action?: {
+ *     type: "download-success",
+ *     path: string,
+ *     func?: () => void
+ *   }|false,
+ *   type?: "permission"|"success"|"warning"|"error"|"dialog",
+ *   src: RunSource,
+ *   silent?: boolean
+ * }} NotificationInfo
+ */
+
+/**
+ * Show the user a notification bubble and store it in the history.
+ * @param {NotificationInfo} opts
+ */
+const notify = async opts => {
+    const {translate} = require("../translate")
+    const message = translate(opts.id, {"fields": opts.fields ?? []})
+    if (opts.src === "execute") {
+        const {appendFileSync} = require("node:fs")
+        appendFileSync(joinPath(
+            await appData(), ".tmp-execute-output"), `${message}\t\t\t`)
+    }
+    const {getSetting} = require("./settings")
+    if (getSetting("notificationduration") === 0) {
+        return
+    }
+    const properType = opts.type ?? "info"
+    let clickInfo = null
+    if (opts?.action) {
+        clickInfo = {...opts.action}
+        delete clickInfo.func
+    }
+    const notifyForPerm = getSetting("notificationforpermissions")
+    if (properType === "permission" && notifyForPerm === "none") {
+        return
+    }
+    notificationHistory.push({
+        "click": clickInfo,
+        "date": new Date(),
+        message,
+        "type": properType
+    })
+    if (opts.silent) {
+        return
+    }
+    if (properType === "permission") {
+        if (notifyForPerm === "silent") {
+            return
+        }
+        if (notifyForPerm === "allowed" && !message.replace(/'.*?'/g, "").includes("allowed")) {
+            return
+        }
+        if (notifyForPerm === "blocked" && !message.replace(/'.*?'/g, "").includes("blocked")) {
+            return
+        }
+    }
+    const native = getSetting("nativenotification")
+    const shortLimitNotify = getSetting("notificationlimitsmall")
+    const showLong = message.split("\n").length > shortLimitNotify
+        && properType !== "dialog"
+    const shortAndSmallNative = !showLong && native === "smallonly"
+    const longAndLargeNative = showLong && native === "largeonly"
+    if (native === "always" || shortAndSmallNative || longAndLargeNative) {
+        const config = await appConfig()
+        const n = new Notification(
+            `${config?.name} ${properType}`, {"body": message})
+        if (opts?.action && opts?.action?.func) {
+            /** Assin the onclick of the notification. */
+            // @ts-expect-error Func type could be undefined according to TS...
+            n.addEventListener("click", () => opts?.action?.func?.())
+        }
+        return
+    }
+    if (showLong) {
+        const {ipcRenderer} = require("electron")
+        ipcRenderer.send("show-notification", message, properType)
+        return
+    }
+    const notificationsElement = document.getElementById("notifications")
+    if (!notificationsElement) {
+        return
+    }
+    notificationsElement.className = getSetting("notificationposition")
+    const notification = document.createElement("span")
+    notification.className = properType
+    notification.textContent = message
+    if (opts.action && opts.action.func) {
+        // @ts-expect-error Func type could be undefined according to TS...
+        notification.addEventListener("click", () => opts.action?.func?.())
+    }
+    notificationsElement.append(notification)
+    setTimeout(() => notification.remove(),
+        getSetting("notificationduration"))
+}
+
+/** Return the notification history. */
+const listNotificationHistory = () => notificationHistory
+
 /**
  * Get the current gui status value depending on window status.
  * @param {"navbar"|"tabbar"} type
  * @returns {Promise<"always"|"onupdate"|"oninput"|"never">}
  */
 const getGuiStatus = async type => {
-    let setting = await getSetting(`gui${type}`)
+    const {getSetting} = require("./settings")
+    let setting = getSetting(`gui${type}`)
     const {ipcRenderer} = require("electron")
     if (await ipcRenderer.invoke("is-fullscreen")) {
-        setting = await getSetting(`guifullscreen${type}`)
+        setting = getSetting(`guifullscreen${type}`)
     }
     if (topOfPageWithMouse && setting !== "never") {
         setting = "always"
     }
     return setting
+}
+
+/**
+ * Translate a string from the explore mode input to a valid url.
+ * @param {string} location
+ */
+const stringToUrl = location => {
+    let url = location
+    const specialPage = pathToSpecialPageName(url)
+    if (specialPage?.name) {
+        return specialPagePath(specialPage.name, specialPage.section)
+    }
+    let fileName = url.replace(/^file:\/+/, "/")
+    if (process.platform === "win32") {
+        fileName = url.replace(/^file:\/+/, "")
+    }
+    const local = expandPath(fileName)
+    if (isDir(local) || isFile(local)) {
+        const escapedPath = local.replace(/\?/g, "%3F").replace(/#/g, "%23")
+        url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
+    }
+    if (!isUrl(url)) {
+        const {getSetting} = require("./settings")
+        const engines = getSetting("searchengine")
+        const engine = engines.at(Math.random() * engines.length)
+        if (!engine) {
+            return ""
+        }
+        url = engine.replace(/%s/g, encodeURIComponent(location))
+    }
+    if (!hasProtocol(url)) {
+        url = `https://${url}`
+    }
+    try {
+        return new URL(url).href
+    } catch {
+        // Can't be re-encoded
+    }
+    return encodeURI(url)
 }
 
 /** Update the GUI visibility based on navbar and tabbar settings. */
@@ -197,10 +430,10 @@ const updateGuiVisibility = async() => {
         document.body.classList.toggle("tabshidden", tabbar !== "always")
     }
     const {applyLayout} = require("./pagelayout")
-    await applyLayout()
+    applyLayout()
     if (currentMode() === "pointer") {
         const {updateElement} = require("./pointer")
-        await updateElement()
+        updateElement()
     }
 }
 
@@ -272,7 +505,8 @@ const updateScreenshotHighlight = (hide = false) => {
  */
 const guiRelatedUpdate = async type => {
     await updateGuiVisibility()
-    const timeout = await getSetting("guihidetimeout")
+    const {getSetting} = require("./settings")
+    const timeout = getSetting("guihidetimeout")
     if (type === "navbar" && await getGuiStatus("navbar") === "onupdate") {
         clearTimeout(navbarGuiTimer ?? undefined)
         document.body.classList.remove("navigationhidden")
@@ -299,16 +533,22 @@ module.exports = {
     currentMode,
     currentPage,
     currentTab,
+    downloadPath,
+    execCommand,
     getUrl,
     guiRelatedUpdate,
     listFakePages,
+    listNotificationHistory,
     listPages,
     listReadyPages,
     listRealPages,
     listTabs,
+    notify,
     pageForTab,
+    searchword,
     sendToPageOrSubFrame,
     setTopOfPageWithMouse,
+    stringToUrl,
     tabForPage,
     updateGuiVisibility,
     updateScreenshotHighlight

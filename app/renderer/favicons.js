@@ -22,7 +22,6 @@ const {
     appData,
     deleteFile,
     getAppRootDir,
-    getSetting,
     isFile,
     isFlatStringObject,
     isNestedStringObject,
@@ -32,10 +31,10 @@ const {
     modifiedAt,
     pathToSpecialPageName,
     readJSON,
-    stringToUrl,
     writeJSONAsync
 } = require("../util")
-const {currentPage, listPages, tabForPage} = require("./common")
+const {currentPage, listPages, stringToUrl, tabForPage} = require("./common")
+const {getSetting} = require("./settings")
 
 let faviconFolder = ""
 let mappingFile = ""
@@ -124,8 +123,8 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
  * @param {Electron.WebviewTag} webview
  * @param {boolean} empty
  */
-const loading = async(webview, empty = false) => {
-    const loadingIndicator = await getSetting("loadingindicator")
+const loading = (webview, empty = false) => {
+    const loadingIndicator = getSetting("loadingindicator")
     const tab = tabForPage(webview)
     const status = tab?.querySelector(".status")
     if (["all", "line"].includes(loadingIndicator)
@@ -181,8 +180,8 @@ const setPath = (tab, loc) => {
  * Delete a favicon if too old based on timestamp and favicon setting.
  * @param {string} loc
  */
-const deleteIfTooOld = async loc => {
-    const setting = await getSetting("favicons")
+const deleteIfTooOld = loc => {
+    const setting = getSetting("favicons")
     if (setting === "forever") {
         return
     }
@@ -222,11 +221,11 @@ const update = async(webview, favicon) => {
         const config = await appConfig()
         const customIcon = config?.icon
         if (tab && customIcon) {
-            setPath(tab, await stringToUrl(customIcon))
+            setPath(tab, stringToUrl(customIcon))
             return
         }
     }
-    if (await getSetting("favicons") === "disabled") {
+    if (getSetting("favicons") === "disabled") {
         if (tab) {
             setPath(tab, "img/empty.png")
         }
@@ -242,7 +241,7 @@ const update = async(webview, favicon) => {
         return
     }
     const filename = urlToPath(favicon)
-    await deleteIfTooOld(filename)
+    deleteIfTooOld(filename)
     if (tab && isFile(filename)) {
         setPath(tab, filename)
         return
@@ -277,8 +276,8 @@ const copyMapping = (existing, newPage) => {
  * Get the resolved file path or local image for a given site.
  * @param {string} url
  */
-const forSite = async url => {
-    if (await getSetting("favicons") === "disabled") {
+const forSite = url => {
+    if (getSetting("favicons") === "disabled") {
         return ""
     }
     const mapping = mappings[getRedirect(url)]
@@ -306,7 +305,7 @@ const forSite = async url => {
  * Show the favicon that was previously set for this site, and stop loading.
  * @param {Electron.WebviewTag} webview
  */
-const show = async webview => {
+const show = webview => {
     const tab = tabForPage(webview)
     if (webview === currentPage()) {
         const loadingProgress = document.getElementById("loading-progress")
@@ -323,7 +322,7 @@ const show = async webview => {
         return
     }
     if (favicon.getAttribute("src") === "img/empty.png") {
-        favicon.src = await forSite(webview.src) ?? favicon.src
+        favicon.src = forSite(webview.src) ?? favicon.src
     }
     if (favicon.getAttribute("src") !== "img/empty.png") {
         favicon.style.display = ""

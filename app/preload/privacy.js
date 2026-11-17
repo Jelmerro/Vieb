@@ -20,15 +20,22 @@
 
 const {contextBridge, ipcRenderer} = require("electron")
 const {translate} = require("../translate")
-const {
-    getSetting, userAgentPlatform, userAgentResolvedSystem
-} = require("../util")
+const {userAgentPlatform, userAgentResolvedSystem} = require("../util")
+const {getSetting, notify} = require("./util")
 
-/**
- * Send a notification to the renderer thread.
- * @param {import("../util").NotificationInfo} opts
- */
-const notify = opts => ipcRenderer.sendToHost("notify", opts)
+let promptBehavior = "notifyblock"
+let confirmBehavior = "notifyblock"
+let alertBehavior = "notifyblock"
+
+/** Get the correct prompt, confirm and alert behavior based on the settings. */
+const getDialogBehavior = async() => {
+    promptBehavior = await getSetting("dialogprompt")
+    confirmBehavior = await getSetting("dialogconfirm")
+    alertBehavior = await getSetting("dialogalert")
+}
+
+getDialogBehavior().catch(() => null)
+ipcRenderer.on("updated-dialog-settings", getDialogBehavior)
 
 // Custom prompt, confirm and alert, based on "dialog*" settings
 // Options: return the default cancel action, show a custom popup or notify
@@ -38,7 +45,6 @@ const notify = opts => ipcRenderer.sendToHost("notify", opts)
  * @param {string} defaultText
  */
 const promptOverride = (title, defaultText = "") => {
-    const promptBehavior = getSetting("dialogprompt") ?? "notifyblock"
     if (promptBehavior.includes("notify")) {
         notify({
             "fields": [window.location.href, title ?? ""],
@@ -58,7 +64,6 @@ const promptOverride = (title, defaultText = "") => {
  * @param {string|undefined} text
  */
 const confirmOverride = text => {
-    const confirmBehavior = getSetting("dialogconfirm") ?? "notifyblock"
     if (confirmBehavior.includes("notify")) {
         notify({
             "fields": [window.location.href, text ?? ""],
@@ -89,7 +94,6 @@ const confirmOverride = text => {
  * @param {string|undefined} text
  */
 const alertOverride = text => {
-    const alertBehavior = getSetting("dialogalert") ?? "notifyblock"
     if (alertBehavior.includes("notify")) {
         notify({
             "fields": [window.location.href, text ?? ""],
@@ -266,10 +270,11 @@ const privacyOverrides = (oscpu, platform) => {
 
 /** Load the useragent setting and run privacy overrides in the page context. */
 const loadUseragentAndRunPrivacyOverrides = async() => {
-    const platformString = await userAgentPlatform()
+    const useragentsys = await getSetting("useragentsys")
+    const platformString = userAgentPlatform(useragentsys)
     const oscpuString = {
         "linux": "Linux x86_64", "mac": "MacIntel", "windows": "Win32"
-    }[await userAgentResolvedSystem()]
+    }[userAgentResolvedSystem(useragentsys)]
     contextBridge.executeInMainWorld({
         "args": [oscpuString, platformString],
         "func": privacyOverrides

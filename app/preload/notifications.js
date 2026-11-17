@@ -34,7 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
     /**
      * Show the list of notifications.
      * @param {Electron.IpcRendererEvent} _
-     * @param {import("../util").notificationHistory} notifications
+     * @param {import("../renderer/common").notificationHistory} notifications
      */
     const showNofitications = (_, notifications) => {
         list.textContent = ""

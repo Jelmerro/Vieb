@@ -24,7 +24,6 @@ const {
     findElementAtPosition,
     findFrameInfo,
     framePosition,
-    getSetting,
     isElement,
     isHTMLAnchorElement,
     isHTMLAudioElement,
@@ -38,6 +37,7 @@ const {
     propPixels,
     querySelectorAll
 } = require("../util")
+const {getSetting} = require("./util")
 
 /** @type {string[]|null} */
 let currentFollowStatus = null

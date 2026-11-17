@@ -22,12 +22,12 @@ const {
     appData,
     domainName,
     expandPath,
-    getSetting,
     joinPath,
     listDir,
     pathToSpecialPageName,
     readFile
 } = require("../util")
+const {getSetting} = require("./settings")
 
 /**
  * Parse the GM userscript header.
@@ -274,7 +274,7 @@ const loadUserscripts = async webview => {
         domain = "file"
         scope = "file"
     }
-    const userscriptScope = await getSetting("userscriptscope")
+    const userscriptScope = getSetting("userscriptscope")
     const appdata = await appData()
     if (userscriptScope.includes(scope)) {
         const userScriptFiles = [

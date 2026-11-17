@@ -25,6 +25,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Page layout updates to reflect for hidden pages in the background automatically
 - Dialogs to load just before show instead of on startup
+- Internal code structure to mainly use async/await over sync methods
+- Custom viewers to no longer allow insert mode since there are no inputs anyway
 
 ### Fixed
 

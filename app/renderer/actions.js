@@ -44,19 +44,14 @@ const {ipcRenderer} = require("electron")
 const {
     appData,
     domainName,
-    execCommand,
-    getSetting,
     isDir,
     isFile,
     isFlatStringObject,
     isUrl,
     joinPath,
     makeDir,
-    notify,
     readFile,
     readJSON,
-    searchword,
-    stringToUrl,
     urlToString,
     watchFile,
     writeFile,
@@ -66,13 +61,18 @@ const {
     currentMode,
     currentPage,
     currentTab,
+    execCommand,
     getUrl,
     listRealPages,
     listTabs,
+    notify,
+    searchword,
     sendToPageOrSubFrame,
+    stringToUrl,
     tabForPage,
     updateGuiVisibility
 } = require("./common")
+const {getSetting} = require("./settings")
 
 let lastSearchLocal = true
 let lastSearchInc = true
@@ -86,8 +86,8 @@ let potentialNewSearchDirection = "forward"
  * Empty the current search by scope.
  * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
  */
-const emptySearch = async args => {
-    const scope = args.scope || await getSetting("searchemptyscope")
+const emptySearch = args => {
+    const scope = args.scope || getSetting("searchemptyscope")
     /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
@@ -113,16 +113,16 @@ const emptySearch = async args => {
  * Check if the search should be case sensitive or not.
  * @param {string} search
  */
-const matchCase = async search => {
-    if (await getSetting("smartcase")) {
+const matchCase = search => {
+    if (getSetting("smartcase")) {
         return search !== search.toLowerCase()
     }
-    return !await getSetting("ignorecase")
+    return !getSetting("ignorecase")
 }
 
 /** Highlight the next search match based on the scope. */
-const nextSearchMatch = async() => {
-    const scope = await getSetting("searchscope")
+const nextSearchMatch = () => {
+    const scope = getSetting("searchscope")
     let search = globalSearch
     let pages = []
     if (scope === "local") {
@@ -136,10 +136,10 @@ const nextSearchMatch = async() => {
     }
     /** @type {"searchreachtraverse"|"searchreach"} */
     let reachSetting = "searchreach"
-    if (await getSetting("searchreachtraverse") !== "same") {
+    if (getSetting("searchreachtraverse") !== "same") {
         reachSetting = "searchreachtraverse"
     }
-    const reach = await getSetting(reachSetting)
+    const reach = getSetting(reachSetting)
     if (reach === "all") {
         pages = listRealPages()
     } else {
@@ -153,7 +153,7 @@ const nextSearchMatch = async() => {
     for (const p of pages) {
         p?.findInPage(search, {
             "forward": searchDirection === "forward",
-            "matchCase": await matchCase(search)
+            "matchCase": matchCase(search)
         })
     }
 }
@@ -166,7 +166,7 @@ const toSearchMode = async args => {
     const {setMode} = require("./modes")
     await setMode("search")
     let search = globalSearch
-    if (await getSetting("searchscope") !== "global") {
+    if (getSetting("searchscope") !== "global") {
         search = currentTab()?.getAttribute("localsearch") || search
     }
     lastProperSearch = search
@@ -185,8 +185,8 @@ const toSearchMode = async args => {
 }
 
 /** Highlight the previous search match based on the scope. */
-const previousSearchMatch = async() => {
-    const scope = await getSetting("searchscope")
+const previousSearchMatch = () => {
+    const scope = getSetting("searchscope")
     let search = globalSearch
     let pages = []
     if (scope === "local") {
@@ -200,10 +200,10 @@ const previousSearchMatch = async() => {
     }
     /** @type {"searchreachtraverse"|"searchreach"} */
     let reachSetting = "searchreach"
-    if (await getSetting("searchreachtraverse") !== "same") {
+    if (getSetting("searchreachtraverse") !== "same") {
         reachSetting = "searchreachtraverse"
     }
-    const reach = await getSetting(reachSetting)
+    const reach = getSetting(reachSetting)
     if (reach === "all") {
         pages = listRealPages()
     } else {
@@ -217,7 +217,7 @@ const previousSearchMatch = async() => {
     for (const p of pages) {
         p?.findInPage(search, {
             "forward": searchDirection === "backward",
-            "matchCase": await matchCase(search)
+            "matchCase": matchCase(search)
         })
     }
 }
@@ -226,8 +226,8 @@ const previousSearchMatch = async() => {
  * Search for the string incrementally while typing if enabled, by scope.
  * @param {ActionParam&{value?: string}|null} args
  */
-const incrementalSearch = async args => {
-    let scope = await getSetting("searchscope")
+const incrementalSearch = args => {
+    let scope = getSetting("searchscope")
     const isIncSearch = args?.value === undefined
     lastSearchLocal = scope === "local"
     if (scope === "inclocal") {
@@ -242,7 +242,7 @@ const incrementalSearch = async args => {
     const search = args?.value || url?.value || ""
     if (lastProperSearch === search) {
         if (!lastSearchInc && !isIncSearch) {
-            await nextSearchMatch()
+            nextSearchMatch()
             return
         }
         if (lastIncSearch === search && isIncSearch) {
@@ -266,10 +266,10 @@ const incrementalSearch = async args => {
     }
     /** @type {"searchreachinc"|"searchreach"} */
     let reachSetting = "searchreach"
-    if (isIncSearch && await getSetting("searchreachinc") !== "same") {
+    if (isIncSearch && getSetting("searchreachinc") !== "same") {
         reachSetting = "searchreachinc"
     }
-    const reach = await getSetting(reachSetting)
+    const reach = getSetting(reachSetting)
     if (reach === "all") {
         pages = listRealPages()
     } else {
@@ -286,11 +286,11 @@ const incrementalSearch = async args => {
     if (search) {
         for (const p of pages) {
             p?.findInPage(search, {
-                "findNext": true, "matchCase": await matchCase(search)
+                "findNext": true, "matchCase": matchCase(search)
             })
         }
     } else {
-        await emptySearch({scope, "src": args?.src ?? "other"})
+        emptySearch({scope, "src": args?.src ?? "other"})
     }
 }
 
@@ -298,17 +298,17 @@ const incrementalSearch = async args => {
  * Reset the incremental search match.
  * @param {ActionParam} args
  */
-const resetIncrementalSearch = async args => {
-    if (await getSetting("searchscope") === "inclocal" && lastSearchLocal) {
-        await emptySearch({"scope": "local", "src": args?.src ?? "other"})
-    } else if (await getSetting("incsearch")
+const resetIncrementalSearch = args => {
+    if (getSetting("searchscope") === "inclocal" && lastSearchLocal) {
+        emptySearch({"scope": "local", "src": args?.src ?? "other"})
+    } else if (getSetting("incsearch")
         && lastProperSearch !== lastIncSearch) {
         if (lastProperSearch) {
-            await incrementalSearch({
+            incrementalSearch({
                 "src": args.src ?? "other", "value": lastProperSearch
             })
         } else {
-            await emptySearch({"scope": "both", "src": args?.src ?? "other"})
+            emptySearch({"scope": "both", "src": args?.src ?? "other"})
         }
     }
 }
@@ -821,8 +821,8 @@ const refreshTab = async args => {
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
-        await rerollUserAgent(page)
-        await resetTabInfo(page)
+        rerollUserAgent(page)
+        resetTabInfo(page)
         page.reload()
     }
 }
@@ -884,8 +884,8 @@ const backInHistory = async args => {
                 tabTitleEl.textContent = ""
             }
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
-            await rerollUserAgent(page)
-            await resetTabInfo(page)
+            rerollUserAgent(page)
+            resetTabInfo(page)
             page.goBack()
         }
     }
@@ -909,8 +909,8 @@ const forwardInHistory = async args => {
                 tabTitleEl.textContent = ""
             }
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
-            await rerollUserAgent(page)
-            await resetTabInfo(page)
+            rerollUserAgent(page)
+            resetTabInfo(page)
             page.goForward()
         }
     }
@@ -929,8 +929,8 @@ const refreshTabWithoutCache = async args => {
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
-        await rerollUserAgent(page)
-        await resetTabInfo(page)
+        rerollUserAgent(page)
+        resetTabInfo(page)
         page.reloadIgnoringCache()
     }
 }
@@ -952,7 +952,7 @@ const openNewTabWithCurrentUrl = async args => {
         if (!tab) {
             return
         }
-        const tabnewposition = await getSetting("tabnewposition")
+        const tabnewposition = getSetting("tabnewposition")
         let index = listTabs().indexOf(tab)
         if (tabnewposition === "right") {
             index += 1
@@ -1109,10 +1109,9 @@ const editWithVim = async args => {
                 await requestSuggestUpdate()
             }
         } else {
-            const commandStr = `${await getSetting("vimcommand")} "${tempFile}"`
-            command = await execCommand(commandStr, async(err, stdout) => {
-                const reportExit = await getSetting(
-                    "notificationforsystemcommands")
+            const commandStr = `${getSetting("vimcommand")} "${tempFile}"`
+            command = execCommand(commandStr, async(err, stdout) => {
+                const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     await notify({
                         "fields": [`${err}`],
@@ -1245,39 +1244,39 @@ const exploreHistoryNext = async() => {
 }
 
 /** Rotate the current window split forward. */
-const rotateSplitWindowForward = async() => {
+const rotateSplitWindowForward = () => {
     const {rotateForward} = require("./pagelayout")
-    await rotateForward()
+    rotateForward()
 }
 
 /** Rotate the current window split backward. */
-const rotateSplitWindowBackward = async() => {
+const rotateSplitWindowBackward = () => {
     const {rotateReverse} = require("./pagelayout")
-    await rotateReverse()
+    rotateReverse()
 }
 
 /** Make the current window split the entire left side. */
-const leftHalfSplitWindow = async() => {
+const leftHalfSplitWindow = () => {
     const {toTop} = require("./pagelayout")
-    await toTop("left")
+    toTop("left")
 }
 
 /** Make the current window split the entire bottom half. */
-const bottomHalfSplitWindow = async() => {
+const bottomHalfSplitWindow = () => {
     const {toTop} = require("./pagelayout")
-    await toTop("bottom")
+    toTop("bottom")
 }
 
 /** Make the current window split the entire top half. */
-const topHalfSplitWindow = async() => {
+const topHalfSplitWindow = () => {
     const {toTop} = require("./pagelayout")
-    await toTop("top")
+    toTop("top")
 }
 
 /** Make the current window split the entire right side. */
-const rightHalfSplitWindow = async() => {
+const rightHalfSplitWindow = () => {
     const {toTop} = require("./pagelayout")
-    await toTop("right")
+    toTop("right")
 }
 
 /** Move the focus to the split to the left of the current one. */
@@ -1335,33 +1334,33 @@ const exchangeSplitWindow = async() => {
 }
 
 /** Increase the height of the current window split within the same level. */
-const increaseHeightSplitWindow = async() => {
+const increaseHeightSplitWindow = () => {
     const {resize} = require("./pagelayout")
-    await resize("ver", "grow")
+    resize("ver", "grow")
 }
 
 /** Decrease the height of the current window split within the same level. */
-const decreaseHeightSplitWindow = async() => {
+const decreaseHeightSplitWindow = () => {
     const {resize} = require("./pagelayout")
-    await resize("ver", "shrink")
+    resize("ver", "shrink")
 }
 
 /** Increase the width of the current window split within the same level. */
-const increaseWidthSplitWindow = async() => {
+const increaseWidthSplitWindow = () => {
     const {resize} = require("./pagelayout")
-    await resize("hor", "grow")
+    resize("hor", "grow")
 }
 
 /** Decrease the width of the current window split within the same level. */
-const decreaseWidthSplitWindow = async() => {
+const decreaseWidthSplitWindow = () => {
     const {resize} = require("./pagelayout")
-    await resize("hor", "shrink")
+    resize("hor", "shrink")
 }
 
 /** Distribute the space each window split take equally within each level. */
-const distrubuteSpaceSplitWindow = async() => {
+const distrubuteSpaceSplitWindow = () => {
     const {resetResizing} = require("./pagelayout")
-    await resetResizing()
+    resetResizing()
 }
 
 /** Toggle the always on top functionality of the app. */
@@ -1379,15 +1378,16 @@ const toggleFullscreen = async() => {
  */
 const getPageUrl = async(customUrl = "") => {
     let url = customUrl || currentPage()?.src || ""
-    if (await getSetting("encodeurlcopy") === "spacesonly") {
+    const encodeurlcopy = getSetting("encodeurlcopy")
+    if (encodeurlcopy === "spacesonly") {
         url = url.replace(/ /g, "%20")
-    } else if (await getSetting("encodeurlcopy") === "nospaces") {
+    } else if (encodeurlcopy === "nospaces") {
         const stringified = await urlToString(url)
         url = stringified.replace(/ /g, "%20")
-    } else if (await getSetting("encodeurlcopy") === "decode") {
+    } else if (encodeurlcopy === "decode") {
         url = await urlToString(url)
-    } else if (await getSetting("encodeurlcopy") === "encode") {
-        url = await stringToUrl(url)
+    } else if (encodeurlcopy === "encode") {
+        url = stringToUrl(url)
     }
     return url
 }
@@ -1529,7 +1529,7 @@ const openFromClipboard = async args => {
     const text = textFull.trim()
     if (text) {
         const {navigateTo} = require("./tabs")
-        await navigateTo(args.src, await stringToUrl(text))
+        await navigateTo(args.src, stringToUrl(text))
     }
 }
 
@@ -1541,7 +1541,7 @@ const storeScrollPos = async args => {
     if (!args.key) {
         return
     }
-    let scrollType = await getSetting("scrollpostype")
+    let scrollType = getSetting("scrollpostype")
     if (scrollType !== "local" && scrollType !== "global") {
         scrollType = "global"
         if (args.key !== args.key.toUpperCase()) {
@@ -1563,7 +1563,7 @@ const storeScrollPos = async args => {
     }
     if (scrollType === "local") {
         let path = ""
-        const scrollPosId = await getSetting("scrollposlocalid")
+        const scrollPosId = getSetting("scrollposlocalid")
         if (scrollPosId === "domain") {
             path = domainName(await urlToString(currentPage()?.src ?? ""))
                 || domainName(currentPage()?.src ?? "") || ""
@@ -1592,7 +1592,7 @@ const restoreScrollPos = async args => {
     if (!key) {
         return
     }
-    const scrollPosId = await getSetting("scrollposlocalid")
+    const scrollPosId = getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(await urlToString(currentPage()?.src ?? ""))
@@ -1647,8 +1647,8 @@ const restoreMark = async args => {
         qm.marks = {}
     }
     const {commonAction} = require("./contextmenu")
-    let position = await getSetting("markposition")
-    const shiftedPosition = await getSetting("markpositionshifted")
+    let position = getSetting("markposition")
+    const shiftedPosition = getSetting("markpositionshifted")
     if (args.key === args.key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
@@ -1755,7 +1755,7 @@ const menuOpen = async args => {
             const url = getUrl()
             bounds = url?.getBoundingClientRect()
             if (url && bounds) {
-                const charWidth = await getSetting("guifontsize") * 0.60191
+                const charWidth = getSetting("guifontsize") * 0.60191
                 await viebMenu(args.src, {
                     "path": [url],
                     "x": bounds.x + charWidth
@@ -1819,9 +1819,9 @@ const menuClose = () => {
 }
 
 /** Show the table of contents on the current page. */
-const showTOC = async() => {
+const showTOC = () => {
     const {getCustomStyling} = require("./settings")
-    const fontsize = await getSetting("guifontsize")
+    const fontsize = getSetting("guifontsize")
     sendToPageOrSubFrame("action", "showTOC", getCustomStyling(), fontsize)
 }
 
@@ -1829,9 +1829,9 @@ const showTOC = async() => {
 const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
 
 /** Toggle the table of contents on the current page. */
-const toggleTOC = async() => {
+const toggleTOC = () => {
     const {getCustomStyling} = require("./settings")
-    const fontsize = await getSetting("guifontsize")
+    const fontsize = getSetting("guifontsize")
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
 
@@ -1853,19 +1853,19 @@ const useEnteredData = async args => {
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        await incrementalSearch({"src": args.src, "value": url.value})
+        incrementalSearch({"src": args.src, "value": url.value})
         await setMode("normal")
     }
     if (currentMode() === "explore") {
         const location = url.value.trim()
         await setMode("normal")
         if (location) {
-            const wordInfo = await searchword(location)
+            const wordInfo = searchword(location)
             const modifiedLoc = wordInfo.url
             const {push} = require("./explorehistory")
-            await push(await urlToString(modifiedLoc))
+            push(await urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
-            await navigateTo(args.src, await stringToUrl(modifiedLoc))
+            await navigateTo(args.src, stringToUrl(modifiedLoc))
         }
     }
 }
