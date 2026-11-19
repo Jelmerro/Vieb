@@ -18,10 +18,10 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {
     formatDate, formatSize, getAppRootDir, joinPath, urlToString
 } = require("../util")
+const {translate} = require("./util")
 
 let lastUpdate = new Date()
 
@@ -34,14 +34,14 @@ const update = (action = null, downloadUuid = null) => {
     ipcRenderer.send("download-list-request", action, downloadUuid)
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
     const h1 = document.querySelector("h1")
     if (h1) {
-        h1.textContent = translate("pages.downloads.title")
+        h1.textContent = await translate("pages.downloads.title")
     }
     const list = document.getElementById("list")
     if (list) {
-        list.textContent = translate("pages.downloads.loading")
+        list.textContent = await translate("pages.downloads.loading")
     }
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
@@ -74,7 +74,7 @@ const addDownload = async download => {
     element.append(togglePause)
     // Title
     const title = document.createElement("div")
-    title.title = translate("pages.downloads.clickToOpen")
+    title.title = await translate("pages.downloads.clickToOpen")
     title.textContent = download.name
     title.className = "title"
     element.append(title)
@@ -111,14 +111,15 @@ const addDownload = async download => {
     misc.className = "misc"
     const state = document.createElement("span")
     state.className = "state"
-    state.textContent = translate(`pages.downloads.states.${download.state}`)
+    state.textContent = await translate(
+        `pages.downloads.states.${download.state}`)
     misc.append(state)
     const downloadUrl = document.createElement("a")
     downloadUrl.href = encodeURI(download.url)
     downloadUrl.textContent = await urlToString(download.url)
     misc.append(downloadUrl)
     const file = document.createElement("span")
-    file.title = translate("pages.downloads.clickToOpen")
+    file.title = await translate("pages.downloads.clickToOpen")
     file.className = "filelocation"
     file.textContent = download.file
     title.addEventListener("click", () => {
@@ -149,7 +150,7 @@ const addDownload = async download => {
  * @param {import("../index").DownloadItem} download
  * @param {Element} element
  */
-const updateDownload = (download, element) => {
+const updateDownload = async(download, element) => {
     const progress = element.querySelector("progress")
     const title = element.querySelector(".title")
     const speedEl = element.querySelector(".speed")
@@ -239,7 +240,7 @@ const updateDownload = (download, element) => {
     // State
     const state = element.querySelector(".state")
     if (state) {
-        state.textContent = translate(
+        state.textContent = await translate(
             `pages.downloads.states.${download.state}`)
     }
 }
@@ -256,7 +257,7 @@ const generateDownloadList = async(_, l) => {
     if (list.length === 0) {
         const listEl = document.getElementById("list")
         if (listEl) {
-            listEl.textContent = translate("pages.downloads.nothing")
+            listEl.textContent = await translate("pages.downloads.nothing")
         }
         const removeAll = document.getElementById("remove-all")
         if (removeAll) {
@@ -277,7 +278,7 @@ const generateDownloadList = async(_, l) => {
     }
     if (listOnPage.length === list.length) {
         for (const [i, element] of listOnPage.entries()) {
-            updateDownload(list[i], element)
+            await updateDownload(list[i], element)
         }
     } else {
         const listEl = document.getElementById("list")

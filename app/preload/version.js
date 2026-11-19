@@ -17,8 +17,8 @@
 */
 "use strict"
 
-const {translate, translateAsHTML} = require("../translate")
 const {appConfig, compareVersions} = require("../util")
+const {translate, translateAsHTML} = require("./util")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 
@@ -30,11 +30,11 @@ const checkForUpdates = async() => {
     if (!versionCheck || !button || !version) {
         return
     }
-    versionCheck.textContent = translate("pages.version.loading")
+    versionCheck.textContent = await translate("pages.version.loading")
     button.disabled = true
     const req = new XMLHttpRequest()
     /** Compare the current version to the latest Github version and report. */
-    req.addEventListener("readystatechange", () => {
+    req.addEventListener("readystatechange", async() => {
         if (req.readyState !== 4) {
             return
         }
@@ -43,25 +43,26 @@ const checkForUpdates = async() => {
                 const release = JSON.parse(req.responseText)
                 const diff = compareVersions(version, release.tag_name)
                 if (diff === "older") {
-                    versionCheck.textContent = translate(
+                    versionCheck.textContent = await translate(
                         "pages.version.newerFound",
                         {"fields": [release.tag_name]})
                 } else if (diff === "newer") {
-                    versionCheck.textContent = translate(
+                    versionCheck.textContent = await translate(
                         "pages.version.alreadyNewer",
                         {"fields": [release.tag_name]})
                 } else if (diff === "even") {
-                    versionCheck.textContent = translate(
+                    versionCheck.textContent = await translate(
                         "pages.version.latest")
                 } else {
-                    versionCheck.textContent = translate(
+                    versionCheck.textContent = await translate(
                         "pages.version.failed")
                 }
             } catch {
-                versionCheck.textContent = translate("pages.version.failed")
+                versionCheck.textContent = await translate(
+                    "pages.version.failed")
             }
         } else {
-            versionCheck.textContent = translate("pages.version.failed")
+            versionCheck.textContent = await translate("pages.version.failed")
         }
         button.disabled = false
     })
@@ -73,15 +74,15 @@ window.addEventListener("DOMContentLoaded", async() => {
     // Translations
     const subtitleEl = document.getElementById("subtitle")
     if (subtitleEl) {
-        subtitleEl.textContent = translate("util.catchphrase")
+        subtitleEl.textContent = await translate("util.catchphrase")
     }
     const buttonEl = document.querySelector("button")
     if (buttonEl) {
-        buttonEl.textContent = translate("pages.version.checkUpdate")
+        buttonEl.textContent = await translate("pages.version.checkUpdate")
     }
     const checkResultEl = document.getElementById("version-check")
     if (checkResultEl) {
-        checkResultEl.textContent = translate("pages.version.notChecked")
+        checkResultEl.textContent = await translate("pages.version.notChecked")
     }
     /**
      * @type {{
@@ -117,14 +118,16 @@ window.addEventListener("DOMContentLoaded", async() => {
         for (const link of versionLinks) {
             const linkEl = document.createElement("a")
             linkEl.href = `https://${link.src}`
-            linkEl.textContent = translate(link.id)
+            linkEl.textContent = await translate(link.id)
             versionLinksEl.append(linkEl)
         }
     }
     const descriptionEl = document.getElementById("description")
     if (descriptionEl) {
-        descriptionEl.append(...translateAsHTML("pages.version.description",
-            {"fields": [process.versions.electron, process.versions.chrome]}))
+        descriptionEl.append(...await translateAsHTML(
+            "pages.version.description", {"fields": [
+                process.versions.electron, process.versions.chrome
+            ]}))
     }
     // Regular init
     const {icon, name, version} = await appConfig() ?? {}

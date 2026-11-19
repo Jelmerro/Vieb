@@ -908,6 +908,10 @@ const addWebviewListeners = webview => {
         const {backInHistory, forwardInHistory} = require("./actions")
         const {resetScrollbarTimer} = require("./pagelayout")
         const {getMouseConf} = require("./settings")
+        if (e.channel === "translate-query") {
+            await webview.send(`translate-query-response-${e.args[0]}`,
+                translate(e.args[1], e.args[2]))
+        }
         if (e.channel === "setting-query") {
             await webview.send(`setting-query-response-${e.args[0]}`,
                 getSetting(e.args[0]))

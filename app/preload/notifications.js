@@ -18,49 +18,55 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {formatDate} = require("../util")
+const {translate} = require("./util")
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
     const h1 = document.querySelector("h1")
     if (h1) {
-        h1.textContent = translate("pages.notifications.title")
+        h1.textContent = await translate("pages.notifications.title")
     }
+    const list = document.getElementById("list")
+    if (list) {
+        list.textContent = await translate("pages.notifications.loading")
+    }
+})
+
+/**
+ * Show the list of notifications.
+ * @param {Electron.IpcRendererEvent} _
+ * @param {import("../renderer/common").notificationHistory} notifications
+ */
+const showNofitications = async(_, notifications) => {
     const list = document.getElementById("list")
     if (!list) {
         return
     }
-    list.textContent = translate("pages.notifications.loading")
-    /**
-     * Show the list of notifications.
-     * @param {Electron.IpcRendererEvent} _
-     * @param {import("../renderer/common").notificationHistory} notifications
-     */
-    const showNofitications = (_, notifications) => {
-        list.textContent = ""
-        for (const notification of notifications) {
-            const element = document.createElement("div")
-            element.className = "notification"
-            if (notification.click?.type === "download-success") {
-                element.classList.add("filelocation")
-                element.title = translate("pages.notifications.clickToOpen")
-                element.addEventListener("click", () => {
-                    ipcRenderer.send("open-download", notification.click?.path)
-                })
-            }
-            const date = document.createElement("div")
-            date.textContent = formatDate(notification.date)
-            date.className = "date"
-            element.append(date)
-            const contents = document.createElement("div")
-            contents.textContent = notification.message
-            contents.className = notification.type
-            element.append(contents)
-            list.prepend(element)
+    list.textContent = ""
+    for (const notification of notifications) {
+        const element = document.createElement("div")
+        element.className = "notification"
+        if (notification.click?.type === "download-success") {
+            element.classList.add("filelocation")
+            element.title = await translate(
+                "pages.notifications.clickToOpen")
+            element.addEventListener("click", () => {
+                ipcRenderer.send("open-download", notification.click?.path)
+            })
         }
-        if (list.textContent === "") {
-            list.textContent = translate("pages.notifications.empty")
-        }
+        const date = document.createElement("div")
+        date.textContent = formatDate(notification.date)
+        date.className = "date"
+        element.append(date)
+        const contents = document.createElement("div")
+        contents.textContent = notification.message
+        contents.className = notification.type
+        element.append(contents)
+        list.prepend(element)
     }
-    ipcRenderer.on("notification-history", showNofitications)
-})
+    if (list.textContent === "") {
+        list.textContent = await translate("pages.notifications.empty")
+    }
+}
+
+ipcRenderer.on("notification-history", showNofitications)

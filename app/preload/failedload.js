@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2023 Jelmer van Arnhem
+* Copyright (C) 2019-2026 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,20 +18,20 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translateAsHTML} = require("../translate")
+const {translateAsHTML} = require("./util")
 
-ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
+ipcRenderer.on("insert-failed-page-info", async(_, e, isSSLError) => {
     document.body.textContent = ""
     document.body.id = "failedload"
     const err = JSON.parse(e)
     const mainInfo = document.createElement("main")
     if (isSSLError) {
         const http = err.validatedURL.replace(/^https?:\/\//g, "http://")
-        mainInfo.append(...translateAsHTML("pages.failedload.sslError",
+        mainInfo.append(...await translateAsHTML("pages.failedload.sslError",
             {"fields": [err.errorDescription, http]}))
     } else {
         const protocol = err.validatedURL.replace(/:.*$/g, "")
-        mainInfo.append(...translateAsHTML("pages.failedload.otherError",
+        mainInfo.append(...await translateAsHTML("pages.failedload.otherError",
             {"fields": [err.errorDescription, protocol]}))
     }
     document.body.append(mainInfo)

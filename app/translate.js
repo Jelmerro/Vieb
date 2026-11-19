@@ -11,26 +11,6 @@ const {
 
 /** @type {import("./util").StringOrObject} */
 const translations = {}
-const safeElements = new Set([
-    "#text",
-    "a",
-    "body",
-    "br",
-    "div",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "kbd",
-    "li",
-    "ol",
-    "p",
-    "span",
-    "ul"
-])
-const safeAttributes = new Set(["class", "href"])
 let selectedLang = "en"
 
 /** Returns a list of languages according to the language files present. */
@@ -114,47 +94,6 @@ const translate = (id, {customLang = null, fields = []} = {}) => {
 }
 
 /**
- * Filter bad elements from a node recursively.
- * @param {ChildNode} node
- */
-const onlyKeepSafeNodes = node => {
-    if (!safeElements.has(node.nodeName.toLowerCase())) {
-        console.warn("Removed node from translations:", node)
-        node.remove()
-        return
-    }
-    if (node instanceof Element) {
-        for (const attr of node.attributes) {
-            if (safeAttributes.has(attr.name)) {
-                continue
-            }
-            console.warn(
-                `Removed attribute ${attr.name} from translations:`, node)
-            node.removeAttribute(attr.name)
-        }
-    }
-    for (const child of node.childNodes) {
-        onlyKeepSafeNodes(child)
-    }
-}
-
-/**
- * Translate a field, then parse it as HTML and return a list of safe elements.
- * @param {import("../types/i18n").TranslationKeys} id
- * @param {{fields?: string[], customLang?: null|string}} opts
- */
-const translateAsHTML = (id, {customLang = null, fields = []} = {}) => {
-    const value = translate(id, {customLang, fields})
-    const parsed = new DOMParser().parseFromString(value, "text/html")
-    const body = parsed.querySelector("body")
-    if (!body) {
-        return []
-    }
-    onlyKeepSafeNodes(body)
-    return [...body.childNodes]
-}
-
-/**
  * Convert an array of arguments to a human-readable list.
  * @param {string[]} args
  * @param {"or"|"and"|"none"} linkWord
@@ -180,7 +119,6 @@ const argsAsHumanList = (args, linkWord = "or", quotes = "single") => {
 module.exports = {
     argsAsHumanList,
     translate,
-    translateAsHTML,
     updateLang,
     validLanguages
 }

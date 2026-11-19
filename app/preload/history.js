@@ -18,9 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {formatDate, getAppRootDir, joinPath, urlToString} = require("../util")
-const {getSetting} = require("./util")
+const {getSetting, translate} = require("./util")
 
 let currentlyRemoving = false
 let virtualList = document.createElement("div")
@@ -31,7 +30,7 @@ let viewItemCount = 100
  * Update the current history view by fetching from the cached list by index.
  * @param {boolean} user
  */
-const updateCurrentView = (user = true) => {
+const updateCurrentView = async(user = true) => {
     const list = document.getElementById("list")
     const filterEl = document.getElementById("filter")
     const pages = document.getElementById("pages")
@@ -70,9 +69,10 @@ const updateCurrentView = (user = true) => {
             })
         if (elements.length === 0) {
             if (filter) {
-                list.textContent = translate("pages.history.filterNoResults")
+                list.textContent = await translate(
+                    "pages.history.filterNoResults")
             } else {
-                list.textContent = translate("pages.history.filterEmpty")
+                list.textContent = await translate("pages.history.filterEmpty")
             }
             removeAllEl.style.display = "none"
         } else {
@@ -172,7 +172,7 @@ const receiveHistory = history => {
                 updateCurrentView(false)
                 return
             }
-            scanningProgress.textContent = translate(
+            scanningProgress.textContent = await translate(
                 "pages.history.readingProgress", {"fields": [
                     `${lineNumber}`, `${goal}`, formatDate(hist.date)
                 ]})
@@ -231,19 +231,20 @@ window.addEventListener("DOMContentLoaded", async() => {
     // Translations
     const h1 = document.querySelector("h1")
     if (h1) {
-        h1.textContent = translate("pages.history.title")
+        h1.textContent = await translate("pages.history.title")
     }
     const scanningEl = document.getElementById("scanning-progress")
     if (scanningEl) {
-        scanningEl.textContent = translate("pages.history.loading")
+        scanningEl.textContent = await translate("pages.history.loading")
     }
     const filterEl = document.getElementById("filter")
     if (filterEl instanceof HTMLInputElement) {
-        filterEl.placeholder = translate("pages.history.filterPlaceholder")
+        filterEl.placeholder = await translate(
+            "pages.history.filterPlaceholder")
     }
     const perPageEl = document.getElementById("perpage")
     if (perPageEl instanceof HTMLInputElement) {
-        perPageEl.placeholder = translate("pages.history.perpage")
+        perPageEl.placeholder = await translate("pages.history.perpage")
     }
     // Init
     const removeAll = document.createElement("img")

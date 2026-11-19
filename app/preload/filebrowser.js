@@ -18,8 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {basePath, dirname, joinPath} = require("../util")
+const {translate} = require("./util")
 
 /**
  * Convert a location to a clickable url.
@@ -60,7 +60,7 @@ const isRoot = loc => joinPath(loc) === joinPath(loc, "../")
  * @param {boolean} allowed
  * @param {string} folder
  */
-const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
+const insertCurrentDirInfo = async(_, directories, files, allowed, folder) => {
     document.body.textContent = ""
     document.body.id = "filebrowser"
     const main = document.createElement("main")
@@ -80,12 +80,13 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
     }
     if (!allowed) {
         const error = document.createElement("span")
-        error.textContent = translate("pages.filebrowser.permissionDenied")
+        error.textContent = await translate(
+            "pages.filebrowser.permissionDenied")
         error.className = "error"
         main.append(error)
     } else if (directories.length === 0 && files.length === 0) {
         const error = document.createElement("span")
-        error.textContent = translate("pages.filebrowser.empty")
+        error.textContent = await translate("pages.filebrowser.empty")
         error.className = "error"
         main.append(error)
     } else {

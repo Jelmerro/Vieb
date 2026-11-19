@@ -2273,6 +2273,7 @@ const set = async(src, setting, value) => {
         if (setting === "lang") {
             const {updateLang} = require("../translate")
             updateLang(allSettings.lang)
+            await ipcRenderer.invoke("update-lang", allSettings.lang)
         }
         if (setting === "mintabwidth") {
             for (const tab of listTabs()) {

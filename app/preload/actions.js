@@ -18,7 +18,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {
     activeElement,
     fetchJSON,
@@ -37,7 +36,7 @@ const {
     readFile,
     writeFile
 } = require("../util")
-const {notify} = require("./util")
+const {notify, translate} = require("./util")
 
 /**
  * Navigate to the next page if available.
@@ -637,7 +636,7 @@ let scrollPositionTOC = 0
  * @param {string} customStyling
  * @param {number} fontsize
  */
-const showTOC = (customStyling, fontsize) => {
+const showTOC = async(customStyling, fontsize) => {
     if (document.getElementById(randomTOCId)) {
         return
     }
@@ -645,7 +644,7 @@ const showTOC = (customStyling, fontsize) => {
     const toc = document.createElement("div")
     toc.id = "toc"
     const title = document.createElement("h1")
-    title.textContent = translate("actions.toc.title")
+    title.textContent = await translate("actions.toc.title")
     const baseUl = document.createElement("ul")
     baseUl.setAttribute("depth", "1")
     const lists = [baseUl]
@@ -653,7 +652,7 @@ const showTOC = (customStyling, fontsize) => {
     const topUrl = new URL(window.location.href)
     topUrl.hash = ""
     topLink.href = topUrl.href
-    topLink.textContent = translate("actions.toc.top")
+    topLink.textContent = await translate("actions.toc.top")
     toc.append(title, topLink, baseUl)
     /** Returns the current taversing depth of the toc. */
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
@@ -721,11 +720,11 @@ const hideTOC = () => document.getElementById(randomTOCId)?.remove()
  * @param {string} customStyling
  * @param {number} fontsize
  */
-const toggleTOC = (customStyling, fontsize) => {
+const toggleTOC = async(customStyling, fontsize) => {
     if (document.getElementById(randomTOCId)) {
         hideTOC()
     } else {
-        showTOC(customStyling, fontsize)
+        await showTOC(customStyling, fontsize)
     }
 }
 
@@ -734,11 +733,11 @@ const toggleTOC = (customStyling, fontsize) => {
  * @param {string} customStyling
  * @param {number} fontsize
  */
-const rerenderTOC = (customStyling, fontsize) => {
+const rerenderTOC = async(customStyling, fontsize) => {
     const existingTOC = document.getElementById(randomTOCId)
     if (existingTOC) {
         hideTOC()
-        showTOC(customStyling, fontsize)
+        await showTOC(customStyling, fontsize)
     }
 }
 

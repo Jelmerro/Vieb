@@ -19,9 +19,8 @@
 /* eslint-disable no-extra-bind */
 
 const {contextBridge, ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {userAgentPlatform, userAgentResolvedSystem} = require("../util")
-const {getSetting, notify} = require("./util")
+const {getSetting, notify, translate} = require("./util")
 
 let promptBehavior = "notifyblock"
 let confirmBehavior = "notifyblock"
@@ -74,14 +73,11 @@ const confirmOverride = text => {
     }
     if (confirmBehavior.includes("show")) {
         const button = ipcRenderer.sendSync("sync-message-dialog", {
-            "buttons": [
-                translate("popups.confirm.ok"),
-                translate("popups.confirm.cancel")
-            ],
+            "buttons": ["popups.confirm.ok", "popups.confirm.cancel"],
             "cancelId": 1,
             "defaultId": 0,
             "message": text,
-            "title": translate("popups.confirm.title"),
+            "title": "popups.confirm.title",
             "type": "question"
         })
         return button === 0
@@ -104,11 +100,11 @@ const alertOverride = text => {
     }
     if (alertBehavior.includes("show")) {
         ipcRenderer.sendSync("sync-message-dialog", {
-            "buttons": [translate("popups.alert.ok")],
+            "buttons": ["popups.alert.ok"],
             "cancelId": 1,
             "defaultId": 0,
             "message": text,
-            "title": translate("popups.alert.title"),
+            "title": "popups.alert.title",
             "type": "question"
         })
     }
@@ -370,7 +366,7 @@ const deviceEnumeratePermissionHandler = () => {
                     setting.replace(/allow.*/, "allow"),
                     "mediadevices",
                     window.location.href,
-                    translate(`permissions.notifyLevels.${setting}`)
+                    await translate(`permissions.notifyLevels.${setting}`)
                 ],
                 "id": "permissions.notify.auto",
                 "src": "user",
@@ -379,7 +375,7 @@ const deviceEnumeratePermissionHandler = () => {
         } else {
             notify({
                 "fields": [
-                    translate(`permissions.notifyLevels.${setting}`),
+                    await translate(`permissions.notifyLevels.${setting}`),
                     "mediadevices",
                     window.location.href,
                     "permissionmediadevices"

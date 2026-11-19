@@ -18,6 +18,93 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {randomUUID} = require("node:crypto")
+
+const safeElements = new Set([
+    "#text",
+    "a",
+    "body",
+    "br",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "kbd",
+    "li",
+    "ol",
+    "p",
+    "span",
+    "ul"
+])
+const safeAttributes = new Set(["class", "href"])
+
+/**
+ * Filter bad elements from a node recursively.
+ * @param {ChildNode} node
+ */
+const onlyKeepSafeNodes = node => {
+    if (!safeElements.has(node.nodeName.toLowerCase())) {
+        console.warn("Removed node from translations:", node)
+        node.remove()
+        return
+    }
+    if (node instanceof Element) {
+        for (const attr of node.attributes) {
+            if (safeAttributes.has(attr.name)) {
+                continue
+            }
+            console.warn(
+                `Removed attribute ${attr.name} from translations:`, node)
+            node.removeAttribute(attr.name)
+        }
+    }
+    for (const child of node.childNodes) {
+        onlyKeepSafeNodes(child)
+    }
+}
+
+/**
+ * Translate a field, then parse it as HTML and return a list of safe elements.
+ * @param {import("../../types/i18n").TranslationKeys} id
+ * @param {{fields?: string[], customLang?: null|string}} opts
+ */
+const translateAsHTML = (
+    id, {customLang = null, fields = []} = {}
+) => new Promise(res => {
+    const uuid = randomUUID()
+    ipcRenderer.once(`translate-query-response-${uuid}`, (_, value) => {
+        const parsed = new DOMParser().parseFromString(value, "text/html")
+        const body = parsed.querySelector("body")
+        if (!body) {
+            res([])
+            return
+        }
+        onlyKeepSafeNodes(body)
+        res([...body.childNodes])
+    })
+    ipcRenderer.sendToHost("translate-query",
+        uuid, id, {customLang, fields})
+})
+
+/**
+ * Translate a field.
+ * @param {import("../../types/i18n").TranslationKeys} id
+ * @param {{fields?: string[], customLang?: null|string}} opts
+ * @returns {Promise<string>}
+ * @throws {Error} When the English language file is not valid.
+ */
+const translate = (
+    id, {customLang = null, fields = []} = {}
+) => new Promise(res => {
+    const uuid = randomUUID()
+    ipcRenderer.once(`translate-query-response-${uuid}`, (_, value) => {
+        res(value)
+    })
+    ipcRenderer.sendToHost("translate-query", uuid, id, {customLang, fields})
+})
 
 /**
  * @typedef {(typeof import("../renderer/settings").defaultSettings & {
@@ -45,4 +132,4 @@ const getSetting = set => new Promise(res => {
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
-module.exports = {getSetting, notify}
+module.exports = {getSetting, notify, translate, translateAsHTML}

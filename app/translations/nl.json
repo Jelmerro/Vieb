@@ -421,7 +421,7 @@
         },
         "confirm": {
             "block": "Pagina '$1' wilde een bevestigingsdialoog laten zien:\n$2",
-            "cancel": "Cancel",
+            "cancel": "Annuleren",
             "ok": "OK",
             "title": "Confirm"
         },

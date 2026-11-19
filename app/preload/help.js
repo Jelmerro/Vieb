@@ -18,8 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {appConfig, getAppRootDir, joinPath, readFile} = require("../util")
+const {translate} = require("./util")
 
 const modes = [..."nicsefpvm"]
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
@@ -286,7 +286,7 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
 
 ipcRenderer.on("settings", updateSettingsList)
 window.addEventListener("hashchange", processHash)
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async() => {
     /**
      * @type {(
      *   "chromium"|"firefox"|"vivaldi"|"qutebrowser"|"vimium"|"tridactyl"|
@@ -307,7 +307,7 @@ window.addEventListener("DOMContentLoaded", () => {
     ]
     for (const example of examples) {
         const button = document.createElement("button")
-        button.textContent = translate(`pages.help.examples.${example}`)
+        button.textContent = await translate(`pages.help.examples.${example}`)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
             const text = readFile(joinPath(

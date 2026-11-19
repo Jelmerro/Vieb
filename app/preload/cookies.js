@@ -18,11 +18,11 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {translate} = require("../translate")
 const {getAppRootDir, joinPath} = require("../util")
+const {translate} = require("./util")
 
 /** Filter the cookie list based on the search query in the input box. */
-const filterList = () => {
+const filterList = async() => {
     const filterEl = document.getElementById("filter")
     let filter = ""
     if (filterEl instanceof HTMLInputElement) {
@@ -53,9 +53,9 @@ const filterList = () => {
         removeAll.style.display = "none"
         noResults.style.display = ""
         if (filter) {
-            noResults.textContent = translate("pages.cookies.filterEmpty")
+            noResults.textContent = await translate("pages.cookies.filterEmpty")
         } else {
-            noResults.textContent = translate("pages.cookies.empty")
+            noResults.textContent = await translate("pages.cookies.empty")
         }
     }
 }
@@ -140,15 +140,15 @@ const removeAllCookies = async() => {
 window.addEventListener("DOMContentLoaded", async() => {
     const h1 = document.querySelector("h1")
     if (h1) {
-        h1.textContent = translate("pages.cookies.title")
+        h1.textContent = await translate("pages.cookies.title")
     }
     const list = document.getElementById("list")
     if (list) {
-        list.textContent = translate("pages.cookies.loading")
+        list.textContent = await translate("pages.cookies.loading")
     }
     const filter = document.getElementById("filter")
     if (filter instanceof HTMLInputElement) {
-        filter.placeholder = translate("pages.cookies.filterPlaceholder")
+        filter.placeholder = await translate("pages.cookies.filterPlaceholder")
     }
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"

@@ -34,7 +34,7 @@ const {
     webContents
 } = require("electron")
 const {randomUUID} = require("node:crypto")
-const {translate} = require("./translate")
+const {translate, updateLang} = require("./translate")
 const {
     basePath,
     defaultUseragent,
@@ -1015,14 +1015,15 @@ app.whenReady().then(async() => {
         prefs.contextIsolation = true
     })
     mainWindow.webContents.on("did-attach-webview", async(_, contents) => {
-        if (navHistoryToRestore) {
-            contents.stop()
-            await contents.navigationHistory.restore({
-                "entries": navHistoryToRestore.entries,
-                "index": navHistoryToRestore.entries.length - 1
-            })
-        }
-        navHistoryToRestore = null
+        contents.on("before-input-event", (e, input) => {
+            if (blockedInsertMappings === "pass") {
+                return
+            }
+            if (currentInputMatches(input)) {
+                e.preventDefault()
+            }
+            mainWindow?.webContents.send("insert-mode-input-event", input)
+        })
         contents.on("will-prevent-unload", e => e.preventDefault())
         contents.on("unresponsive", () => mainWindow?.webContents.send(
             "unresponsive", contents.id))
@@ -1038,15 +1039,6 @@ app.whenReady().then(async() => {
             }
         })
         contents.setWebRTCIPHandlingPolicy("default_public_interface_only")
-        contents.on("before-input-event", (e, input) => {
-            if (blockedInsertMappings === "pass") {
-                return
-            }
-            if (currentInputMatches(input)) {
-                e.preventDefault()
-            }
-            mainWindow?.webContents.send("insert-mode-input-event", input)
-        })
         contents.on("zoom-changed", (__, dir) => {
             mainWindow?.webContents.send("zoom-changed", contents.id, dir)
         })
@@ -1066,6 +1058,14 @@ app.whenReady().then(async() => {
             }
             return {"action": "deny"}
         })
+        if (navHistoryToRestore) {
+            contents.stop()
+            await contents.navigationHistory.restore({
+                "entries": navHistoryToRestore.entries,
+                "index": navHistoryToRestore.entries.length - 1
+            })
+        }
+        navHistoryToRestore = null
     })
     await mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
 }).catch(() => null)
@@ -1486,6 +1486,9 @@ ipcMain.on("download-list-request", (e, action, downloadUuid) => {
 })
 ipcMain.handle("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
+})
+ipcMain.handle("update-lang", (_, lang) => {
+    updateLang(lang)
 })
 
 /**
@@ -2699,7 +2702,11 @@ ipcMain.handle("show-message-dialog", (_, options) => {
 })
 ipcMain.on("sync-message-dialog", (e, options) => {
     if (mainWindow) {
-        e.returnValue = dialog.showMessageBoxSync(mainWindow, options)
+        e.returnValue = dialog.showMessageBoxSync(mainWindow, {
+            ...options,
+            "buttons": options.buttons.map(translate),
+            "title": translate(options.title)
+        })
     } else {
         e.returnValue = null
     }
