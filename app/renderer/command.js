@@ -563,7 +563,8 @@ const setCommand = async(src, args) => {
                 const {
                     isArraySetting, isNumberSetting, isObjectSetting
                 } = require("./settings")
-                if (typeof value === "boolean") {
+                if (typeof value === "boolean"
+                    || settingName === "keeprecentlyclosed") {
                     await modifySetting(src, settingName, "false")
                 } else if (isArraySetting(settingName)
                     || isObjectSetting(settingName)) {

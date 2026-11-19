@@ -28,10 +28,17 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Internal code structure to mainly use async/await over sync methods
 - Custom viewers to no longer allow insert mode since there are no inputs anyway
 
+### Deprecated
+
+- Boolean values for "keeprecentlyclosed", use "always" (true), "session" or "never" (false) instead
+- Default value "dark" of "nativetheme" will change to "system"
+- Setting "searchemptyscope" and "searchscope" will be removed, use "searchreach" instead
+
 ### Fixed
 
 - Setting "pdfbehavior" values "download" and "external" not doing anything recently
 - Unset desktopName leading to Alt-Tab related bugs on Wayland
+- Empty new tabs being recorded to recently closed tabs as if they need to be recovered
 
 ### Versions
 

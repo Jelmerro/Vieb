@@ -197,6 +197,7 @@ const defaultSettings = {
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "insertleavetimeout": 0,
+    /** @type {boolean|"always"|"session"|"never"} */
     "keeprecentlyclosed": true,
     "lang": "en",
     /** @type {"none"|"spinner"|"line"|"all"} */
@@ -504,6 +505,7 @@ const validOptions = {
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
+    "keeprecentlyclosed": ["always", "session", "never"],
     "lang": validLanguages(),
     "loadingindicator": ["none", "spinner", "line", "all"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
@@ -1779,7 +1781,8 @@ const isValidSetting = async(src, setting, value) => {
         && ["false", "true"].includes(String(parsedValue))) {
         parsedValue = value === "true"
     }
-    if (expectedType !== typeof parsedValue) {
+    if (expectedType !== typeof parsedValue
+        && setting !== "keeprecentlyclosed") {
         await notify({
             "fields": [setting, expectedType, typeof parsedValue],
             "id": "settings.errors.type",
@@ -1789,6 +1792,10 @@ const isValidSetting = async(src, setting, value) => {
         return false
     }
     if (isEnumSetting(setting)) {
+        if (setting === "keeprecentlyclosed"
+            && ["false", false, "true", true].includes(parsedValue)) {
+            return true
+        }
         if (typeof parsedValue !== "string") {
             return false
         }
@@ -1943,7 +1950,8 @@ const listSettingsAsArray = () => Object.keys(defaultSettings)
 const suggestionList = () => {
     const listOfSuggestions = ["all", ...listSettingsAsArray(), "all&", "all?"]
     for (const setting of listSettingsAsArray()) {
-        if (typeof defaultSettings[setting] === "boolean") {
+        if (typeof defaultSettings[setting] === "boolean"
+            && setting !== "keeprecentlyclosed") {
             listOfSuggestions.push(`${setting}!`,
                 `no${setting}`, `inv${setting}`)
         } else if (isEnumSetting(setting)) {
@@ -2199,6 +2207,17 @@ const updateObjectSetting = (setting, value) => {
 const set = async(src, setting, value) => {
     if (await isValidSetting(src, setting, value)) {
         const {applyLayout} = require("./pagelayout")
+        if (setting === "keeprecentlyclosed") {
+            if (["false", false, "true", true].includes(value)) {
+                await notify({
+                    "id": "Deprecated boolean value for keeprecentlyclosed,"
+                        + " please read ':help keeprecentlyclosed'"
+                })
+            }
+            allSettings.keeprecentlyclosed = value
+            await updateHelpPage(src)
+            return true
+        }
         if (isBooleanSetting(setting)) {
             allSettings[setting] = value === "true" || value === true
         } else if (isNumberSetting(setting)) {
@@ -2491,7 +2510,7 @@ const listCurrentSettings = async(full = false) => {
     }
     let setCommands = ""
     for (const [setting, value] of Object.entries(settings)) {
-        if (typeof value === "boolean") {
+        if (typeof value === "boolean" && setting !== "keeprecentlyclosed") {
             if (value) {
                 setCommands += `${setting}\n`
             } else {

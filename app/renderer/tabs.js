@@ -296,7 +296,8 @@ const saveTabs = async() => {
      */
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
     const restoreTabs = getSetting("restoretabs")
-    const keepRecentlyClosed = getSetting("keeprecentlyclosed")
+    const keepRecentlyClosed = ["always", "true", true]
+        .includes(getSetting("keeprecentlyclosed"))
     if (keepRecentlyClosed) {
         data.closed = JSON.parse(JSON.stringify(recentlyClosed))
     }
@@ -472,7 +473,9 @@ const closeTab = async(src, index = null, force = false) => {
     const tabLinkId = tab.getAttribute("link-id")
     const url = await urlToString(page.getAttribute("src") || "")
     const oldTabIdx = listTabs().indexOf(tab)
-    if (getSetting("keeprecentlyclosed") && url) {
+    const keepRecentlyClosed = ["always", "session", "true", true]
+        .includes(getSetting("keeprecentlyclosed"))
+    if (keepRecentlyClosed && url) {
         /** @type {TabInfo} */
         const tabInfo = {
             "container": page.getAttribute("container") ?? "",
@@ -481,10 +484,18 @@ const closeTab = async(src, index = null, force = false) => {
             url
         }
         const history = await getRestoreConfig(page)
-        if (history) {
+        if (history && (history?.entries?.length ?? 0) > 1) {
             tabInfo.history = history
+            recentlyClosed.push(tabInfo)
+        } else {
+            const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+            const newtabUrl = stringToUrl(getSetting("newtaburl"))
+            const isNewtab = currentSpecial === "newtab" || (url?.replace(
+                /\/+$/g, "") ?? "") === newtabUrl.replace(/\/+$/g, "")
+            if (!isNewtab) {
+                recentlyClosed.push(tabInfo)
+            }
         }
-        recentlyClosed.push(tabInfo)
     }
     const regularTab = listTabs().find(
         t => t.getAttribute("devtools-id") === tabLinkId)
@@ -1534,7 +1545,8 @@ const reopenTab = async src => {
 const loadPreviousSessionTabs = async tabs => {
     const s = getSetting("suspendonrestore")
     const restoreTabs = getSetting("restoretabs")
-    const keepRecentlyClosed = getSetting("keeprecentlyclosed")
+    const keepRecentlyClosed = ["always", "true", true]
+        .includes(getSetting("keeprecentlyclosed"))
     if (Array.isArray(tabs.closed) && keepRecentlyClosed) {
         recentlyClosed = tabs.closed
     }
