@@ -90,7 +90,7 @@ const translateAsHTML = (
 })
 
 /**
- * Translate a field.
+ * Translate a field via the renderer.
  * @param {import("../../types/i18n").TranslationKeys} id
  * @param {{fields?: string[], customLang?: null|string}} opts
  * @returns {Promise<string>}
@@ -107,17 +107,26 @@ const translate = (
 })
 
 /**
- * @typedef {(typeof import("../renderer/settings").defaultSettings & {
- *   "fg": string
- *   "bg": string
+ * Get the css color vars from the renderer.
+ * @returns {Promise<{
+ *   "bg": string,
+ *   "fg": string,
  *   "linkcolor": string
- * })} validSetting
+ * }>}
  */
+const getColorVars = () => new Promise(res => {
+    ipcRenderer.once(`css-color-query-response`, (_, value) => {
+        res(value)
+    })
+    ipcRenderer.sendToHost("css-color-query")
+})
+
+/** @typedef {typeof import("../renderer/settings").defaultSettings} setting */
 /**
- * Get a setting from the settings file.
- * @template {keyof validSetting} T Valid setting names.
+ * Get a setting via ipc from the renderer.
+ * @template {keyof setting} T Valid setting names.
  * @param {T} set
- * @returns {Promise<validSetting[T]>}
+ * @returns {Promise<setting[T]>}
  */
 const getSetting = set => new Promise(res => {
     ipcRenderer.once(`setting-query-response-${set}`, (_, value) => {
@@ -132,4 +141,4 @@ const getSetting = set => new Promise(res => {
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
-module.exports = {getSetting, notify, translate, translateAsHTML}
+module.exports = {getColorVars, getSetting, notify, translate, translateAsHTML}

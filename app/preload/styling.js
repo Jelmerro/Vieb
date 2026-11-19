@@ -32,17 +32,18 @@ const {
     pathToSpecialPageName,
     readFile
 } = require("../util")
-const {getSetting, notify} = require("./util")
+const {getColorVars, getSetting, notify} = require("./util")
 
 const specialPage = pathToSpecialPageName(window.location.href)
 
 /** Apply the current theme styling from the parent process. */
 const applyThemeStyling = async() => {
+    const colors = await getColorVars()
     const style = `html {
-        color: ${await getSetting("fg") || "#eee"};
-        background: ${await getSetting("bg") || "#333"};
+        color: ${colors.fg || "#eee"};
+        background: ${colors.bg || "#333"};
         font-size: ${await getSetting("guifontsize") || 14}px;
-    } a {color: ${await getSetting("linkcolor") || "#0cf"};}`
+    }\na {color: ${colors.linkcolor || "#0cf"};}`
     ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
 

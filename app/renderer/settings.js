@@ -1904,28 +1904,12 @@ const updateDownloadSettings = async(src = "other") => {
 }
 
 /**
- * @typedef {(typeof defaultSettings & {
- *   "fg": string
- *   "bg": string
- *   "linkcolor": string
- * })} validSetting
- */
-/**
  * Get a setting by name directly from the settings object.
- * @template {keyof validSetting} T Valid setting names.
+ * @template {keyof typeof defaultSettings} T Valid setting names.
  * @param {T} setting
- * @returns {validSetting[T]}
+ * @returns {typeof defaultSettings[T]}
  */
-const getSetting = setting => {
-    const data = {
-        "bg": document.body.computedStyleMap().get("--bg")?.toString() ?? "",
-        "fg": document.body.computedStyleMap().get("--fg")?.toString() ?? "",
-        "linkcolor": document.body.computedStyleMap().get(
-            "--link-color")?.toString() ?? "",
-        ...allSettings
-    }
-    return data[setting]
-}
+const getSetting = setting => allSettings[setting]
 
 /** Update the permissions in the main thread on change. */
 const updatePermissionSettings = async() => {

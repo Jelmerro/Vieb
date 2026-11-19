@@ -916,6 +916,16 @@ const addWebviewListeners = webview => {
             await webview.send(`translate-query-response-${e.args[0]}`,
                 translate(e.args[1], e.args[2]))
         }
+        if (e.channel === "css-color-query") {
+            await webview.send(`css-color-query-response`, {
+                "bg": document.body.computedStyleMap().get(
+                    "--bg")?.toString() ?? "",
+                "fg": document.body.computedStyleMap().get(
+                    "--fg")?.toString() ?? "",
+                "linkcolor": document.body.computedStyleMap().get(
+                    "--link-color")?.toString() ?? ""
+            })
+        }
         if (e.channel === "setting-query") {
             await webview.send(`setting-query-response-${e.args[0]}`,
                 getSetting(e.args[0]))
