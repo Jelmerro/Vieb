@@ -6,7 +6,7 @@ const {
     isNestedStringObject,
     joinPath,
     listDir,
-    readJSON
+    readJSONSync
 } = require("./util")
 
 /** @type {import("./util").StringOrObject} */
@@ -39,7 +39,7 @@ const loadLang = lang => {
     }
     const filePath = joinPath(getAppRootDir(), "translations", `${lang}.json`)
     if (validLanguages().includes(lang) && isFile(filePath)) {
-        const tr = readJSON(filePath) ?? {}
+        const tr = readJSONSync(filePath) ?? {}
         if (isNestedStringObject(tr)) {
             translations[lang] = tr
         } else {
@@ -60,7 +60,7 @@ const loadLang = lang => {
 const translate = (id, {customLang = null, fields = []} = {}) => {
     if (!translations.en) {
         const filePath = joinPath(getAppRootDir(), "translations/en.json")
-        const tr = readJSON(filePath) ?? {}
+        const tr = readJSONSync(filePath) ?? {}
         if (isNestedStringObject(tr)) {
             translations.en = tr
         } else {

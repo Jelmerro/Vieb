@@ -30,7 +30,8 @@ let originalSite = ""
 /** Load the explore hist of the previous session if stored. */
 const init = async() => {
     exploreFile = joinPath(await appData(), "explorehist")
-    previousSites = readFile(exploreFile)?.split("\n").filter(Boolean) || []
+    const fileContent = await readFile(exploreFile)
+    previousSites = fileContent?.split("\n").filter(Boolean) || []
 }
 
 /** Show the right entry based on new index set by previous or next. */
@@ -84,7 +85,7 @@ const resetPosition = () => {
  * Push a new user navigation to the list.
  * @param {string} explore
  */
-const push = explore => {
+const push = async explore => {
     const setting = getSetting("explorehist")
     if (setting === "none") {
         return
@@ -94,7 +95,7 @@ const push = explore => {
     }
     previousSites.push(explore)
     if (setting === "persist" && exploreFile) {
-        appendFile(exploreFile, `${explore}\n`)
+        await appendFile(exploreFile, `${explore}\n`)
     }
 }
 

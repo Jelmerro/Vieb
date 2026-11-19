@@ -185,7 +185,7 @@ const appData = async() => {
  * @param {string} loc
  * @returns {PartialJSON|null}
  */
-const readJSON = loc => {
+const readJSONSync = loc => {
     try {
         const {readFileSync} = require("node:fs")
         return JSON.parse(readFileSync(loc).toString())
@@ -193,6 +193,28 @@ const readJSON = loc => {
         return null
     }
 }
+
+/**
+ * Read the file contents of a file and parse it as JSON.
+ * @param {string} loc
+ * @returns {Promise<PartialJSON|null>}
+ */
+const readJSON = loc => new Promise(res => {
+    const {"readFile": readFileFS} = require("node:fs")
+    readFileFS(loc, (err, data) => {
+        if (err) {
+            console.warn(err)
+            res(null)
+            return
+        }
+        try {
+            res(JSON.parse(data.toString()))
+        } catch(error) {
+            console.warn(error)
+            res(null)
+        }
+    })
+})
 
 /**
  * Check if any string has a valid protocol or dataUri.
@@ -1021,26 +1043,61 @@ const isFile = loc => {
 /**
  * Read the file contents of a file as a string.
  * @param {string} loc
+ * @returns {Promise<string|null>}
+ */
+const readFile = loc => new Promise(res => {
+    const {"readFile": readFileFS} = require("node:fs")
+    readFileFS(loc, (err, data) => {
+        if (err) {
+            console.warn(err)
+            res(null)
+            return
+        }
+        res(data.toString())
+    })
+})
+
+/**
+ * Read the file contents of a file as a string.
+ * @param {string} loc
  * @returns {string|null}
  */
-const readFile = loc => {
+const readFileSync = loc => {
     try {
-        const {readFileSync} = require("node:fs")
-        return readFileSync(loc).toString()
+        const {"readFileSync": readFileSyncFS} = require("node:fs")
+        return readFileSyncFS(loc).toString()
     } catch {
         return null
     }
 }
 
 /**
+ * Write data to a file.
+ * @param {string} loc
+ * @param {string|Buffer} data
+ * @returns {Promise<boolean>} True if successful.
+ */
+const writeFile = (loc, data) => new Promise(res => {
+    const {"writeFile": write} = require("node:fs")
+    write(loc, data, err => {
+        if (err) {
+            console.warn(err)
+            res(false)
+            return
+        }
+        res(true)
+    })
+})
+
+/**
  * Write data to a file, returns success state.
  * @param {string} loc
  * @param {string|Buffer} data
  */
-const writeFile = (loc, data) => {
+const writeFileSync = (loc, data) => {
     try {
-        const {writeFileSync} = require("node:fs")
-        writeFileSync(loc, data)
+        const {"writeFileSync": writeFileSyncFS} = require("node:fs")
+        writeFileSyncFS(loc, data)
         return true
     } catch {
         // Usually permission errors, return value will be false
@@ -1049,20 +1106,22 @@ const writeFile = (loc, data) => {
 }
 
 /**
- * Append data to a file, returns success state.
+ * Append data to a file.
  * @param {string} loc
  * @param {string|Buffer} data
+ * @returns {Promise<boolean>} True if successful.
  */
-const appendFile = (loc, data) => {
-    try {
-        const {appendFileSync} = require("node:fs")
-        appendFileSync(loc, data)
-        return true
-    } catch {
-        // Usually permission errors, return value will be false
-    }
-    return false
-}
+const appendFile = (loc, data) => new Promise(res => {
+    const {"appendFile": appendFileFS} = require("node:fs")
+    appendFileFS(loc, data, err => {
+        if (err) {
+            console.warn(err)
+            res(false)
+            return
+        }
+        res(true)
+    })
+})
 
 /**
  * Write JSON data to a file, optionally with indentation and replacer.
@@ -1073,10 +1132,10 @@ const appendFile = (loc, data) => {
  *   indent?: number|undefined
  * }} opts
  */
-const writeJSON = (loc, data, opts = {}) => {
+const writeJSONSync = (loc, data, opts = {}) => {
     try {
-        const {writeFileSync} = require("node:fs")
-        writeFileSync(loc, JSON.stringify(data, opts.replacer, opts.indent))
+        const {"writeFileSync": writeFileSyncFS} = require("node:fs")
+        writeFileSyncFS(loc, JSON.stringify(data, opts.replacer, opts.indent))
         return true
     } catch {
         // Usually permission errors, return value will be false
@@ -1088,15 +1147,21 @@ const writeJSON = (loc, data, opts = {}) => {
  * Write JSON data async to a file, optionally with indentation and replacer.
  * @param {string} loc
  * @param {unknown} data
+ * @param {{
+ *   replacer?: undefined|((this: unknown, key: string, val: string) => string),
+ *   indent?: number|undefined
+ * }} opts
+ * @returns {Promise<boolean>} True if successful.
  */
-const writeJSONAsync = (loc, data) => new Promise((res, rej) => {
+const writeJSON = (loc, data, opts = {}) => new Promise(res => {
     const {"writeFile": write} = require("node:fs")
-    write(loc, JSON.stringify(data), err => {
+    write(loc, JSON.stringify(data, opts.replacer, opts.indent), err => {
         if (err) {
-            rej(err)
-        } else {
-            res("Success")
+            console.warn(err)
+            res(false)
+            return
         }
+        res(true)
     })
 })
 
@@ -1157,11 +1222,12 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
  * @param {string} loc
  * @returns {Promise<string[]>}
  */
-const listDirAsync = loc => new Promise((res, rej) => {
+const listDirAsync = loc => new Promise(res => {
     const {readdir} = require("node:fs")
     readdir(loc, (err, files) => {
         if (err) {
-            rej(err)
+            console.warn(err)
+            res([])
             return
         }
         res(files)
@@ -1479,7 +1545,9 @@ module.exports = {
     propPixels,
     querySelectorAll,
     readFile,
+    readFileSync,
     readJSON,
+    readJSONSync,
     rm,
     sameDomain,
     specialChars,
@@ -1491,6 +1559,7 @@ module.exports = {
     userAgentTemplated,
     watchFile,
     writeFile,
+    writeFileSync,
     writeJSON,
-    writeJSONAsync
+    writeJSONSync
 }

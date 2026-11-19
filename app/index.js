@@ -52,13 +52,17 @@ const {
     listDir,
     makeDir,
     readFile,
+    readFileSync,
     readJSON,
+    readJSONSync,
     rm,
     specialChars,
     userAgentResolvedSystem,
     watchFile,
     writeFile,
-    writeJSON
+    writeFileSync,
+    writeJSON,
+    writeJSONSync
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -449,7 +453,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
      *   uiTheme?: `"dark"`|`"light"`|`"system"`
      * }}}}>&import("./util").PartialJSON}
      */
-    const preferences = readJSON(prefFile) ?? {}
+    const preferences = readJSONSync(prefFile) ?? {}
     if (!("electron" in preferences)) {
         preferences.electron = {}
     }
@@ -479,7 +483,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     }
     preferences.electron.devtools.preferences["ui-theme"] = theme
     preferences.electron.devtools.preferences.uiTheme = theme
-    writeJSON(prefFile, preferences)
+    writeJSONSync(prefFile, preferences)
 }
 
 if (!argMediaKeys) {
@@ -506,7 +510,7 @@ if (argErwic) {
      *   }[]
      * }>&import("./util").PartialJSON}
      */
-    const config = readJSON(argErwic) ?? {}
+    const config = readJSONSync(argErwic) ?? {}
     if (!config) {
         console.warn("Erwic config file could not be read\n")
         printUsage()
@@ -528,7 +532,7 @@ if (argErwic) {
             }
         }
     }
-    writeFile(joinPath(argDatafolder, "erwicmode"), "")
+    writeFileSync(joinPath(argDatafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
         console.warn("Erwic config file requires a list of 'apps'\n")
         printUsage()
@@ -923,7 +927,7 @@ app.whenReady().then(async() => {
     if (argExecute) {
         if (argExecuteDur) {
             setTimeout(() => {
-                const fileContents = readFile(executeOut)
+                const fileContents = readFileSync(executeOut)
                 const parts = fileContents?.split("\t".repeat(3)) ?? []
                 if (parts.at(-1) === "") {
                     parts.pop()
@@ -939,7 +943,7 @@ app.whenReady().then(async() => {
             if (!(info.blksize > 0 || info.size > 0)) {
                 return
             }
-            const fileContents = readFile(executeOut)
+            const fileContents = readFileSync(executeOut)
             const parts = fileContents?.split("\t".repeat(3)) ?? []
             if (parts.at(-1) === "") {
                 parts.pop()
@@ -1341,7 +1345,7 @@ let currentUserAgentResolvedSystem = userAgentResolvedSystem()
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
     "../node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs")
-const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
+const defaultCSS = readFileSync(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
@@ -1395,13 +1399,13 @@ const isDownloadObject = d => {
  *   src: import("./renderer/common").RunSource
  * }} settings
  */
-const setDownloadSettings = (_, settings) => {
+const setDownloadSettings = async(_, settings) => {
     if (!downloadSettings.downloadmethod) {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
             /** @type {Partial<DownloadItem[]>|import("./util").PartialJSON} */
-            const downloadsFile = readJSON(dlsFile) ?? []
+            const downloadsFile = await readJSON(dlsFile) ?? []
             if (Array.isArray(downloadsFile)) {
                 downloads = downloadsFile.filter(v => isDownloadObject(v))
                 cancellAllDownloads()
@@ -1417,7 +1421,7 @@ const setDownloadSettings = (_, settings) => {
 }
 
 /** Write the download info to disk if downloads should be stored after quit. */
-const writeDownloadsToFile = () => {
+const writeDownloadsToFile = async() => {
     if (!downloadSettings.downloadmethod) {
         return
     }
@@ -1435,12 +1439,12 @@ const writeDownloadsToFile = () => {
     if (downloadSettings.cleardownloadsonquit || downloads.length === 0) {
         deleteFile(dlsFile)
     } else {
-        writeJSON(dlsFile, downloads)
+        await writeJSON(dlsFile, downloads)
     }
 }
 
 ipcMain.handle("set-download-settings", setDownloadSettings)
-ipcMain.on("download-list-request", (e, action, downloadUuid) => {
+ipcMain.on("download-list-request", async(e, action, downloadUuid) => {
     const download = downloads.find(d => d.uuid === downloadUuid)
     if (action === "removeall") {
         for (const d of downloads) {
@@ -1481,7 +1485,7 @@ ipcMain.on("download-list-request", (e, action, downloadUuid) => {
             // Download was already removed from the list or something
         }
     }
-    writeDownloadsToFile()
+    await writeDownloadsToFile()
     e.sender.send("download-list", JSON.stringify(downloads))
 })
 ipcMain.handle("set-permissions", (_, permissionObject) => {
@@ -1538,7 +1542,7 @@ ipcMain.handle("adblock-notification-update", (_, newValue) => {
  * @param {string} file
  */
 const loadBlocklist = file => {
-    const contents = readFile(file)
+    const contents = readFileSync(file)
     if (contents) {
         return `${contents}\n`
     }
@@ -1595,7 +1599,8 @@ const reloadAdblocker = () => {
         return
     }
     blocker = ElectronBlocker.parse(filters)
-    const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
+    const resources = readFileSync(joinPath(
+        __dirname, `./blocklists/resources`))
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
     }
@@ -1617,11 +1622,11 @@ const reloadAdblocker = () => {
  * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
  */
-const enableAdblocker = type => {
+const enableAdblocker = async type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     /** @type {{[property: string]: string}} */
     let blocklists = {}
-    const blocklistFileData = readJSON(joinPath(
+    const blocklistFileData = await readJSON(joinPath(
         __dirname, "blocklists/list.json"))
     if (isFlatStringObject(blocklistFileData)) {
         blocklists = blocklistFileData
@@ -1631,15 +1636,15 @@ const enableAdblocker = type => {
     if (type !== "custom") {
         for (const name of Object.keys(blocklists)) {
             const list = joinPath(__dirname, `blocklists/${name}.txt`)
-            writeFile(joinPath(blocklistDir, `${name}.txt`),
-                readFile(list) ?? "")
+            await writeFile(joinPath(blocklistDir, `${name}.txt`),
+                await readFile(list) ?? "")
         }
     }
     // And update all blocklists to the latest version if enabled
     if (type === "update") {
         /** @type {{[property: string]: string}} */
         let extraLists = {}
-        const extralistFileData = readJSON(joinPath(
+        const extralistFileData = await readJSON(joinPath(
             blocklistDir, "list.json")) ?? {}
         if (isFlatStringObject(extralistFileData)) {
             extraLists = extralistFileData
@@ -1659,8 +1664,8 @@ const enableAdblocker = type => {
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
                 let body = ""
-                res.on("end", () => {
-                    writeFile(joinPath(blocklistDir, `${list}.txt`), body)
+                res.on("end", async() => {
+                    await writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     reloadAdblocker()
                     notify({
                         "fields": [list],
@@ -1872,13 +1877,13 @@ const clientHintPlatform = () => ({
     "linux": `"Linux"`, "mac": `"macOS"`, "windows": `"Windows"`
 }[currentUserAgentResolvedSystem])
 
-ipcMain.on("adblock-enable", (_, type) => {
+ipcMain.handle("adblock-enable", async(_, type) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
-        enableAdblocker(type)
+        await enableAdblocker(type)
     }
 })
-ipcMain.on("adblock-disable", disableAdblocker)
+ipcMain.handle("adblock-disable", disableAdblocker)
 ipcMain.handle("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
     for (const ses of sessionList) {
@@ -1892,7 +1897,7 @@ ipcMain.handle("update-pdf-option", (_, newPdfValue) => {
         }
     }
 })
-ipcMain.handle("create-session", (_, name, adblock, cache) => {
+ipcMain.handle("create-session", async(_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
@@ -1931,7 +1936,7 @@ ipcMain.handle("create-session", (_, name, adblock, cache) => {
         if (blocker) {
             reloadAdblocker()
         } else {
-            enableAdblocker(adblock)
+            await enableAdblocker(adblock)
         }
     }
     if (pdfbehavior !== "view") {
@@ -2104,7 +2109,7 @@ ipcMain.handle("create-session", (_, name, adblock, cache) => {
             "id": "downloads.started",
             "src": downloadSrc
         })
-        item.on("updated", (__, state) => {
+        item.on("updated", async(__, state) => {
             try {
                 info.current = item.getReceivedBytes()
                 info.file = item.getSavePath()
@@ -2118,7 +2123,7 @@ ipcMain.handle("create-session", (_, name, adblock, cache) => {
                 // When a download is finished before the event is detected,
                 // the item will throw an error for all the mapped functions.
             }
-            writeDownloadsToFile()
+            await writeDownloadsToFile()
         })
         item.once("done", (__, state) => {
             if (state === "completed") {
@@ -2149,7 +2154,7 @@ ipcMain.handle("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    newSess.protocol.handle("sourceviewer", req => {
+    newSess.protocol.handle("sourceviewer", async req => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -2178,7 +2183,7 @@ ipcMain.handle("create-session", (_, name, adblock, cache) => {
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         if (isFile(loc)) {
-            const hl = hljs.highlightAuto(readFile(loc) ?? "")
+            const hl = hljs.highlightAuto(await readFile(loc) ?? "")
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
@@ -2348,7 +2353,7 @@ ipcMain.handle("create-session", (_, name, adblock, cache) => {
             // Base url handling is optional.
         }
         if (isFile(loc)) {
-            const md = await markedObj.parse(readFile(loc) ?? "")
+            const md = await markedObj.parse(await readFile(loc) ?? "")
             return new Response(Buffer.from(
                 `<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -2496,7 +2501,7 @@ ipcMain.on("download-favicon", (_, options) => {
     request.on("response", res => {
         /** @type {Buffer[]} */
         const data = []
-        res.on("end", () => {
+        res.on("end", async() => {
             if (res.statusCode !== 200) {
                 // Failed to download favicon
                 return
@@ -2505,11 +2510,11 @@ ipcMain.on("download-favicon", (_, options) => {
             const knownExts = [".png", ".ico", ".jpg", ".svg"]
             const hasExtension = knownExts.some(ex => options.fav.endsWith(ex))
             if (!hasExtension && (/<\/svg>/).test(file.toString())) {
-                writeFile(`${options.location}.svg`, file)
+                await writeFile(`${options.location}.svg`, file)
                 mainWindow?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
             } else {
-                writeFile(options.location, file)
+                await writeFile(options.location, file)
                 mainWindow?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, options.fav)
             }
@@ -2538,11 +2543,11 @@ const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
  * Save the current window state, optionally just the maximize/fullscreen state.
  * @param {boolean} statesOnly
  */
-const saveWindowState = (statesOnly = false) => {
+const saveWindowState = async(statesOnly = false) => {
     try {
         mainWindow?.webContents?.send("window-update-gui")
         /** @type {Partial<WindowState>&import("./util").PartialJSON} */
-        const oldState = readJSON(windowStateFile) ?? {}
+        const oldState = await readJSON(windowStateFile) ?? {}
         /** @type {Partial<WindowState>} */
         let state = {}
         if (typeof oldState.x === "number" && typeof oldState.y === "number") {
@@ -2571,18 +2576,18 @@ const saveWindowState = (statesOnly = false) => {
         }
         state.maximized = mainWindow?.isMaximized() ?? false
         state.fullscreen = mainWindow?.fullScreen ?? false
-        writeJSON(windowStateFile, state)
+        await writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
     }
 }
 
-ipcMain.handle("window-state-init", (_, restore) => {
+ipcMain.handle("window-state-init", async(_, restore) => {
     if (!mainWindow) {
         return
     }
     /** @type {Partial<WindowState>&import("./util").PartialJSON} */
-    const bounds = readJSON(windowStateFile) ?? {}
+    const bounds = await readJSON(windowStateFile) ?? {}
     if (restore.pos === "restore") {
         if (typeof bounds.x === "number" && typeof bounds.y === "number") {
             mainWindow.setPosition(bounds.x, bounds.y)
@@ -2666,9 +2671,9 @@ ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
 })
 ipcMain.on("open-internal-devtools",
     () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
-ipcMain.on("destroy-window", () => {
+ipcMain.on("destroy-window", async() => {
     cancellAllDownloads()
-    writeDownloadsToFile()
+    await writeDownloadsToFile()
     mainWindow?.destroy()
 })
 ipcMain.handle("run-isolated-js-head-check", (_, id) => webContents.fromId(id)

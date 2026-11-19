@@ -1093,7 +1093,7 @@ const editWithVim = async args => {
     let command = null
     watchFile(tempFile, async() => {
         if (command) {
-            const contents = readFile(tempFile)
+            const contents = await readFile(tempFile)
             if (contents === null) {
                 return
             }
@@ -1143,7 +1143,9 @@ const editWithVim = async args => {
         sendToPageOrSubFrame("action", "writeInputToFile", tempFile)
     }
     if (typeOfEdit === "navbar") {
-        setTimeout(() => writeFile(tempFile, getUrl()?.value ?? ""), 3)
+        setTimeout(async() => {
+            await writeFile(tempFile, getUrl()?.value ?? "")
+        }, 3)
     }
 }
 
@@ -1549,7 +1551,7 @@ const storeScrollPos = async args => {
         }
     }
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("scroll" in qm) || !qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -1580,7 +1582,7 @@ const storeScrollPos = async args => {
     } else {
         qm.scroll.global[args.key] = args.pixels ?? pixels
     }
-    writeJSON(joinPath(await appData(), "quickmarks"), qm)
+    await writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
@@ -1604,7 +1606,7 @@ const restoreScrollPos = async args => {
     }
     path = args.path ?? path
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
         currentPage()?.executeJavaScript(`
@@ -1625,12 +1627,12 @@ const makeMark = async args => {
         return
     }
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
     qm.marks[args.key] = await urlToString(args.url ?? currentPage()?.src ?? "")
-    writeJSON(joinPath(await appData(), "quickmarks"), qm)
+    await writeJSON(joinPath(await appData(), "quickmarks"), qm)
 }
 
 /**
@@ -1642,7 +1644,7 @@ const restoreMark = async args => {
         return
     }
     /** @type {import("../util").PartialJSON&Partial<Quickmarks>} */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
@@ -1664,7 +1666,7 @@ const runRecording = async args => {
     if (!args.key) {
         return
     }
-    const recordings = readJSON(joinPath(await appData(), "recordings"))
+    const recordings = await readJSON(joinPath(await appData(), "recordings"))
     if (!isFlatStringObject(recordings)) {
         return
     }
@@ -1701,12 +1703,13 @@ const stopRecording = async() => {
     }
     /** @type {{[property: string]: string}} */
     let recordings = {}
-    const recordingFileData = readJSON(joinPath(await appData(), "recordings"))
+    const recordingFileData = await readJSON(joinPath(
+        await appData(), "recordings"))
     if (isFlatStringObject(recordingFileData)) {
         recordings = recordingFileData
     }
     recordings[record.name] = record.string
-    writeJSON(joinPath(await appData(), "recordings"), recordings)
+    await writeJSON(joinPath(await appData(), "recordings"), recordings)
 }
 
 /** Change the z-index order of the follow mode elements by type. */
@@ -1863,7 +1866,7 @@ const useEnteredData = async args => {
             const wordInfo = searchword(location)
             const modifiedLoc = wordInfo.url
             const {push} = require("./explorehistory")
-            push(await urlToString(modifiedLoc))
+            await push(await urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
             await navigateTo(args.src, stringToUrl(modifiedLoc))
         }

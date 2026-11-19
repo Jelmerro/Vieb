@@ -344,14 +344,7 @@ const saveTabs = async() => {
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
-    const success = writeJSON(tabFile, data)
-    if (!success) {
-        await notify({
-            "fields": [tabFile],
-            "id": "settings.files.failed",
-            "src": "other"
-        })
-    }
+    await writeJSON(tabFile, data)
 }
 
 /**
@@ -848,7 +841,7 @@ const addWebviewListeners = webview => {
         if (erwicMode) {
             const preload = webview.getAttribute("user-script-file")
             if (preload) {
-                const javascript = readFile(preload)
+                const javascript = await readFile(preload)
                 if (javascript) {
                     await webview.executeJavaScript(javascript, true)
                 }
@@ -1592,7 +1585,7 @@ const init = async() => {
     if (config?.icon) {
         document.getElementById("logo")?.setAttribute("src", config?.icon ?? "")
     }
-    const parsed = readJSON(tabFile)
+    const parsed = await readJSON(tabFile)
     if (!erwicMode) {
         if (typeof parsed === "object"
             && parsed && !Array.isArray(parsed)) {

@@ -308,9 +308,9 @@ window.addEventListener("DOMContentLoaded", async() => {
     for (const example of examples) {
         const button = document.createElement("button")
         button.textContent = await translate(`pages.help.examples.${example}`)
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async() => {
             const link = document.createElement("a")
-            const text = readFile(joinPath(
+            const text = await readFile(joinPath(
                 getAppRootDir(), `examples/${example}`)) ?? ""
             link.href = window.URL.createObjectURL(
                 new Blob([text], {"type": "text/plain"}))

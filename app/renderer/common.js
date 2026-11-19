@@ -20,6 +20,7 @@
 const {
     appConfig,
     appData,
+    appendFile,
     expandPath,
     hasProtocol,
     isDir,
@@ -280,9 +281,8 @@ const notify = async opts => {
     const {translate} = require("../translate")
     const message = translate(opts.id, {"fields": opts.fields ?? []})
     if (opts.src === "execute") {
-        const {appendFileSync} = require("node:fs")
-        appendFileSync(joinPath(
-            await appData(), ".tmp-execute-output"), `${message}\t\t\t`)
+        await appendFile(joinPath(await appData(),
+            ".tmp-execute-output"), `${message}\t\t\t`).catch(console.warn)
     }
     const {getSetting} = require("./settings")
     if (getSetting("notificationduration") === 0) {

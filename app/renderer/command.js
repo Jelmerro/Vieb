@@ -641,7 +641,7 @@ const source = async(src, origin, args) => {
         })
         return
     }
-    const parsed = readFile(absFile)
+    const parsed = await readFile(absFile)
     if (!parsed) {
         await notify({
             "fields": [absFile],
@@ -967,22 +967,24 @@ const quitall = async() => {
     /** @type {("scroll"|"marks"|"pointer")[]} */
     let clearMark = ["scroll", "marks", "pointer"]
     clearMark = clearMark.filter(t => !keepQuickmarkNames.includes(t))
+    const appdata = await appData()
+    const qmfile = joinPath(appdata, "quickmarks")
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(qmfile) ?? {}
     for (const markType of clearMark) {
         delete qm[markType]
     }
     if (Object.keys(qm).length > 0) {
-        writeJSON(joinPath(await appData(), "quickmarks"), qm)
+        await writeJSON(qmfile, qm)
     } else {
-        deleteFile(joinPath(await appData(), "quickmarks"))
+        deleteFile(qmfile)
     }
     const clearHistory = getSetting("clearhistoryinterval")
     if (clearHistory === "session") {
-        deleteFile(joinPath(await appData(), "hist"))
+        deleteFile(joinPath(appdata, "hist"))
     } else if (clearHistory === "none") {
         const {writeHistToFile} = require("./history")
         await writeHistToFile(true)
@@ -1055,12 +1057,12 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
         })
         return
     }
-    let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
+    let css = await readFile(expandPath(`~/.vieb/colors/${name}.css`))
     if (!css) {
-        css = readFile(joinPath(await appData(), `colors/${name}.css`))
+        css = await readFile(joinPath(await appData(), `colors/${name}.css`))
     }
     if (!css) {
-        css = readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
+        css = await readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
     }
     if (!css) {
         await notify({
@@ -1412,7 +1414,7 @@ const takeScreenshot = async(src, dims, location) => {
     }
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(async img => {
-            const success = writeFile(loc, img.toPNG())
+            const success = await writeFile(loc, img.toPNG())
             if (success) {
                 await notify({
                     "fields": [loc],
@@ -1922,11 +1924,11 @@ const makedefault = async src => {
                 }
             })
     } else if (process.platform === "win32") {
-        const scriptContents = readFile(joinPath(
+        const scriptContents = await readFile(joinPath(
             getAppRootDir(), "defaultapp/windows.bat"))
         const tempFile = joinPath(await appData(), "defaultapp.bat")
         if (scriptContents) {
-            writeFile(tempFile, scriptContents)
+            await writeFile(tempFile, scriptContents)
         }
         execCommand(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, async err => {
@@ -1999,7 +2001,7 @@ const runjsinpage = async(src, raw, range) => {
     let javascript = raw.split(" ").slice(1).join(" ")
     const filePath = expandPath(javascript)
     if (isAbsolutePath(filePath)) {
-        javascript = readFile(filePath) || javascript
+        javascript = await readFile(filePath) || javascript
     }
     if (range) {
         const tabIdx = await rangeToTabIdxs(src, range)
@@ -2065,7 +2067,7 @@ const marks = async(src, args) => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!("marks" in qm) || !qm.marks) {
         qm.marks = {}
     }
@@ -2162,14 +2164,15 @@ const delmarks = async(src, all, args) => {
         })
         return
     }
+    const qmfile = joinPath(await appData(), "quickmarks")
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(qmfile) ?? {}
     if (all) {
         qm.marks = {}
-        writeJSON(joinPath(await appData(), "quickmarks"), qm)
+        await writeJSON(qmfile, qm)
         return
     }
     if (args.length !== 1) {
@@ -2182,7 +2185,7 @@ const delmarks = async(src, all, args) => {
     if (qm.marks?.[key] !== undefined) {
         delete qm.marks[key]
     }
-    writeJSON(joinPath(await appData(), "quickmarks"), qm)
+    await writeJSON(qmfile, qm)
 }
 
 /**
@@ -2227,7 +2230,7 @@ const scrollpos = async(src, args) => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -2317,11 +2320,12 @@ const restorescrollpos = async(src, args) => {
  * @param {string[]} args
  */
 const delscrollpos = async(src, all, args) => {
+    const qmfile = joinPath(await appData(), "quickmarks")
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(qmfile) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
@@ -2357,7 +2361,7 @@ const delscrollpos = async(src, all, args) => {
         } else {
             delete qm.scroll.local[path]
         }
-        writeJSON(joinPath(await appData(), "quickmarks"), qm)
+        await writeJSON(qmfile, qm)
         return
     }
     if (args.length === 0) {
@@ -2397,7 +2401,7 @@ const delscrollpos = async(src, all, args) => {
         && Object.keys(qm.scroll.global).length === 0) {
         delete qm.scroll
     }
-    writeJSON(joinPath(await appData(), "quickmarks"), qm)
+    await writeJSON(qmfile, qm)
 }
 
 /**
@@ -2429,7 +2433,7 @@ const pointerpos = async(src, args) => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
@@ -2526,11 +2530,12 @@ const restorepointerpos = async(src, args) => {
  * @param {string[]} args
  */
 const delpointerpos = async(src, all, args) => {
+    const qmfile = joinPath(await appData(), "quickmarks")
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(qmfile) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
@@ -2566,7 +2571,7 @@ const delpointerpos = async(src, all, args) => {
         } else {
             delete qm.pointer.local[path]
         }
-        writeJSON(joinPath(await appData(), "quickmarks"), qm)
+        await writeJSON(qmfile, qm)
         return
     }
     if (args.length === 0) {
@@ -2606,7 +2611,7 @@ const delpointerpos = async(src, all, args) => {
         && Object.keys(qm.pointer.global).length === 0) {
         delete qm.pointer
     }
-    writeJSON(joinPath(await appData(), "quickmarks"), qm)
+    await writeJSON(qmfile, qm)
 }
 
 /**
@@ -3306,7 +3311,7 @@ const execute = async(com, opts = {}) => {
             .replace("<useCurrentDomain>", `${await getPageDomain()}`)
     }
     const {push} = require("./commandhistory")
-    push(commandStr, src === "user")
+    await push(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
             execCommand(commandStr.replace("!", ""), async(err, out) => {

@@ -19,14 +19,15 @@
 "use strict"
 
 const {
-    joinPath, listDir, readJSON, writeFile, writeJSON
+    joinPath, listDir, readJSONSync, writeFileSync, writeJSONSync
 } = require("./app/util")
 
 const files = listDir(joinPath(__dirname, "app/translations"))
     .filter(f => f.endsWith(".json")).map(f => f.replace(/\.json$/, "")) ?? []
 const translations = {}
 for (const f of files) {
-    const contents = readJSON(joinPath(__dirname, `app/translations/${f}.json`))
+    const contents = readJSONSync(joinPath(
+        __dirname, `app/translations/${f}.json`))
     translations[f] = contents
 }
 
@@ -88,14 +89,14 @@ const numberOfFields = (lang, key) => {
 const types = () => {
     const keyList = listKeys(translations.en).map(k => `    | "${k}"`)
     const output = `export type TranslationKeys =\n${keyList.join("\n")}\n`
-    writeFile("types/i18n.d.ts", output)
+    writeFileSync("types/i18n.d.ts", output)
 }
 
 /** Write all new translations to disk in alphabetic order. */
 const writeTranslations = () => {
     for (const lang of Object.keys(translations)) {
         const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
-        writeJSON(filePath, translations[lang], {
+        writeJSONSync(filePath, translations[lang], {
             "indent": 4,
             /**
              * Re-create object values so that the order is alphabetic.
@@ -165,7 +166,7 @@ if (args[0] === "addlang") {
         process.exit(1)
     }
     const filePath = joinPath(__dirname, `app/translations/${lang}.json`)
-    writeJSON(filePath, translations.en, {
+    writeJSONSync(filePath, translations.en, {
         "indent": 4,
         /**
          * Replace string values with empty keys.

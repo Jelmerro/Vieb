@@ -288,7 +288,7 @@ const loadUserscripts = async webview => {
             expandPath(`~/.vieb/userscript/${domain}.js`)
         ]
         for (const f of userScriptFiles) {
-            const text = readFile(f)
+            const text = await readFile(f)
             if (text) {
                 webview.executeJavaScript(text, true).catch(() => null)
             }
@@ -301,7 +301,7 @@ const loadUserscripts = async webview => {
             || []).filter(f => f.endsWith(".js"))
     ]
     for (const f of gmScriptFiles) {
-        const text = readFile(f)
+        const text = await readFile(f)
         if (text) {
             await runGMScript(webview, text)
         }

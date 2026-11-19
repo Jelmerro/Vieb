@@ -728,7 +728,7 @@ const suggestCommand = async searchStr => {
             for (const part of listDir(dir)
                 ?.filter(p => p.endsWith(".css")) ?? []) {
                 const location = joinPath(dir, part)
-                if (part === "default.css" || !readFile(location)) {
+                if (part === "default.css" || !await readFile(location)) {
                     continue
                 }
                 themes[part.replace(/\.css$/g, "")] = location

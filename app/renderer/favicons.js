@@ -31,7 +31,7 @@ const {
     modifiedAt,
     pathToSpecialPageName,
     readJSON,
-    writeJSONAsync
+    writeJSON
 } = require("../util")
 const {currentPage, listPages, stringToUrl, tabForPage} = require("./common")
 const {getSetting} = require("./settings")
@@ -94,7 +94,7 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
         if (Object.keys(mappings).length === 0) {
             deleteFile(mappingFile)
         } else {
-            await writeJSONAsync(mappingFile, mappings).catch(() => null)
+            await writeJSON(mappingFile, mappings).catch(() => null)
         }
     }
     // Delete unused favicons from disk in nested promises to stay responsive
@@ -333,7 +333,7 @@ const show = webview => {
 const init = async() => {
     faviconFolder = joinPath(await appData(), "favicons")
     mappingFile = joinPath(faviconFolder, "mappings")
-    const parsed = readJSON(mappingFile)
+    const parsed = await readJSON(mappingFile)
     if (isNestedStringObject(parsed) && typeof parsed === "object") {
         const {redirects} = parsed
         delete parsed.redirects

@@ -223,8 +223,9 @@ const loadThemes = async(loadedFully = false) => {
             joinPath(appdata, `userstyle/${domain}.css`),
             expandPath(`~/.vieb/userstyle/${domain}.css`)
         ]
-        const style = userStyleFiles.map(f => readFile(f))
-            .filter(Boolean).join("\n")
+        const userStyleFileData = await Promise.all(userStyleFiles
+            .map(f => readFile(f)))
+        const style = userStyleFileData.filter(Boolean).join("\n")
         ipcRenderer.sendToHost("custom-style-inject", "userstyle", style)
     }
     await updateScrollbar()
@@ -245,7 +246,7 @@ window.addEventListener("load", async() => {
     setTimeout(loadThemes, 1000)
 })
 ipcRenderer.on("reload-basic-theme-styling", () => loadThemes(true))
-ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
+ipcRenderer.on("add-colorscheme-styling", async(_, fontsize, custom) => {
     const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)
     if (!linkedCss && !document.getElementById("default-styling")) {
         const styleElement = document.createElement("style")
@@ -254,7 +255,7 @@ ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
     }
     const defaultStyle = document.querySelector("style#default-styling")
     if (defaultStyle) {
-        defaultStyle.textContent = readFile(joinPath(
+        defaultStyle.textContent = await readFile(joinPath(
             getAppRootDir(), "colors/default.css"))
     }
     if (!document.getElementById("custom-styling")) {

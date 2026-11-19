@@ -427,7 +427,7 @@ describe("Format sizes work correctly", () => {
     }
 })
 
-test("Filesystem helpers should work as expected", () => {
+test("Filesystem helpers should work as expected", async() => {
     const {rmdirSync} = require("node:fs")
     const {tmpdir} = require("node:os")
     const {basename, dirname, isAbsolute} = require("node:path")
@@ -450,9 +450,9 @@ test("Filesystem helpers should work as expected", () => {
     assert.strictEqual(UTIL.isDir(file), true)
     assert.strictEqual(UTIL.pathExists(file), true)
     assert.strictEqual(
-        UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), false)
-    assert.strictEqual(UTIL.writeFile(file, "test"), false)
-    assert.strictEqual(UTIL.appendFile(file, "hello"), false)
+        await UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), false)
+    assert.strictEqual(await UTIL.writeFile(file, "test"), false)
+    assert.strictEqual(await UTIL.appendFile(file, "hello"), false)
     // Remove dir, write file to same location and read it again
     try {
         rmdirSync(file)
@@ -462,18 +462,19 @@ test("Filesystem helpers should work as expected", () => {
     assert.strictEqual(UTIL.isDir(file), false)
     assert.strictEqual(UTIL.pathExists(file), false)
     assert.strictEqual(
-        UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), true)
-    const output = UTIL.readJSON(file)
+        await UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), true)
+    const output = await UTIL.readJSON(file)
     assert.strictEqual(Object.keys(output).length, 1)
     assert.strictEqual(Object.keys(output)[0], "test")
     assert.strictEqual(output.test, "test")
-    assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}`)
-    assert.strictEqual(UTIL.appendFile(file, "hello"), true)
-    assert.strictEqual(UTIL.readJSON(file), null)
-    assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}hello`)
-    assert.strictEqual(UTIL.writeFile(file, "test"), true)
-    assert.strictEqual(UTIL.readJSON(file), null)
-    assert.strictEqual(UTIL.readFile(file), "test")
+    assert.strictEqual(await UTIL.readFile(file), `{\n    "test": "test"\n}`)
+    assert.strictEqual(await UTIL.appendFile(file, "hello"), true)
+    assert.strictEqual(await UTIL.readJSON(file), null)
+    assert.strictEqual(await UTIL.readFile(file),
+        `{\n    "test": "test"\n}hello`)
+    assert.strictEqual(await UTIL.writeFile(file, "test"), true)
+    assert.strictEqual(await UTIL.readJSON(file), null)
+    assert.strictEqual(await UTIL.readFile(file), "test")
     assert.strictEqual(UTIL.isFile(file), true)
     assert.strictEqual(UTIL.isDir(file), false)
     assert.strictEqual(UTIL.pathExists(file), true)
@@ -481,7 +482,7 @@ test("Filesystem helpers should work as expected", () => {
     // Delete file and confirm simple checks succeed
     UTIL.deleteFile(file)
     assert.strictEqual(UTIL.isFile(file), false)
-    assert.strictEqual(UTIL.readFile(file), null)
+    assert.strictEqual(await UTIL.readFile(file), null)
     assert.strictEqual(UTIL.isDir(file), false)
     assert.strictEqual(UTIL.pathExists(file), false)
     let fileList = UTIL.listDir(

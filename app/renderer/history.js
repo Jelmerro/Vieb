@@ -29,7 +29,7 @@ const {
     readJSON,
     specialChars,
     urlToString,
-    writeJSONAsync
+    writeJSON
 } = require("../util")
 const {getSetting} = require("./settings")
 
@@ -61,7 +61,7 @@ const isValidHistItem = item => {
 /** Load the history file from disk to memory. */
 const init = async() => {
     histFile = joinPath(await appData(), "hist")
-    const allHist = readJSON(histFile) || {}
+    const allHist = await readJSON(histFile) || {}
     if (isObject(allHist)) {
         for (const [key, histItem] of Object.entries(allHist)) {
             if (isValidHistItem(histItem)) {
@@ -201,7 +201,7 @@ const writeHistToFile = (now = false) => {
     if (Object.keys(groupedHistory).length === 0) {
         return deleteFile(histFile)
     }
-    return writeJSONAsync(histFile, groupedHistory)
+    return writeJSON(histFile, groupedHistory)
 }
 
 /**

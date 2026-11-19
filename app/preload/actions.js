@@ -181,15 +181,15 @@ const setInputFieldText = (filename, text) => {
  * Write the contents of a specific input to a file.
  * @param {string} filename
  */
-const writeInputToFile = filename => {
+const writeInputToFile = async filename => {
     const el = activeElement()
     if (!el) {
         return
     }
     if (isInputOrTextElement(el)) {
-        writeFile(filename, el.value)
+        await writeFile(filename, el.value)
     } else if (el?.getAttribute("contenteditable") === "true") {
-        writeFile(filename, el.textContent ?? "")
+        await writeFile(filename, el.textContent ?? "")
     }
     writeableInputs[filename] = el
 }
@@ -699,7 +699,7 @@ const showTOC = async(customStyling, fontsize) => {
     tocContainer.id = randomTOCId
     const tocShadow = tocContainer.attachShadow({"mode": "open"})
     const defaultStylesheet = document.createElement("style")
-    defaultStylesheet.textContent = (readFile(joinPath(
+    defaultStylesheet.textContent = (await readFile(joinPath(
         getAppRootDir(), "colors/default.css")) ?? "").replace(":root", ":host")
     const customStylesheet = document.createElement("style")
     customStylesheet.textContent = customStyling.replace(":root", ":host")

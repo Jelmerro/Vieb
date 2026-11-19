@@ -2252,9 +2252,10 @@ const set = async(src, setting, value) => {
         // Update settings elsewhere
         if (setting === "adblocker") {
             if (value === "off") {
-                ipcRenderer.send("adblock-disable")
+                await ipcRenderer.invoke("adblock-disable")
             } else {
-                ipcRenderer.send("adblock-enable", allSettings.adblocker)
+                await ipcRenderer.invoke("adblock-enable",
+                    allSettings.adblocker)
             }
         }
         if (setting === "adblockernotifications") {
@@ -2423,7 +2424,7 @@ const loadFromDisk = async(firstRun, src = "source") => {
         if (!isFile(conf)) {
             continue
         }
-        const parsed = readFile(conf)
+        const parsed = await readFile(conf)
         if (!parsed) {
             await notify({
                 "fields": [conf],
@@ -2567,7 +2568,7 @@ const saveToDisk = async(src, full) => {
     const config = await appConfig()
     const destFile = config?.config
     if (destFile) {
-        const success = writeFile(destFile, settingsAsCommands)
+        const success = await writeFile(destFile, settingsAsCommands)
         if (success) {
             await notify({
                 "fields": ["Viebrc", destFile],

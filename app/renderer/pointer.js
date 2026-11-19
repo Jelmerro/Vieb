@@ -1018,11 +1018,12 @@ const storePos = async args => {
             posType = "local"
         }
     }
+    const qmfile = joinPath(await appData(), "quickmarks")
     /**
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(qmfile) ?? {}
     if (!("pointer" in qm) || !qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
     }
@@ -1050,7 +1051,7 @@ const storePos = async args => {
         qm.pointer.global[key] = args?.location
             ?? {"x": Math.round(X), "y": Math.round(Y)}
     }
-    writeJSON(joinPath(await appData(), "quickmarks"), qm)
+    await writeJSON(qmfile, qm)
 }
 
 /**
@@ -1077,7 +1078,7 @@ const restorePos = async args => {
      * @type {import("../util").PartialJSON
      *   &Partial<import("./actions").Quickmarks>}
      */
-    const qm = readJSON(joinPath(await appData(), "quickmarks")) ?? {}
+    const qm = await readJSON(joinPath(await appData(), "quickmarks")) ?? {}
     const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
     if (pos) {
         move(pos.x, pos.y)

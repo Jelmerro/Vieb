@@ -31,7 +31,8 @@ let storeCommands = false
 /** Load the command hist of the previous session if stored. */
 const init = async() => {
     commandsFile = joinPath(await appData(), "commandhist")
-    previousCommands = readFile(commandsFile)?.split("\n").filter(Boolean) || []
+    const fileContent = await readFile(commandsFile)
+    previousCommands = fileContent?.split("\n").filter(Boolean) || []
 }
 
 /** Pause the collection of commands to the history. */
@@ -96,7 +97,7 @@ const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-const push = (command, user) => {
+const push = async(command, user) => {
     const setting = getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return
@@ -109,7 +110,7 @@ const push = (command, user) => {
     }
     previousCommands.push(command)
     if (setting.includes("persist") && commandsFile) {
-        appendFile(commandsFile, `${command}\n`)
+        await appendFile(commandsFile, `${command}\n`)
     }
 }
 
