@@ -1167,7 +1167,7 @@ const unsuspendPage = async page => {
     const sessionName = containernames.find(
         c => loc.match(c.split("~", 1)[0]) && c.split("~", 3)[2] !== "newtab")
         ?.split("~", 2)[1] ?? page.getAttribute("container")
-    ipcRenderer.send("create-session", `persist:${sessionName}`,
+    await ipcRenderer.invoke("create-session", `persist:${sessionName}`,
         getSetting("adblocker"), getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
     await guiRelatedUpdate("tabbar")
@@ -1680,12 +1680,6 @@ const init = async() => {
             await addTab({"src": "source", "url": specialPagePath("help")})
         }
     }
-    await ipcRenderer.invoke("window-state-init", {
-        "full": getSetting("windowfullscreen"),
-        "max": getSetting("windowmaximize"),
-        "pos": getSetting("windowposition"),
-        "size": getSetting("windowsize")
-    })
 }
 
 /** Move the tab forward in the tab bar. */

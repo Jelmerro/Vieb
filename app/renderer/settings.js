@@ -1917,7 +1917,6 @@ const updateDownloadSettings = async(src = "other") => {
  * @returns {validSetting[T]}
  */
 const getSetting = setting => {
-    /** @type {validSetting} */
     const data = {
         "bg": document.body.computedStyleMap().get("--bg")?.toString() ?? "",
         "fg": document.body.computedStyleMap().get("--fg")?.toString() ?? "",
@@ -2618,8 +2617,14 @@ const init = async() => {
         await notify(opts)
     })
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
-    ipcRenderer.send("create-session", `persist:main`,
+    await ipcRenderer.invoke("create-session", `persist:main`,
         allSettings.adblocker, allSettings.cache !== "none")
+    await ipcRenderer.invoke("window-state-init", {
+        "full": allSettings.windowfullscreen,
+        "max": allSettings.windowmaximize,
+        "pos": allSettings.windowposition,
+        "size": allSettings.windowsize
+    })
 }
 
 module.exports = {

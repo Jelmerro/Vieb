@@ -1892,7 +1892,7 @@ ipcMain.handle("update-pdf-option", (_, newPdfValue) => {
         }
     }
 })
-ipcMain.on("create-session", (_, name, adblock, cache) => {
+ipcMain.handle("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
