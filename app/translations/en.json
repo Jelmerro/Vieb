@@ -28,7 +28,7 @@
         "aborted": "Failed to update $1: Request aborted",
         "failed": "Failed to update $1:\n$2",
         "missing": "Adblocker module not present, ads will not be blocked!",
-        "updated": "Updated and reloaded the latest $1 successfully",
+        "updated": "Updated the latest $1 successfully",
         "updating": "Updating $1 to the latest version"
     },
     "commands": {

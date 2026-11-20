@@ -203,14 +203,12 @@ const readJSON = loc => new Promise(res => {
     const {"readFile": readFileFS} = require("node:fs")
     readFileFS(loc, (err, data) => {
         if (err) {
-            console.warn(err)
             res(null)
             return
         }
         try {
             res(JSON.parse(data.toString()))
         } catch(error) {
-            console.warn(error)
             res(null)
         }
     })
@@ -1049,7 +1047,6 @@ const readFile = loc => new Promise(res => {
     const {"readFile": readFileFS} = require("node:fs")
     readFileFS(loc, (err, data) => {
         if (err) {
-            console.warn(err)
             res(null)
             return
         }
@@ -1081,7 +1078,6 @@ const writeFile = (loc, data) => new Promise(res => {
     const {"writeFile": write} = require("node:fs")
     write(loc, data, err => {
         if (err) {
-            console.warn(err)
             res(false)
             return
         }
@@ -1115,7 +1111,6 @@ const appendFile = (loc, data) => new Promise(res => {
     const {"appendFile": appendFileFS} = require("node:fs")
     appendFileFS(loc, data, err => {
         if (err) {
-            console.warn(err)
             res(false)
             return
         }
@@ -1157,7 +1152,6 @@ const writeJSON = (loc, data, opts = {}) => new Promise(res => {
     const {"writeFile": write} = require("node:fs")
     write(loc, JSON.stringify(data, opts.replacer, opts.indent), err => {
         if (err) {
-            console.warn(err)
             res(false)
             return
         }
@@ -1230,7 +1224,6 @@ const listDir = (
     const {readdir} = require("node:fs")
     readdir(loc, (err, files) => {
         if (err) {
-            console.warn(err)
             res([])
             return
         }

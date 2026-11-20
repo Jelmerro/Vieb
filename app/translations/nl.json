@@ -28,7 +28,7 @@
         "aborted": "Fout in bijwerken van $1: Verzoek afgebroken",
         "failed": "Fout in bijwerken van $1:\n$2",
         "missing": "Adblocker module niet aanwezig, advertenties worden niet geblokkeerd!",
-        "updated": "Lijst $1 met succes bijgewerkt en herladen",
+        "updated": "Lijst $1 met succes bijgewerkt",
         "updating": "Lijst $1 aan het bijwerken"
     },
     "commands": {

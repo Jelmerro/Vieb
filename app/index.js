@@ -49,6 +49,7 @@ const {
     isFile,
     isFlatStringObject,
     joinPath,
+    listDir,
     listDirSync,
     makeDir,
     readFile,
@@ -925,8 +926,8 @@ app.whenReady().then(async() => {
     }
     if (argExecute) {
         if (argExecuteDur) {
-            setTimeout(() => {
-                const fileContents = readFileSync(executeOut)
+            setTimeout(async() => {
+                const fileContents = await readFile(executeOut)
                 const parts = fileContents?.split("\t".repeat(3)) ?? []
                 if (parts.at(-1) === "") {
                     parts.pop()
@@ -938,11 +939,11 @@ app.whenReady().then(async() => {
                 process.exit(0)
             }, argExecuteDur)
         }
-        watchFile(executeOut, info => {
+        watchFile(executeOut, async info => {
             if (!(info.blksize > 0 || info.size > 0)) {
                 return
             }
-            const fileContents = readFileSync(executeOut)
+            const fileContents = await readFile(executeOut)
             const parts = fileContents?.split("\t".repeat(3)) ?? []
             if (parts.at(-1) === "") {
                 parts.pop()
@@ -1540,8 +1541,8 @@ ipcMain.handle("adblock-notification-update", (_, newValue) => {
  * Load a blocklist with extra newline if it has contents.
  * @param {string} file
  */
-const loadBlocklist = file => {
-    const contents = readFileSync(file)
+const loadBlocklist = async file => {
+    const contents = await readFile(file)
     if (contents) {
         return `${contents}\n`
     }
@@ -1566,7 +1567,7 @@ const disableAdblocker = () => {
 }
 
 /** Reload the adblocker optionally including the default lists. */
-const reloadAdblocker = () => {
+const reloadAdblocker = async() => {
     if (blocker) {
         disableAdblocker()
     }
@@ -1591,15 +1592,15 @@ const reloadAdblocker = () => {
     ]
     let filters = ""
     for (const blocklistsFolder of blocklistsFolders) {
-        for (const file of listDirSync(blocklistsFolder, true)) {
+        for (const file of await listDir(blocklistsFolder, true)) {
             if (file.endsWith(".txt")) {
-                filters += loadBlocklist(file)
+                filters += await loadBlocklist(file)
             }
         }
     }
     const unique = [...new Set(filters.split("\n"))].join("\n")
     blocker = ElectronBlocker.parse(unique)
-    const resources = readFileSync(joinPath(
+    const resources = await readFile(joinPath(
         __dirname, `./blocklists/resources`))
     if (resources) {
         blocker.updateResources(resources, `${resources.length}`)
@@ -1617,6 +1618,54 @@ const reloadAdblocker = () => {
     ipcMain.handle("@ghostery/adblocker/is-mutation-observer-enabled",
         blocker.onIsMutationObserverEnabled)
 }
+
+/**
+ * Download an update for an adblocker blocklist and resolve.
+ * @param {string} list
+ * @param {string} url
+ */
+const downloadAdblockerList = (list, url) => new Promise(res => {
+    const request = net.request({"partition": "persist:main", url})
+    request.on("response", response => {
+        let body = ""
+        response.on("end", async() => {
+            const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
+            await writeFile(joinPath(blocklistDir, `${list}.txt`), body)
+            notify({
+                "fields": [list],
+                "id": "adblocker.updated",
+                "silent": ["error", "none"].includes(adblockerNotify),
+                "src": "user",
+                "type": "success"
+            })
+            res("done")
+        })
+        response.on("data", chunk => {
+            body += chunk
+        })
+    })
+    request.on("abort", () => {
+        notify({
+            "fields": [list],
+            "id": "adblocker.aborted",
+            "silent": adblockerNotify === "none",
+            "src": "user",
+            "type": "error"
+        })
+        res("done")
+    })
+    request.on("error", e => {
+        notify({
+            "fields": [list, e.message],
+            "id": "adblocker.failed",
+            "silent": adblockerNotify === "none",
+            "src": "user",
+            "type": "error"
+        })
+        res("done")
+    })
+    request.end()
+})
 
 /**
  * Enable the adblocker either statically, with updates or custom.
@@ -1661,48 +1710,10 @@ const enableAdblocker = async type => {
                 "src": "user"
             })
             session.fromPartition("persist:main")
-            const request = net.request({"partition": "persist:main", url})
-            request.on("response", res => {
-                let body = ""
-                res.on("end", async() => {
-                    await writeFile(joinPath(blocklistDir, `${list}.txt`), body)
-                    const unique = [...new Set(body.split("\n"))]
-                    if (blocker) {
-                        blocker.updateFromDiff({"added": unique})
-                    } else {
-                        reloadAdblocker()
-                    }
-                    notify({
-                        "fields": [list],
-                        "id": "adblocker.updated",
-                        "silent": ["error", "none"].includes(adblockerNotify),
-                        "src": "user",
-                        "type": "success"
-                    })
-                })
-                res.on("data", chunk => {
-                    body += chunk
-                })
-            })
-            request.on("abort", () => notify({
-                "fields": [list],
-                "id": "adblocker.aborted",
-                "silent": adblockerNotify === "none",
-                "src": "user",
-                "type": "error"
-            }))
-            request.on("error", e => notify({
-                "fields": [list, e.message],
-                "id": "adblocker.failed",
-                "silent": adblockerNotify === "none",
-                "src": "user",
-                "type": "error"
-            }))
-            request.end()
+            await downloadAdblockerList(list, url)
         }
-    } else {
-        reloadAdblocker()
     }
+    await reloadAdblocker()
 }
 
 /**
