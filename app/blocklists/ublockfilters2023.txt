@@ -980,7 +980,7 @@ bg-gledai.*##.smallbanner
 bg-gledai.*##.squarebanner
 /binance-banner.jpg$domain=bg-gledai.*
 bg-gledai.*##+js(acs, document.getElementById, adblock)
-bg-gledai.*###casing > center
+bg-gledai.*###casing > .adsbygoogle
 gledaitv.*##.adsbygoogle
 ! https://www.reddit.com/r/uBlockOrigin/comments/11vtqib/ads_blocker_detected/
 cdn.gledaitv.live##+js(noeval-if, String.fromCharCode)
@@ -1091,8 +1091,9 @@ alternativeto.net##+js(json-prune, props.sponsoredAlternative)
 ! https://github.com/uBlockOrigin/uAssets/issues/20358
 alternativeto.net##main > div.flex.justify-center > div.w-full.box-border.flex > div.w-full.container.wide-container
 alternativeto.net##.container > h2[class^="Heading-module-scss-module__"][class^="Heading-module-scss"]:has-text(supported by)
-alternativeto.net##main > section.container.wide-container > div.container > div.mt-10
 alternativeto.net##[href*="aff_c?"]
+! https://github.com/uBlockOrigin/uAssets/issues/35187
+alternativeto.net##.border-official-partner
 
 ! helmiau. com anti adb
 @@||helmiau.com^$script,1p
@@ -1193,6 +1194,12 @@ anyporn.com##+js(set, banner_is_blocked, false)
 ! https://github.com/uBlockOrigin/uAssets/issues/17476
 ||xgroovy.com/static/js/initsite.min.js
 xgroovy.com##.fluid_html_on_pause
+! https://github.com/uBlockOrigin/uAssets/issues/18381
+xgroovy.com##+js(aopr, VAST)
+/vast-client-browser.min.js^$1p
+! https://github.com/uBlockOrigin/uAssets/issues/35346
+/^https:\/\/xgroovy\.com\/[a-zA-Z0-9]+\/$/$script,1p,domain=xgroovy.com
+||scripts.dkmedia.now.sh/popunders/
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/16ys5xe/
 claimlite.club##+js(nostif, _0x)
@@ -1939,7 +1946,7 @@ phineypet.com###content > form[id]:has(> center > button):style(display: block !
 ! https://github.com/AdguardTeam/AdguardFilters/issues/150736
 ! https://www.reddit.com/r/uBlockOrigin/comments/1dgvlmw/blur_issue_on_fapdrop_nsfw/
 fapdrop.com##+js(aost, atob, eval)
-fapdrop.com##+js(no-fetch-if, doubleclick.net/instream/ad_status.js, war:doubleclick_instream_ad_status.js)
+! fapdrop.com##+js(no-fetch-if, doubleclick.net/instream/ad_status.js, war:doubleclick_instream_ad_status.js)
 fapdrop.com##+js(nostif, redURL)
 fapdrop.com##[href^="https://t.crdefault1.com/"]
 fapdrop.com##.king-ads
@@ -2246,10 +2253,6 @@ up-4ever.net##+js(nowoif)
 ! https://github.com/uBlockOrigin/uAssets/issues/18380
 ! https://github.com/AdguardTeam/AdguardFilters/issues/181481
 crackstreamer.net,rnbastreams.com##+js(rmnt, script, adserverDomain)
-
-! https://github.com/uBlockOrigin/uAssets/issues/18381
-xgroovy.com##+js(aopr, VAST)
-*/vast-client-browser.min.js$1p
 
 ! https://github.com/uBlockOrigin/uAssets/issues/18411
 ! https://github.com/uBlockOrigin/uAssets/issues/18412
@@ -4040,7 +4043,7 @@ cimanow.cc##+js(aopr, navigator.brave)
 ||rm.freex2line.online/*.js|$domain=cimanow.cc
 cimanow.cc##section[aria-label="details"] a[id][target="_blank"]
 cimanow.cc##[href*="blockID"]:style(clip-path: circle(0) !important;)
-cimanow.cc##+js(no-fetch-if, url:doubleclick.net, war:googletagservices_gpt.js)
+!cimanow.cc##+js(no-fetch-if, url:doubleclick.net, war:googletagservices_gpt.js)
 cimanow.cc##+js(no-xhr-if, criteo)
 cimanow.cc##+js(set, HTMLImageElement.prototype.onerror, undefined)
 cimanow.cc,freex2line.online##+js(norafif, ++)
@@ -4054,8 +4057,8 @@ cimanow.cc,freex2line.online##+js(trusted-suppress-native-method, fetch, '"flash
 @@||tpc.googlesyndication.com^$xhr,domain=freex2line.online
 ||freex2line.online/*/?redirect$doc,urlskip=?redirect -base64
 ||tpc.googlesyndication.com/pimgad/$image,redirect=32x32.png,domain=freex2line.online
-freex2line.online##+js(no-fetch-if, url:doubleclick.net, war:googletagservices_gpt.js)
-freex2line.online##+js(no-xhr-if, tpc.googlesyndication.com, war:32x32.png)
+!freex2line.online##+js(no-fetch-if, url:doubleclick.net, war:googletagservices_gpt.js)
+!freex2line.online##+js(no-xhr-if, tpc.googlesyndication.com, war:32x32.png)
 freex2line.online##a[href*="/jump/next.php?r="]:style(clip-path: circle(0) !important;)
 freex2line.online##body > a[id][href][target^="_blank"]:style(clip-path: circle(0) !important;)
 freex2line.online##+js(aeld, popstate)
@@ -4572,7 +4575,7 @@ eurosport.tvn24.pl##.ad, .fake
 teksnologi.com##+js(rmnt, script, deblocker)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/21638
-loot-link.com,lootdest.*##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
+!loot-link.com,lootdest.*##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
 @@*$ping,domain=loot-link.com|lootdest.*
 
 ! https://sethphat.com/download/?id=5497 timer

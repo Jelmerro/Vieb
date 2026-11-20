@@ -923,6 +923,7 @@ javboys.upn.one##body > iframe[style*=" position: absolute;"][style*="overflow: 
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/1i83y7t/a_certain_website_detected_that_im_using_an/
 fsicomics.com##+js(no-fetch-if, googlesyndication)
+fsicomics.com##[href="/girlfriend-experience"]
 fsicomics.com##[href^="https://www.e6ui8pc.com/"]
 fsicomics.com##[href="https://theporndude.com/"]
 
@@ -1069,7 +1070,7 @@ hdmp4mania2.com,o2tvseries.com##.gsc-promotion
 colnect.com##+js(set, aaw, {})
 colnect.com##+js(set, aaw.processAdsOnPage, noopFunc)
 colnect.com##+js(set-local-storage-item, adblock_warning_pages_count, $remove$)
-colnect.com##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
+!colnect.com##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
 colnect.com##+js(set, CAD.pageblockerWarning, noopFunc)
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/197579
@@ -1573,8 +1574,13 @@ netfree.cc##+js(nowoif, _blank, 20)
 ! https://github.com/uBlockOrigin/uAssets/issues/34583
 omegascans.org##+js(acs, Date.prototype.toISOString, wpadmngr.com)
 omegascans.org##a[href*="?"][target="_blank"] img
+omegascans.org##.ai-top-bar
+omegascans.org##section div.flex-row.rounded.overflow-hidden.relative:has(iframe)
+##.flex a[href^="https://tt.culinar9sync.com/"]
 ||omegascans.org/*x*_*.gif^$image,1p
 ||omegascans.org/ads.js
+||svc.*/api/iframe?placement=$frame,3p
+||velvetloom.net^
 ||traffinity.pro^
 
 ! https://jav.sb popup
@@ -1613,9 +1619,12 @@ cdn256.xyz###overover
 cdn256.xyz###obrazek
 sportzonline.site###html1
 qatarstreams.me##button[data-openuri*="/4/"]
+||gkstreams2.click/img/ads/
+||gkstreams1.click/img/ads/
 gkstreams.*##.ad-banner
 ##button.btn[data-openuri*="/4/"]
 ||kakarotfoot.ru/player/lib.js
+||strmfree.st/analytics.js^
 ||ucast.pro^
 @@||blockietv.xyz/adbdetect/
 ! general
@@ -1624,9 +1633,9 @@ gkstreams.*##.ad-banner
 /\/[0-9a-f]{32}\.js/$script,xhr,3p,to=com,from=alexsports.cv|worldsports.st
 !#endif
 fbstream.is>>,vipbox.*>>,~chatango.com##+js(rmnt, script, /delete window|popundersPerIP|adserverDomain|globalThis;break;case|ai_adb|adContainer/)
-alexsports.*>>,cr7-soccer.store>>,cracksports.me>>,cricwatch.io>>,gkstreams.*>>,kakarotfoot.ru>>,nbabox.co>>,pelotalibrevivo.net>>,powerover.site>>,qatarstreams.me>>,redditsoccerstreams.name>>,soccerworldcup.me>>,sportstohfa.online>>,sportzonline.site>>,stream.nflbox.me>>,streamshunters.eu>>,totalsportek1000.com>>,vipstand.pm>>,watchthematch.online>>,worldsports.*>>,~chatango.com##+js(rmnt, script, /delete window|popundersPerIP|var FingerprintJS|adserverDomain|globalThis;break;case|ai_adb|adContainer/)
-alexsports.*>>,cr7-soccer.store>>,cracksports.me>>,cricwatch.io>>,gkstreams.*>>,kakarotfoot.ru>>,nbabox.co>>,pelotalibrevivo.net>>,powerover.site>>,qatarstreams.me>>,redditsoccerstreams.name>>,soccerworldcup.me>>,sportstohfa.online>>,sportzonline.site>>,stream.nflbox.me>>,streamshunters.eu>>,totalsportek1000.com>>,vipstand.pm>>,watchthematch.online>>,worldsports.*>>,~chatango.com##+js(aopr, aclib)
-alexsports.*>>,cr7-soccer.store>>,cracksports.me>>,cricwatch.io>>,gkstreams.*>>,kakarotfoot.ru>>,nbabox.co>>,pelotalibrevivo.net>>,powerover.site>>,qatarstreams.me>>,redditsoccerstreams.name>>,soccerworldcup.me>>,sportstohfa.online>>,sportzonline.site>>,stream.nflbox.me>>,streamshunters.eu>>,totalsportek1000.com>>,vipstand.pm>>,watchthematch.online>>,worldsports.*>>,~chatango.com##+js(nowoif, !/^\/|_self|alexsports|nativesurge/)
+alexsports.*>>,cr7-soccer.store>>,cracksports.me>>,cricwatch.io>>,gkstreams.*>>,gkstreams1.*>>,gkstreams2.*>>,kakarotfoot.ru>>,nbabox.co>>,pelotalibrevivo.net>>,powerover.site>>,qatarstreams.me>>,redditsoccerstreams.name>>,soccerworldcup.me>>,sportstohfa.online>>,sportzonline.site>>,stream.nflbox.me>>,streamshunters.eu>>,taifood-blog.asia,totalsportek1000.com>>,vipstand.pm>>,watchthematch.online>>,worldsports.*>>,~chatango.com##+js(rmnt, script, /delete window|popundersPerIP|var FingerprintJS|adserverDomain|globalThis;break;case|ai_adb|adContainer/)
+alexsports.*>>,cr7-soccer.store>>,cracksports.me>>,cricwatch.io>>,gkstreams.*>>,gkstreams1.*>>,gkstreams2.*>>,kakarotfoot.ru>>,nbabox.co>>,pelotalibrevivo.net>>,powerover.site>>,qatarstreams.me>>,redditsoccerstreams.name>>,soccerworldcup.me>>,sportstohfa.online>>,sportzonline.site>>,stream.nflbox.me>>,streamshunters.eu>>,taifood-blog.asia,totalsportek1000.com>>,vipstand.pm>>,watchthematch.online>>,worldsports.*>>,~chatango.com##+js(aopr, aclib)
+alexsports.*>>,cr7-soccer.store>>,cracksports.me>>,cricwatch.io>>,gkstreams.*>>,gkstreams1.*>>,gkstreams2.*>>,kakarotfoot.ru>>,nbabox.co>>,pelotalibrevivo.net>>,powerover.site>>,qatarstreams.me>>,redditsoccerstreams.name>>,soccerworldcup.me>>,sportstohfa.online>>,sportzonline.site>>,stream.nflbox.me>>,streamshunters.eu>>,taifood-blog.asia,totalsportek1000.com>>,vipstand.pm>>,watchthematch.online>>,worldsports.*>>,~chatango.com##+js(nowoif, !/^\/|_self|alexsports|nativesurge/)
 alexsports.*,cr7-soccer.store,cracksports.me,cricwatch.io,kakarotfoot.ru,nbabox.co,pelotalibrevivo.net,powerover.site,qatarstreams.me,redditsoccerstreams.name,soccerworldcup.me,sportstohfa.online,sportzonline.site,stream.nflbox.me,streamshunters.eu,totalsportek1000.com,vipstand.pm,worldsports.*##.position-absolute.top-0
 fbstream.is##button[data-openuri][data-open="_blank"]
 ! doc + frames
@@ -1662,6 +1671,8 @@ babaktv.com##+js(rmnt, script, ai_adb)
 babaktv.com##+js(nowoif)
 babaktv.com##.code-block
 babaktv.com##.vidoverlay
+||babaktv.com/redirect/js/*.js?v=$script
+||babaktv.com/redirect/ads/
 
 ! https://github.com/uBlockOrigin/uAssets/issues/27843
 opensubtitles.com##+js(set, extInstalled, true)
@@ -2289,7 +2300,7 @@ condorsoft.co##+js(no-xhr-if, googlesyndication)
 gsmarena.com##div.align-center.justify-center.flex-column.d-flex:has(.ad-c-label)
 gsmarena.com###opt300x250
 gsmarena.com##.ad-label
-gsmarena.com##+js(aeld, DOMContentLoaded, /doubleclick|atob|return new Promise|aHR0c|String\.fromCharCode|window\[/)
+gsmarena.com##+js(aeld, DOMContentLoaded, /doubleclick|atob|return new Promise|aHR0c|String\.fromCharCode|window\[|headers|offsetHeight\?/)
 gsmarena.com##+js(remove-cookie, /DeviceID|lpe/)
 gsmarena.com##+js(no-fetch-if, doubleclick)
 
@@ -2413,6 +2424,7 @@ sextb.*>>##+js(nowoif)
 sextb.*>>##+js(trusted-override-element-method, HTMLAnchorElement.prototype.click, a[href][target="_blank"])
 sextb.net##.right:has(script)
 ||sextb.net/js/brs.js$script
+||sextb.*/js/popup.js
 /assets/jquery/*.js?type=adult^$script,1p
 /assets/jquery/static.js?type=mainstream^$script,1p
 /assets/jquery/hg-function.js?$script
@@ -2425,6 +2437,7 @@ f4scdn.com##+js(nowoif, _blank)
 ||affectionatestorage.com^
 ! https://www.reddit.com/r/uBlockOrigin/comments/1ogmw3q/sextbnet_nsfw_forces_you_to_disable_ubo/
 sextb.*#@#.ad-placeholder:not(#detect, #detect_ad_empire, #filter_ads_by_classname, .adsbox)
+sextb.*##+js(trusted-replace-argument, HTMLHtmlElement.prototype.hasAttribute, 0, json:"lang", condition, data-adfree)
 ! https://github.com/uBlockOrigin/uAssets/issues/33542
 audinifer.com,vibuxer.com##+js(rmnt, script, window.open)
 audinifer.com,vibuxer.com##body > div[style*="2147483647"]
@@ -2529,7 +2542,7 @@ tarnkappe.info##.card:has(> section > .around-desktop-ad)
 tarnkappe.info##.tarnads_general.desktop-only
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/209519
-rajssoid.online##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
+!rajssoid.online##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
 
 ! https://hentaianimezone.com popup
 hentaianimezone.com##+js(acs, onload, puHref)
@@ -2601,7 +2614,7 @@ pendujatt.com.se##+js(rpnt, script, window.dataLayer =, '(()=>{document.querySel
 windowsonarm.org##+js(no-fetch-if, doubleclick)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/29325
-moutogami.com##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
+!moutogami.com##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
 
 ! https://www.ditjesendatjes.nl/ - ads
 ditjesendatjes.nl##+js(rpnt, script, ',availableAds:[', ',availableAds:[],noAds:[', sedCount, 1)
@@ -2625,7 +2638,7 @@ sourceb.in##.carbon
 artificialnudes.com,asianal.xyz,asianmassage.xyz,bdsmkingdom.xyz,brunettedeepthroat.com,compilationtube.xyz,coolporno.net,cosplaynsfw.xyz,crazytoys.xyz,deepswapnude.com,fikfak.net,flexxporn.com,handypornos.net,hardcorelesbian.xyz,heimporno.com,instaporno.net,latinabbw.xyz,lesbianvideotube.com,nsfwhowto.xyz,platinporno.com,pornahegao.xyz,pornfeet.xyz,pornobait.com,pornretro.xyz,realbbc.xyz,redheaddeepthroat.com,romanticlesbian.com,sexfilmkiste.com,sexontheboat.xyz,sexroute.net,sommerporno.com,towheaddeepthroat.com,traumporno.com,xxporner.com##+js(set, dclm_ajax_var.disclaimer_redirect_url, '')
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/210206
-india.marathinewz.in##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
+!india.marathinewz.in##+js(no-fetch-if, adsbygoogle, war:googlesyndication_adsbygoogle.js)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/29370
 freegames.com##+js(nostif, moneyDetect)
@@ -3612,9 +3625,6 @@ gamesfree.com##div#flashgame:remove-attr(style)
 yelp.com##+js(json-edit, ..searchResults.*[?.isAd==true])
 yelp.com##+js(json-edit, ..mainContentComponentsListProps.*[?.isAd==true])
 yelp.com##+js(json-edit-fetch-response, ..mainContentComponentsListProps.*[?.isAd==true], propsToMatch, /search/snippet?)
-
-! 9filmyzilla.skin antiadb
-9filmyzilla.*##+js(noeval-if, adsbygoogle)
 
 ! xopenload.net => players - popups
 player4me.vip,seekplayer.vip##+js(nowoif)

@@ -304,8 +304,6 @@ fullxh.com,megaxh.com,seexh.com,unlockxh4.com,xhaccess.com,xhadult2.com,xhadult3
 !#endif
 ! https://github.com/uBlockOrigin/uAssets/issues/34690
 /^https:\/\/bbs\.[a-z0-9-]*xh[a-z0-9-]*\.[cd][eo][ms]i?\/[a-zA-Z0-9-][a-zA-Z0-9-][a-zA-Z0-9-][a-zA-Z0-9-][a-zA-Z0-9-]$/$xhr,1p
-||cdn.*.com/sdk/v*/dd.master.spot.js$script,3p
-||cdn.*.com/sdk/v*/dd.interstitial.ts.js$script,3p
 /api/models/vast?userId=*&adblocked=$xhr,1p
 ! https://github.com/uBlockOrigin/uAssets/issues/23538#issuecomment-2137202178
 &spotPageType=*&statsUID=$frame,xhr
@@ -633,7 +631,7 @@ erogen.su##+js(aopr, document.dispatchEvent)
 @@||api.production.k8s.y3o.tv/*/video-ads$xhr,domain=yallo.tv
 @@||imasdk.googleapis.com/js/sdkloader/ima3.js$script,domain=yallo.tv
 ||adservice.google.com^$script,redirect=noopjs,domain=yallo.tv
-imasdk.googleapis.com##+js(no-fetch-if, secure.adnxs.com/ptv, war:noop-vast4.xml)
+imasdk.googleapis.com##+js(trusted-prevent-fetch, secure.adnxs.com/ptv, <VAST version="4.0"></VAST>)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/2449
 ! https://github.com/AdguardTeam/AdguardFilters/issues/147765
@@ -689,7 +687,6 @@ bombuj.*##+js(rpnt, script, var debounceTimer;, `window.addEventListener("load",
 ! https://github.com/uBlockOrigin/uAssets/issues/14423
 fcportables.com##+js(set, adsClasses, undefined)
 fcportables.com##+js(set, gsecs, 0)
-fcportables.com##+js(rmnt, script, ai_adb)
 
 ! https://forums.lanik.us/viewtopic.php?f=90&t=40441
 ! https://github.com/uBlockOrigin/uAssets/issues/5223
@@ -1592,7 +1589,7 @@ ebaticalfel.com,fansmega.com,iedprivatedqu.com,stownrusis.com##+js(nowoif)
 ||buyvisblog.com^$all
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/174290
-botrix.live##+js(no-fetch-if, googlesyndication, war:google-ima.js)
+! botrix.live##+js(no-fetch-if, googlesyndication, war:google-ima.js)
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/174371
 *$script,redirect-rule=noopjs,3p,domain=expressnews.com
@@ -3152,8 +3149,8 @@ animesaturn.cx##+js(rmnt, script, '{delete window[')
 !#endif
 ! https://github.com/uBlockOrigin/uAssets/discussions/17361#discussioncomment-10610118
 ! https://github.com/uBlockOrigin/uAssets/issues/29372
-advertape.net,strcloud.in,streamta.site,streamtape.*,tapepops.com,watchadsontape.com##.play-overlay
-advertape.net,strcloud.in,streamta.site,streamtape.*,tapepops.com,watchadsontape.com##+js(rpnt, script, /\$\(['"]\.play-overlay['"]\)\.click.+/s, document.getElementById("mainvideo").src=srclink;player.currentTrack=0;})}), condition, srclink)
+advertape.net,advtpe.com,strcloud.in,streamta.site,streamtape.*,tapepops.com,watchadsontape.com##.play-overlay
+advertape.net,advtpe.com,strcloud.in,streamta.site,streamtape.*,tapepops.com,watchadsontape.com##+js(rpnt, script, /\$\(['"]\.play-overlay['"]\)\.click.+/s, document.getElementById("mainvideo").src=srclink;player.currentTrack=0;})}), condition, srclink)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/25288
 ilforumdeibrutti.is##+js(nostif, AdBlock)
@@ -3586,7 +3583,7 @@ leakshaven.com##+js(no-fetch-if, googlesyndication)
 ! https://www.reddit.com/r/uBlockOrigin/comments/1gstcwp/how_to_remove_ubo_webfont_filters/
 flaticon.com##.soul-p-nsba
 flaticon.com##+js(json-prune-fetch-response, data.[].affiliate_url, , propsToMatch, cdnpk.net/v2/images/search?)
-flaticon.com##+js(no-fetch-if, cdnpk.net/Rest/Media/, war:noop.json)
+! flaticon.com##+js(no-fetch-if, cdnpk.net/Rest/Media/, war:noop.json)
 ||cdnpk.net/sponsor/
 ||api.gettyimages.com/v3/search/images/creative?*referral_destinations$xhr,domain=flaticon.com
 
@@ -4037,8 +4034,9 @@ basseqwevewcewcewecwcw.xyz##+js(nowoif)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/26362
 sheepesports.com##+js(no-fetch-if, /googlesyndication|doubleclick/)
-sheepesports.com##div.h-full.p-4.xl\:block.hidden > .h-full:has-text(allowing ads)
-sheepesports.com##.min-w-0 > .min-w-0 > div > .border-b.justify-center.items-center.flex:has-text(allowing ads)
+sheepesports.com##div.xl\:block.hidden > .h-full:has([style^="aspect-ratio:300 /"])
+sheepesports.com##.my-8.gap-2.items-center
+sheepesports.com##.px-5.my-10.max-w-\[70rem\]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/26369
 ebook-hell.to##+js(nowoif)
@@ -4129,6 +4127,7 @@ pornhoarder.*##+js(rmnt, script, /wpadmngr|adserverDomain/)
 ||com/*.js|$script,3p,domain=pornhoarder.tv|pornhoarder.tw
 !#endif
 pornhoarder.net##+js(aopr, aclib.runPop)
+pornhoarder.net##+js(nowoif)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/26524
 studwiz.com###KySENPmBUJDe

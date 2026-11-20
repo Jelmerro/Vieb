@@ -436,9 +436,6 @@ down.fast-down.com##div[style="width:336px; height:280px; background-color:#ffff
 ! https://www.reddit.com/r/uBlockOrigin/comments/kyg7zo/annoying_popups_everywhere/
 usagoals.*##+js(nowoif)
 
-! https://www.reddit.com/r/uBlockOrigin/comments/kyjq3u/adblock_detectionmessage_shows_up_after_you_solve/
-@@||foxgreat.com^$ghide
-
 ! https://github.com/AdguardTeam/AdguardFilters/issues/72413
 haoweichi.com##+js(aopr, onload)
 haoweichi.com##.ad2
@@ -1196,7 +1193,7 @@ files.fm##+js(aopr, canRunAds)
 app.plex.tv##+js(json-prune, MediaContainer.Metadata.[].Ad)
 ! https://www.reddit.com/r/uBlockOrigin/comments/1fwizi0/plex_free_tvmovies_ad_block/
 !#if env_firefox
-imasdk.googleapis.com##+js(no-xhr-if, vod.provider.plex.tv/ad?, war:noop-vast3.xml)
+imasdk.googleapis.com##+js(trusted-prevent-xhr, vod.provider.plex.tv/ad?, <VAST version="3.0"></VAST>)
 !#else
 ||vod.provider.plex.tv/ad?$xhr,redirect=noopvast-3.0
 !#endif
@@ -1405,7 +1402,6 @@ pythonmatplotlibtips.blogspot.com##+js(acs, addEventListener, nextFunction)
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/80945
 ||sered.net^$3p
-||grab.tc^$3p
 ||ad-doge.com^$3p
 
 ! https://github.com/uBlockOrigin/uAssets/issues/10378
@@ -2497,10 +2493,6 @@ pogolinks.*##+js(acs, setTimeout, admc)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/9808
 ilifehacks.com##+js(aost, String.prototype.charCodeAt, ai_)
-
-! https://github.com/uBlockOrigin/uAssets/issues/9809
-pclicious.net##+js(acs, quadsOptions)
-pclicious.net###text-3
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/91926
 85po.com##+js(set, flashvars.protect_block, '')
@@ -3720,9 +3712,8 @@ pinterest.*##[data-grid-item]:has([data-test-pin-id] a[href^="http"][rel] [data-
 pinterest.*##div[role="listitem"]:has(div[data-test-id="related-pins-name"] > div[role="button"] > div + div > div[style="-webkit-line-clamp: 1;"]):not(:has(a[href*="/pin/"]))
 pinterest.*##+js(trusted-rpfr, '/\{"node":\{"__typename":"Pin"[^}]+"board":\{[^}]+"owner":\{[^}]+\}[^}]+\}[^}]+"isPromoted":true.+?"cursor":null\},/g', '', /stream)
 !#endif
-! https://github.com/uBlockOrigin/uBlock-discussions/discussions/887
-pinterest.*##+js(json-prune, resource_response.data.[-].pin_promotion_id resource_response.data.results.[-].pin_promotion_id)
-pinterest.*##+js(json-prune, initialReduxState.pins.{-}.pin_promotion_id initialReduxState.resources.UserHomefeedResource.*.data.[-].pin_promotion_id)
+! https://github.com/uBlockOrigin/uAssets/issues/25614#issuecomment-7030399238
+pinterest.*##+js(json-edit, ..data.*[?.is_promoted==true])
 ! https://www.reddit.com/r/uBlockOrigin/comments/1cnhfyd/ublock_detected_on_pinterest_today_firefox/
 @@*$ghide,domain=pinterest.*
 

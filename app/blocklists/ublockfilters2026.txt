@@ -147,6 +147,7 @@ straemplay.org,stre4mpay.one,stre4mplay.*##div[style*="z-index: 1000"][style*="b
 ! https://github.com/uBlockOrigin/uAssets/issues/6761
 ! https://github.com/uBlockOrigin/uAssets/issues/7190
 ! https://github.com/uBlockOrigin/uAssets/issues/8842
+fandom.com##+js(set, RLCONF.wgAdShieldActive, false)
 fandom.com##+js(set, wgAffiliateEnabled, false)
 kenshi.fandom.com##+js(set, ads, null)
 fandom.com##[id^="siderail_"][id*="_gamepedia"]
@@ -251,6 +252,7 @@ investing.com##div[class]:has(> :is(.ad-blockers-section, [class*="adNotificatio
 ! https://github.com/uBlockOrigin/uAssets/issues/19085#issuecomment-1643681900
 investing.com##.border-b:has(> .box-content[data-test="ad-slot-visible"])
 investing.com##+js(trusted-replace-argument, String.prototype.startsWith, 0, , condition, /ad-free-subscription)
+investing.com##+js(trusted-json-edit, .props.pageProps.state.authStore.isAdsFree=true)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/5799
 ! https://github.com/uBlockOrigin/uAssets/issues/18375
@@ -356,6 +358,10 @@ primesrc.me,primewire.*##+js(rpnt, script, window.csrf_token =, window.userID = 
 movix.blog##+js(nowoif)
 movix.blog##+js(trusted-click-element, button[aria-label^="Voir une"])
 movix.blog##+js(trusted-click-element, button[aria-label="Lancer la lecture"])
+! https://github.com/uBlockOrigin/uAssets/issues/35226
+movix.cash##+js(trusted-json-edit-fetch-response, .enabled=false, propsToMatch, /go-settings)
+embedorigin.cc##+js(json-prune-fetch-response, ads, , propsToMatch, /play)
+embedorigin.cc##.jw-wrapper ~ div[style*="z-index:"]:not([class])
 
 ! https://github.com/uBlockOrigin/uAssets/issues/31553
 mmsmasala27.com,mmsbee27.com##+js(rmnt, script, function(error))
@@ -605,6 +611,9 @@ kaa.lt##+js(set, KAA.state.popads, undefined)
 kaa.lt##+js(aeld, , /popMagic|shield/)
 kaa.lt##+js(nosiif, enforceVideoShield)
 kaa.lt##+js(nowoif, _blank)
+kaa.lt##+js(aost, document.createElement, startOrchestrator)
+kaa.lt###fullscreen-ad-trap
+||kaa.lt/*x*.html^$frame,1p
 ||xgamehub.net/kaa/
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/1rbebkx/adblock_detection_on_httpsfilmpornoitalianoorg/
@@ -1257,6 +1266,7 @@ www.deeplol.gg###summoner_content_box div[class^="sc-"]:not(.bigTooltip, .diamon
 ! https://github.com/uBlockOrigin/uAssets/issues/33031
 ||wispbyte.com/client/scripts/wisp-guard.js$script
 ||wispbyte.com/client/scripts/wisp-cmp-bridge.js$script
+wispbyte.com##.slot-note
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33054
 wizzair.com##+js(set-session-storage-item, bookingSearchAlreadyOpened, true)
@@ -1328,7 +1338,7 @@ forums.redflagdeals.com##.sponsored-offer
 forums.redflagdeals.com##.ad_leaderboard_large
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33143
-jagledam.com##+js(rmnt, script, offsetHeight)
+jagledam.*##+js(rmnt, script, offsetHeight)
 
 ! https://osmhelper.com/ - detection
 osmhelper.com##+js(rmnt, script, offsetHeight)
@@ -1448,15 +1458,16 @@ autoembed.app##section[aria-label="Sponsored content"]
 ! https://github.com/uBlockOrigin/uAssets/issues/33394
 @@||leakgallery.com^$ghide
 ##.page-layout a[href^="https://hashcounts.com/"]
+leakgallery.com##app-page-lead
 leakgallery.com##app-top-strip:remove()
 leakgallery.com##a[rel~="sponsored"]
 leakgallery.com##+js(no-fetch-if, method:HEAD)
 leakgallery.com##+js(set-cookie, adblock, 0)
 *$script,3p,redirect-rule=noopjs,to=~googletagmanager.com,from=leakgallery.com
 *$script,3p,redirect=noopjs,to=pemsrv.com|tsyndicate.com,from=leakgallery.com
-||api.leakgallery.com/r/z?
-||cdn.*.com/sdk/v*/dd.*.js|$script,3p
-/\/r\/z\?z=[0-9]+&sub=[0-9]+/$xhr,1p,match-case
+||api.leakgallery.com/cfg/*/z?
+||api.leakgallery.com/cfg/*/cpc?
+||cdn.*.com/sdk/v*/dd.*.js^$script,3p
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33420
 scmp.com##+js(no-xhr-if, googlesyndication)
@@ -1570,10 +1581,15 @@ picnob.com##.slimlay
 7daystodie-servers.com#@#.ad-slot:not(.adsbox):not(.adsbygoogle)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33716
-net77.cc##+js(rmnt, script, .removeClass, includes, data-hash)
 net77.cc##+js(set, HTMLImageElement.prototype.onerror, undefined)
+net77.cc##+js(set, HTMLScriptElement.prototype.onerror, undefined)
 net77.cc##+js(nowoif, _blank)
 net77.cc##+js(trusted-set-attr, body, data-allok, y)
+net77.cc##+js(rpnt, script, == "y", !== "y")
+net77.cc##+js(ra, onerror, script, asap, quitAfter, 1000)
+net77.cc##+js(rmnt, script, adp.innerHTML)
+@@||net77.cc^$ghide
+||monetag.com^$image,redirect=3x2.png,domain=net77.cc
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33728
 /zvrk/?n=$frame
@@ -1822,8 +1838,10 @@ selfhostt.com,ssdhostting.com##+js(no-xhr-if, googlesyndication)
 bdjobs.com##+js(json-edit, .bannerConfig..advertise.*)
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/1vwje2a/some_ads_creeping_through_on_goodreads_firefoxubo/
+! https://github.com/uBlockOrigin/uAssets/issues/20510
 ! https://github.com/uBlockOrigin/uAssets/issues/34758
 ! ||goodreads.com/weblab
+goodreads.com##.AdspAdContainer
 
 ! https://www.startuphub.ai/ai-news/artificial-intelligence/2026/brave-accounts-passwordless-login-arrives
 ||startuphub.ai/api/*^placement=
@@ -1955,6 +1973,7 @@ planetminecraft.com##+js(nano-sib, countdown)
 ! https://github.com/uBlockOrigin/uAssets/issues/34537
 up-4ever.net##+js(rmnt, script, .offsetHeight)
 up-4ever.net##.u4dl-spotcol.u4dl-choice
+||up-4ever.net/js/bravenote.js
 
 ! https://github.com/uBlockOrigin/uAssets/issues/34540
 reuters.com##+js(rmnt, script, rcom_bdScriptLoaded)
@@ -2214,6 +2233,8 @@ anikoto.*,anikototv.to###networkloop-ad
 
 ! https://github.com/AdguardTeam/AdguardFilters/issues/245502
 ##.code-block a[target="_blank"][href^="https://"][href*=".com/"][href*="?key="]
+! https://www.reddit.com/r/uBlockOrigin/comments/1xmwp7q/psa_nxbrewnet_has_a_fake_download_button_which/
+##.code-block a[href^="https://ewxerd.site/"]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/35037
 hormuz.data-tracking.net##+js(nostif, offsetHeight)
@@ -2271,5 +2292,231 @@ gg.deals##.flash-container-wrapper
 ##.flex a[href^="https://s.smartfloralab.com/"]
 
 ! https://github.com/uBlockOrigin/uAssets/issues/35170
-enmods.com##+js(rmnt, script, .offsetParent)
+enmods.com,4umods.com##+js(rmnt, script, .offsetParent)
 ||enmods.com/wp-content/uploads/jlikfa/
+enmods.com,4umods.com##.enmods-ad-slot
+||4umods.com/wp-content/uploads/mmaaol/
+
+! https://github.com/uBlockOrigin/uAssets/issues/28050
+chaturflix.cam,striphub.cam##+js(nostif, /timed out|\?\?=/)
+chaturflix.cam,striphub.cam##a[href="https://theporndude.com/"]
+chaturflix.cam,striphub.cam##+js(no-fetch-if, method:HEAD, length:10001)
+@@||chaturflix.cam^$ghide
+@@||striphub.cam^$ghide
+||uqload.*/js2/
+
+! https://github.com/uBlockOrigin/uAssets/issues/35214
+allpornflix.com##+js(json-prune, *.props.videoPlayerAds *.props.postButtonAds)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35216
+||guardiantv.live/api/vast^
+/^https?:\/\/[-a-z]{6,}\.(?:com?|info|pro|xyz)\/[a-d][-.\/A-Z_a-z][DHWXm][-.\/A-Z_a-z][59FVZ][-.\/A-Z_a-z][6swyz][-.\/A-Z_a-z][-\/0-9A-Z_a-z][-.\/A-Z_a-z][-\/0-9A-Z_a-z]+$/$xhr,3p,match-case,to=co|com|info|pro|xyz,from=guardiantv.live
+!#if env_safari
+/^https:\/\/[-a-z][-a-z][-a-z][-a-z][-a-z][-a-z]+\.[cipx][nory][fmoz]?o?\/[a-d][-.\/A-Z_a-z][DHWXm][-.\/A-Z_a-z][59FVZ][-.\/A-Z_a-z][6swyz][-.\/A-Z_a-z][-\/0-9A-Z_a-z][-.\/A-Z_a-z][-\/0-9A-Z_a-z]+$/$xhr,3p,match-case,domain=guardiantv.live
+!#endif
+
+! https://github.com/uBlockOrigin/uAssets/issues/35224
+arabcanadanews.ca##+js(aeld, load, popupAdModal)
+arabcanadanews.ca##.detailsAdvertisementWrap
+arabcanadanews.ca##.sliderAdvertisementWrap
+||arabcanadanews.ca/storage/ads/
+
+! https://github.com/uBlockOrigin/uAssets/issues/34009
+pdftoshokan.com##+js(aeld, /click|load/, /document\.location|pop\.|exo|cookie|\.php/)
+pdftoshokan.com##+js(nowoif, /ok_|pemsrv\.com|window\.location\.href/)
+pdftoshokan.com##+js(trusted-replace-argument, parseInt, 0, json:"1800000000000", condition, /^(179\d{10}|null)$/)
+pdftoshokan.com##+js(trusted-replace-argument, parseFloat, 0, json:"1800000000000", condition, /^(179\d{10}|null)$/)
+pdftoshokan.com##+js(trusted-replace-argument, Number, 0, json:"1800000000000", condition, /^179\d{10}$/)
+pdftoshokan.com##+js(trusted-replace-outbound-text, atob, /^https:\/\/s\.pemsrv\.com.+/, 'window.location.href')
+pdftoshokan.com##+js(set, doAdRedirect, noopFunc)
+!#if cap_html_filtering
+pdftoshokan.com##^script:has-text(/ad.?Config|prepare.?Pop|\/popunder|ads_host/)
+||pdftoshokan.com^$script,replace=/if\s*\(\s*[-\$0-9A-Z_a-z]+\s*-\s*[-\$0-9A-Z_a-z]+\s*>\s*[-\$0-9A-Z_a-z]+\s*\*\s*\d+(e\d)?\s*\)/if(0)/
+||pdftoshokan.com^$script,replace=/if\s*\(\s*\(\s*[-\$0-9A-Z_a-z]+\s*-\s*[-\$0-9A-Z_a-z]+\s*\)\s*\/\s*\d+(e\d)?\s*>\s*[-\$0-9A-Z_a-z]+\s*\)//
+!#endif
+||pdftoshokan.com/window.location.href$doc,uritransform=/window\.location\.href//
+||pdftoshokan.com/manga/window.location.href$doc,uritransform=/manga\/window\.location\.href//
+
+! https://github.com/uBlockOrigin/uAssets/issues/34187
+igorslab.de##^script#igorslab-tracking
+igorslab.de##a[aria-label*="Banner"]
+igorslab.de##.herald-sticky
+igorslab.de##img[src^="blob:http"]
+/^https:\/\/www\.igorslab\.de\/(?:[0-9a-z-]{7,}\/)+A[\/0-9A-Z_a-z-]{100,}(?:[0-9a-z-]{7,}\/)*$/$image,1p,match-case
+/^https:\/\/www\.igorslab\.de\/wp-content\/uploads\/202\d\/\d{2}\/(?=[a-z]*\d)(?=\d*[a-z])[0-9a-z]{7,15}\.(?:pn|jp)g(?:\?[0-9A-Z_a-z-]{7,}=[0-9A-Z_a-z-]{7,})?$/$image,1p,match-case
+*$script,xhr,3p,denyallow=google.com|jsdelivr.net,domain=igorslab.de
+||igorslab.de^$script,xhr,1p
+||igorslab.de/?$image
+||igorslab.de/wp-content/*/ajax-handler.php$image
+||igorslab.de/wp-content/uploads/2020/03/980x120px_pure.jpg
+||igorslab.de/wp-content/uploads/2020/03/igor_pulse_9070GRE_
+||igorslab.de/wp-content/uploads/2020/06/nv-rtx-pro-blackwell-980x125-1.jpg
+||igorslab.de/wp-content/uploads/2020/06/nv-rtx-pro-blackwell-display-300x300-1.jpg
+||igorslab.de/wp-content/uploads/2021/04/Optris_Final-2.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGP30_D1-D6_1024x120px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGK50_S2_301x251px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGK50_S2_301x501px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGM50W_301x501px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGM50W_1024x120px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGP30_D1-D6_301x251px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGP30_D1-D6_301x501px.jpg
+||igorslab.de/wp-content/uploads/2021/11/Fractal-Sep-launch.jpg
+||igorslab.de/wp-content/uploads/2022/12/View-600-Teal-300x400-1.jpg
+||igorslab.de/wp-content/uploads/2023/04/980x100_DAMN_Fruehlingsdeals_ARCTIC_MINDFACTORY.jpg
+||igorslab.de/wp-content/uploads/2023/04/Igors_Lab_ARCTIC_MX-7_980x100_
+||igorslab.de/wp-content/uploads/2023/11/980x125-2.png
+||igorslab.de/wp-content/uploads/2024/01/Palit_RTX50_300_250_en.jpg
+||igorslab.de/wp-content/uploads/2024/09/0926_VGA_Autumn-Pack_900x125.jpg
+||igorslab.de/wp-content/uploads/2024/09/Igors_Lab_980x125.jpg
+||igorslab.de/wp-content/uploads/2025/03/DP_H_DE.png
+||igorslab.de/wp-content/uploads/2024/07/SHARKOON_Igors_Lab_SKILLER_SGM50W_301x251px.jpg
+||igorslab.de/wp-content/uploads/2025/08/HATOR-Skyfall_80_MAG_ULTIMA_8K_Wireless.jpg
+||igorslab.de/wp-content/uploads/2025/10/Terminator-Air_300-x-400-1.jpg
+||igorslab.de/wp-content/uploads/2025/11/V2-Banner_V4_1-2.jpg
+||igorslab.de/wp-content/uploads/2025/12/Halnziye.jpg
+||igorslab.de/wp-content/uploads/2026/01/Cooler-Master.png
+||igorslab.de/wp-content/uploads/2026/03/AT-120-K-300%C3%97250.jpg
+||igorslab.de/wp-content/uploads/2026/04/300-%D1%85-350-HATOR-Quasar-3-Ultima-3.jpg
+||igorslab.de/wp-content/uploads/2026/07/Terminator-Air_980-x-125-1.jpg
+||igorslab.de/wp-content/uploads/2026/08/DP_V_DE.png
+||igorslab.de/wp-content/uploads/2026/08/HK5-2026.jpg
+||igorslab.de/wp-content/uploads/2026/08/Horizontal.jpg
+||igorslab.de/wp-content/uploads/2026/08/Vertical.jpg
+||igorslab.de/wp-content/uploads/2026/10/HY2612-V2.jpg
+||igorslab.de/wp-content/uploads/2026/10/Solstice-H.png
+||igorslab.de/wp-content/uploads/2026/10/Solstice-V.png
+@@/^https:\/\/www\.igorslab\.de\/wp-content\/themes\/igor\/js\/jquery-\d\.\d{1,2}\.\d{1,2}\.min\.js\?ver=/$script,1p,match-case
+@@||www.igorslab.de/wp-content/uploads/20*.pdf^$xhr,1p
+@@||www.igorslab.de/community/$script,xhr
+@@||www.igorslab.de/cdn-cgi/challenge-platform/$script,xhr
+@@||www.igorslab.de/cdn-cgi/scripts/*/cloudflare-static/rocket-loader.min.js
+@@||www.igorslab.de/wp-content/plugins/XFWP/assets/js/xfwp-admin.js
+@@||www.igorslab.de/wp-content/plugins/ba-plus-before-after-image-slider/assets/s201-bai.js
+@@||www.igorslab.de/wp-content/plugins/igorslab-advanced-pdf-viewer/assets/viewer.js
+@@||www.igorslab.de/wp-content/plugins/igorslab-ai-seo-performance-suite/assets/js/consent.js
+@@||www.igorslab.de/wp-content/plugins/igorslab-geizhals-auto/assets/ilgha-frontend.js
+@@||www.igorslab.de/wp-content/plugins/igorslab-youtube-latest-shortcode/assets/frontend.js
+@@||www.igorslab.de/wp-content/plugins/meks-flexible-shortcodes/js/main.js
+@@||www.igorslab.de/wp-content/plugins/wonderplugin-gridgallery/engine/wonderplugingridgallery.js
+@@||www.igorslab.de/wp-content/plugins/wonderplugin-gridgallery/engine/wonderplugingridlightbox.js
+@@||www.igorslab.de/wp-content/plugins/wonderplugin-gallery/engine/wonderplugingallery.js
+@@||www.igorslab.de/wp-content/plugins/wonderplugin-slider/engine/wonderpluginslider.js
+@@||www.igorslab.de/wp-content/plugins/wonderplugin-slider/engine/wonderpluginsliderskins.js
+@@||www.igorslab.de/wp-content/plugins/wp-google-search/assets/js/google_cse_v2.js
+@@||www.igorslab.de/wp-content/themes/herald/assets/js/min.js
+@@||www.igorslab.de/wp-includes/js/utils.min.js
+@@||www.igorslab.de/wp-includes/js/imagesloaded.min.js
+@@||www.igorslab.de/wp-admin/admin-ajax.php
+igorslab.de##a[rel][target]:not([target="blank"],[target="_blank"])
+igorslab.de##[class]:has-text(/^\s*(Advertisement|Werbung|广告)\s*$/)
+igorslab.de##div[class]:matches-css-before(content: /^\s*\"(Advertis.+|Werbung|广告)\"\s*$/)
+igorslab.de##img:remove-attr(/data-.+/)
+igorslab.de/community/#@#img:remove-attr(/data-.+/)
+igorslab.de##+js(no-fetch-if, %22vt%22)
+||igorslab.de/wp-content/plugins/igorslab-ads-suite/
+igorslab.de##.ilgha-scale-frame:has-text(/Similar products|Ähnliche Artikel|相似产品/)
+igorslab.de##div[style="height: 90 px; text-align: left;"]
+igorslab.de##div[style^="display:block;position:relative;max-width:"]
+igorslab.de##div[id]:matches-attr("/trackid$/")
+igorslab.de###extras, #ilab-consent-banner, #ilab-consent-reopen-wrap, .entry-header, .footer-bottom, .herald-entry-content, .herald-header-wraper, .herald-main-content, .herald-module, .widget-title, .xfwp-tabbed, .mfp-content:first-of-type:others()
+igorslab.de/community/#@##extras, #ilab-consent-banner, #ilab-consent-reopen-wrap, .entry-header, .footer-bottom, .herald-entry-content, .herald-header-wraper, .herald-main-content, .herald-module, .widget-title, .xfwp-tabbed, .mfp-content:first-of-type:others()
+igorslab.de##[style*="!important"]
+igorslab.de##[style*="aspect-ratio"]
+igorslab.de##[style*="background-image:url"]
+igorslab.de##div[style*="blob:http"]:style(background: none !important;)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35227
+stmify.com##+js(rmnt, script, "'error'")
+
+! https://github.com/uBlockOrigin/uAssets/issues/35219
+||alypinehubbly.cyou^
+||embercascademaple.com^
+||greekfun.net/res/*.js$script
+greekfun.net##+js(json-prune, *, rot_url)
+greekfun.net##+js(json-prune, *, pop_type)
+
+! rule34video. co ad popups
+rule34video.co##+js(aeld, click, open)
+
+! https://github.com/uBlockOrigin/uAssets/issues/34709
+gcinee.com##+js(rmnt, script, offsetHeight)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35260
+@@||anime3rb.com^$ghide
+
+! https://www.reddit.com/r/uBlockOrigin/comments/1xqy4bc/adblock_detection/
+@@||maimuna.*-probe-$image,domain=maimuna.to
+@@||maimuna.to^$image,1p
+@@||maimuna.to^$ghide
+maimuna.to##div[id^="maimunka-ad-"]
+
+! https://github.com/uBlockOrigin/uAssets/issues/35275
+erogames.to##+js(set, checkJuicyPopBlocked, noopFunc)
+||owo.lewd.ninja^$3p
+
+! checktls.com perform https://www.checktls.com/TestReceiver test for email server configuration
+checktls.com##+js(set, adsbygoogle, {})
+checktls.com##+js(set, google_tag_manager, {})
+checktls.com##+js(set, adsbygoogle.loaded, true)
+
+! https://yupflix.com/
+yupflix.com,yupflix.org##+js(rmnt, script, /bait|com\.android\.chrome/)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35339
+fmodpro.com##+js(rmnt, script, /onerror|offsetHeight|no-store/)
+!#if env_chromium
+fmodpro.com###aab-minimal-overlay:remove()
+fmodpro.com##body:style(overflow:auto !important)
+!#endif
+
+! https://github.com/uBlockOrigin/uAssets/issues/35332
+||electronicrepairguide.com/swfobject.js^
+
+! https://github.com/uBlockOrigin/uAssets/issues/35350
+||blackoutcomics.com/build/assets/adblock-wall-
+
+! https://github.com/uBlockOrigin/uAssets/issues/35354
+elektrotanya.com##+js(rmnt, script, !(window.adsbygoogle)
+elektrotanya.com##.ad_kontener
+elektrotanya.com###ad-header4
+elektrotanya.com###ad-header3
+
+! https://github.com/uBlockOrigin/uAssets/issues/35359
+madamnazar.io##+js(no-fetch-if, method:HEAD)
+madamnazar.io##+js(nostif, /offsetHeight|error"/)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35355
+applescoop.org##+js(rmnt, script, /probe|adblock|__asPicks/i)
+applescoop.org##.story-content .ad
+applescoop.org##.as-ad-rail
+applescoop.org##.as-ad
+
+! https://github.com/uBlockOrigin/uAssets/issues/35383
+||laviola.it/jaqisharam.js
+
+! https://github.com/uBlockOrigin/uAssets/issues/35395
+anytimesbook.com##+js(rmnt, script, .offsetWidth)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35405
+suikora.com##+js(no-fetch-if, /googlesyndication|doubleclick|favicon.ico/)
+||abscloud.org^$script,redirect=noop.js,domain=suikora.com
+suikora.com##+js(nowoif, _blank)
+
+! liddread.com anti adblock and placeholder
+liddread.com##+js(rmnt, script, AdBlock)
+liddread.com##div[data-type="_mgwidget"]
+
+! https://github.com/uBlockOrigin/uAssets/issues/35413
+camsmut.com##iframe[_]:remove()
+camsmut.com##+js(rmnt, script, /setRequestHeader|decodeURIComponent/)
+camsmut.com##.main-video div.noselect.no-drag[draggable]:not([style])
+camsmut.com##a[href^="/g/"]
+||camsmut.com/o|$xhr
+||camsmut.com/vidzqi/
+||althz.com^
+||creative.*.com/widgets/Player/?modelName=$frame,3p
+
+! https://github.com/uBlockOrigin/uAssets/issues/35421
+torrentkong.cc##+js(rmnt, script, __kgrun)
+torrentkong.cc##+js(rmnt, noscript, kgate)
+torrentkong.cc##+js(nostif, __kgrun)

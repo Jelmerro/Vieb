@@ -322,13 +322,10 @@ web.facebook.com,www.facebook.com##+js(json-prune, require.0.3.0.__bbox.require.
 ! https://www.facebook.com/marketplace/
 ! https://www.facebook.com/watch/
 !#if cap_html_filtering
-||facebook.com/api/graphql/$xhr,replace=/\{"node":\{"role":"SEARCH_ADS"[^\n]+?cursor":[^}]+\}/{}/g,domain=web.facebook.com|www.facebook.com
-||facebook.com/api/graphql/$xhr,replace=/\{"node":\{"__typename":"MarketplaceFeedAdStory"[^\n]+?"cursor":(?:null|"\{[^\n]+?\}"|[^\n]+?MarketplaceSearchFeedStoriesEdge")\}/{}/g,domain=web.facebook.com|www.facebook.com
-||facebook.com/api/graphql/$xhr,replace=/\{"node":\{"__typename":"VideoHomeFeedUnitSectionComponent"[^\n]+?"sponsored_data":\{"ad_id"[^\n]+?"cursor":null\}/{}/,domain=web.facebook.com|www.facebook.com
-||static.xx.fbcdn.net/rsrc.php/v*.js$script,replace=/"__typename":"SponsoredData"/"__typename":"SponsorData"/g
-||static.xx.fbcdn.net/rsrc.php/v*.js$script,replace=/return [a-zA-Z]\(JSON\.parse\([a-z]\)\)/return false/
+||static.xx.fbcdn.net/rsrc.php/v*.js$script,replace=/return [a-zA-Z]\(JSON\.parse\([a-z]\(?\)?\)\)/return false/
 ||static.xx.fbcdn.net/rsrc.php/v*.js$script,replace=/var n=s\(t\.call\(JSON\.parse\)\),/return false;var n=s(t.call(JSON.parse)),/
 ||static.xx.fbcdn.net/rsrc.php/v*.js$script,replace=/=document\.body\|\|document\.documentElement;/=document.body||document.documentElement;return false;/
+web.facebook.com,www.facebook.com##+js(json-edit, ..node[?.*.__typename=="SponsoredData"], matches, '/^.{1000,}/')
 !#else
 web.facebook.com,www.facebook.com##+js(trusted-replace-xhr-response, /\{"node":\{"role":"SEARCH_ADS"[^\n]+?cursor":[^}]+\}/g, {}, /api/graphql)
 web.facebook.com,www.facebook.com##+js(trusted-replace-xhr-response, /\{"node":\{"__typename":"MarketplaceFeedAdStory"[^\n]+?"cursor":(?:null|"\{[^\n]+?\}"|[^\n]+?MarketplaceSearchFeedStoriesEdge")\}/g, {}, /api/graphql)
@@ -344,7 +341,7 @@ web.facebook.com,www.facebook.com###seo_pivots ~ div > div[style^="max-width"] >
 ! https://www.reddit.com/r/uBlockOrigin/comments/1e4e9c1/fb_video_ads_is_getting_way_out_of_hand/ldel4vi/
 web.facebook.com,www.facebook.com##+js(json-prune-xhr-response, data.viewer.instream_video_ads data.scrubber, , propsToMatch, /api/graphql)
 ! https://github.com/uBlockOrigin/uAssets/issues/3367#issuecomment-3064485056
-web.facebook.com,www.facebook.com##+js(json-edit, ..node[?.__typename=="MarketplaceFeedAdStory"])
+web.facebook.com,www.facebook.com##+js(json-edit, ..node[?.__typename=="MarketplaceFeedAdStory"], matches, '/^.{1000,}/')
 web.facebook.com,www.facebook.com##+js(jsonl-edit-xhr-response, ..node[?.__typename=="MarketplaceFeedAdStory"], propsToMatch, /graphql)
 web.facebook.com,www.facebook.com##:matches-path(/marketplace) div[role="main"] div[style^="--x-maxInlineSize:"] a[attributionsrc^="/privacy_sandbox/comet/register/source/?xt="]
 web.facebook.com,www.facebook.com##:matches-path(/marketplace/item) a[attributionsrc^="/privacy_sandbox/"]:is([aria-label$=" anunciante"][aria-label*=" d"],[aria-label="Lien de l’annonceur"],[aria-label$="autan pengiklan"],[aria-label="Adverteerderskakel"],[aria-label="Link sa nag-advertise"],[aria-label="Link oglašivača"],[aria-label="Odkaz od inzerenta"],[aria-label="Link fra annoncør"],[aria-label="Werbelink"],[aria-label="Link ng advertiser"],[aria-label="Link dell'inserzionista"],[aria-label="Veza oglašivača"],[aria-label="Manisautilirijimut kasurvik"],[aria-label="Kiunganishi cha mtangazaji"],[aria-label="Lyen konpayi ki fè piblisite a"],[aria-label="Reklāmdevēja saite"],[aria-label="Reklamuotojo nuoroda"],[aria-label="Hirdető hivatkozása"],[aria-label="Link tar-reklamatur"],[aria-label="Adverteerderslink"],[aria-label="Annonsørlenke"],[aria-label="Link reklamodawcy"],[aria-label="Link promotor"],[aria-label="Lidhja e reklamuesit"],[aria-label="Odkaz na inzerenta"],[aria-label="Povezava oglaševalca"],[aria-label="Mainostajan linkki"],[aria-label="Annonsörlänk"],[aria-label="Liên kết của nhà quảng cáo"],[aria-label="Reklamveren bağlantısı"],[aria-label="Σύνδεσμος διαφημιζόμενου"],[aria-label="Връзка на рекламодател"],[aria-label="Линк на огласувач на реклами"],[aria-label="Сурталчлагчийн холбоос"],[aria-label="Ссылка рекламодателя"],[aria-label="Веза оглашивача"],[aria-label="Посилання рекламодавця"],[aria-label="რეკლამის განმთავსებლის ბმული"],[aria-label="קישור של מפרסם"],[aria-label="ایڈورٹائزر کا لنک"],[aria-label="رابط المعلن"],[aria-label="जाहिरातदार लिंक"],[aria-label="विज्ञापनदाता द्वारा लिंक"],[aria-label="বিজ্ঞাপনদাতা লিংক"],[aria-label="বিজ্ঞাপনদাতার লিঙ্ক"],[aria-label="જાહેરાતકર્તા લિંક"],[aria-label="అడ్వర్టయిజర్ లింక్"],[aria-label="പരസ്യദാതാവിന്റെ ലിങ്ക്"],[aria-label="වෙළඳ ප්‍රචාරක සබැඳිය"],[aria-label="ลิงก์ผู้ลงโฆษณา"],[aria-label="광고주 링크"],[aria-label^="廣告"][aria-label$="連結"],[aria-label="广告主提供的链接"],[aria-label="広告主によるリンク"])
@@ -382,10 +379,6 @@ m.aajtak.in##body > .pubTime:style(display: block !important)
 m.aajtak.in##body > .secArticleImage:style(display: block !important)
 m.aajtak.in##body > .storyBody:style(display: block !important)
 /amazon_products_prod.js$script,domain=aajtak.in
-
-! https://github.com/uBlockOrigin/uAssets/issues/1347
-motherless.com##+js(set, _ml_ads_ns, null)
-motherless.com##+js(acs, jQuery, cookie)
 
 ! https://news.ycombinator.com/item?id=12677179
 ||x.shopsavvy.com^$3p
@@ -646,7 +639,7 @@ xbooru.com##a[href^="https://xbooru.com/c.html"]
 kbb.com##[id^="kbbAds"], [id^="kbbAds"] + p
 
 ! Fingerprint2 popups
-dfiles.eu,downsub.com,j.gs,macserial.com,microify.com,minecraft-forum.net,onmovies.*,pirateproxy.*,psarips.*,solidfiles.com,thepiratebay.org,uptobox.com##+js(aopw, Fingerprint2)
+dfiles.eu,downsub.com,j.gs,macserial.com,microify.com,onmovies.*,pirateproxy.*,psarips.*,solidfiles.com,thepiratebay.org,uptobox.com##+js(aopw, Fingerprint2)
 solidfiles.com##.remove
 thepiratebay.org##[href^="http://www.coiwqe.site/"]
 ! https://github.com/uBlockOrigin/uAssets/issues/33206
@@ -919,13 +912,12 @@ powerthesaurus.org##+js(aopw, ad_abblock_ad)
 ! https://github.com/jspenguin2017/uBlockProtector/issues/816
 ! https://github.com/uBlockOrigin/uAssets/issues/16180
 ! Popups triggered by popads
-animepahe.*,kwik.*##^script:has-text('shift')
-animepahe.*,kwik.*##^script:has-text(\'shift\')
-animepahe.*,kwik.*##+js(acs, String.fromCharCode, 'shift')
-animepahe.*,kwik.*##+js(aopr, open)
-animepahe.*,kwik.*##+js(aopr, PopAds)
+animepahe.*##^script:has-text('shift')
+animepahe.*##^script:has-text(\'shift\')
+animepahe.*##+js(acs, String.fromCharCode, 'shift')
+animepahe.*##+js(aopr, open)
+animepahe.*##+js(aopr, PopAds)
 pahe.*##+js(nowoif)
-@@||kwik.*^$script,1p
 ! https://forums.lanik.us/viewtopic.php?f=62&t=44940 pahe .in / .ph
 ! https://github.com/uBlockOrigin/uAssets/issues/8398
 pahe.*##+js(aeld, , _0x)
@@ -2887,9 +2879,6 @@ hotcopper.com.au##+js(acs, $, blockAds)
 ! https://github.com/uBlockOrigin/uAssets/issues/2140
 trekbbs.com##div[style^="width:970px"]
 
-! https://github.com/uBlockOrigin/uAssets/issues/2142
-hdbox.ws##+js(nostif, show)
-
 ! https://github.com/uBlockOrigin/uAssets/issues/2130
 @@||benkhouya.com^$script,domain=anonymousemail.me
 
@@ -3635,10 +3624,6 @@ torrentz2eu.*##+js(acs, $, open)
 ! https://github.com/uBlockOrigin/uAssets/issues/2773
 acienciasgalilei.com##+js(aeld, load, adverts-top-container)
 
-! https://github.com/uBlockOrigin/uAssets/issues/2787
-smsget.net##+js(nostif, Adblock, 5000)
-smsget.net##+js(nostif, disable, 200)
-
 ! https://github.com/uBlockOrigin/uAssets/issues/2791
 zigforums.com##+js(no-xhr-if, /googlesyndication|outbrain/)
 zigforums.com##+js(aopw, adsBlocked)
@@ -4259,15 +4244,6 @@ veekyforums.com##+js(nowoif)
 ! https://github.com/gorhill/uBO-Extra/issues/104
 @@||imasdk.googleapis.com/js/sdkloader/ima3.js$script,domain=ipla.tv
 
-! https://forums.lanik.us/viewtopic.php?f=62&t=41669#p140881
-cutpaid.com##+js(aeld, , _blank)
-cutpaid.com##+js(aopr, app_vars.force_disable_adblock)
-cutpaid.com##+js(nowoif)
-cutpaid.com##+js(set, blurred, false)
-cutpaid.com##center
-*$frame,denyallow=google.com,domain=cutpaid.com
-*$script,3p,denyallow=google.com|gstatic.com|recaptcha.net,domain=cutpaid.com
-
 ! https://github.com/uBlockOrigin/uAssets/issues/3448
 germancarforum.com##+js(rmnt, script, adsbygoogle)
 
@@ -4545,7 +4521,6 @@ canadianunderwriter.ca##+js(aopw, mockingbird)
 ! https://github.com/AdguardTeam/AdguardFilters/issues/128679
 ! https://github.com/uBlockOrigin/uAssets/issues/16601
 linkjust.com##+js(set, blurred, false)
-gold-24.net##+js(nano-sib, , , 0.001)
 linkjust.com##.banner-inner
 @@||linkjust.com^$ghide
 
@@ -7493,10 +7468,6 @@ bilasport.net##+js(aopr, pwparams)
 ! iporntv .net popups
 iporntv.net##+js(acs, document.createElement, pop)
 
-! https://github.com/uBlockOrigin/uAssets/issues/6045
-readcomicsonline.ru##+js(acs, document.createElement, "script")
-@@||readcomicsonline.ru^$ghide
-
 ! https://www.reddit.com/r/uBlockOrigin/comments/clzwbg/
 yogitimes.com##+js(aopr, fuckAdBlock)
 
@@ -8031,7 +8002,7 @@ keysbrasil.blogspot.com##+js(nostif, nextFunction, 2000)
 tmearn.*##+js(aopr, app_vars.force_disable_adblock)
 tmearn.*##+js(nowoif)
 tmearn.*##+js(set, blurred, false)
-cutpaid.com,tmearn.*##+js(aopr, AaDetector)
+tmearn.*##+js(aopr, AaDetector)
 *$script,3p,denyallow=cloudflare.com|google.com|gstatic.com|recaptcha.net,domain=tmearn.*
 ||tmearn.com/*sw.js$script,1p
 tmearn.*##.banner
@@ -8776,11 +8747,7 @@ player.rtl2.de##+js(set, getHomadConfig, noopFunc)
 ! https://www.ligainsider.de/ welect.de iFrame inside cookie banner
 ||damoh.welect.de^
 ! https://github.com/uBlockOrigin/uAssets/issues/32740
-!#if ext_ubol
 welt.de##+js(trusted-prevent-fetch, aud.springserve.com, <VAST version="3.0"></VAST>)
-!#else
-welt.de##+js(no-fetch-if, aud.springserve.com, war:noop-vast3.xml)
-!#endif
 
 ! https://github.com/uBlockOrigin/uAssets/issues/7508#issuecomment-659267224
 ||damoh.gmx.*/*$media,redirect=noop-0.1s.mp3,1p
@@ -8941,9 +8908,6 @@ news-herald.com##+js(aopr, Connext)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/6602
 *$script,3p,denyallow=bootstrapcdn.com|disqus.com|jsdelivr.net|jwpcdn.com|fastly.net|fastlylb.net|jquery.com|hwcdn.net|recaptcha.net|cloudflare.com|cloudflare.net|google.com|googleapis.com|gstatic.com,domain=movieshub.*
-
-! https://github.com/NanoMeow/QuickReports/issues/2321
-@@||kwik.*^$ghide
 
 ! https://github.com/NanoMeow/QuickReports/issues/2325
 @@||sadeempc.com^$ghide
@@ -9375,10 +9339,6 @@ jacquieetmichel.net##+js(ra, data-popunder-url)
 
 ! https://github.com/NanoMeow/QuickReports/issues/2686
 @@||keneono.site^$ghide
-
-! https://github.com/uBlockOrigin/uAssets/issues/6796
-fruitlab.com##+js(set, adBlockDetected, noopFunc)
-@@||fruitlab.com^$ghide
 
 ! https://github.com/uBlockOrigin/uAssets/issues/6799
 ||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=google-ima.js,domain=babygames.com
