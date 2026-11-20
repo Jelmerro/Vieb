@@ -13,6 +13,17 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Default value for "keeprecentlyclosed" to "always"
+- Default value for "keeprecentlyclosedhistory" to "always"
+- Default value for "nativetheme" to "system"
+
+### Removed
+
+- Setting "searchscope" in favor of "searchreach"
+- Setting "searchemptyscope" in favor of "searchreach"
+
 ### Fixed
 
 - Newly added desktopName for 12.12.x not being aligned with appId in builds
@@ -171,15 +182,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow mode event listener detection to pass data as a Map via contextBridge instead of via DOM attributes
 - Readerview HTML parser from JSDOM to Linkedom for faster and less error-prone parsing
 
+### Removed
+
+- Redundant ozone-platform-hint=auto flag from builds now that it has become a Chromium default
+
 ### Fixed
 
 - Setting "insertleavetimeout" not triggering when switching to insert mode manually
 - Media devices attempted to be returned with full labels not including any device info since 12.4.0
 - Manual downloads not starting when "downloadmethod" is set to "block"
-
-### Removed
-
-- Redundant ozone-platform-hint=auto flag from builds now that it has become a Chromium default
 
 ### Versions
 

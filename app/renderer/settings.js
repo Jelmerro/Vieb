@@ -197,10 +197,10 @@ const defaultSettings = {
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "insertleavetimeout": 0,
-    /** @type {boolean|"always"|"session"|"never"} */
-    "keeprecentlyclosed": true,
     /** @type {"always"|"session"|"never"} */
-    "keeprecentlyclosedhistory": "session",
+    "keeprecentlyclosed": "always",
+    /** @type {"always"|"session"|"never"} */
+    "keeprecentlyclosedhistory": "always",
     "lang": "en",
     /** @type {"none"|"spinner"|"line"|"all"} */
     "loadingindicator": "spinner",
@@ -239,7 +239,7 @@ const defaultSettings = {
     /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
     /** @type {"dark"|"light"|"system"} */
-    "nativetheme": "dark",
+    "nativetheme": "system",
     "newtaburl": "",
     "notificationduration": 6000,
     /** @type {"all"|"allowed"|"blocked"|"silent"|"none"} */
@@ -349,8 +349,6 @@ const defaultSettings = {
     "scrollposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
     "scrollpostype": "casing",
-    /** @type {"global"|"local"|"both"} */
-    "searchemptyscope": "global",
     "searchengine": ["https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web"],
     /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
@@ -360,8 +358,6 @@ const defaultSettings = {
     "searchreachinc": "same",
     /** @type {"all"|"visible"|"current"|"same"} */
     "searchreachtraverse": "same",
-    /** @type {"global"|"local"|"inclocal"} */
-    "searchscope": "global",
     /** @type {{[key: string]: string}} */
     "searchwords": {},
     "shell": "",
@@ -580,12 +576,10 @@ const validOptions = {
     "restoretabs": ["all", "pinned", "regular", "none"],
     "scrollposlocalid": ["domain", "url"],
     "scrollpostype": ["casing", "local", "global"],
-    "searchemptyscope": ["global", "local", "both"],
     "searchpointeralignment": ["left", "center", "right"],
     "searchreach": ["all", "visible", "current"],
     "searchreachinc": ["all", "visible", "current", "same"],
     "searchreachtraverse": ["all", "visible", "current", "same"],
-    "searchscope": ["global", "local", "inclocal"],
     "suspendonrestore": ["all", "regular", "none"],
     "tabclosefocus": ["left", "right", "previous"],
     "tabnewposition": ["left", "right", "start", "end"],
@@ -1784,8 +1778,7 @@ const isValidSetting = async(src, setting, value) => {
         && ["false", "true"].includes(String(parsedValue))) {
         parsedValue = value === "true"
     }
-    if (expectedType !== typeof parsedValue
-        && setting !== "keeprecentlyclosed") {
+    if (expectedType !== typeof parsedValue) {
         await notify({
             "fields": [setting, expectedType, typeof parsedValue],
             "id": "settings.errors.type",
@@ -1795,10 +1788,6 @@ const isValidSetting = async(src, setting, value) => {
         return false
     }
     if (isEnumSetting(setting)) {
-        if (setting === "keeprecentlyclosed"
-            && ["false", false, "true", true].includes(parsedValue)) {
-            return true
-        }
         if (typeof parsedValue !== "string") {
             return false
         }
@@ -1936,8 +1925,7 @@ const listSettingsAsArray = () => Object.keys(defaultSettings)
 const suggestionList = () => {
     const listOfSuggestions = ["all", ...listSettingsAsArray(), "all&", "all?"]
     for (const setting of listSettingsAsArray()) {
-        if (typeof defaultSettings[setting] === "boolean"
-            && setting !== "keeprecentlyclosed") {
+        if (typeof defaultSettings[setting] === "boolean") {
             listOfSuggestions.push(`${setting}!`,
                 `no${setting}`, `inv${setting}`)
         } else if (isEnumSetting(setting)) {
@@ -2192,17 +2180,6 @@ const updateObjectSetting = (setting, value) => {
  */
 const set = async(src, setting, value) => {
     if (await isValidSetting(src, setting, value)) {
-        if (setting === "keeprecentlyclosed") {
-            if (["false", false, "true", true].includes(value)) {
-                await notify({
-                    "id": "Deprecated boolean value for keeprecentlyclosed,"
-                        + " please read ':help keeprecentlyclosed'"
-                })
-            }
-            allSettings.keeprecentlyclosed = value
-            await updateHelpPage(src)
-            return true
-        }
         const oldValue = allSettings[setting]
         if (value === oldValue) {
             return true
@@ -2501,7 +2478,7 @@ const listCurrentSettings = async(full = false) => {
     }
     let setCommands = ""
     for (const [setting, value] of Object.entries(settings)) {
-        if (typeof value === "boolean" && setting !== "keeprecentlyclosed") {
+        if (typeof value === "boolean") {
             if (value) {
                 setCommands += `${setting}\n`
             } else {

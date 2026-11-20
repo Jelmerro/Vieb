@@ -74,7 +74,6 @@ const {
 } = require("./common")
 const {getSetting} = require("./settings")
 
-let lastSearchLocal = true
 let lastSearchInc = true
 let lastIncSearch = ""
 let lastProperSearch = ""
@@ -82,23 +81,10 @@ let searchDirection = "forward"
 let globalSearch = ""
 let potentialNewSearchDirection = "forward"
 
-/**
- * Empty the current search by scope.
- * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
- */
-const emptySearch = args => {
-    const scope = args.scope || getSetting("searchemptyscope")
-    /** @type {(Electron.WebviewTag|null)[]} */
-    let pages = []
-    if (["both", "local"].includes(scope)) {
-        pages = [currentPage()]
-        currentTab()?.removeAttribute("localsearch")
-    }
-    if (["both", "global"].includes(scope)) {
-        pages = listRealPages()
-        globalSearch = ""
-    }
-    for (const page of pages) {
+/** Empty the current search . */
+const emptySearch = () => {
+    globalSearch = ""
+    for (const page of listRealPages()) {
         tabForPage(page)?.removeAttribute("search-results")
         page?.stopFindInPage("clearSelection")
     }
@@ -120,18 +106,9 @@ const matchCase = search => {
     return !getSetting("ignorecase")
 }
 
-/** Highlight the next search match based on the scope. */
+/** Highlight the next search match. */
 const nextSearchMatch = () => {
-    const scope = getSetting("searchscope")
-    let search = globalSearch
-    let pages = []
-    if (scope === "local") {
-        search = currentTab()?.getAttribute("localsearch") || search
-        pages = [currentPage()]
-    } else {
-        pages = listRealPages()
-    }
-    if (!search) {
+    if (!globalSearch) {
         return
     }
     /** @type {"searchreachtraverse"|"searchreach"} */
@@ -140,9 +117,8 @@ const nextSearchMatch = () => {
         reachSetting = "searchreachtraverse"
     }
     const reach = getSetting(reachSetting)
-    if (reach === "all") {
-        pages = listRealPages()
-    } else {
+    let pages = listRealPages()
+    if (reach !== "all") {
         pages = pages.filter(p => {
             if (reach === "current") {
                 return p === currentPage()
@@ -151,9 +127,9 @@ const nextSearchMatch = () => {
         })
     }
     for (const p of pages) {
-        p?.findInPage(search, {
+        p?.findInPage(globalSearch, {
             "forward": searchDirection === "forward",
-            "matchCase": matchCase(search)
+            "matchCase": matchCase(globalSearch)
         })
     }
 }
@@ -165,11 +141,7 @@ const nextSearchMatch = () => {
 const toSearchMode = async args => {
     const {setMode} = require("./modes")
     await setMode("search")
-    let search = globalSearch
-    if (getSetting("searchscope") !== "global") {
-        search = currentTab()?.getAttribute("localsearch") || search
-    }
-    lastProperSearch = search
+    lastProperSearch = globalSearch
     if (args.hadModifier) {
         potentialNewSearchDirection = "backward"
     } else {
@@ -177,25 +149,16 @@ const toSearchMode = async args => {
     }
     const url = getUrl()
     if (url) {
-        url.value = search
+        url.value = globalSearch
         url.select()
         const {requestSuggestUpdate} = require("./input")
         await requestSuggestUpdate()
     }
 }
 
-/** Highlight the previous search match based on the scope. */
+/** Highlight the previous search match. */
 const previousSearchMatch = () => {
-    const scope = getSetting("searchscope")
-    let search = globalSearch
-    let pages = []
-    if (scope === "local") {
-        search = currentTab()?.getAttribute("localsearch") || search
-        pages = [currentPage()]
-    } else {
-        pages = listRealPages()
-    }
-    if (!search) {
+    if (!globalSearch) {
         return
     }
     /** @type {"searchreachtraverse"|"searchreach"} */
@@ -204,9 +167,8 @@ const previousSearchMatch = () => {
         reachSetting = "searchreachtraverse"
     }
     const reach = getSetting(reachSetting)
-    if (reach === "all") {
-        pages = listRealPages()
-    } else {
+    let pages = listRealPages()
+    if (reach !== "all") {
         pages = pages.filter(p => {
             if (reach === "current") {
                 return p === currentPage()
@@ -215,29 +177,19 @@ const previousSearchMatch = () => {
         })
     }
     for (const p of pages) {
-        p?.findInPage(search, {
+        p?.findInPage(globalSearch, {
             "forward": searchDirection === "backward",
-            "matchCase": matchCase(search)
+            "matchCase": matchCase(globalSearch)
         })
     }
 }
 
 /**
- * Search for the string incrementally while typing if enabled, by scope.
+ * Search for the string incrementally while typing if enabled.
  * @param {ActionParam&{value?: string}|null} args
  */
 const incrementalSearch = args => {
-    let scope = getSetting("searchscope")
     const isIncSearch = args?.value === undefined
-    lastSearchLocal = scope === "local"
-    if (scope === "inclocal") {
-        if (isIncSearch) {
-            lastSearchLocal = true
-            scope = "local"
-        } else {
-            scope = "global"
-        }
-    }
     const url = getUrl()
     const search = args?.value || url?.value || ""
     if (lastProperSearch === search) {
@@ -254,25 +206,15 @@ const incrementalSearch = args => {
         lastProperSearch = search
     }
     lastSearchInc = isIncSearch
-    let pages = [currentPage()]
-    if (scope === "global") {
-        pages = listRealPages()
-        globalSearch = search
-        for (const t of listTabs()) {
-            t.removeAttribute("localsearch")
-        }
-    } else {
-        currentTab()?.setAttribute("localsearch", search)
-    }
+    globalSearch = search
     /** @type {"searchreachinc"|"searchreach"} */
     let reachSetting = "searchreach"
     if (isIncSearch && getSetting("searchreachinc") !== "same") {
         reachSetting = "searchreachinc"
     }
     const reach = getSetting(reachSetting)
-    if (reach === "all") {
-        pages = listRealPages()
-    } else {
+    let pages = listRealPages()
+    if (reach !== "all") {
         pages = pages.filter(p => {
             if (reach === "current") {
                 return p === currentPage()
@@ -290,7 +232,7 @@ const incrementalSearch = args => {
             })
         }
     } else {
-        emptySearch({scope, "src": args?.src ?? "other"})
+        emptySearch()
     }
 }
 
@@ -299,16 +241,13 @@ const incrementalSearch = args => {
  * @param {ActionParam} args
  */
 const resetIncrementalSearch = args => {
-    if (getSetting("searchscope") === "inclocal" && lastSearchLocal) {
-        emptySearch({"scope": "local", "src": args?.src ?? "other"})
-    } else if (getSetting("incsearch")
-        && lastProperSearch !== lastIncSearch) {
+    if (getSetting("incsearch") && lastProperSearch !== lastIncSearch) {
         if (lastProperSearch) {
             incrementalSearch({
                 "src": args.src ?? "other", "value": lastProperSearch
             })
         } else {
-            emptySearch({"scope": "both", "src": args?.src ?? "other"})
+            emptySearch()
         }
     }
 }
