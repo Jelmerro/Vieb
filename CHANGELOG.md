@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Newly added desktopName for 12.12.x not being aligned with appId in builds
+
+### Versions
+
+- Electron 45.4.1 (unchanged)
+- Chromium 156.0.8078.100 (unchanged)
+
 ## [12.12.0](https://github.com/Jelmerro/Vieb/compare/12.11.0...12.12.0) - 2026-11-20
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/12.11.0...12.12.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.12.0)

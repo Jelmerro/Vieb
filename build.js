@@ -23,7 +23,7 @@ const {
 const {dirname, join} = require("node:path")
 
 const defaultConfig = {"config": {
-    "appId": "com.github.Jelmerro.vieb",
+    "appId": "com.github.Jelmerro.Vieb",
     "copyright": "Copyright @ Jelmer van Arnhem | "
         + "Licensed as free software (GPL-3.0 or later)",
     "deb": {
@@ -391,6 +391,8 @@ const generateBuild = async release => {
         if (release.ebuilder !== false) {
             const builder = require("electron-builder")
             const config = mergeEBConfig(release.ebuilder || {})
+            config.config.extraMetadata ??= {}
+            config.config.extraMetadata.desktopName = defaultConfig.config.appId
             const res = await builder.build(config)
             console.info(res)
         }
