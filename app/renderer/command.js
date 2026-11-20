@@ -1034,7 +1034,8 @@ const quit = async(src, range) => {
     }
 }
 
-let currentscheme = "default"
+let defaultscheme = "default"
+let currentscheme = defaultscheme
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
@@ -1061,6 +1062,18 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
     if (!css) {
         css = await readFile(joinPath(await appData(), `colors/${name}.css`))
     }
+    const userColorDirs = [
+        expandPath("~/.vieb/colors"),
+        joinPath(await appData(), "colors"),
+    ]
+    let userColorDir = null
+    for (const dir of userColorDirs) {
+        css = readFile(joinPath(dir, `${name}.css`))
+        if (css) {
+            userColorDir = dir
+            break
+        }
+    }
     if (!css) {
         css = await readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
     }
@@ -1073,7 +1086,14 @@ const colorscheme = async(src, name = null, trailingArgs = null) => {
         })
         return
     }
-    if (name === "default") {
+    if (userColorDir) {
+        const userColorDirUrl = `file:///${userColorDir.replace(/\\/g, "/")}/`
+        // explicitly restrict imports to other themes in the same user folder
+        css = css.replaceAll("user:", userColorDirUrl)
+    }
+    const builtinColorDirUrl = `file:///${joinPath(getAppRootDir(), "colors").replace(/\\/g, "/")}/`
+    css = css.replaceAll("builtin:", builtinColorDirUrl)
+    if (name === defaultscheme) {
         css = ""
     }
     if (!document.getElementById("custom-styling")) {
