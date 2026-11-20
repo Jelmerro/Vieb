@@ -284,6 +284,23 @@ const navigateTo = async(src, location, customPage = null) => {
     }
 }
 
+/**
+ * Strip history from the a restored tab if it is not configured to be kept.
+ * @param {TabInfo} tabInfo
+ */
+const stripHistoryOfTabInfo = tabInfo => {
+    /** @type {TabInfo} */
+    const newInfo = {
+        "container": tabInfo.container,
+        "muted": tabInfo.muted,
+        "url": tabInfo.url
+    }
+    if (tabInfo.index !== undefined) {
+        newInfo.index = tabInfo.index
+    }
+    return newInfo
+}
+
 /** Save the current and closed tabs to disk if configured to do so. */
 const saveTabs = async() => {
     /**
@@ -298,8 +315,12 @@ const saveTabs = async() => {
     const restoreTabs = getSetting("restoretabs")
     const keepRecentlyClosed = ["always", "true", true]
         .includes(getSetting("keeprecentlyclosed"))
+    const keepHistory = getSetting("keeprecentlyclosedhistory") === "always"
     if (keepRecentlyClosed) {
         data.closed = JSON.parse(JSON.stringify(recentlyClosed))
+        if (data.closed && !keepHistory) {
+            data.closed = data.closed.map(stripHistoryOfTabInfo)
+        }
     }
     const activeTab = currentTab()
     if (restoreTabs !== "none" && activeTab) {
@@ -322,9 +343,11 @@ const saveTabs = async() => {
             "muted": tab.hasAttribute("muted"),
             "url": await urlToString(url)
         }
-        const history = await getRestoreConfig(page)
-        if (history) {
-            tabInfo.history = history
+        if (keepHistory) {
+            const history = await getRestoreConfig(page)
+            if (history) {
+                tabInfo.history = history
+            }
         }
         if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
             data.pinned.push(tabInfo)
@@ -476,18 +499,18 @@ const closeTab = async(src, index = null, force = false) => {
             "muted": tab.hasAttribute("muted"),
             url
         }
-        const history = await getRestoreConfig(page)
-        if (history && (history?.entries?.length ?? 0) > 1) {
-            tabInfo.history = history
-            recentlyClosed.push(tabInfo)
-        } else {
-            const currentSpecial = pathToSpecialPageName(url ?? "")?.name
-            const newtabUrl = stringToUrl(getSetting("newtaburl"))
-            const isNewtab = currentSpecial === "newtab" || (url?.replace(
-                /\/+$/g, "") ?? "") === newtabUrl.replace(/\/+$/g, "")
-            if (!isNewtab) {
-                recentlyClosed.push(tabInfo)
+        if (getSetting("keeprecentlyclosedhistory") !== "never") {
+            const history = await getRestoreConfig(page)
+            if (history && (history?.entries?.length ?? 0) > 1) {
+                tabInfo.history = history
             }
+        }
+        const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+        const newtabUrl = stringToUrl(getSetting("newtaburl"))
+        const isNewtab = currentSpecial === "newtab" || (url?.replace(
+            /\/+$/g, "") ?? "") === newtabUrl.replace(/\/+$/g, "")
+        if (!isNewtab || tabInfo.history) {
+            recentlyClosed.push(tabInfo)
         }
     }
     const regularTab = listTabs().find(
@@ -799,8 +822,7 @@ const addWebviewListeners = webview => {
             const {settingsWithDefaults} = require("./settings")
             webview.send("settings", settingsWithDefaults(),
                 await listMappingsAsCommandList("other", null, true),
-                uncountableActions,
-                rangeCompatibleCommands).catch(() => null)
+                uncountableActions, rangeCompatibleCommands).catch(() => null)
         }
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())
@@ -1545,6 +1567,17 @@ const loadPreviousSessionTabs = async tabs => {
     const restoreTabs = getSetting("restoretabs")
     const keepRecentlyClosed = ["always", "true", true]
         .includes(getSetting("keeprecentlyclosed"))
+    if (getSetting("keeprecentlyclosedhistory") !== "always") {
+        if (tabs.closed) {
+            tabs.closed = tabs.closed.map(stripHistoryOfTabInfo)
+        }
+        if (tabs.pinned) {
+            tabs.pinned = tabs.pinned.map(stripHistoryOfTabInfo)
+        }
+        if (tabs.tabs) {
+            tabs.tabs = tabs.tabs.map(stripHistoryOfTabInfo)
+        }
+    }
     if (Array.isArray(tabs.closed) && keepRecentlyClosed) {
         recentlyClosed = tabs.closed
     }

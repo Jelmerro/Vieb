@@ -199,6 +199,8 @@ const defaultSettings = {
     "insertleavetimeout": 0,
     /** @type {boolean|"always"|"session"|"never"} */
     "keeprecentlyclosed": true,
+    /** @type {"always"|"session"|"never"} */
+    "keeprecentlyclosedhistory": "session",
     "lang": "en",
     /** @type {"none"|"spinner"|"line"|"all"} */
     "loadingindicator": "spinner",
@@ -506,6 +508,7 @@ const validOptions = {
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
     "keeprecentlyclosed": ["always", "session", "never"],
+    "keeprecentlyclosedhistory": ["always", "session", "never"],
     "lang": validLanguages(),
     "loadingindicator": ["none", "spinner", "line", "all"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
@@ -2131,8 +2134,8 @@ const updateHelpPage = async src => {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
             await p.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(src, null, true), uncountableActions,
-                rangeCompatibleCommands)
+                await listMappingsAsCommandList(src, null, true),
+                uncountableActions, rangeCompatibleCommands)
         }
     }
 }

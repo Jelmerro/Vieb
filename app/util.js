@@ -208,7 +208,7 @@ const readJSON = loc => new Promise(res => {
         }
         try {
             res(JSON.parse(data.toString()))
-        } catch(error) {
+        } catch {
             res(null)
         }
     })
