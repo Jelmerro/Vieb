@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command confirm versions `:split!` and `:vsplit!` to open splits but stay focused in the current split
 - Setting "followsplitswitch" to control if split versions of follow mode should switch to the new split
 - Setting "keeprecentlyclosedhistory" to preserve tab history navigation for reopened tabs and optionally subsequent sessions
+- Setting "zoomdefault" to control the default zoom percentage for all pages
 
 ### Changed
 
@@ -276,7 +277,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Adblock resources file handling, now uses the JSON format for increased coverage
-- Setting "zoomdefault" to control the default zoom percentage for all pages
 
 ### Fixed
 
