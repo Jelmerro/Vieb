@@ -5,7 +5,7 @@ const {
     isFile,
     isNestedStringObject,
     joinPath,
-    listDir,
+    listDirSync,
     readJSONSync
 } = require("./util")
 
@@ -15,7 +15,7 @@ let selectedLang = "en"
 
 /** Returns a list of languages according to the language files present. */
 const validLanguages = () => {
-    const files = listDir(joinPath(getAppRootDir(), "translations")) ?? []
+    const files = listDirSync(joinPath(getAppRootDir(), "translations"))
     return files.filter(f => f.endsWith(".json"))
         .map(f => f.replace(/\.json$/, ""))
 }

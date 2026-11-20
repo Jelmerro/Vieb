@@ -277,12 +277,14 @@ const loadUserscripts = async webview => {
     const userscriptScope = getSetting("userscriptscope")
     const appdata = await appData()
     if (userscriptScope.includes(scope)) {
+        const globalJSFiles = await listDir(joinPath(
+            appdata, "userscript/global"), true)
+        const viebJSFiles = await listDir(expandPath(
+            "~/.vieb/userscript/global"), true)
         const userScriptFiles = [
-            ...(listDir(joinPath(appdata, "userscript/global"), true)
-                || []).filter(f => f.endsWith(".js")),
+            ...globalJSFiles.filter(f => f.endsWith(".js")),
             joinPath(appdata, "userscript/global.js"),
-            ...(listDir(expandPath("~/.vieb/userscript/global"), true)
-                || []).filter(f => f.endsWith(".js")),
+            ...viebJSFiles.filter(f => f.endsWith(".js")),
             expandPath("~/.vieb/userscript/global.js"),
             joinPath(appdata, `userscript/${domain}.js`),
             expandPath(`~/.vieb/userscript/${domain}.js`)
@@ -294,11 +296,11 @@ const loadUserscripts = async webview => {
             }
         }
     }
+    const localGMFiles = await listDir(joinPath(appdata, "userscript/gm"), true)
+    const viebGMFiles = await listDir(expandPath("~/.vieb/userscript/gm"), true)
     const gmScriptFiles = [
-        ...(listDir(joinPath(appdata, "userscript/gm"), true)
-            || []).filter(f => f.endsWith(".js")),
-        ...(listDir(expandPath("~/.vieb/userscript/gm"), true)
-            || []).filter(f => f.endsWith(".js"))
+        ...localGMFiles.filter(f => f.endsWith(".js")),
+        ...viebGMFiles.filter(f => f.endsWith(".js"))
     ]
     for (const f of gmScriptFiles) {
         const text = await readFile(f)

@@ -49,7 +49,7 @@ const {
     isFile,
     isFlatStringObject,
     joinPath,
-    listDir,
+    listDirSync,
     makeDir,
     readFile,
     readFileSync,
@@ -492,9 +492,8 @@ if (!argMediaKeys) {
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 const partitionDir = joinPath(argDatafolder, "Partitions")
-for (const part of listDir(partitionDir, false, true)
-    ?.filter(p => p.startsWith("temp"))
-    .map(p => joinPath(partitionDir, p)) ?? []) {
+for (const part of listDirSync(partitionDir, false, true).filter(
+    p => p.startsWith("temp")).map(p => joinPath(partitionDir, p)) ?? []) {
     rm(part)
 }
 rm(joinPath(argDatafolder, "erwicmode"))
@@ -1571,18 +1570,6 @@ const reloadAdblocker = () => {
     if (blocker) {
         disableAdblocker()
     }
-    const blocklistsFolders = [
-        joinPath(app.getPath("appData"), "blocklists"),
-        expandPath("~/.vieb/blocklists")
-    ]
-    let filters = ""
-    for (const blocklistsFolder of blocklistsFolders) {
-        for (const file of listDir(blocklistsFolder, true) ?? []) {
-            if (file.endsWith(".txt")) {
-                filters += loadBlocklist(file)
-            }
-        }
-    }
     let ElectronBlocker = null
     try {
         ({ElectronBlocker} = require("@ghostery/adblocker-electron"))
@@ -1598,7 +1585,20 @@ const reloadAdblocker = () => {
         })
         return
     }
-    blocker = ElectronBlocker.parse(filters)
+    const blocklistsFolders = [
+        joinPath(app.getPath("appData"), "blocklists"),
+        expandPath("~/.vieb/blocklists")
+    ]
+    let filters = ""
+    for (const blocklistsFolder of blocklistsFolders) {
+        for (const file of listDirSync(blocklistsFolder, true)) {
+            if (file.endsWith(".txt")) {
+                filters += loadBlocklist(file)
+            }
+        }
+    }
+    const unique = [...new Set(filters.split("\n"))].join("\n")
+    blocker = ElectronBlocker.parse(unique)
     const resources = readFileSync(joinPath(
         __dirname, `./blocklists/resources`))
     if (resources) {
@@ -1666,7 +1666,12 @@ const enableAdblocker = async type => {
                 let body = ""
                 res.on("end", async() => {
                     await writeFile(joinPath(blocklistDir, `${list}.txt`), body)
-                    reloadAdblocker()
+                    const unique = [...new Set(body.split("\n"))]
+                    if (blocker) {
+                        blocker.updateFromDiff({"added": unique})
+                    } else {
+                        reloadAdblocker()
+                    }
                     notify({
                         "fields": [list],
                         "id": "adblocker.updated",
@@ -1934,7 +1939,11 @@ ipcMain.handle("create-session", async(_, name, adblock, cache) => {
     sessionList.push(name)
     if (adblock !== "off") {
         if (blocker) {
-            reloadAdblocker()
+            newSess.registerPreloadScript({
+                "filePath": adblockerPreload,
+                "id": "adblock-preload",
+                "type": "frame"
+            })
         } else {
             await enableAdblocker(adblock)
         }

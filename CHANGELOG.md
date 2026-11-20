@@ -27,6 +27,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Dialogs to load just before show instead of on startup
 - Internal code structure to mainly use async/await over sync methods
 - Custom viewers to no longer allow insert mode since there are no inputs anyway
+- Adblocker loading to only parse unique lines for increased parsing speed
+- Adblocker to reuse existing engine if able for creating a new container and for updating lists
 
 ### Deprecated
 
@@ -39,6 +41,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "pdfbehavior" values "download" and "external" not doing anything recently
 - Unset desktopName leading to Alt-Tab related bugs on Wayland
 - Empty new tabs being recorded to recently closed tabs as if they need to be recovered
+- Identical setting invocations triggering the update related side effects
 
 ### Versions
 
@@ -797,7 +800,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "translatepage" to translate the page using Deepl API or LibreTranslate
 - Settings "translateapi", "translatekey", "translatelang" and "translateurl" to customize translation settings for ":translatepage"
 - Setting "permissionclipboardwrite", as clipboard writing was recently moved to a permission by Electron (default remains allowed)
-- Settings "replacespecial" and "replacestartup" to control when new pages should re-use/replace the current tab
+- Settings "replacespecial" and "replacestartup" to control when new pages should reuse/replace the current tab
 
 ### Changed
 

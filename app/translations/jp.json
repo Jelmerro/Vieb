@@ -329,8 +329,7 @@
             "sslError": "<h2>到達不能なページ</h2>ページを正常に読み込むことができませんでした。次のエラーが発生しました：<br><h3>$1</h3><kbd>:set redirecttohttp</kbd>を使用して自動的なHTTPリダイレクトを有効にできます。<br>または、このHTTPリンクを使用して一度だけ移動できます：<a href=\"$2\">$2</a><br>最後に、無効な証明書に対する動作を制御するために<kbd>permissioncertificateerror</kbd>を変更することができます。"
         },
         "filebrowser": {
-            "empty": "空のディレクトリ",
-            "permissionDenied": "アクセスが拒否されました"
+            "empty": "空のディレクトリ"
         },
         "help": {
             "examples": {

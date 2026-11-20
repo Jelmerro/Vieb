@@ -26,7 +26,7 @@ const {
     isFlatStringObject,
     isNestedStringObject,
     joinPath,
-    listDirAsync,
+    listDir,
     makeDir,
     modifiedAt,
     pathToSpecialPageName,
@@ -105,7 +105,7 @@ const updateMappings = async({currentUrl = null, now = null} = {}) => {
             }
             return []
         }))
-        listDirAsync(faviconFolder).then(async files => {
+        listDir(faviconFolder).then(async files => {
             const promises = files?.map(file => new Promise(res => {
                 if (!usedFavNames.has(file) && file !== "mappings") {
                     deleteFile(joinPath(faviconFolder, file))

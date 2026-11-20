@@ -1201,7 +1201,7 @@ const makeDir = loc => {
  * @param {boolean} absolute
  * @param {boolean} dirsOnly
  */
-const listDir = (loc, absolute = false, dirsOnly = false) => {
+const listDirSync = (loc, absolute = false, dirsOnly = false) => {
     try {
         const {readdirSync} = require("node:fs")
         let files = readdirSync(loc)
@@ -1213,16 +1213,20 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
         }
         return files
     } catch {
-        return null
+        return []
     }
 }
 
 /**
  * List all files in a folder async.
  * @param {string} loc
+ * @param {boolean} absolute
+ * @param {boolean} dirsOnly
  * @returns {Promise<string[]>}
  */
-const listDirAsync = loc => new Promise(res => {
+const listDir = (
+    loc, absolute = false, dirsOnly = false
+) => new Promise(res => {
     const {readdir} = require("node:fs")
     readdir(loc, (err, files) => {
         if (err) {
@@ -1230,7 +1234,14 @@ const listDirAsync = loc => new Promise(res => {
             res([])
             return
         }
-        res(files)
+        let parsedFiles = files
+        if (dirsOnly) {
+            parsedFiles = parsedFiles.filter(f => isDir(joinPath(loc, f)))
+        }
+        if (absolute) {
+            parsedFiles = parsedFiles.map(f => joinPath(loc, f))
+        }
+        res(parsedFiles)
     })
 })
 
@@ -1399,9 +1410,9 @@ const urlToString = async url => {
 /** Clear all temporary containers (those that start with temp) from disk. */
 const clearTempContainers = async() => {
     const partitionDir = joinPath(await appData(), "Partitions")
-    for (const partition of listDir(partitionDir, false, true)
-        ?.filter(part => part.startsWith("temp"))
-        .map(part => joinPath(partitionDir, part)) ?? []) {
+    const dirfiles = await listDir(partitionDir, false, true)
+    for (const partition of dirfiles.filter(part => part.startsWith("temp"))
+        .map(part => joinPath(partitionDir, part))) {
         rm(partition)
     }
     rm(joinPath(await appData(), "erwicmode"))
@@ -1411,12 +1422,12 @@ const clearTempContainers = async() => {
 const clearCache = async() => {
     const partitionDir = joinPath(await appData(), "Partitions")
     const partitions = [
-        await appData(), ...listDir(partitionDir, true, true) || []
+        await appData(), ...await listDir(partitionDir, true, true)
     ]
     /** @type {string[]} */
     let subNodes = []
     for (const part of partitions) {
-        subNodes.push(...listDir(part) || [])
+        subNodes.push(...await listDir(part))
         rm(joinPath(part, "File System"))
         rm(joinPath(part, "MANIFEST"))
         rm(joinPath(part, "Service Worker"))
@@ -1444,12 +1455,12 @@ const clearCache = async() => {
 const clearCookies = async() => {
     const partitionDir = joinPath(await appData(), "Partitions")
     const partitions = [
-        await appData(), ...listDir(partitionDir, true, true) || []
+        await appData(), ...await listDir(partitionDir, true, true)
     ]
     /** @type {string[]} */
     let subNodes = []
     for (const part of partitions) {
-        subNodes.push(...listDir(part) || [])
+        subNodes.push(...await listDir(part))
     }
     subNodes = [...new Set(subNodes)]
     for (const part of partitions) {
@@ -1466,12 +1477,12 @@ const clearCookies = async() => {
 const clearLocalStorage = async() => {
     const partitionDir = joinPath(await appData(), "Partitions")
     const partitions = [
-        await appData(), ...listDir(partitionDir, true, true) || []
+        await appData(), ...await listDir(partitionDir, true, true)
     ]
     /** @type {string[]} */
     let subNodes = []
     for (const part of partitions) {
-        subNodes.push(...listDir(part) || [])
+        subNodes.push(...await listDir(part))
     }
     subNodes = [...new Set(subNodes)]
     for (const part of partitions) {
@@ -1534,7 +1545,7 @@ module.exports = {
     isValidIntervalValue,
     joinPath,
     listDir,
-    listDirAsync,
+    listDirSync,
     makeDir,
     matchesQuery,
     modifiedAt,

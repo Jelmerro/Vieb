@@ -57,10 +57,9 @@ const isRoot = loc => joinPath(loc) === joinPath(loc, "../")
  * @param {Electron.IpcRendererEvent} _
  * @param {string[]} directories
  * @param {string[]} files
- * @param {boolean} allowed
  * @param {string} folder
  */
-const insertCurrentDirInfo = async(_, directories, files, allowed, folder) => {
+const insertCurrentDirInfo = async(_, directories, files, folder) => {
     document.body.textContent = ""
     document.body.id = "filebrowser"
     const main = document.createElement("main")
@@ -78,13 +77,7 @@ const insertCurrentDirInfo = async(_, directories, files, allowed, folder) => {
     if (!isRoot(folder)) {
         main.append(createElement("dir", joinPath(folder, "../"), ".."))
     }
-    if (!allowed) {
-        const error = document.createElement("span")
-        error.textContent = await translate(
-            "pages.filebrowser.permissionDenied")
-        error.className = "error"
-        main.append(error)
-    } else if (directories.length === 0 && files.length === 0) {
+    if (directories.length === 0 && files.length === 0) {
         const error = document.createElement("span")
         error.textContent = await translate("pages.filebrowser.empty")
         error.className = "error"

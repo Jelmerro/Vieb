@@ -2189,7 +2189,6 @@ const updateObjectSetting = (setting, value) => {
  */
 const set = async(src, setting, value) => {
     if (await isValidSetting(src, setting, value)) {
-        const {applyLayout} = require("./pagelayout")
         if (setting === "keeprecentlyclosed") {
             if (["false", false, "true", true].includes(value)) {
                 await notify({
@@ -2201,6 +2200,11 @@ const set = async(src, setting, value) => {
             await updateHelpPage(src)
             return true
         }
+        const oldValue = allSettings[setting]
+        if (value === oldValue) {
+            return true
+        }
+        const {applyLayout} = require("./pagelayout")
         if (isBooleanSetting(setting)) {
             allSettings[setting] = value === "true" || value === true
         } else if (isNumberSetting(setting)) {

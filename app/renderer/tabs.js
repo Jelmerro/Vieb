@@ -765,16 +765,11 @@ const addWebviewListeners = webview => {
                 }
             }
             if (isDir(local)) {
-                let directoryAllowed = true
-                let paths = listDir(local, true)
-                if (!paths) {
-                    directoryAllowed = false
-                    paths = []
-                }
+                const paths = await listDir(local, true)
                 const dirs = paths.filter(p => isDir(p))
                 const files = paths.filter(p => isFile(p))
                 webview.send("insert-current-directory-files",
-                    dirs, files, directoryAllowed, local).catch(() => null)
+                    dirs, files, local).catch(() => null)
                 return
             }
         }

@@ -214,12 +214,14 @@ const loadThemes = async(loadedFully = false) => {
     const userstylescope = userstyle && await getSetting("userstylescope") || []
     if (userstylescope?.includes(scope)) {
         const appdata = await appData()
+        const globalCSSFiles = await listDir(joinPath(
+            appdata, "userstyle/global"), true)
+        const viebCSSFiles = await listDir(expandPath(
+            "~/vieb/userstyle/global"), true)
         const userStyleFiles = [
-            ...(listDir(joinPath(appdata, "userstyle/global"), true)
-                || []).filter(f => f.endsWith(".css")),
+            ...globalCSSFiles.filter(f => f.endsWith(".css")),
             joinPath(appdata, "userstyle/global.css"),
-            ...(listDir(expandPath("~/.vieb/userstyle/global"), true)
-                || []).filter(f => f.endsWith(".css")),
+            ...viebCSSFiles.filter(f => f.endsWith(".css")),
             expandPath("~/.vieb/userstyle/global.css"),
             joinPath(appdata, `userstyle/${domain}.css`),
             expandPath(`~/.vieb/userstyle/${domain}.css`)

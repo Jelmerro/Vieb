@@ -329,8 +329,7 @@
             "sslError": "<h2>Onbereikbare pagina</h2>De pagina kon niet succesvol worden geladen. De volgende fout is opgetreden:<br><h3>$1</h3>U kunt automatische HTTP-omleidingen inschakelen met <kbd>:set redirecttohttp</kbd>.<br>Alternatief kunt u ervoor kiezen om slechts één keer daarheen te gaan via deze HTTP-link: <a href=\"$2\">$2</a><br>Tot slot kunt u bepalen wat er moet gebeuren met ongeldige certificaten door <kbd>permissioncertificateerror</kbd> te wijzigen."
         },
         "filebrowser": {
-            "empty": "Lege map",
-            "permissionDenied": "Toestemming geweigerd"
+            "empty": "Lege map"
         },
         "help": {
             "examples": {

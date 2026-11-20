@@ -19,10 +19,10 @@
 "use strict"
 
 const {
-    joinPath, listDir, readJSONSync, writeFileSync, writeJSONSync
+    joinPath, listDirSync, readJSONSync, writeFileSync, writeJSONSync
 } = require("./app/util")
 
-const files = listDir(joinPath(__dirname, "app/translations"))
+const files = listDirSync(joinPath(__dirname, "app/translations"))
     .filter(f => f.endsWith(".json")).map(f => f.replace(/\.json$/, "")) ?? []
 const translations = {}
 for (const f of files) {

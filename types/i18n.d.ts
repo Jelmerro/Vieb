@@ -220,7 +220,6 @@ export type TranslationKeys =
     | "pages.failedload.otherError"
     | "pages.failedload.sslError"
     | "pages.filebrowser.empty"
-    | "pages.filebrowser.permissionDenied"
     | "pages.help.examples.chromium"
     | "pages.help.examples.firefox"
     | "pages.help.examples.pentadactyl"

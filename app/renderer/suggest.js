@@ -233,9 +233,9 @@ const suggestFiles = async loc => {
          */
         let matching = []
         if (dirname(location) !== location) {
-            const dirfiles = listDir(dirname(location)) ?? []
-            matching = await Promise.all(dirfiles.map(
-                p => locationToSuggestion(dirname(location), p)))
+            const dirfiles = await listDir(dirname(location))
+            matching = dirfiles.map(
+                p => locationToSuggestion(dirname(location), p))
             matching = matching.filter(p => {
                 if (!basePath(p.url).startsWith(basePath(location))) {
                     return false
@@ -243,8 +243,8 @@ const suggestFiles = async loc => {
                 return basePath(p.url) !== basePath(location)
             })
         }
-        const inDir = await Promise.all((listDir(location) ?? [])?.map(
-            p => locationToSuggestion(location, p)))
+        const indirfiles = await listDir(location)
+        const inDir = indirfiles.map(p => locationToSuggestion(location, p))
         return [...matching, ...inDir]
     }
     return []
@@ -717,7 +717,8 @@ const suggestCommand = async searchStr => {
         }
         /** @type {{[theme: string]: string}} */
         const themes = {}
-        for (const part of listDir(joinPath(getAppRootDir(), "colors")) ?? []) {
+        const cssfiles = await listDir(joinPath(getAppRootDir(), "colors"))
+        for (const part of cssfiles) {
             themes[part.replace(/\.css$/g, "")] = "built-in"
         }
         const customDirs = [
@@ -725,8 +726,8 @@ const suggestCommand = async searchStr => {
             expandPath("~/.vieb/colors")
         ]
         for (const dir of customDirs) {
-            for (const part of listDir(dir)
-                ?.filter(p => p.endsWith(".css")) ?? []) {
+            const dirfiles = await listDir(dir)
+            for (const part of dirfiles.filter(p => p.endsWith(".css"))) {
                 const location = joinPath(dir, part)
                 if (part === "default.css" || !await readFile(location)) {
                     continue
