@@ -243,13 +243,23 @@ const applyIndexedOrder = () => {
     for (const [index, type] of savedOrder.entries()) {
         for (const e of document.querySelectorAll(`.follow-${type}`)) {
             if (e instanceof HTMLElement) {
-                e.style.zIndex = `${index + 10 + savedOrder.length}`
+                e.style.zIndex = `${index + 12 + savedOrder.length}`
             }
         }
         for (const e of document.querySelectorAll(`.follow-${type}-border`)) {
             if (e instanceof HTMLElement) {
-                e.style.zIndex = `${index + 9}`
+                e.style.zIndex = `${index + 11}`
             }
+        }
+    }
+    for (const e of document.querySelectorAll(`.follow-scroll`)) {
+        if (e instanceof HTMLElement) {
+            e.style.zIndex = "10"
+        }
+    }
+    for (const e of document.querySelectorAll(`.follow-scroll-border`)) {
+        if (e instanceof HTMLElement) {
+            e.style.zIndex = "9"
         }
     }
     for (const e of document.querySelectorAll(`.follow-other`)) {

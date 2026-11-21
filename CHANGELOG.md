@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Extra "match" options for "markpositionshifted" to find matching pages on restore first
+- Element type "scroll" to follow mode, on by default for the pointer mode follow action
 
 ### Changed
 
@@ -24,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default value for "nativetheme" to "system"
 - Valid options for "markposition" and "markpositionshifted" to be more specific for marks
 - Default value for "markpositionshifted" to the new "matchswitch"
+- Scroll actions now target the largest scrollable element if the page isn't scrollable
 
 ### Removed
 

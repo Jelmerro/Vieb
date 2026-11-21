@@ -36,7 +36,7 @@ const {
     readFile,
     writeFile
 } = require("../util")
-const {notify, translate} = require("./util")
+const {canScroll, notify, translate} = require("./util")
 
 /**
  * Navigate to the next page if available.
@@ -78,16 +78,38 @@ const blur = () => {
     }
 }
 
+/** Check if the page can be scrolled or if it's fully visible, no overflow. */
+const canScrollPage = () => {
+    const el = document.scrollingElement
+    return !!el && (el.scrollHeight > el.clientHeight
+        || el.scrollWidth > el.clientWidth)
+}
+
+const largestScrollableElement = () => {
+    let largest = null
+    let largestArea = -1
+    const scrollableElements = querySelectorAll("*").filter(canScroll)
+    for (const el of scrollableElements) {
+        const rect = el.getBoundingClientRect()
+        const area = rect.width * rect.height
+        if (area > largestArea) {
+            largest = el
+            largestArea = area
+        }
+    }
+    return largest
+}
+
 /**
  * Scroll the page x and y pixels.
  * @param {number} x
  * @param {number} y
  */
 const scrollBy = (x, y) => {
-    if (window.innerHeight === document.documentElement.scrollHeight) {
-        document.body.scrollBy(x, y)
+    if (canScrollPage() && document.scrollingElement) {
+        document.scrollingElement.scrollBy(x, y)
     } else {
-        window.scrollBy(x, y)
+        largestScrollableElement()?.scrollBy(x, y)
     }
 }
 
@@ -96,14 +118,17 @@ const scrollBy = (x, y) => {
  * @param {number} perc
  */
 const scrollPerc = perc => {
-    if (document.documentElement.scrollHeight === window.innerHeight) {
-        const scrollHeightMinusScreen = document.body.scrollHeight
+    if (canScrollPage() && document.scrollingElement) {
+        const scrollHeightMinusScreen = document.scrollingElement.scrollHeight
             - window.innerHeight
-        document.body.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+        document.scrollingElement.scrollTo(
+            0, scrollHeightMinusScreen * perc / 100)
     } else {
-        const scrollHeightMinusScreen = document.documentElement.scrollHeight
-            - window.innerHeight
-        window.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+        const el = largestScrollableElement()
+        if (el) {
+            const scrollHeightMinusScreen = el.scrollHeight - el.clientHeight
+            el.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+        }
     }
 }
 

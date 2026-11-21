@@ -162,6 +162,7 @@ const defaultSettings = {
         "inputs-click",
         "media",
         "image",
+        "scroll",
         "other"
     ],
     /** @type {"filter"|"exit"|"nothing"} */
@@ -1094,6 +1095,7 @@ const checkOther = async(src, setting, value) => {
             "inputs-click",
             "media",
             "image",
+            "scroll",
             "other"
         ]
         for (const element of value) {

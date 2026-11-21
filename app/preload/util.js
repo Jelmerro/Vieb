@@ -141,4 +141,24 @@ const getSetting = set => new Promise(res => {
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 
-module.exports = {getColorVars, getSetting, notify, translate, translateAsHTML}
+/**
+ * Detect if an element can be scrolled.
+ * @param {Element} el
+ */
+const canScroll = el => {
+    const hasY = el.scrollHeight > el.clientHeight
+    const hasX = el.scrollWidth > el.clientWidth
+    if (!hasX && !hasY) {
+        return false
+    }
+    const styles = el.computedStyleMap()
+    const canY = hasY && ["auto", "scroll"].includes(
+        styles.get("overflow-y")?.toString() ?? "")
+    const canX = hasX && ["auto", "scroll"].includes(
+        styles.get("overflow-x")?.toString() ?? "")
+    return canX || canY
+}
+
+module.exports = {
+    canScroll, getColorVars, getSetting, notify, translate, translateAsHTML
+}

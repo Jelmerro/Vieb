@@ -37,7 +37,7 @@ const {
     propPixels,
     querySelectorAll
 } = require("../util")
-const {getSetting} = require("./util")
+const {canScroll, getSetting} = require("./util")
 
 /** @type {string[]|null} */
 let currentFollowStatus = null
@@ -311,6 +311,12 @@ const getAllFollowLinks = (filter = null) => {
             relevantLinks.add({el, "type": "image"})
         }
     }
+    if (!filter || filter.includes("scroll")) {
+        // Get scrollable elements, any overflowing height/width plus scrollbar
+        for (const el of allEls.filter(canScroll)) {
+            relevantLinks.add({el, "type": "scroll"})
+        }
+    }
     return new Promise(res => {
         const observer = new IntersectionObserver(allEntries => {
             const entries = new Map(allEntries.filter(
@@ -333,6 +339,9 @@ const getAllFollowLinks = (filter = null) => {
             res(parsedEls.toSorted((el1, el2) => {
                 if (!el1 || !el2) {
                     return 0
+                }
+                if (el1.type === "scroll") {
+                    return 1000
                 }
                 if (el1.type === "other") {
                     return 10000
