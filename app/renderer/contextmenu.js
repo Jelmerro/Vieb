@@ -48,7 +48,10 @@ const {getSetting} = require("./settings")
  * @typedef {(
  *   "text"|"img"|"frame"|"video"|"audio"|"link"|"titleAttr"|"linkPageTitle"
  * )} contextMenuType
- * @typedef {(import("./tabs").tabPosition | "copyimage")} contextMenuAction
+ * @typedef {(
+ *   "open"|"newtab"|"copy"|"download"
+ *   |"split"|"vsplit"|"external"|"search"|"copyimage"
+ * )} contextMenuAction
  * @typedef {{
  *   audio?: string,
  *   audioData: {

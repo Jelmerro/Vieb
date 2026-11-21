@@ -63,6 +63,7 @@ const {
     currentTab,
     execCommand,
     getUrl,
+    listPages,
     listRealPages,
     listTabs,
     notify,
@@ -1576,7 +1577,8 @@ const makeMark = async args => {
 
 /**
  * Restore a stored mark by key to a position.
- * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
+ * @param {ActionParam&{position?: ("open"|"newtab"
+ *   |"split"|"vsplit"|"matchswitch"|"matchsplit"|"matchvsplit")}} args
  */
 const restoreMark = async args => {
     if (!args.key) {
@@ -1588,13 +1590,43 @@ const restoreMark = async args => {
         qm.marks = {}
     }
     const {commonAction} = require("./contextmenu")
-    let position = getSetting("markposition")
-    const shiftedPosition = getSetting("markpositionshifted")
-    if (args.key === args.key.toUpperCase() && shiftedPosition !== "default") {
-        position = shiftedPosition
+    const {add, applyLayout} = require("./pagelayout")
+    const {switchToTab, unsuspendPage} = require("./tabs")
+    /**
+     * @type {("default"|"open"|"newtab"
+     * |"split"|"vsplit"|"matchswitch"|"matchsplit"|"matchvsplit")}
+     */
+    let position = args.position ?? getSetting("markposition")
+    const shiftedPos = getSetting("markpositionshifted")
+    if (!args.position && args.key === args.key.toUpperCase()
+        && shiftedPos !== "default") {
+        position = shiftedPos
     }
-    position = args.position ?? position
-    await commonAction(args.src, "link", position, {"link": qm.marks[args.key]})
+    const url = qm.marks[args.key]
+    const match = listPages().find(p => p.getAttribute("src") === url)
+    const tab = tabForPage(match ?? null)
+    if (!match) {
+        position = getSetting("markposition")
+    } else if (position === "matchswitch") {
+        if (tab) {
+            await switchToTab(tab)
+        }
+        return
+    } else if (position === "matchsplit") {
+        add(match, "ver", !getSetting("splitbelow"))
+    } else if (position === "matchvsplit") {
+        add(match, "hor", !getSetting("splitright"))
+    }
+    if (position === "matchsplit" || position === "matchvsplit") {
+        if (getSetting("marksplitswitch") && tab) {
+            await switchToTab(tab)
+        } else if (match) {
+            await unsuspendPage(match)
+            applyLayout()
+        }
+        return
+    }
+    await commonAction(args.src, "link", position, {"link": url})
 }
 
 /**

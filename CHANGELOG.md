@@ -13,11 +13,17 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Extra "match" options for "markpositionshifted" to find matching pages on restore first
+
 ### Changed
 
 - Default value for "keeprecentlyclosed" to "always"
 - Default value for "keeprecentlyclosedhistory" to "always"
 - Default value for "nativetheme" to "system"
+- Valid options for "markposition" and "markpositionshifted" to be more specific for marks
+- Default value for "markpositionshifted" to the new "matchswitch"
 
 ### Removed
 

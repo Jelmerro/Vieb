@@ -207,10 +207,14 @@ const defaultSettings = {
     "mapsuggest": 9000000000000000,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "mapsuggestposition": "topright",
-    /** @type {import("./tabs").tabPosition} */
+    /** @type {"open"|"newtab"|"split"|"vsplit"} */
     "markposition": "newtab",
-    /** @type {import("./tabs").tabPosition|"default"} */
-    "markpositionshifted": "default",
+    /**
+     * @type {"default"|"open"|"newtab"|"split"|"vsplit"
+     * |"matchswitch"|"matchsplit"|"matchvsplit"}
+     */
+    "markpositionshifted": "matchswitch",
+    "marksplitswitch": true,
     "maxmapdepth": 10,
     /** @type {"always"|"globalasneeded"|"elementasneeded"|"never"} */
     "menupage": "elementasneeded",
@@ -511,23 +515,18 @@ const validOptions = {
     "markposition": [
         "open",
         "newtab",
-        "copy",
-        "download",
         "split",
-        "vsplit",
-        "external",
-        "search"
+        "vsplit"
     ],
     "markpositionshifted": [
         "default",
         "open",
         "newtab",
-        "copy",
-        "download",
         "split",
         "vsplit",
-        "external",
-        "search"
+        "matchswitch",
+        "matchsplit",
+        "matchvsplit"
     ],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menusuggest": ["both", "explore", "command", "never"],

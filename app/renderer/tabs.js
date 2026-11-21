@@ -59,11 +59,6 @@ const {setMode} = require("./modes")
 const {getSetting} = require("./settings")
 
 /**
- * @typedef {(
- *   "open"|"newtab"|"copy"|"download"|"split"|"vsplit"|"external"|"search"
- * )} tabPosition
- */
-/**
  * @typedef {{
  *   container: string,
  *   muted: boolean,

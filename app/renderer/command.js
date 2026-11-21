@@ -2130,19 +2130,22 @@ const restoremark = async(src, args) => {
     const {restoreMark} = require("./actions")
     const {validOptions} = require("./settings")
     const [key, position] = args
+    const validMarkPosArgs = validOptions.markpositionshifted
+        .filter(m => m !== "default")
     /**
      * Check if a mark position is valid.
      * @param {string} pos
-     * @returns {pos is import("./tabs").tabPosition|undefined}
+     * @returns {pos is ("open"|"newtab"|"split"|"vsplit"
+     *   |"matchswitch"|"matchsplit"|"matchvsplit")}
      */
     const isValidPosition = pos => pos === undefined
-        || validOptions.markposition.includes(pos)
+        || validMarkPosArgs.includes(pos)
     if (isValidPosition(position)) {
         await restoreMark({key, position, src})
     } else {
         await notify({
             "fields": [
-                position, argsAsHumanList(validOptions.markpositionshifted)
+                position, argsAsHumanList(validMarkPosArgs)
             ],
             "id": "commands.restoremark.argCount",
             src,
