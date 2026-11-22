@@ -16,7 +16,11 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 "use strict"
+const punycode = require("punycode");
+const path = require("path");
+const fs = require("fs");
 
+const TLDList = fs.readFileSync(path.join(__dirname, "sources", "TLDList.txt")).toString().split("\n").map(tld => tld.trim()).filter((v, i) => Boolean(v) && i)
 const protocolRegex = /^[a-z][\d+.a-z-]+:\/\//
 const ipv6Regex = /^(([\dA-Fa-f]{1,4}:){7}[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,7}:|([\dA-Fa-f]{1,4}:){1,6}:[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,5}(:[\dA-Fa-f]{1,4}){1,2}|([\dA-Fa-f]{1,4}:){1,4}(:[\dA-Fa-f]{1,4}){1,3}|([\dA-Fa-f]{1,4}:){1,3}(:[\dA-Fa-f]{1,4}){1,4}|([\dA-Fa-f]{1,4}:){1,2}(:[\dA-Fa-f]{1,4}){1,5}|[\dA-Fa-f]{1,4}:((:[\dA-Fa-f]{1,4}){1,6})|:((:[\dA-Fa-f]{1,4}){1,7}|:)|fe80:(:[\dA-Fa-f]{0,4}){0,4}%[\dA-Za-z]+|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)|([\dA-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d))$/
 /**
@@ -247,6 +251,9 @@ const isUrl = location => {
         return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/]$/, ""))
     }
     const names = url.hostname.split(".")
+    const encoded = punycode.toASCII(names[names.length - 1]).toUpperCase()
+    console.log(encoded, TLDList);
+    if (!TLDList.includes(encoded)) return false
     const invalid = names.find(n => n.includes("---")
         || encodeURI(n) !== n || n.startsWith("-") || n.endsWith("-"))
         || url.host.includes("..")

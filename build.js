@@ -58,6 +58,7 @@ const defaultConfig = {"config": {
         "app/blocklists/resources",
         "app/blocklists/*.txt",
         "app/blocklists/list.json",
+        "app/sources/*.txt",
         "app/defaultapp/windows.bat",
         "app/examples/*",
         "app/img/*.*",
