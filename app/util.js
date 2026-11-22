@@ -17,16 +17,8 @@
 */
 "use strict"
 
-const fs = require("node:fs")
-const path = require("node:path")
-const {domainToASCII} = require("node:url")
-
-const tldList = new Set(
-    fs.readFileSync(path.join(__dirname, "sources", "tldList.txt"))
-        .toString().split("\n").map(tld => tld.trim())
-        .filter((v, i) => Boolean(v) && i)
-)
-tldList.add("LOCAL")
+/** @type {Set<string>?} */
+let cachedTldSet = null
 const protocolRegex = /^[a-z][\d+.a-z-]+:\/\//
 const ipv6Regex = /^(([\dA-Fa-f]{1,4}:){7}[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,7}:|([\dA-Fa-f]{1,4}:){1,6}:[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,5}(:[\dA-Fa-f]{1,4}){1,2}|([\dA-Fa-f]{1,4}:){1,4}(:[\dA-Fa-f]{1,4}){1,3}|([\dA-Fa-f]{1,4}:){1,3}(:[\dA-Fa-f]{1,4}){1,4}|([\dA-Fa-f]{1,4}:){1,2}(:[\dA-Fa-f]{1,4}){1,5}|[\dA-Fa-f]{1,4}:((:[\dA-Fa-f]{1,4}){1,6})|:((:[\dA-Fa-f]{1,4}){1,7}|:)|fe80:(:[\dA-Fa-f]{0,4}){0,4}%[\dA-Za-z]+|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)|([\dA-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d))$/
 /**
@@ -236,6 +228,7 @@ const hasProtocol = loc => protocolRegex.test(loc)
  * @param {string} location
  */
 const isUrl = location => {
+    const {domainToASCII} = require("node:url")
     if (hasProtocol(location)) {
         try {
             const url = new URL(location)
@@ -258,7 +251,16 @@ const isUrl = location => {
     }
     const names = url.hostname.split(".")
     const encoded = domainToASCII(names.at(-1) ?? "").toUpperCase()
-    if (!tldList.has(encoded)) {
+    if (!cachedTldSet) {
+        cachedTldSet = new Set((readFileSync(
+            joinPath(__dirname, "sources", "tldList.txt")
+        ) ?? " ")
+            .split("\n").map(tld => tld.trim().toLowerCase())
+            .filter(v => Boolean(v) && !v.startsWith("#")))
+        cachedTldSet.add("LOCAL")
+        cachedTldSet.add("ONION")
+    }
+    if (!cachedTldSet.has(encoded)) {
         return false
     }
     const invalid = names.find(n => n.includes("---")
@@ -1012,7 +1014,10 @@ const basePath = loc => {
  * Return the directory name of the path.
  * @param {string} loc
  */
-const dirname = loc => path.dirname(loc)
+const dirname = loc => {
+    const path = require("node:path")
+    return path.dirname(loc)
+}
 
 /**
  * Check if a path is absolute or not.
