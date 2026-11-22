@@ -137,6 +137,8 @@ const defaultSettings = {
     /** @type {"persist"|"session"|"none"} */
     "explorehist": "persist",
     "externalcommand": "",
+    /** @type {string[]} */
+    "externaltlds": [],
     /**
      * @type {(
      *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"

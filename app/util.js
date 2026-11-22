@@ -229,6 +229,7 @@ const hasProtocol = loc => protocolRegex.test(loc)
  */
 const isUrl = location => {
     const {domainToASCII} = require("node:url")
+    const {getSetting} = require("./renderer/settings")
     if (hasProtocol(location)) {
         try {
             const url = new URL(location)
@@ -250,17 +251,23 @@ const isUrl = location => {
         return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/]$/, ""))
     }
     const names = url.hostname.split(".")
-    const encoded = domainToASCII(names.at(-1) ?? "").toUpperCase()
+    const encoded = domainToASCII(names.at(-1) ?? "").toLowerCase()
     if (!cachedTldSet) {
         cachedTldSet = new Set((readFileSync(
             joinPath(__dirname, "sources", "tldList.txt")
         ) ?? " ")
             .split("\n").map(tld => tld.trim().toLowerCase())
             .filter(v => Boolean(v) && !v.startsWith("#")))
-        cachedTldSet.add("LOCAL")
-        cachedTldSet.add("ONION")
+        cachedTldSet.add("local")
+        cachedTldSet.add("localhost")
+        cachedTldSet.add("onion")
     }
-    if (!cachedTldSet.has(encoded)) {
+    if (!new Set([
+        ...cachedTldSet.keys(),
+        ...getSetting("externaltlds").map(v => v.toLowerCase())
+    ])
+        .has(encoded)
+    ) {
         return false
     }
     const invalid = names.find(n => n.includes("---")
