@@ -2730,8 +2730,44 @@ const clear = async(src, type, interval, trailingArgs = null) => {
     }
 }
 
+/**
+ * Adds a bookmark.
+ * @param {import("./common").RunSource} src
+ * @param {string?} _name
+ * @param {string?} _url
+ */
+const addBookmark = async(src, _name, _url) => {
+    let url = _url
+    let name = _name
+    if (!url) {
+        url = currentPage()?.src ?? ""
+        if (!name) {
+            name = currentTab()?.textContent ?? url
+        }
+    }
+    if (!name) {
+        name = url
+    }
+    /** @type {number} */
+    const result = await ipcRenderer.invoke("add-bookmark", name, url)
+    /** @type {import("../../types/i18n").TranslationKeys?} */
+    if (result === 2) {
+        await notify({
+            "id": "commands.bmadd.invalid", src, "type": "error"
+        })
+        return
+    }
+    if (result === 3) {
+        await notify({
+            "id": "commands.bmadd.starts#", src, "type": "error"
+        })
+    }
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
+    "bmd",
+    "bmdel",
     "Sexplore",
     "Vexplore",
     "close",
@@ -2750,6 +2786,12 @@ const rangeCompatibleCommands = [
     "write"
 ]
 const noArgumentComands = [
+    "bm",
+    "bm!",
+    "bma",
+    "bmadd",
+    "bookmarks",
+    "bookmarks!",
     "q",
     "quit",
     "qa",
@@ -2788,6 +2830,14 @@ let userCommands = {}
  */
 const commands = {
     "b": ({args, src}) => buffer(src, args),
+    "bm": ({src}) => openSpecialPage(src, "bookmarks", false),
+    "bm!": ({src}) => openSpecialPage(src, "bookmarks", true),
+    "bma": ({args, src}) => addBookmark(src, args[0], args[1]),
+    "bmadd": ({args, src}) => addBookmark(src, args[0], args[1]),
+    "bmd": ({args, src}) => delBookmark(src, args),
+    "bmdel": ({args, src}) => delBookmark(src, args),
+    "bookmarks": ({src}) => openSpecialPage(src, "bookmarks", false),
+    "bookmarks!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "buffer": ({args, src}) => buffer(src, args),
     "buffers": ({src}) => buffers(src),
     "call": ({args, src}) => callAction(args, src),

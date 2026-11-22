@@ -1489,6 +1489,39 @@ const clearLocalStorage = async() => {
     }
 }
 
+const tee = {
+    /**
+     * Errors the given arguments to the console and returns them.
+     * @template {unknown[]|[]} T Type of the arguments.
+     * @param {T} args
+     * @returns {T}
+     */
+    "error": (...args) => {
+        console.error(...args)
+        return args
+    },
+    /**
+     * Errors the given arguments to the console and returns them.
+     * @template {unknown[]|[]} T Type of the arguments.
+     * @param {T} args
+     * @returns {T}
+     */
+    "info": (...args) => {
+        console.info(...args)
+        return args
+    },
+    /**
+     * Errors the given arguments to the console and returns them.
+     * @template {unknown[]|[]} T Type of the arguments.
+     * @param {T} args
+     * @returns {T}
+     */
+    "warn": (...args) => {
+        console.warn(...args)
+        return args
+    }
+}
+
 module.exports = {
     activeElement,
     appConfig,
@@ -1557,6 +1590,7 @@ module.exports = {
     specialChars,
     specialCharsAllowSpaces,
     specialPagePath,
+    tee,
     urlToString,
     userAgentPlatform,
     userAgentResolvedSystem,

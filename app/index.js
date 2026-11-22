@@ -58,6 +58,7 @@ const {
     readJSONSync,
     rm,
     specialChars,
+    tee,
     userAgentResolvedSystem,
     watchFile,
     writeFile,
@@ -3420,4 +3421,66 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
     if (["click", "leave"].includes(inputInfo.type)) {
         wc.sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
     }
+})
+const bookmarksFile = joinPath(app.getPath("appData"), "bookmarks.json")
+
+/**
+ * Read the bookmarks from the bookmarks.json file, or create it.
+ */
+const readBookmarks = async() => {
+    const parse = await readJSON(bookmarksFile)
+    if (!parse) {
+        await writeJSON(bookmarksFile, [])
+        return []
+    }
+    if (!Array.isArray(parse)) {
+        console.error("bookmarks.json is invalid, resetting bookmarks")
+        await writeJSON(bookmarksFile, [])
+        return []
+    }
+    /** @type {{name: string, url: string}[]} */
+    // @ts-ignore the type check below ensures the type is valid
+    const bookmarks = parse.filter(
+        b => b
+        && typeof b === "object"
+        && Object.hasOwn(b, "name")
+        // @ts-ignore the statement above verifies the url property exists
+        && typeof b.name === "string"
+        && Object.hasOwn(b, "url")
+        // @ts-ignore the statement above verifies the url property exists
+        && typeof b.url === "string"
+    )
+    return bookmarks
+}
+
+ipcMain.handle("list-bookmarks", readBookmarks)
+ipcMain.handle("add-bookmark", async(_, url, name) => {
+    const bookmarks = await readBookmarks()
+    if (typeof name !== "string" || typeof url !== "string") {
+        console.error("Invalid bookmark name or url")
+        return 2
+    }
+    if (name.startsWith("#")) {
+        console.error("Bookmark name cannot start with #")
+        return 3
+    }
+    bookmarks.push({name, url})
+    await writeJSON(bookmarksFile, bookmarks)
+    return 0
+})
+ipcMain.handle("remove-bookmark", async(_, identifier) => {
+    const bookmarks = await readBookmarks()
+    let index = -1
+    if (identifier.startsWith("#")) {
+        index = Number(identifier.slice(1)) - 1
+    } else {
+        index = bookmarks.findIndex(b => b.name === identifier)
+    }
+    if (Number.isNaN(index) || index < 0 || index >= bookmarks.length) {
+        console.error("bookmark not found")
+        return 1
+    }
+    bookmarks.splice(index, 1)
+    await writeJSON(bookmarksFile, bookmarks)
+    return 0
 })
