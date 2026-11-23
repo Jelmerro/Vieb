@@ -3454,7 +3454,7 @@ const readBookmarks = async() => {
 }
 
 ipcMain.handle("list-bookmarks", readBookmarks)
-ipcMain.handle("add-bookmark", async(_, url, name) => {
+ipcMain.handle("add-bookmark", async(_, name, url) => {
     const bookmarks = await readBookmarks()
     if (typeof name !== "string" || typeof url !== "string") {
         console.error("Invalid bookmark name or url")
@@ -3472,7 +3472,7 @@ ipcMain.handle("remove-bookmark", async(_, identifier) => {
     const bookmarks = await readBookmarks()
     let index = -1
     if (identifier.startsWith("#")) {
-        index = Number(identifier.slice(1)) - 1
+        index = Number(identifier.slice(1))
     } else {
         index = bookmarks.findIndex(b => b.name === identifier)
     }

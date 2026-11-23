@@ -35,6 +35,13 @@
         "arguments": {
             "folderMissing": "Map '$1' bestaat niet!"
         },
+        "bmadd": {
+            "invalid": "Ongeldige bladwijzer naam of url.",
+            "startsTag": "Bladwijzer naam kan niet beginnen met #"
+        },
+        "bmdel": {
+            "notFound": "Geen bladwijzer gevonden voor zoekopdracht '$1'"
+        },
         "buffers": "$1",
         "clear": {
             "argCount": "Het clear commando accepteert precies twee argumenten: een type en een interval",

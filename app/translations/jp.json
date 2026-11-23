@@ -35,6 +35,13 @@
         "arguments": {
             "folderMissing": "フォルダー「$1」が存在しません！"
         },
+        "bmadd": {
+            "invalid": "ブックマーク名またはURLが無効です。",
+            "startsTag": "ブックマーク名は「#」で始めることはできません。"
+        },
+        "bmdel": {
+            "notFound": "「$1」に一致するブックマークが見つかりません。"
+        },
         "buffers": "$1",
         "clear": {
             "argCount": "コマンド「clear」にはタイプと間隔の二つの引数が必要です。",

@@ -2741,6 +2741,9 @@ const addBookmark = async(src, _name, _url) => {
     let name = _name
     if (!url) {
         url = currentPage()?.src ?? ""
+        if (name && name.endsWith("/")) {
+            name += currentTab()?.textContent ?? url
+        }
         if (!name) {
             name = currentTab()?.textContent ?? url
         }
@@ -2759,15 +2762,36 @@ const addBookmark = async(src, _name, _url) => {
     }
     if (result === 3) {
         await notify({
-            "id": "commands.bmadd.starts#", src, "type": "error"
+            "id": "commands.bmadd.startsTag", src, "type": "error"
+        })
+    }
+}
+
+/**
+ * Deletes a bookmark.
+ * @param {import("./common").RunSource} src
+ * @param {string?} _identifier
+ */
+const delBookmark = async(src, _identifier) => {
+    let identifier = _identifier
+    if (identifier && identifier.endsWith("/")) {
+        identifier += currentTab()?.textContent ?? currentPage()?.src ?? ""
+    }
+    if (!identifier) {
+        identifier = currentTab()?.textContent ?? currentPage()?.src ?? ""
+    }
+    if (await ipcRenderer.invoke("remove-bookmark", identifier)) {
+        await notify({
+            "fields": [identifier],
+            "id": "commands.bmdel.notFound",
+            src,
+            "type": "error"
         })
     }
 }
 
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
-    "bmd",
-    "bmdel",
     "Sexplore",
     "Vexplore",
     "close",
@@ -2788,8 +2812,6 @@ const rangeCompatibleCommands = [
 const noArgumentComands = [
     "bm",
     "bm!",
-    "bma",
-    "bmadd",
     "bookmarks",
     "bookmarks!",
     "q",
@@ -2834,8 +2856,8 @@ const commands = {
     "bm!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "bma": ({args, src}) => addBookmark(src, args[0], args[1]),
     "bmadd": ({args, src}) => addBookmark(src, args[0], args[1]),
-    "bmd": ({args, src}) => delBookmark(src, args),
-    "bmdel": ({args, src}) => delBookmark(src, args),
+    "bmd": ({args, src}) => delBookmark(src, args[0]),
+    "bmdel": ({args, src}) => delBookmark(src, args[0]),
     "bookmarks": ({src}) => openSpecialPage(src, "bookmarks", false),
     "bookmarks!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "buffer": ({args, src}) => buffer(src, args),
