@@ -250,6 +250,13 @@
             <li><span class="command-block">:notifications!</span> - Open the notifications page in a new tab</li>
         </ul>
         This command opens the notifications page, located at "vieb://notifications". On this page you can view a list of all the previous notifications during this session. This list is always cleared when quitting Vieb.
+        <h3 id=":bookmarks">:bookmarks</h3>
+        <a href="#bookmarks">looking for the bookmarks documentation?</a><br>
+        <ul>
+            <li><span class="command-block">:bookmarks</span>, <span class="command-block">:bm</span> - Open the bookmarks page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:bookmarks!</span>, <span class="command-block">:bm!</span> - Open the bookmarks page in a new tab</li></li>
+        </ul>
+        This command opens the bookmarks page, located at "vieb://bookmarks". On this page you can view all of your bookmarks, which are stored in Vieb's <a href="#datafolder">datafolder</a> in a file called "bookmarks.json".
         <h2 id="mappings">Mappings</h2>
         The keyboard mappings are completely dynamic in Vieb, meaning that you can change the behavior of all keyboard keys. To manage these mappings, Vieb implements a similar system to Vim, with support for recursion, multiple keystrokes, countable actions and similar features. These are all of the key differences of Vieb's mapping system compared to Vim:
         <ul>
@@ -805,6 +812,28 @@
             <li><span class="command-block">:quitall</span> - Quit Vieb</li>
         </ul>
         With quitall you will unconditionally close and stop all of Vieb. The short version of this command is "qa". To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryinterval">clearhistoryinterval</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#keeprecentlyclosedhistory">keeprecentlyclosedhistory</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containernewtab">containernewtab</a>.
+        <h2 id="bookmarks">Bookmarks</h2>
+        <a href="#:bookmarks">looking for the :bookmarks command?</a>
+        <h3 id=":bma">:bma</h3>
+        <a href=":bmadd">alias for :bmadd</a>
+        <h3 id=":bmadd">:bmadd</h3>
+        Creates a bookmark.
+        <ul>
+            <li><kbd class="command-block">:bmadd</kbd>: Creates a bookmark of the current page</li>
+            <li><kbd class="command-block">:bmadd mybookmark</kbd>: Creates a bookmark of the current page with the name "mybookmark"</li>
+            <li><kbd class="command-block">:bmadd mybookmarks/</kbd>: Creates a bookmark of the current page in the folder "mybookmarks"</li>
+            <li><kbd class="command-block">:bmadd mybookmarks/mybookmark</kbd>: Creates a bookmark in the folder "mybookmarks" with the name "mybookmark".</li>
+            <li><kbd class="command-block">:bmadd mybookmark https://vieb.dev</kbd>: Creates a bookmark of the url "https://vieb.dev" with the name "mybookmark".</li>
+        </ul>
+        <h3 id=":bmd">:bmd</h3>
+        <a href=":bmdel">alias for :bmdel</a>
+        <h3 id=":bmdel">:bmdel</h3>
+        Deletes a bookmark.
+        <ul>
+            <li><kbd class="command-block">:bmdel mybookmark</kbd>: Deletes the bookmark named "mybookmark".</li>
+            <li><kbd class="command-block">:bmdel #0</kbd>: Deletes the bookmark by numeric identifier 0 (the first bookmark).</li>
+            <li><kbd class="command-block">:bmdel mybookmarks/mybookmark</kbd>: deletes the bookmark named "mybookmark" in the folder "mybookmarks".</li>
+        </ul>
         <h1 id="settings">Settings</h1>
         There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent sessions, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
         <h2>Set command</h2>
@@ -838,6 +867,21 @@
         Vieb has an integrated adblocker, which will block advertisements and trackers based on blocklists. These blocklists are by default set to easylist, easyprivacy and ublock filters, but this can be extended. This setting is used to enable or disable the adblocker, but also to configure the update mechanism. The "static" value will use the static integrated blocklists and will not check for updates. These integrated lists are only updated when a new Vieb release is made. You can still add extra lists to use by adding ".txt" filter files to the "blocklists" folder inside your <a href="#datafolder">datafolder</a>. To enable automatic updates of these lists without waiting for a new Vieb release, you can change this setting to "update". Keep in mind that this will periodically connect to the blocklist websites to download the latest version, which is also why this setting is set to "static" by default. Setting it to "update", also allows you to create a "list.json" file inside the "blocklists" folder, which should look similar to <a href="https://github.com/Jelmerro/Vieb/blob/master/app/blocklists/list.json">the default list.json</a>, that allows you to add extra lists that should be updated when starting Vieb or updating this setting. The JSON file has a user-defined name as the key, and the values should be URLs that point directly to the blocklist filtering file on the web. The "update" value is the most powerful and useful option of the adblocker, and is recommended if you do not mind the extra web requests. Finally there is the "custom" option that allows you to implement your own external blocklist management and also stops copying any of the built-in lists on startup. Adding other lists can already be done without using the "custom" option, by adding lists to the "blocklists" folder inside Vieb's <a href="#datafolder">datafolder</a>, the custom option is most useful for people who do not want the default lists, nor the update feature, but do want to use other blocklists. You can also add lists that you want to load for all instances to the "~/.vieb/blockists/" folder. As long as the value of the adblocker setting is not "off", it will read all ".txt" files in both the global and the local blocklists folder and enable all filtering blocklists found. The "static", "update" and "custom" values merely control if you want the default lists or not ("static" vs "custom"), and if you want auto updating or not ("update" or "custom"). With "update" you always get the default lists, but you can overwrite the url for "easylist", and if desired, the url can also be empty, in which case the list will not be fetched.
         <h3 id="adblockernotifications">adblockernotifications</h3>
         Using this setting you can configure which adblocker notifications should be shown directly. By default, all notifications are shown as a regular notification and then added to the <a href="#:notifications">notifications</a> page. The setting accepts a few options that control which type of notifications should be shown. Notifications not shown to the user  can still be found on the <a href="#:notifications">notifications</a> page later. To only show the notifications for lists being loaded successfully or giving errors, use "done". This means you will not be notified when updating starts, but only when it is done or gave an error. Similarly, you can choose to only show errors with "error", and not be notified when updating starts nor when it was successfully applied. In case you do not want to see any such notifications directly you can use "none", but it is recommended to at least keep the error messages to know when a list was not successfully updated. For lite releases, this setting can also be useful to set to "none" as there is no adblocker module present.
+        <h3 id="bmposition">bmposition</h3>
+        This setting can be used to control the position of the bookmarks.<br>
+        valid options:
+        <ul>
+            <li><kbd>inline</kbd>: puts bookmarks at the start of the tab list; what the start is is determined by your theme.</li>
+            <li><kbd>outer</kbd>: puts the bookmarks in a seperate bar</li>
+        </ul>
+        <h3 id="bmvisible">bmvisible</h3>
+        This setting can be used to control the visibility of the bookmarks.<br>
+        valid options:
+        <ul>
+            <li><kbd>always</kbd>: makes bookmarks always visible</li>
+            <li><kbd>never</kbd>: hides bookmarks, effectively disabling them apart from :bookmarks</li>
+            <li><kbd>newtab</kbd>: only shows bookmarks when you are on the new tab page</li>
+        </ul>
         <h3 id="cache">cache</h3>
         This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large with extended periods of use.
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
@@ -950,21 +994,6 @@
         This setting can be used to add any number of favorite pages to the new tab page. You only need to specify the url of the page, other info will be stored automatically when you visit the site. The url needs to match exactly, although they will be prefixed with "https://" if no protocol is specified. Favorite pages will appear next to the top sites. If you only want to show favorites, without the most visited sites, set <a href="#suggesttopsites">suggesttopsites</a> to 0. When both settings are empty/disabled, the new tab page will be empty instead. The favoritepages setting is unused if you set a custom new tab page with <a href="#newtaburl">newtaburl</a>. If you want to use commas in the pattern or would like to use the Array/Object syntax, you can do so like this:
         <div class="command-block">:set favoritepages=["github.com", "youtube.com"]</div>
         This also works for append, remove and special actions of the set command, see <a href="#:set">:set</a> for details.
-        <h3 id="bmposition">bmposition</h3>
-        This setting can be used to control the position of the bookmarks.<br>
-        valid options:
-        <ul>
-            <li><kbd>inline</kbd>: puts bookmarks at the start of the tab list; what the start is is determined by your theme.</li>
-            <li><kbd>outer</kbd>: puts the bookmarks in a seperate bar</li>
-        </ul>
-        <h3 id="bmvisible">bmvisible</h3>
-        This setting can be used to control the visibility of the bookmarks.<br>
-        valid options:
-        <ul>
-            <li><kbd>always</kbd>: makes bookmarks always visible</li>
-            <li><kbd>never</kbd>: hides bookmarks, effectively disabling them apart from :bookmarks</li>
-            <li><kbd>newtab</kbd>: only shows bookmarks when you are on the new tab page</li>
-        </ul>
         <h3 id="followchars">followchars</h3>
         With this setting you can control which characters should be used to select elements when inside <a class="follow" href="#follow">follow mode</a>. By default, it will use only letters, but you can select a few other predefined sets of characters with this setting, or supply your own set like so:
         <span class="command-block">:set followchars=custom:asdf</span>
