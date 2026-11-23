@@ -2742,10 +2742,10 @@ const addBookmark = async(src, _name, _url) => {
     if (!url) {
         url = currentPage()?.src ?? ""
         if (name && name.endsWith("/")) {
-            name += currentTab()?.textContent ?? url
+            name += (currentTab()?.textContent ?? url).replace("/", "")
         }
         if (!name) {
-            name = currentTab()?.textContent ?? url
+            name = (currentTab()?.textContent ?? url).replace("/", "")
         }
     }
     if (!name) {
@@ -2775,10 +2775,12 @@ const addBookmark = async(src, _name, _url) => {
 const delBookmark = async(src, _identifier) => {
     let identifier = _identifier
     if (identifier && identifier.endsWith("/")) {
-        identifier += currentTab()?.textContent ?? currentPage()?.src ?? ""
+        identifier += (currentTab()?.textContent ?? currentPage()?.src ?? "")
+            .replace("/", "")
     }
     if (!identifier) {
-        identifier = currentTab()?.textContent ?? currentPage()?.src ?? ""
+        identifier = (currentTab()?.textContent ?? currentPage()?.src ?? "")
+            .replace("/", "")
     }
     if (await ipcRenderer.invoke("remove-bookmark", identifier)) {
         await notify({
