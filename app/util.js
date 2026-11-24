@@ -262,12 +262,8 @@ const isUrl = location => {
         cachedTldSet.add("localhost")
         cachedTldSet.add("onion")
     }
-    if (!new Set([
-        ...cachedTldSet.keys(),
-        ...getSetting("externaltlds").map(v => v.toLowerCase())
-    ])
-        .has(encoded)
-    ) {
+    const externalTlds = getSetting("externaltlds").map(v => v.toLowerCase())
+    if (!cachedTldSet.has(encoded) && !externalTlds.includes(encoded)) {
         return false
     }
     const invalid = names.find(n => n.includes("---")
