@@ -42,6 +42,10 @@
         "bmdel": {
             "notFound": "No bookmark found for query '$1'"
         },
+        "bmopen": {
+            "notFound": "No bookmark found for query '$1'"
+        },
+
         "buffers": "$1",
         "clear": {
             "argCount": "The clear command takes exactly two arguments: a type and an interval",

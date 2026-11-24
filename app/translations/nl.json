@@ -42,6 +42,9 @@
         "bmdel": {
             "notFound": "Geen bladwijzer gevonden voor zoekopdracht '$1'"
         },
+        "bmopen": {
+            "notFound": "Geen bladwijzer gevonden voor zoekopdracht '$1'"
+        },
         "buffers": "$1",
         "clear": {
             "argCount": "Het clear commando accepteert precies twee argumenten: een type en een interval",

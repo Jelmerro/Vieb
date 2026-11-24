@@ -21,6 +21,7 @@ export type TranslationKeys =
     | "commands.bmadd.invalid"
     | "commands.bmadd.startsTag"
     | "commands.bmdel.notFound"
+    | "commands.bmopen.notFound"
     | "commands.buffers"
     | "commands.clear.argCount"
     | "commands.clear.intervalInvalid"

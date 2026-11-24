@@ -2847,10 +2847,55 @@ const delBookmark = async(src, range, _identifier) => {
     }
 }
 
+/**
+ * Opens a bookmark.
+ * @param {import("./common").RunSource} src
+ * @param {string} range
+ * @param {string} identifier
+ */
+const openBookmark = async(src, range, identifier) => {
+    const {addTab} = require("./tabs")
+    /** @type {import("../util").Bookmark[]} */
+    const bookmarks = await ipcRenderer.invoke("list-bookmarks")
+    if (range) {
+        const result = await rangeToTabIdxs(
+            src, range, false, bookmarks)
+        await Promise.all(
+            result.tabs.map(i => addTab({src, "url": bookmarks[i].url}))
+        )
+    } else if (identifier.startsWith("#")) {
+        const index = Number(identifier.slice(1))
+        if (Number.isNaN(index) || index < 0 || index >= bookmarks.length) {
+            await notify({
+                "fields": [identifier],
+                "id": "commands.bmopen.notFound",
+                src,
+                "type": "error"
+            })
+            return
+        }
+        await addTab({src, "url": bookmarks[index].url})
+    } else {
+        const bookmark = bookmarks.find(b => b.name === identifier)
+        if (!bookmark) {
+            await notify({
+                "fields": [identifier],
+                "id": "commands.bmopen.notFound",
+                src,
+                "type": "error"
+            })
+            return
+        }
+        await addTab({src, "url": bookmark.url})
+    }
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "bmd",
     "bmdel",
+    "bmo",
+    "bmopen",
     "bmrange",
     "Sexplore",
     "Vexplore",
@@ -2918,6 +2963,8 @@ const commands = {
     "bmadd": ({args, src}) => addBookmark(src, args[0], args[1]),
     "bmd": ({args, range, src}) => delBookmark(src, range, args[0]),
     "bmdel": ({args, range, src}) => delBookmark(src, range, args.join(" ")),
+    "bmo": ({args, range, src}) => openBookmark(src, range, args.join(" ")),
+    "bmopen": ({args, range, src}) => openBookmark(src, range, args.join(" ")),
     "bookmarks": ({src}) => openSpecialPage(src, "bookmarks", false),
     "bookmarks!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "buffer": ({args, src}) => buffer(src, args),
