@@ -88,4 +88,7 @@ const load = async() => {
     }
 }
 
-document.addEventListener("DOMContentLoaded", load)
+document.addEventListener("DOMContentLoaded", () => {
+    load()
+    setInterval(load, 2000)
+})
