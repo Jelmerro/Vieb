@@ -2740,7 +2740,7 @@ const addBookmark = async(src, _name, _url) => {
     let url = _url
     let name = _name
     if (!url) {
-        url = currentPage()?.src ?? ""
+        url = await urlToString(currentPage()?.src ?? "")
         if (name && name.endsWith("/")) {
             name += (currentTab()?.textContent ?? url).replace("/", "")
         }

@@ -310,6 +310,9 @@
         "noMappingsForKey": "Geen mappings gevonden voor toetscombinatie: $1"
     },
     "pages": {
+        "bookmarks": {
+            "title": "Bladwijzers"
+        },
         "cookies": {
             "empty": "Er zijn nog geen cookies opgeslagen",
             "filterEmpty": "Geen cookies gevonden voor huidige filter",

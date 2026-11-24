@@ -205,6 +205,7 @@ export type TranslationKeys =
     | "mappings.list"
     | "mappings.noMappings"
     | "mappings.noMappingsForKey"
+    | "pages.bookmarks.title"
     | "pages.cookies.empty"
     | "pages.cookies.filterEmpty"
     | "pages.cookies.filterPlaceholder"

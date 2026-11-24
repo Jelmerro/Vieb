@@ -411,6 +411,14 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 @media (prefers-color-scheme: dark) {
     #helppage .nativetheme.dark {display: inline-block;}
 }
+/* bookmarks */
+#bookmarkspage #bookmarks-list {display: flex;flex-direction: column;gap: .7em;margin: .7em 0;}
+#bookmarkspage .bookmark-item {background: var(--special-page-element-bg);padding: .35em;display: flex;border: .1em solid var(--special-page-element-border);}
+#bookmarkspage .bookmark-item .bookmark-properties {display: flex;flex-direction: column;flex-grow: 1;}
+#bookmarkspage .bookmark-folder {border: .1em solid var(--special-page-element-border);padding: .35em;}
+#bookmarkspage .bookmark-folder .bookmark-folder-items {display: flex;flex-direction: column;gap: .7em;margin-left: 1.4em;margin-top: .7em;}
+#bookmarkspage .bookmark-visualization {position: relative;flex-direction: column;gap: .1em;}
+#bookmarkspage .bookmark-visualization .bookmark-reference {position: absolute;inset: .3em; font-size: smaller; bottom: 0;top: unset !important;text-align: center;border: .1em solid var(--special-page-element-border);background: var(--special-page-element-bg);}
 /* history */
 #historypage #scanning-progress {margin-bottom: 1em;}
 #historypage #hist-container {display: flex;}

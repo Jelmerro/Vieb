@@ -3438,7 +3438,7 @@ const readBookmarks = async() => {
         await writeJSON(bookmarksFile, [])
         return []
     }
-    /** @type {{name: string, url: string}[]} */
+    /** @type {import("./util").Bookmark[]} */
     // @ts-ignore the type check below ensures the type is valid
     const bookmarks = parse.filter(
         b => b
@@ -3464,7 +3464,23 @@ ipcMain.handle("add-bookmark", async(_, name, url) => {
         console.error("Bookmark name cannot start with #")
         return 3
     }
-    bookmarks.push({name, url})
+    let index = bookmarks.length
+    const path = name.split("/")
+    path.pop()
+    if (path.length > 0) {
+        const parentName = `${path.join("/")}/`
+        index = bookmarks.findLastIndex(
+            b => b.name.startsWith(parentName)
+        ) + 1
+    } else {
+        index = bookmarks.findLastIndex(
+            b => !b.name.includes("/")
+        ) + 1
+    }
+    if (index === -1) {
+        index = bookmarks.length
+    }
+    bookmarks.splice(index, 0, {name, url})
     await writeJSON(bookmarksFile, bookmarks)
     return 0
 })

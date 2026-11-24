@@ -21,10 +21,11 @@ const protocolRegex = /^[a-z][\d+.a-z-]+:\/\//
 const ipv6Regex = /^(([\dA-Fa-f]{1,4}:){7}[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,7}:|([\dA-Fa-f]{1,4}:){1,6}:[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,5}(:[\dA-Fa-f]{1,4}){1,2}|([\dA-Fa-f]{1,4}:){1,4}(:[\dA-Fa-f]{1,4}){1,3}|([\dA-Fa-f]{1,4}:){1,3}(:[\dA-Fa-f]{1,4}){1,4}|([\dA-Fa-f]{1,4}:){1,2}(:[\dA-Fa-f]{1,4}){1,5}|[\dA-Fa-f]{1,4}:((:[\dA-Fa-f]{1,4}){1,6})|:((:[\dA-Fa-f]{1,4}){1,7}|:)|fe80:(:[\dA-Fa-f]{0,4}){0,4}%[\dA-Za-z]+|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)|([\dA-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d))$/
 /**
  * @typedef {"cookies"|"downloads"|"help"
- *   |"history"|"newtab"|"notifications"|"version"} SpecialPage
+ *   |"history"|"newtab"|"notifications"|"version"|"bookmarks"} SpecialPage
  */
 /** @type {Set<SpecialPage>} */
 const specialPages = new Set([
+    "bookmarks",
     "cookies",
     "downloads",
     "help",
@@ -51,6 +52,7 @@ let homeDirPath = ""
  * }|null}
  */
 let configSettings = null
+let faviconsInitialized = false
 /** @type {Map<Element|ShadowRoot, {x: number, y: number}>} */
 const framePaddingInfo = new Map()
 const specialChars = /[\s!"#$%&'()*+,./:;<=>?@[\\\]^_`{|}~’”、。！：；-]/gi
@@ -373,6 +375,65 @@ const formatDate = dateStringOrNumber => {
     }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
         .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
         String(date.getSeconds()).padStart(2, "0")}`
+}
+
+/**
+ * @typedef {{url: string, name: string}} Bookmark
+ * @typedef {Bookmark & {
+ *     type: "item",
+ *     icon: string,
+ *     reference: number
+ * }} BMTreeMark
+ * @typedef {{type: "folder", items: BMTreeItem[], name: string}} BMTreeFolder
+ * @typedef {BMTreeMark | BMTreeFolder} BMTreeItem
+ */
+/**
+ * Returns the bookmark tree.
+ */
+const getBMTree = async() => {
+    const {ipcRenderer} = require("electron")
+    const favicons = require("./renderer/favicons")
+    if (!faviconsInitialized) {
+        await favicons.init()
+        faviconsInitialized = true
+    }
+    /** @type {{url: string, name: string}[]} */
+    const bookmarks = await ipcRenderer.invoke("list-bookmarks")
+    /**
+     * Recursively parses the bookmark list.
+     * @param {string} path - The path to to search bookmarks in, including /.
+     */
+    const tree = path => {
+        /** @type {BMTreeItem[]} */
+        const items = []
+        for (const [i, v] of bookmarks.entries()) {
+            if (!v.name.startsWith(path)) {
+                continue
+            }
+            const name = v.name.slice(path.length)
+            if (name.includes("/")) {
+                const [fName] = name.split("/", 1)
+                if (items.some(w => w.type === "folder" && w.name === fName)) {
+                    continue
+                }
+                items.push({
+                    "items": tree(`${path + fName}/`),
+                    "name": fName,
+                    "type": "folder"
+                })
+            } else {
+                items.push({
+                    "icon": favicons.forSite(v.url),
+                    "name": v.name.split("/").at(-1) ?? v.name,
+                    "reference": i,
+                    "type": "item",
+                    "url": v.url
+                })
+            }
+        }
+        return items
+    }
+    return tree("")
 }
 
 /**
@@ -1549,6 +1610,7 @@ module.exports = {
     formatSize,
     framePosition,
     getAppRootDir,
+    getBMTree,
     hasProtocol,
     intervalValueToDate,
     isAbsolutePath,

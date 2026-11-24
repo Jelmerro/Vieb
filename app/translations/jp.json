@@ -310,6 +310,9 @@
         "noMappingsForKey": "キー「$1」のマッピングが見つかりません。"
     },
     "pages": {
+        "bookmarks": {
+            "title": "ブックマーク"
+        },
         "cookies": {
             "empty": "まだクッキーが保存されていません。",
             "filterEmpty": "現在のフィルターに対する結果はありません。",

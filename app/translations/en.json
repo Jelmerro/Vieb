@@ -310,6 +310,9 @@
         "noMappingsForKey": "No mapping found for key: $1"
     },
     "pages": {
+        "bookmarks": {
+            "title": "Bookmarks"
+        },
         "cookies": {
             "empty": "There are no cookies stored yet",
             "filterEmpty": "No results for current filter",
