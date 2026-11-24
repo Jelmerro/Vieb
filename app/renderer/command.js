@@ -733,8 +733,15 @@ const translateSearchRangeToIdx = async(src, range, silent) => {
  * @param {number} start
  * @param {string} rangePart
  * @param {boolean} silent
+ * @param {unknown[]} evaluateOn
  */
-const translateRangePosToIdx = async(src, start, rangePart, silent) => {
+const translateRangePosToIdx = async(
+    src,
+    start,
+    rangePart,
+    silent,
+    evaluateOn = listTabs()
+) => {
     const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
     const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
     /** @type {(string | number)[]} */
@@ -751,30 +758,39 @@ const translateRangePosToIdx = async(src, start, rangePart, silent) => {
     if (charOrNum === "^") {
         number = 0
     }
-    let currentTabIdx = 0
-    const tab = currentTab()
-    if (tab) {
-        currentTabIdx = listTabs().indexOf(tab)
-    }
-    if (charOrNum === ".") {
-        number = currentTabIdx
+    if (evaluateOn === listTabs()) {
+        let currentTabIdx = 0
+        const tab = currentTab()
+        if (tab) {
+            currentTabIdx = listTabs().indexOf(tab)
+        }
+        if (charOrNum === ".") {
+            number = currentTabIdx
+        }
+        if (plus) {
+            if (charOrNum || rangePart.split("/").length > 2) {
+                number += Number(plus)
+            } else {
+                number = currentTabIdx + Number(plus)
+            }
+        }
+        if (minus) {
+            if (charOrNum || rangePart.split("/").length > 2) {
+                number -= Number(minus)
+            } else {
+                number = currentTabIdx - Number(minus)
+            }
+        }
+    } else if ((charOrNum === "." || plus || minus) && !silent) {
+        await notify({
+            "fields": [rangePart],
+            "id": "commands.ranges.invalid",
+            src,
+            "type": "warning"
+        })
     }
     if (charOrNum === "$") {
-        number = listTabs().length - 1
-    }
-    if (plus) {
-        if (charOrNum || rangePart.split("/").length > 2) {
-            number += Number(plus)
-        } else {
-            number = currentTabIdx + Number(plus)
-        }
-    }
-    if (minus) {
-        if (charOrNum || rangePart.split("/").length > 2) {
-            number -= Number(minus)
-        } else {
-            number = currentTabIdx - Number(minus)
-        }
+        number = evaluateOn.length - 1
     }
     const valid = !Number.isNaN(number)
     if (!valid && !silent) {
@@ -793,10 +809,16 @@ const translateRangePosToIdx = async(src, start, rangePart, silent) => {
  * @param {import("./common").RunSource} src
  * @param {string} range
  * @param {boolean} silent
+ * @param {unknown[]} evaluateOn
  */
-const rangeToTabIdxs = async(src, range, silent = false) => {
+const rangeToTabIdxs = async(
+    src,
+    range,
+    silent = false,
+    evaluateOn = listTabs()
+) => {
     if (range === "%") {
-        return {"tabs": listTabs().map((_, i) => i), "valid": true}
+        return {"tabs": evaluateOn.map((_, i) => i), "valid": true}
     }
     if (range.includes(",")) {
         const [start, end, tooManyArgs] = range.split(",", 3)
@@ -822,7 +844,8 @@ const rangeToTabIdxs = async(src, range, silent = false) => {
             }
             return {"tabs": [], "valid": false}
         }
-        const startPos = await translateRangePosToIdx(src, 0, start, silent)
+        const startPos = await translateRangePosToIdx(
+            src, 0, start, silent, evaluateOn)
         if (!startPos.valid) {
             if (!silent) {
                 await notify({
@@ -835,7 +858,7 @@ const rangeToTabIdxs = async(src, range, silent = false) => {
             return {"tabs": [], "valid": false}
         }
         const endPos = await translateRangePosToIdx(
-            src, startPos.num, end, silent)
+            src, startPos.num, end, silent, evaluateOn)
         if (!endPos.valid) {
             if (!silent) {
                 await notify({
@@ -848,18 +871,28 @@ const rangeToTabIdxs = async(src, range, silent = false) => {
             return {"tabs": [], "valid": false}
         }
         return {
-            "tabs": listTabs().map((_, i) => i).slice(
+            "tabs": evaluateOn.map((_, i) => i).slice(
                 startPos.num, endPos.num + 1),
             "valid": true
         }
     }
     if (range.split("/").length > 2) {
-        const flags = [...range.split("/", 1)[0]]
-        if (flags.includes("g")) {
-            return translateSearchRangeToIdx(src, range, silent)
+        if (evaluateOn === listTabs()) {
+            const flags = [...range.split("/", 1)[0]]
+            if (flags.includes("g")) {
+                return translateSearchRangeToIdx(src, range, silent)
+            }
+        } else if (!silent) {
+            await notify({
+                "fields": [range],
+                "id": "commands.ranges.invalid",
+                src,
+                "type": "warning"
+            })
         }
     }
-    const result = await translateRangePosToIdx(src, 0, range, silent)
+    const result = await translateRangePosToIdx(
+        src, 0, range, silent, evaluateOn)
     if (result.valid) {
         return {"tabs": [result.num], "valid": true}
     }
@@ -2775,22 +2808,22 @@ const addBookmark = async(src, _name, _url) => {
  */
 const delBookmark = async(src, range, _identifier) => {
     if (range) {
-        const [a, b] = range.split(",").map(Number)
+        const result = await rangeToTabIdxs(
+            src, range, false, await ipcRenderer.invoke("list-bookmarks"))
         await Promise.all(
-            Array.from({"length": b - a}, (_, i) => {
-                const id = a + i
-                return ipcRenderer.invoke("remove-bookmark", `#${id}`)
-                    .then(async v => {
-                        if (v) {
-                            await notify({
-                                "fields": [`#${id}`],
-                                "id": "commands.bmdel.notFound",
-                                src,
-                                "type": "error"
-                            })
-                        }
-                    })
-            })
+            result.tabs.map(i => ipcRenderer
+                .invoke("remove-bookmark", `#${i}`)
+                .then(async v => {
+                    if (v) {
+                        await notify({
+                            "fields": [`#${i}`],
+                            "id": "commands.bmdel.notFound",
+                            src,
+                            "type": "error"
+                        })
+                    }
+                })
+            )
         )
     } else {
         let identifier = _identifier
