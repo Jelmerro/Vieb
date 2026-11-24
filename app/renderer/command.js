@@ -2770,30 +2770,55 @@ const addBookmark = async(src, _name, _url) => {
 /**
  * Deletes a bookmark.
  * @param {import("./common").RunSource} src
+ * @param {string} range
  * @param {string?} _identifier
  */
-const delBookmark = async(src, _identifier) => {
-    let identifier = _identifier
-    if (identifier && identifier.endsWith("/")) {
-        identifier += (currentTab()?.textContent ?? currentPage()?.src ?? "")
-            .replace("/", "")
-    }
-    if (!identifier) {
-        identifier = (currentTab()?.textContent ?? currentPage()?.src ?? "")
-            .replace("/", "")
-    }
-    if (await ipcRenderer.invoke("remove-bookmark", identifier)) {
-        await notify({
-            "fields": [identifier],
-            "id": "commands.bmdel.notFound",
-            src,
-            "type": "error"
-        })
+const delBookmark = async(src, range, _identifier) => {
+    if (range) {
+        const [a, b] = range.split(",").map(Number)
+        await Promise.all(
+            Array.from({"length": b - a}, (_, i) => {
+                const id = a + i
+                return ipcRenderer.invoke("remove-bookmark", `#${id}`)
+                    .then(async v => {
+                        if (v) {
+                            await notify({
+                                "fields": [`#${id}`],
+                                "id": "commands.bmdel.notFound",
+                                src,
+                                "type": "error"
+                            })
+                        }
+                    })
+            })
+        )
+    } else {
+        let identifier = _identifier
+        if (identifier && identifier.endsWith("/")) {
+            identifier
+                += (currentTab()?.textContent ?? currentPage()?.src ?? "")
+                    .replace("/", "")
+        }
+        if (!identifier) {
+            identifier = (currentTab()?.textContent ?? currentPage()?.src ?? "")
+                .replace("/", "")
+        }
+        if (await ipcRenderer.invoke("remove-bookmark", identifier)) {
+            await notify({
+                "fields": [identifier],
+                "id": "commands.bmdel.notFound",
+                src,
+                "type": "error"
+            })
+        }
     }
 }
 
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
+    "bmd",
+    "bmdel",
+    "bmrange",
     "Sexplore",
     "Vexplore",
     "close",
@@ -2858,8 +2883,8 @@ const commands = {
     "bm!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "bma": ({args, src}) => addBookmark(src, args[0], args[1]),
     "bmadd": ({args, src}) => addBookmark(src, args[0], args[1]),
-    "bmd": ({args, src}) => delBookmark(src, args[0]),
-    "bmdel": ({args, src}) => delBookmark(src, args[0]),
+    "bmd": ({args, range, src}) => delBookmark(src, range, args[0]),
+    "bmdel": ({args, range, src}) => delBookmark(src, range, args.join(" ")),
     "bookmarks": ({src}) => openSpecialPage(src, "bookmarks", false),
     "bookmarks!": ({src}) => openSpecialPage(src, "bookmarks", true),
     "buffer": ({args, src}) => buffer(src, args),
