@@ -81,10 +81,6 @@ const defaultSettings = {
     "adblocker": "static",
     /** @type {"all"|"done"|"error"|"none"} */
     "adblockernotifications": "all",
-    /** @type {"inline"|"outer"} */
-    "bmposition": "outer",
-    /** @type {"always"|"newtab"|"never"} */
-    "bmvisible": "newtab",
     /** @type {"none"|"clearonquit"|"full"} */
     "cache": "clearonquit",
     "clearcookiesonquit": false,
@@ -459,8 +455,6 @@ const freeText = [
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "adblockernotifications": ["all", "done", "error", "none"],
-    "bmposition": ["inline", "outer"],
-    "bmvisible": ["always", "newtab", "never"],
     "cache": ["none", "clearonquit", "full"],
     "commandhist": ["all", "persistall", "useronly", "persistuseronly", "none"],
     "containershowname": ["automatic", "always", "never"],
