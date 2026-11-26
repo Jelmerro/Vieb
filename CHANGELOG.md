@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Newly added desktopName for 12.12.x not being aligned with appId in builds
+- Startup argument urls not being passed reliably in 12.12.x because of a race condition event
 
 ### Versions
 
