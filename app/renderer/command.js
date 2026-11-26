@@ -1034,7 +1034,7 @@ const quit = async(src, range) => {
     }
 }
 
-let currentscheme = "default"
+let currentschemes = ["default"]
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
@@ -1052,7 +1052,7 @@ const colorscheme = async(src, merge, name = null, trailingArgs = null) => {
     }
     if (!name) {
         await notify({
-            "fields": [currentscheme],
+            "fields": [currentschemes.join("+")],
             "id": "commands.colorscheme.current",
             src
         })
@@ -1071,9 +1071,6 @@ const colorscheme = async(src, merge, name = null, trailingArgs = null) => {
             break
         }
     }
-    if (merge && currentscheme === name) {
-        return
-    }
     if (!css) {
         css = await readFile(joinPath(getAppRootDir(), `colors/${name}.css`))
     }
@@ -1084,6 +1081,9 @@ const colorscheme = async(src, merge, name = null, trailingArgs = null) => {
             src,
             "type": "warning"
         })
+        return
+    }
+    if (merge && currentschemes.at(-1) === name) {
         return
     }
     if (userColorDir) {
@@ -1115,9 +1115,9 @@ const colorscheme = async(src, merge, name = null, trailingArgs = null) => {
     const {setCustomStyling} = require("./settings")
     await setCustomStyling(css)
     if (merge) {
-        currentscheme += `+${name}`
+        currentschemes.push(name)
     } else {
-        currentscheme = name
+        currentschemes = [name]
     }
 }
 
@@ -3482,8 +3482,16 @@ const commandList = (includeCustom = true) => {
 const customCommandsAsCommandList = (full = false) => {
     let commandString = Object.entries(userCommands).map(
         ([command, value]) => `command ${command} ${value}`).join("\n")
-    if (full || currentscheme !== "default") {
-        commandString += `\ncolorscheme ${currentscheme}`
+    const modifiedColorschemes = currentschemes.length !== 1
+        || currentschemes[0] !== "default"
+    if (full || modifiedColorschemes) {
+        for (const [index, scheme] of currentschemes.entries()) {
+            if (index === 0) {
+                commandString += `\ncolorscheme ${scheme}`
+            } else {
+                commandString += `\ncolorscheme! ${scheme}`
+            }
+        }
     }
     return commandString
 }

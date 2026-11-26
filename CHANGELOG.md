@@ -18,6 +18,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Extra "match" options for "markpositionshifted" to find matching pages on restore first
 - Element type "scroll" to follow mode, on by default for the pointer mode follow action
 - Setting "externaltlds" to control additional TLDs to be considered valid for isUrl checks
+- Nativetheme support for most colorschemes to automatically switch between dark and light
+- Colorscheme command confirm option to merge the selected theme with the existing styling to mix and merge
 
 ### Changed
 
@@ -33,6 +35,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting "searchscope" in favor of "searchreach"
 - Setting "searchemptyscope" in favor of "searchreach"
+- Redundant builtin colorschemes that can now be achieved by mixing existing ones
+- Light colorscheme variants that are now selected via the nativetheme setting instead
 
 ### Versions
 
