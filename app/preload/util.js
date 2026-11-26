@@ -18,7 +18,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {randomUUID} = require("node:crypto")
 
 const safeElements = new Set([
     "#text",
@@ -74,7 +73,7 @@ const onlyKeepSafeNodes = node => {
 const translateAsHTML = (
     id, {customLang = null, fields = []} = {}
 ) => new Promise(res => {
-    const uuid = randomUUID()
+    const uuid = window.crypto.randomUUID()
     ipcRenderer.once(`translate-query-response-${uuid}`, (_, value) => {
         const parsed = new DOMParser().parseFromString(value, "text/html")
         const body = parsed.querySelector("body")
@@ -99,7 +98,7 @@ const translateAsHTML = (
 const translate = (
     id, {customLang = null, fields = []} = {}
 ) => new Promise(res => {
-    const uuid = randomUUID()
+    const uuid = window.crypto.randomUUID()
     ipcRenderer.once(`translate-query-response-${uuid}`, (_, value) => {
         res(value)
     })
