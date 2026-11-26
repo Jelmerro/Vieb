@@ -34,16 +34,26 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "searchscope" in favor of "searchreach"
 - Setting "searchemptyscope" in favor of "searchreach"
 
+### Versions
+
+- Electron 45.5.0 (unchanged)
+- Chromium 156.0.8078.109 (unchanged)
+
+## [12.12.1](https://github.com/Jelmerro/Vieb/compare/12.12.0...12.12.1) - 2026-11-26
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/12.12.0...12.12.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/12.12.1)
+
 ### Fixed
 
 - Newly added desktopName for 12.12.0 not being aligned with appId in builds
 - Startup argument urls not being passed reliably in 12.12.0 because of a race condition event
 - Setting newtaburl not working at all in 12.12.0
+- Build releases not starting properly on systems with sandboxed Electron versions
 
 ### Versions
 
-- Electron 45.4.1 (unchanged)
-- Chromium 156.0.8078.100 (unchanged)
+- Electron 45.5.0 (was 45.4.1)
+- Chromium 156.0.8078.109 (was 156.0.8078.100)
 
 ## [12.12.0](https://github.com/Jelmerro/Vieb/compare/12.11.0...12.12.0) - 2026-11-20
 

@@ -583,7 +583,8 @@ comix.to##+js(nosiif, window.open)
 comix.to##+js(nosiif, ._$)
 comix.to##+js(nostif, ._$)
 ||imacdn.com/apics/*.gif
-comix.to##[src*=".gif"]
+comix.to##.home-banner
+||comix.to/assets/gotaku-banner
 ! https://github.com/uBlockOrigin/uAssets/issues/31644
 comix.to##+js(json-edit-fetch-response, .result.items.*[?.content*="'+'"], propsToMatch, /comments)
 ! https://www.reddit.com/r/uBlockOrigin/comments/1s9to5u/how_to_lock_a_tabstop_a_forced_redirect/
@@ -604,6 +605,7 @@ lofi-nopixel.com,lofi-onx.com,lofi-prodigy.com,lofi-prestige.com##div[data-testi
 ###app a[href^="https://t.nettrck.store/"]
 kaa.lt##div[class^="col-"]:has(> .show-item > .native-ad-cover)
 kaa.lt##div[class^="col-"]:has(> .show-item > .native-ad-card)
+kaa.lt##div[class^="col-"]:has(> .show-item > .v-card > .poster-frame)
 kaa.lt###premium-swipey-bar
 kaa.lt##+js(acs, EventTarget.prototype.addEventListener, window.open)
 kaa.lt##+js(set, KAA.state.revspot, undefined)
@@ -613,7 +615,10 @@ kaa.lt##+js(nosiif, enforceVideoShield)
 kaa.lt##+js(nowoif, _blank)
 kaa.lt##+js(aost, document.createElement, startOrchestrator)
 kaa.lt###fullscreen-ad-trap
-||kaa.lt/*x*.html^$frame,1p
+kaa.lt##a[href*=".html"][target="_blank"]
+||kaa.lt/*.html^$frame,1p
+||kaa.lt/*.html^$popup
+||kaa.lt/_nuxt/*.js?$script,1p,replace=/^.+TARGET_URL.+//s
 ||xgamehub.net/kaa/
 
 ! https://www.reddit.com/r/uBlockOrigin/comments/1rbebkx/adblock_detection_on_httpsfilmpornoitalianoorg/
@@ -1533,8 +1538,8 @@ apps2app.com##+js(rmnt, script, blur)
 apps2app.com##+js(nowoif, _blank)
 apps2app.com##.ads
 
-! https://github.com/uBlockOrigin/uAssets/issues/33522
-ilforumdeibrutti.is##+js(rmnt, script, hidden';)
+! https://github.com/uBlockOrigin/uAssets/issues/35448
+ilforumdeibrutti.is##+js(rmnt, script, adblock)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33555
 ||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=google-ima.js,domain=i24news.tv
@@ -2025,7 +2030,6 @@ hao123.com##+js(json-edit-xhr-response, .data.*[?.hasAd==true], propsToMatch, /c
 
 ! https://github.com/uBlockOrigin/uAssets/issues/34601
 ||rule34.world/api/v*/infrastructure/dynamic-meta/user|
-rule34.world##+js(set-local-storage-item, /^app:/, $remove$)
 
 ! fapnut.net ads
 fapnut.net##+js(rmnt, script, adConfig)
@@ -2341,12 +2345,6 @@ pdftoshokan.com##^script:has-text(/ad.?Config|prepare.?Pop|\/popunder|ads_host/)
 igorslab.de##^script#igorslab-tracking
 igorslab.de##a[aria-label*="Banner"]
 igorslab.de##.herald-sticky
-igorslab.de##img[src^="blob:http"]
-/^https:\/\/www\.igorslab\.de\/(?:[0-9a-z-]{7,}\/)+A[\/0-9A-Z_a-z-]{100,}(?:[0-9a-z-]{7,}\/)*$/$image,1p,match-case
-/^https:\/\/www\.igorslab\.de\/wp-content\/uploads\/202\d\/\d{2}\/(?=[a-z]*\d)(?=\d*[a-z])[0-9a-z]{7,15}\.(?:pn|jp)g(?:\?[0-9A-Z_a-z-]{7,}=[0-9A-Z_a-z-]{7,})?$/$image,1p,match-case
-*$script,xhr,3p,denyallow=google.com|jsdelivr.net,domain=igorslab.de
-||igorslab.de^$script,xhr,1p
-||igorslab.de/?$image
 ||igorslab.de/wp-content/*/ajax-handler.php$image
 ||igorslab.de/wp-content/uploads/2020/03/980x120px_pure.jpg
 ||igorslab.de/wp-content/uploads/2020/03/igor_pulse_9070GRE_
@@ -2360,6 +2358,7 @@ igorslab.de##img[src^="blob:http"]
 ||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGM50W_1024x120px.jpg
 ||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGP30_D1-D6_301x251px.jpg
 ||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGP30_D1-D6_301x501px.jpg
+||igorslab.de/wp-content/uploads/2021/07/SHARKOON_Igors_Lab_SKILLER_SGK50_S2_1024x120px.jpg
 ||igorslab.de/wp-content/uploads/2021/11/Fractal-Sep-launch.jpg
 ||igorslab.de/wp-content/uploads/2022/12/View-600-Teal-300x400-1.jpg
 ||igorslab.de/wp-content/uploads/2023/04/980x100_DAMN_Fruehlingsdeals_ARCTIC_MINDFACTORY.jpg
@@ -2385,45 +2384,20 @@ igorslab.de##img[src^="blob:http"]
 ||igorslab.de/wp-content/uploads/2026/10/HY2612-V2.jpg
 ||igorslab.de/wp-content/uploads/2026/10/Solstice-H.png
 ||igorslab.de/wp-content/uploads/2026/10/Solstice-V.png
-@@/^https:\/\/www\.igorslab\.de\/wp-content\/themes\/igor\/js\/jquery-\d\.\d{1,2}\.\d{1,2}\.min\.js\?ver=/$script,1p,match-case
-@@||www.igorslab.de/wp-content/uploads/20*.pdf^$xhr,1p
-@@||www.igorslab.de/community/$script,xhr
-@@||www.igorslab.de/cdn-cgi/challenge-platform/$script,xhr
-@@||www.igorslab.de/cdn-cgi/scripts/*/cloudflare-static/rocket-loader.min.js
-@@||www.igorslab.de/wp-content/plugins/XFWP/assets/js/xfwp-admin.js
-@@||www.igorslab.de/wp-content/plugins/ba-plus-before-after-image-slider/assets/s201-bai.js
-@@||www.igorslab.de/wp-content/plugins/igorslab-advanced-pdf-viewer/assets/viewer.js
-@@||www.igorslab.de/wp-content/plugins/igorslab-ai-seo-performance-suite/assets/js/consent.js
-@@||www.igorslab.de/wp-content/plugins/igorslab-geizhals-auto/assets/ilgha-frontend.js
-@@||www.igorslab.de/wp-content/plugins/igorslab-youtube-latest-shortcode/assets/frontend.js
-@@||www.igorslab.de/wp-content/plugins/meks-flexible-shortcodes/js/main.js
-@@||www.igorslab.de/wp-content/plugins/wonderplugin-gridgallery/engine/wonderplugingridgallery.js
-@@||www.igorslab.de/wp-content/plugins/wonderplugin-gridgallery/engine/wonderplugingridlightbox.js
-@@||www.igorslab.de/wp-content/plugins/wonderplugin-gallery/engine/wonderplugingallery.js
-@@||www.igorslab.de/wp-content/plugins/wonderplugin-slider/engine/wonderpluginslider.js
-@@||www.igorslab.de/wp-content/plugins/wonderplugin-slider/engine/wonderpluginsliderskins.js
-@@||www.igorslab.de/wp-content/plugins/wp-google-search/assets/js/google_cse_v2.js
-@@||www.igorslab.de/wp-content/themes/herald/assets/js/min.js
-@@||www.igorslab.de/wp-includes/js/utils.min.js
-@@||www.igorslab.de/wp-includes/js/imagesloaded.min.js
-@@||www.igorslab.de/wp-admin/admin-ajax.php
-igorslab.de##a[rel][target]:not([target="blank"],[target="_blank"])
+||igorslab.de/wp-content/uploads/2026/08/300_x_400px_-_PS_Pro-1.png
+||igorslab.de/wp-content/uploads/2025/03/980_x_125px_-_PS_Pro.png
+||igorslab.de/wp-content/uploads/2026/08/300x400.png
+||igorslab.de/wp-content/uploads/2022/12/CAPO-X.png
+||igorslab.de/wp-content/uploads/2026/08/980x125.png
+||igorslab.de/wp-content/plugins/igorslab-ads-suite/
 igorslab.de##[class]:has-text(/^\s*(Advertisement|Werbung|广告)\s*$/)
 igorslab.de##div[class]:matches-css-before(content: /^\s*\"(Advertis.+|Werbung|广告)\"\s*$/)
-igorslab.de##img:remove-attr(/data-.+/)
-igorslab.de/community/#@#img:remove-attr(/data-.+/)
-igorslab.de##+js(no-fetch-if, %22vt%22)
-||igorslab.de/wp-content/plugins/igorslab-ads-suite/
 igorslab.de##.ilgha-scale-frame:has-text(/Similar products|Ähnliche Artikel|相似产品/)
-igorslab.de##div[style="height: 90 px; text-align: left;"]
-igorslab.de##div[style^="display:block;position:relative;max-width:"]
 igorslab.de##div[id]:matches-attr("/trackid$/")
-igorslab.de###extras, #ilab-consent-banner, #ilab-consent-reopen-wrap, .entry-header, .footer-bottom, .herald-entry-content, .herald-header-wraper, .herald-main-content, .herald-module, .widget-title, .xfwp-tabbed, .mfp-content:first-of-type:others()
-igorslab.de/community/#@##extras, #ilab-consent-banner, #ilab-consent-reopen-wrap, .entry-header, .footer-bottom, .herald-entry-content, .herald-header-wraper, .herald-main-content, .herald-module, .widget-title, .xfwp-tabbed, .mfp-content:first-of-type:others()
-igorslab.de##[style*="!important"]
-igorslab.de##[style*="aspect-ratio"]
-igorslab.de##[style*="background-image:url"]
-igorslab.de##div[style*="blob:http"]:style(background: none !important;)
+igorslab.de##.entry-content > img[style*="max-width: 100%;"]
+igorslab.de##.entry-content > a:has(> img:only-child:not([class], [alt], [srcset]))
+igorslab.de##.entry-content > div > div > a:last-child:has(> img:only-child:not([class], [alt], [srcset]))
+igorslab.de###extras > div[class][id]:has(> a:only-child > img[src^="https://www.igorslab.de/wp-content/uploads/"]:only-child)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/35227
 stmify.com##+js(rmnt, script, "'error'")
@@ -2520,3 +2494,45 @@ camsmut.com##a[href^="/g/"]
 torrentkong.cc##+js(rmnt, script, __kgrun)
 torrentkong.cc##+js(rmnt, noscript, kgate)
 torrentkong.cc##+js(nostif, __kgrun)
+
+! whispersinthecorridors.in ads
+whispersinthecorridors.in##.wh-popad
+whispersinthecorridors.in##body:style(overflow: auto !important)
+
+! https://github.com/uBlockOrigin/uAssets/issues/32278#issuecomment-7030651342
+startpage.com##+js(rpnt, script, /"(?:(?:ad_admiral|adblock_paywall)":[^\,}]*|experiment_id":"(?:hard_block|adblock_paywall)_[^"]*")\,?/, , sedCount, 1)
+
+! https://wasmarcade.com/ - popup
+wasmarcade.com##+js(nowoif, _blank)
+
+! https://github.com/AdguardTeam/AdguardFilters/issues/247507
+||securepubads.g.doubleclick.net/tag/js/gpt.js$script,redirect=noop.js:10,domain=zeta-ai.io
+
+! https://github.com/uBlockOrigin/uAssets/issues/35479
+imgtag.co.kr##+js(nosiif, adsbygoogle)
+imgtag.co.kr##.en-pt--ad
+imgtag.co.kr##.itgp-ad
+
+! https://github.com/uBlockOrigin/uAssets/issues/35491
+dropdrive.rip##+js(trusted-set-attr, script, data-download-probe, 'ready')
+dropdrive.rip##+js(nostif, offsetHeight)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35423
+knshow.com##+js(rmnt, script, .offsetHeight)
+
+! https://github.com/uBlockOrigin/uAssets/issues/35500
+toolxox.com##+js(trusted-replace-argument, Promise.prototype.then, 0, noopFunc, condition, toolxoxAdblock)
+||short.askingtips.com/*.php?url=$urlskip=?url
+
+! https://github.com/uBlockOrigin/uAssets/issues/35505
+||pages.dev/assets/js/devtools-guard.js
+
+! https://github.com/uBlockOrigin/uAssets/issues/35461
+||cinevid.sbs/script/tracker.js
+||cinevid.sbs/script/ads.js
+
+! https://github.com/uBlockOrigin/uAssets/issues/35496
+sofaflix.icu##+js(trusted-set-local-storage-item, sf:dismissed_notifications, [15])
+sofaflix.icu##+js(nowoif, _blank)
+sofaflix.icu##[aria-label*="Quảng cáo"]
+.gif^$image,from=sofaflix.icu

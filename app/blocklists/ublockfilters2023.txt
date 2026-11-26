@@ -3414,8 +3414,8 @@ pureleaks.net##+js(aopw, popName)
 ||mycinema.pro^$csp=frame-src
 
 ! https://github.com/uBlockOrigin/uAssets/issues/19659
-snapwordz.com,toolxox.com##+js(rmnt, script, /adblock/i)
-snapwordz.com,toolxox.com##+js(no-fetch-if, googlesyndication)
+snapwordz.com##+js(rmnt, script, /adblock/i)
+snapwordz.com##+js(no-fetch-if, googlesyndication)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/19660
 afly.pro##+js(noeval-if, ads)
@@ -4108,6 +4108,10 @@ x.com##article[data-testid="tweet"] a[href^="https://linkneverdiel.com"]
 ! x.com##+js(trusted-json-edit, .[?.media_entities.*.video_info.variants]..url_data.url="https://twitter.undefined")
 ! x.com##+js(nowoif, twitter.undefined)
 ! x.com##a[href="https://twitter.undefined/"]
+! https://github.com/uBlockOrigin/uAssets/issues/20792#issuecomment-7108070218
+twitter.com,x.com,~platform.twitter.com##+js(json-prune-fetch-response, data.*.home_timeline_urt.instructions.[].entries.[-].content.content.promoted_metadata, , propsToMatch, /Home)
+twitter.com,x.com,~platform.twitter.com##+js(json-prune-fetch-response, data.threaded_conversation_with_injections_v2.instructions.[].entries.[-].content.items.[].item.content.promoted_metadata, , propsToMatch, /TweetDetail)
+twitter.com,x.com,~platform.twitter.com##+js(json-prune-fetch-response, data.search_by_raw_query.search_timeline.timeline.instructions.[].entries.[-].content.content.promoted_metadata, , propsToMatch, /Search)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/20800
 jornadaperfecta.com##+js(rmnt, script, ad-block-activated)
