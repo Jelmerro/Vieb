@@ -23,6 +23,8 @@ const {
     currentPage,
     currentTab,
     getUrl,
+    hasProtocol,
+    isUrl,
     sendToPageOrSubFrame
 } = require("./common")
 const {getSetting} = require("./settings")
@@ -209,8 +211,7 @@ const clickAtLink = async(link, src = "user") => {
             (link.y + link.height / 2) * factor)
         return
     }
-    const {isUrl} = require("../util")
-    if (link.url && link.type === "url" && isUrl(link.url)) {
+    if (link.url && link.type === "url" && await isUrl(link.url)) {
         const {navigateTo} = require("./tabs")
         await navigateTo(src, link.url)
         return
@@ -311,9 +312,8 @@ const onclickListener = async(e, link) => {
     if (!getMouseConf("follow")) {
         return
     }
-    const {isUrl} = require("../util")
     const {setMode} = require("./modes")
-    if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
+    if (e.button === 1 && link.type === "url" && await isUrl(link.url)) {
         await setMode(modeBeforeFollow)
         const {addTab} = require("./tabs")
         await addTab({
@@ -478,7 +478,6 @@ const parseAndDisplayLinks = async receivedLinks => {
     await updateUrl(page, true)
     let newLinks = receivedLinks
     if (followLinkDestination !== "current") {
-        const {hasProtocol} = require("../util")
         newLinks = receivedLinks.flatMap(link => {
             if (!link || !hasProtocol(link.url)) {
                 return []

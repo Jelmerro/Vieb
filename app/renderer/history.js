@@ -21,7 +21,6 @@ const {translate} = require("../translate")
 const {
     appData,
     deleteFile,
-    hasProtocol,
     isFile,
     isObject,
     joinPath,
@@ -31,6 +30,7 @@ const {
     urlToString,
     writeJSON
 } = require("../util")
+const {hasProtocol} = require("./common")
 const {getSetting} = require("./settings")
 
 /** @typedef {{visits: string[], title: string}} HistItem */

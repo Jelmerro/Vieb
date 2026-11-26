@@ -85,6 +85,7 @@ const canScrollPage = () => {
         || el.scrollWidth > el.clientWidth)
 }
 
+/** Find the largest scrollable element in the page by surface area. */
 const largestScrollableElement = () => {
     let largest = null
     let largestArea = -1

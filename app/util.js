@@ -17,10 +17,6 @@
 */
 "use strict"
 
-/** @type {Set<string>?} */
-let cachedTldSet = null
-const protocolRegex = /^[a-z][\d+.a-z-]+:\/\//
-const ipv6Regex = /^(([\dA-Fa-f]{1,4}:){7}[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,7}:|([\dA-Fa-f]{1,4}:){1,6}:[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,5}(:[\dA-Fa-f]{1,4}){1,2}|([\dA-Fa-f]{1,4}:){1,4}(:[\dA-Fa-f]{1,4}){1,3}|([\dA-Fa-f]{1,4}:){1,3}(:[\dA-Fa-f]{1,4}){1,4}|([\dA-Fa-f]{1,4}:){1,2}(:[\dA-Fa-f]{1,4}){1,5}|[\dA-Fa-f]{1,4}:((:[\dA-Fa-f]{1,4}){1,6})|:((:[\dA-Fa-f]{1,4}){1,7}|:)|fe80:(:[\dA-Fa-f]{0,4}){0,4}%[\dA-Za-z]+|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)|([\dA-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d))$/
 /**
  * @typedef {"cookies"|"downloads"|"help"
  *   |"history"|"newtab"|"notifications"|"version"} SpecialPage
@@ -57,19 +53,6 @@ let configSettings = null
 const framePaddingInfo = new Map()
 const specialChars = /[\s!"#$%&'()*+,./:;<=>?@[\\\]^_`{|}~’”、。！：；-]/gi
 const specialCharsAllowSpaces = /[!"#$%&'()*+,./:;<=>?@[\\\]^_`{|}~’”、。！：；-]/gi
-const dataUris = [
-    "blob",
-    "data",
-    "javascript",
-    "magnet",
-    "mailto",
-    "view-source",
-    "viewsource",
-    "sourceviewer",
-    "readerview",
-    "markdownviewer",
-    "ws"
-]
 
 /**
  * Join multiple path parts into a single resolved path.
@@ -215,68 +198,6 @@ const readJSON = loc => new Promise(res => {
         }
     })
 })
-
-/**
- * Check if any string has a valid protocol or dataUri.
- * @param {string} loc
- */
-const hasProtocol = loc => protocolRegex.test(loc)
-    || dataUris.some(d => loc.startsWith(`${d}:`))
-
-/**
- * Check if any string is a valid url.
- * @param {string} location
- */
-const isUrl = location => {
-    const {domainToASCII} = require("node:url")
-    const {getSetting} = require("./renderer/settings")
-    if (hasProtocol(location)) {
-        try {
-            const url = new URL(location)
-            return !url.host.includes("%20") && !url.username.includes("%20")
-        } catch {
-            return false
-        }
-    }
-    let url = null
-    try {
-        url = new URL(`https://${location}`)
-        if (url.host.includes("%20") || url.username.includes("%20")) {
-            return false
-        }
-    } catch {
-        return false
-    }
-    if (url.hostname.startsWith("[") && url.hostname.endsWith("]")) {
-        return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/]$/, ""))
-    }
-    const names = url.hostname.split(".")
-    const encoded = domainToASCII(names.at(-1) ?? "").toLowerCase()
-    if (!cachedTldSet) {
-        cachedTldSet = new Set((readFileSync(
-            joinPath(__dirname, "sources", "tldList.txt")
-        ) ?? " ")
-            .split("\n").map(tld => tld.trim().toLowerCase())
-            .filter(v => Boolean(v) && !v.startsWith("#")))
-        cachedTldSet.add("local")
-        cachedTldSet.add("localhost")
-        cachedTldSet.add("onion")
-    }
-    const externalTlds = getSetting("externaltlds").map(v => v.toLowerCase())
-    if (!cachedTldSet.has(encoded) && !externalTlds.includes(encoded)) {
-        return false
-    }
-    const invalid = names.find(n => n.includes("---")
-        || encodeURI(n) !== n || n.startsWith("-") || n.endsWith("-"))
-        || url.host.includes("..")
-    if (invalid || url.port && Number(url.port) <= 10) {
-        return false
-    }
-    if (names.length < 2) {
-        return url.hostname === "localhost"
-    }
-    return true
-}
 
 /**
  * Return the resolved system that should be exposed via useragent.
@@ -1535,7 +1456,6 @@ module.exports = {
     formatSize,
     framePosition,
     getAppRootDir,
-    hasProtocol,
     intervalValueToDate,
     isAbsolutePath,
     isDir,
@@ -1553,7 +1473,6 @@ module.exports = {
     isNestedStringObject,
     isObject,
     isSVGElement,
-    isUrl,
     isValidIntervalValue,
     joinPath,
     listDir,

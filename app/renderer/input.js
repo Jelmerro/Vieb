@@ -18,15 +18,14 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {
-    isElement, isUrl, matchesQuery, pageOffset, specialChars
-} = require("../util")
+const {isElement, matchesQuery, pageOffset, specialChars} = require("../util")
 const ACTIONS = require("./actions")
 const {
     currentMode,
     currentPage,
     currentTab,
     getUrl,
+    isUrl,
     listReadyPages,
     listTabs,
     notify,
@@ -1080,7 +1079,7 @@ const updateNavbarScrolling = () => {
 const cutInput = async(event = null) => {
     event?.preventDefault()
     let selection = document.getSelection()?.toString() ?? ""
-    if (currentMode() === "explore" && isUrl(selection)) {
+    if (currentMode() === "explore" && await isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
     ipcRenderer.invoke("write-clipboard", selection).catch(() => null)
@@ -1100,10 +1099,10 @@ const cutInput = async(event = null) => {
  * Execute the copy clipboard action on the url.
  * @param {Event|null} event
  */
-const copyInput = (event = null) => {
+const copyInput = async(event = null) => {
     event?.preventDefault()
     let selection = document.getSelection()?.toString() ?? ""
-    if (currentMode() === "explore" && isUrl(selection)) {
+    if (currentMode() === "explore" && await isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
     ipcRenderer.invoke("write-clipboard", selection).catch(() => null)

@@ -47,7 +47,6 @@ const {
     isDir,
     isFile,
     isFlatStringObject,
-    isUrl,
     joinPath,
     makeDir,
     readFile,
@@ -63,6 +62,7 @@ const {
     currentTab,
     execCommand,
     getUrl,
+    isUrl,
     listPages,
     listRealPages,
     listTabs,
@@ -1364,7 +1364,7 @@ const getPageRSSLinks = async args => {
         return null
     }
     return Promise.all(feedUrls.slice(0, 10).map(async(feed = "") => {
-        if (!isUrl(feed)) {
+        if (!await isUrl(feed)) {
             const pageurl = await getPageUrl()
             return getPageUrl(`${new URL(pageurl).origin}${feed}`)
         }

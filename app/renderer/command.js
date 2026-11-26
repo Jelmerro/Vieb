@@ -36,7 +36,6 @@ const {
     isAbsolutePath,
     isDir,
     isFile,
-    isUrl,
     isValidIntervalValue,
     joinPath,
     pathToSpecialPageName,
@@ -55,6 +54,7 @@ const {
     currentTab,
     downloadPath,
     execCommand,
+    isUrl,
     listRealPages,
     listTabs,
     notify,
@@ -2051,7 +2051,7 @@ const marks = async(src, args) => {
     }
     if (args.length === 2) {
         const {makeMark} = require("./actions")
-        if (isUrl(args[1])) {
+        if (await isUrl(args[1])) {
             await makeMark({"key": args[0], src, "url": args[1]})
         } else {
             await notify({
@@ -2719,7 +2719,7 @@ const clear = async(src, type, interval, trailingArgs = null) => {
             }
         } else if (interval === "all") {
             await removeOldHistory(new Date())
-        } else if (isUrl(interval)) {
+        } else if (await isUrl(interval)) {
             const {removeHistoryByPartialUrl} = require("./history")
             await removeHistoryByPartialUrl(interval)
         } else {

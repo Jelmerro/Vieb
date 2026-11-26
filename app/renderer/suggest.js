@@ -25,7 +25,6 @@ const {
     getAppRootDir,
     isAbsolutePath,
     isDir,
-    isUrl,
     joinPath,
     listDir,
     pathExists,
@@ -37,6 +36,7 @@ const {
     currentPage,
     downloadPath,
     getUrl,
+    isUrl,
     listTabs,
     pageForTab,
     searchword,
@@ -53,7 +53,7 @@ let originalValue = ""
  * Update the explore border colors based on the input type.
  * @param {string|null} searchStr
  */
-const updateColors = (searchStr = null) => {
+const updateColors = async(searchStr = null) => {
     const urlElement = getUrl()
     const search = searchStr || urlElement?.value
     if (search !== undefined && urlElement && currentMode() === "explore") {
@@ -64,7 +64,7 @@ const updateColors = (searchStr = null) => {
             urlElement.className = "suggest"
         } else if (search.startsWith("file://")) {
             urlElement.className = "file"
-        } else if (isUrl(search.trim())) {
+        } else if (await isUrl(search.trim())) {
             urlElement.className = "url"
         } else if (isAbsolutePath(local) && pathExists(local)) {
             urlElement.className = "file"
@@ -93,7 +93,7 @@ const setUrlValue = async url => {
     } else {
         urlInput.value = url
     }
-    updateColors()
+    await updateColors()
 }
 
 /** Check if the currently selected suggestion is the very first one (yet). */
@@ -318,7 +318,7 @@ const addExplore = async explore => {
  */
 const suggestExplore = async search => {
     emptySuggestions()
-    updateColors(search)
+    await updateColors(search)
     if (!search.trim()) {
         return
     }

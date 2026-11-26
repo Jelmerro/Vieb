@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Extra "match" options for "markpositionshifted" to find matching pages on restore first
 - Element type "scroll" to follow mode, on by default for the pointer mode follow action
+- Setting "externaltlds" to control additional TLDs to be considered valid for isUrl checks
 
 ### Changed
 
@@ -26,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Valid options for "markposition" and "markpositionshifted" to be more specific for marks
 - Default value for "markpositionshifted" to the new "matchswitch"
 - Scroll actions now target the largest scrollable element if the page isn't scrollable
+- Explore mode domains are now checked for validity or else reported as non url via bundled TLD list
 
 ### Removed
 

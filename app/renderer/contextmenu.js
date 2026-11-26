@@ -21,7 +21,6 @@ const {ipcRenderer} = require("electron")
 const {translate} = require("../translate")
 const {
     isElement,
-    isUrl,
     matchesQuery,
     pageContainerPos,
     propPixels,
@@ -34,6 +33,7 @@ const {
     currentTab,
     execCommand,
     getUrl,
+    isUrl,
     listReadyPages,
     listTabs,
     notify,
@@ -328,7 +328,7 @@ const commonAction = async(src, type, action, options) => {
         await addTab({src, "url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         let urlData = relevantData
-        if (isUrl(relevantData)) {
+        if (await isUrl(relevantData)) {
             const encodeurlcopy = getSetting("encodeurlcopy")
             if (encodeurlcopy === "spacesonly") {
                 urlData = relevantData.replace(/ /g, "%20")

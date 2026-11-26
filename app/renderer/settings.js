@@ -26,7 +26,6 @@ const {
     expandPath,
     isDir,
     isFile,
-    isUrl,
     isValidIntervalValue,
     joinPath,
     pathExists,
@@ -40,6 +39,7 @@ const {
 const {
     currentPage,
     currentTab,
+    isUrl,
     listPages,
     listReadyPages,
     listTabs,
@@ -1034,7 +1034,7 @@ const checkOther = async(src, setting, value) => {
             return false
         }
         for (const page of value) {
-            if (!isUrl(page)) {
+            if (!await isUrl(page)) {
                 await notify({
                     "fields": [page],
                     "id": "settings.errors.favoritepages",
@@ -1151,7 +1151,7 @@ const checkOther = async(src, setting, value) => {
             return false
         }
         const stringified = stringToUrl(value)
-        if (value && !isUrl(stringified.replace(/^https?:\/\//g, ""))) {
+        if (value && !await isUrl(stringified.replace(/^https?:\/\//g, ""))) {
             await notify({
                 "fields": [value],
                 "id": "settings.errors.newtaburl",
@@ -1417,7 +1417,7 @@ const checkOther = async(src, setting, value) => {
                 })
                 return false
             }
-            if (!isUrl(baseUrl)) {
+            if (!await isUrl(baseUrl)) {
                 await notify({
                     "fields": [baseUrl],
                     "id": "settings.errors.searchengine.url",
@@ -1533,7 +1533,7 @@ const checkOther = async(src, setting, value) => {
         for (const page of value) {
             const parts = page.split("~")
             const url = parts.shift() ?? ""
-            if (!isUrl(url)) {
+            if (!await isUrl(url)) {
                 await notify({
                     "fields": [url],
                     "id": "settings.errors.startuppages.url",
@@ -1655,7 +1655,7 @@ const checkOther = async(src, setting, value) => {
             return false
         }
         const url = stringToUrl(value)
-        if (!isUrl(url.replace(/^https?:\/\//g, ""))) {
+        if (!await isUrl(url.replace(/^https?:\/\//g, ""))) {
             await notify({
                 "fields": [value],
                 "id": "settings.errors.translateurl",

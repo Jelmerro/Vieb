@@ -22,17 +22,34 @@ const {
     appData,
     appendFile,
     expandPath,
-    hasProtocol,
+    getAppRootDir,
     isDir,
     isFile,
-    isUrl,
     joinPath,
     pathToSpecialPageName,
+    readFile,
     specialPagePath
 } = require("../util")
 
 /** @typedef {"execute"|"user"|"source"|"other"} RunSource */
 
+/** @type {Set<string>?} */
+let cachedTldSet = null
+const protocolRegex = /^[a-z][\d+.a-z-]+:\/\//
+const ipv6Regex = /^(([\dA-Fa-f]{1,4}:){7}[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,7}:|([\dA-Fa-f]{1,4}:){1,6}:[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,5}(:[\dA-Fa-f]{1,4}){1,2}|([\dA-Fa-f]{1,4}:){1,4}(:[\dA-Fa-f]{1,4}){1,3}|([\dA-Fa-f]{1,4}:){1,3}(:[\dA-Fa-f]{1,4}){1,4}|([\dA-Fa-f]{1,4}:){1,2}(:[\dA-Fa-f]{1,4}){1,5}|[\dA-Fa-f]{1,4}:((:[\dA-Fa-f]{1,4}){1,6})|:((:[\dA-Fa-f]{1,4}){1,7}|:)|fe80:(:[\dA-Fa-f]{0,4}){0,4}%[\dA-Za-z]+|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)|([\dA-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d))$/
+const dataUris = [
+    "blob",
+    "data",
+    "javascript",
+    "magnet",
+    "mailto",
+    "view-source",
+    "viewsource",
+    "sourceviewer",
+    "readerview",
+    "markdownviewer",
+    "ws"
+]
 let topOfPageWithMouse = false
 /** @type {NodeJS.Timeout|null} */
 let navbarGuiTimer = null
@@ -379,6 +396,75 @@ const getGuiStatus = async type => {
 }
 
 /**
+ * Check if any string has a valid protocol or dataUri.
+ * @param {string} loc
+ */
+const hasProtocol = loc => protocolRegex.test(loc)
+    || dataUris.some(d => loc.startsWith(`${d}:`))
+
+/**
+ * Check if any string is a valid url.
+ * @param {string} location
+ */
+const isUrl = async location => {
+    const {domainToASCII} = require("node:url")
+    const {getSetting} = require("./settings")
+    if (hasProtocol(location)) {
+        try {
+            const url = new URL(location)
+            return !url.host.includes("%20") && !url.username.includes("%20")
+        } catch {
+            return false
+        }
+    }
+    let url = null
+    try {
+        url = new URL(`https://${location}`)
+        if (url.host.includes("%20") || url.username.includes("%20")) {
+            return false
+        }
+    } catch {
+        return false
+    }
+    if (url.hostname.startsWith("[") && url.hostname.endsWith("]")) {
+        return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/]$/, ""))
+    }
+    const names = url.hostname.split(".")
+    if (Number.isNaN(names.at(-1)) || Number.isNaN(Number(names.at(-1)))) {
+        const encoded = domainToASCII(names.at(-1) ?? "").toLowerCase()
+        if (!cachedTldSet) {
+            const tldListStr = await readFile(
+                joinPath(getAppRootDir(), "sources", "tldList.txt")) ?? " "
+            cachedTldSet = new Set(
+                tldListStr.split("\n").map(tld => tld.trim().toLowerCase())
+                    .filter(v => Boolean(v) && !v.startsWith("#")))
+            cachedTldSet.add("local")
+            cachedTldSet.add("localhost")
+            cachedTldSet.add("onion")
+        }
+        if (cachedTldSet) {
+            const externalTlds = getSetting("externaltlds")
+                .map(v => v.toLowerCase())
+            if (!cachedTldSet.has(encoded) && !externalTlds.includes(encoded)) {
+                return false
+            }
+        }
+    } else if (names.length !== 4 || names.some(n => Number.isNaN(n))) {
+        return false
+    }
+    const invalid = names.find(n => n.includes("---")
+        || encodeURI(n) !== n || n.startsWith("-") || n.endsWith("-"))
+        || url.host.includes("..")
+    if (invalid || url.port && Number(url.port) <= 10) {
+        return false
+    }
+    if (names.length < 2) {
+        return url.hostname === "localhost"
+    }
+    return true
+}
+
+/**
  * Translate a string from the explore mode input to a valid url.
  * @param {string} location
  */
@@ -537,6 +623,8 @@ module.exports = {
     execCommand,
     getUrl,
     guiRelatedUpdate,
+    hasProtocol,
+    isUrl,
     listFakePages,
     listNotificationHistory,
     listPages,
