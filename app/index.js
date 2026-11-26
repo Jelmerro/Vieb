@@ -639,6 +639,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.map(u => {
     return {url}
 }).filter(Boolean)
 
+ipcMain.handle("urls", () => resolveLocalPaths(urls))
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
 /**
@@ -1011,7 +1012,6 @@ app.whenReady().then(async() => {
         if (argDebugMode) {
             mainWindow?.webContents.openDevTools({"mode": "detach"})
         }
-        mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
     })
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
         delete prefs.preload

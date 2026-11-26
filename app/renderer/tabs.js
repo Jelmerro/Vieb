@@ -1272,7 +1272,11 @@ const addTab = async opts => {
     // container (suggestion), devtools, lazy, script, muted, startup
     // Defaults for these options vary depending on app state and user settings
     const stringified = stringToUrl(opts.url || "")
+    /** @type {string|null} */
     let url = stringified.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    if (!opts.url) {
+        url = null
+    }
     if (opts.history) {
         url = opts.history?.entries.at(-1)?.url ?? url
     }
@@ -1286,7 +1290,7 @@ const addTab = async opts => {
     if (opts.switchTo === undefined) {
         opts.switchTo = true
     }
-    if (url.startsWith("devtools://")) {
+    if (url?.startsWith("devtools://")) {
         return
     }
     if (url?.startsWith("about:blank") || url === "") {
@@ -1372,7 +1376,7 @@ const addTab = async opts => {
     } else if (url) {
         const contanernames = getSetting("containernames")
         sessionName = contanernames.find(
-            c => url?.match(c.split("~", 1)[0]))?.split("~", 2)[1]
+            c => url.match(c.split("~", 1)[0]))?.split("~", 2)[1]
             || sessionName
     }
     sessionName = sessionName.replace("%n", `${linkId}`)
@@ -1483,9 +1487,9 @@ const addTab = async opts => {
     tab.setAttribute("suspended", "suspended")
     if (suspend) {
         const {titleForPage} = require("./history")
-        name.textContent = titleForPage(url) || url
+        name.textContent = titleForPage(url ?? "") || url
         const {forSite} = require("./favicons")
-        favicon.src = forSite(url) || favicon.src
+        favicon.src = forSite(url ?? "") || favicon.src
     } else if (!switchTo) {
         await unsuspendPage(page)
     }
@@ -1612,6 +1616,27 @@ const loadPreviousSessionTabs = async tabs => {
 
 /** Load the tabs from disk and from startup args. */
 const init = async() => {
+    ipcRenderer.on("navigate-to", (_, url) => navigateTo(
+        "user", stringToUrl(url)))
+    ipcRenderer.on("unresponsive", (_, id) => {
+        for (const webview of listReadyPages()) {
+            if (webview.getWebContentsId() === id) {
+                tabForPage(webview)?.classList.add("unresponsive")
+            }
+        }
+    })
+    ipcRenderer.on("responsive", (_, id) => {
+        for (const webview of listReadyPages()) {
+            if (webview.getWebContentsId() === id) {
+                tabForPage(webview)?.classList.remove("unresponsive")
+            }
+        }
+    })
+    ipcRenderer.on("new-tab", (_, url) => addTab({
+        "src": "user",
+        "switchTo": getSetting("mousenewtabswitch"),
+        "url": stringToUrl(url)
+    }))
     const config = await appConfig()
     tabFile = joinPath(config?.appdata ?? "", "tabs")
     erwicMode = isFile(joinPath(config?.appdata ?? "", "erwicmode"))
@@ -1640,70 +1665,48 @@ const init = async() => {
                 url
             })
         }
+        if (listTabs().length === 0) {
+            if (parsed) {
+                await addTab({"src": "source"})
+            } else {
+                // The very first startup with this datafolder, show help page
+                await addTab({"src": "source", "url": specialPagePath("help")})
+            }
+        }
     }
-    ipcRenderer.on("urls", async(_, pages) => {
-        for (const page of pages) {
-            const replaceStartup = getSetting("replacestartup")
-            if (replaceStartup !== "never") {
-                try {
-                    const url = currentPage()?.src ?? ""
-                    const specialName = pathToSpecialPageName(url)?.name
-                    const newtabUrl = stringToUrl(getSetting("newtaburl"))
-                    const isNewtab = specialName === "newtab"
-                        || url.replace(/\/+$/g, "")
-                        === newtabUrl.replace(/\/+$/g, "")
-                    if (isNewtab || replaceStartup === "always") {
-                        await navigateTo("source",
-                            stringToUrl(page?.url || page))
-                        continue
-                    }
-                } catch {
-                    // No tabs yet
+    const startupArgumentPages = await ipcRenderer.invoke("urls")
+    for (const page of startupArgumentPages) {
+        const replaceStartup = getSetting("replacestartup")
+        if (replaceStartup !== "never") {
+            try {
+                const url = currentPage()?.src ?? ""
+                const specialName = pathToSpecialPageName(url)?.name
+                const newtabUrl = stringToUrl(getSetting("newtaburl"))
+                const isNewtab = specialName === "newtab"
+                    || url.replace(/\/+$/g, "")
+                    === newtabUrl.replace(/\/+$/g, "")
+                if (isNewtab || replaceStartup === "always") {
+                    await navigateTo("source",
+                        stringToUrl(page?.url || page))
+                    continue
                 }
-            }
-            if (typeof page === "string") {
-                await addTab({
-                    "src": "source",
-                    "startup": true,
-                    "url": stringToUrl(page)
-                })
-            } else if (typeof page === "object" && page.url) {
-                await addTab({
-                    "src": "source",
-                    ...page,
-                    "startup": true,
-                    "url": stringToUrl(page.url)
-                })
+            } catch {
+                // No tabs yet
             }
         }
-    })
-    ipcRenderer.on("navigate-to", (_, url) => navigateTo(
-        "user", stringToUrl(url)))
-    ipcRenderer.on("unresponsive", (_, id) => {
-        for (const webview of listReadyPages()) {
-            if (webview.getWebContentsId() === id) {
-                tabForPage(webview)?.classList.add("unresponsive")
-            }
-        }
-    })
-    ipcRenderer.on("responsive", (_, id) => {
-        for (const webview of listReadyPages()) {
-            if (webview.getWebContentsId() === id) {
-                tabForPage(webview)?.classList.remove("unresponsive")
-            }
-        }
-    })
-    ipcRenderer.on("new-tab", (_, url) => addTab({
-        "src": "user",
-        "switchTo": getSetting("mousenewtabswitch"),
-        "url": stringToUrl(url)
-    }))
-    if (listTabs().length === 0 && !erwicMode) {
-        if (parsed) {
-            await addTab({"src": "source"})
-        } else {
-            // The very first startup with this datafolder, show help page
-            await addTab({"src": "source", "url": specialPagePath("help")})
+        if (typeof page === "string") {
+            await addTab({
+                "src": "source",
+                "startup": true,
+                "url": stringToUrl(page)
+            })
+        } else if (typeof page === "object" && page.url) {
+            await addTab({
+                "src": "source",
+                ...page,
+                "startup": true,
+                "url": stringToUrl(page.url)
+            })
         }
     }
 }
