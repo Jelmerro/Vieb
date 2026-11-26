@@ -1277,7 +1277,11 @@ const addTab = async opts => {
     // container (suggestion), devtools, lazy, script, muted, startup
     // Defaults for these options vary depending on app state and user settings
     const stringified = stringToUrl(opts.url || "")
+    /** @type {string|null} */
     let url = stringified.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    if (!opts.url) {
+        url = null
+    }
     if (opts.history) {
         url = opts.history?.entries.at(-1)?.url ?? url
     }
@@ -1291,7 +1295,7 @@ const addTab = async opts => {
     if (opts.switchTo === undefined) {
         opts.switchTo = true
     }
-    if (url.startsWith("devtools://")) {
+    if (url?.startsWith("devtools://")) {
         return
     }
     if (url?.startsWith("about:blank") || url === "") {
@@ -1377,7 +1381,7 @@ const addTab = async opts => {
     } else if (url) {
         const contanernames = getSetting("containernames")
         sessionName = contanernames.find(
-            c => url?.match(c.split("~", 1)[0]))?.split("~", 2)[1]
+            c => url.match(c.split("~", 1)[0]))?.split("~", 2)[1]
             || sessionName
     }
     sessionName = sessionName.replace("%n", `${linkId}`)
@@ -1488,9 +1492,9 @@ const addTab = async opts => {
     tab.setAttribute("suspended", "suspended")
     if (suspend) {
         const {titleForPage} = require("./history")
-        name.textContent = titleForPage(url) || url
+        name.textContent = titleForPage(url ?? "") || url
         const {forSite} = require("./favicons")
-        favicon.src = forSite(url) || favicon.src
+        favicon.src = forSite(url ?? "") || favicon.src
     } else if (!switchTo) {
         await unsuspendPage(page)
     }
