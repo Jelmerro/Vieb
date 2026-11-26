@@ -19,7 +19,7 @@
 
 const assert = require("node:assert")
 const {describe, test} = require("node:test")
-const UTIL = require("./common")
+const {isUrl} = require("./util")
 
 describe("Check isUrl", () => {
     const urlTests = [
@@ -254,7 +254,7 @@ describe("Check isUrl", () => {
     ]
     for (const urlTest of urlTests) {
         test(`Testing "${urlTest.url}": ${urlTest.reason}`, async() => {
-            assert.strictEqual(await UTIL.isUrl(urlTest.url), urlTest.valid)
+            assert.strictEqual(await isUrl(urlTest.url), urlTest.valid)
         })
     }
 })

@@ -37,6 +37,8 @@ const {
     userAgentTemplated,
     writeJSON
 } = require("../util")
+const {setMode} = require("./modes")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
@@ -54,9 +56,7 @@ const {
     setTopOfPageWithMouse,
     stringToUrl,
     tabForPage
-} = require("./common")
-const {setMode} = require("./modes")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /**
  * @typedef {{
@@ -157,7 +157,7 @@ const getRestoreConfig = page => {
 
 /**
  * Suspend a tab.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {HTMLSpanElement} tab
  * @param {boolean} force
  */
@@ -201,7 +201,7 @@ const suspendTab = async(src, tab, force = false) => {
 
 /**
  * Recreate a webview to in case of new container name or crash reload.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {Electron.WebviewTag} webview
  * @param {string|null} customSrc
  */
@@ -222,7 +222,7 @@ const recreateWebview = async(src, webview, customSrc = null) => {
 
 /**
  * Check if the contanernames setting is still respected, if not recreate.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {Electron.WebviewTag} webview
  * @param {string} location
  */
@@ -242,7 +242,7 @@ const checkContainerNames = async(src, webview, location) => {
 
 /**
  * Navigate the page to a new location, optionally a custom page.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} location
  * @param {Electron.WebviewTag|null} customPage
  */
@@ -463,7 +463,7 @@ const switchToTab = async tabOrIndex => {
 
 /**
  * Close a tab by index, optionally force close pinned ones.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {number|null} index
  * @param {boolean} force
  */
@@ -1263,7 +1263,7 @@ const unsuspendPage = async page => {
  *   script?: string,
  *   muted?: boolean,
  *   startup?: boolean,
- *   src: import("./common").RunSource
+ *   src: import("./util").RunSource
  * }} opts
  */
 const addTab = async opts => {
@@ -1504,7 +1504,7 @@ const addTab = async opts => {
 
 /**
  * Reopen the last closed tab and switch to it.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const reopenTab = async src => {
     if (recentlyClosed.length === 0 || listTabs().length === 0) {
@@ -1519,7 +1519,7 @@ const reopenTab = async src => {
      *   session?: string
      *   container?: string
      *   customIndex?: number
-     *   src?: import("./common").RunSource
+     *   src?: import("./util").RunSource
      * }|undefined}
      */
     const restore = recentlyClosed.pop()

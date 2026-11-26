@@ -136,7 +136,7 @@ const getSetting = set => new Promise(res => {
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("../renderer/common").NotificationInfo} opts
+ * @param {import("../renderer/util").NotificationInfo} opts
  */
 const notify = opts => ipcRenderer.sendToHost("notify", opts)
 

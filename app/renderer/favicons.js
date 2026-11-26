@@ -33,8 +33,8 @@ const {
     readJSON,
     writeJSON
 } = require("../util")
-const {currentPage, listPages, stringToUrl, tabForPage} = require("./common")
 const {getSetting} = require("./settings")
+const {currentPage, listPages, stringToUrl, tabForPage} = require("./util")
 
 let faviconFolder = ""
 let mappingFile = ""

@@ -20,6 +20,8 @@
 const {ipcRenderer} = require("electron")
 const {isElement, matchesQuery, pageOffset, specialChars} = require("../util")
 const ACTIONS = require("./actions")
+const POINTER = require("./pointer")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
@@ -33,9 +35,7 @@ const {
     setTopOfPageWithMouse,
     updateGuiVisibility,
     updateScreenshotHighlight
-} = require("./common")
-const POINTER = require("./pointer")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /**
  * @type {{[mode: string]: {
@@ -696,7 +696,7 @@ for (const keysPerMode of Object.values(defaultBindings)) {
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
-/** @type {import("./common").RunSource} */
+/** @type {import("./util").RunSource} */
 let keyboardEventSource = "user"
 /** @type {typeof defaultBindings} */
 let bindings = JSON.parse(JSON.stringify(defaultBindings))
@@ -1412,7 +1412,7 @@ const actionForKeys = keys => {
  *   key: string
  * }} options
  * @param {string} mapStr
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const sendKeysToWebview = async(options, mapStr, src) => {
     if (recordingName) {
@@ -1438,7 +1438,7 @@ const sendKeysToWebview = async(options, mapStr, src) => {
  * @param {{
  *   givenCount?: number,
  *   key?: string|undefined,
- *   src: import("./common").RunSource
+ *   src: import("./util").RunSource
  * }} opts
  */
 const doAction = async(actionName, opts) => {
@@ -1480,7 +1480,7 @@ const doAction = async(actionName, opts) => {
  * @param {boolean} recursive
  * @param {{
  *   initial?: boolean,
- *   src: import("./common").RunSource
+ *   src: import("./util").RunSource
  * }} opts
  */
 const executeMapString = async(mapStr, recursive, opts) => {
@@ -1574,7 +1574,7 @@ const executeMapString = async(mapStr, recursive, opts) => {
 
 /**
  * Repeat the last run action.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const repeatLastAction = async src => {
     if (lastExecutedMapstring) {
@@ -1942,7 +1942,7 @@ const isEmptyObject = obj => {
 
 /**
  * Sanitize any mapstring to the shortest valid version.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} mapString
  * @param {boolean} allowSpecials
  */
@@ -2279,7 +2279,7 @@ const mappingModified = (mode, mapping) => {
 
 /**
  * List a mapping as if set via a command.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} mode
  * @param {boolean} includeDefault
  * @param {string} rawKey
@@ -2304,7 +2304,7 @@ const listMapping = async(src, mode, includeDefault, rawKey) => {
 
 /**
  * List mappings as a list of map commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} oneMode
  * @param {boolean} includeDefault
  * @param {string[]|null} customKeys
@@ -2345,7 +2345,7 @@ const listMappingsAsCommandList = async(
 
 /**
  * Map a single key.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
@@ -2369,7 +2369,7 @@ const mapSingle = async(src, mode, args, noremap) => {
 
 /**
  * Handle the map command, so either list a mapping or set it.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
@@ -2424,7 +2424,7 @@ const mapOrList = async(
 
 /**
  * Unmap a specific key.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} anyAsWildcard
@@ -2468,7 +2468,7 @@ const unmap = async(src, mode, args, anyAsWildcard) => {
 
 /**
  * Clear all mappings to default or wipe them completely, optionally per mode.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} mode
  * @param {boolean} removeDefaults
  */
@@ -2493,7 +2493,7 @@ const clearmap = async(src, mode, removeDefaults = false) => {
 /**
  * Start a macro recording by key name.
  * @param {string} name
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const startRecording = async(name, src) => {
     if (recordingName) {

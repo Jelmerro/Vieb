@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
@@ -26,8 +27,7 @@ const {
     hasProtocol,
     isUrl,
     sendToPageOrSubFrame
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /**
  * @typedef {object} FollowLink
@@ -51,7 +51,7 @@ let links = []
 const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
 ]
-/** @type {import("./common").Mode} */
+/** @type {import("./util").Mode} */
 let modeBeforeFollow = "normal"
 
 /**
@@ -196,7 +196,7 @@ const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
 /**
  * Click on a follow link.
  * @param {FollowLink} link
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const clickAtLink = async(link, src = "user") => {
     const factor = currentPage()?.getZoomFactor() ?? 1
@@ -604,7 +604,7 @@ const followFiltering = () => alreadyFilteringLinks
 
 /**
  * Enter a follow mode key and narrow down results.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} code
  * @param {string} id
  * @param {boolean} stayInFollowMode

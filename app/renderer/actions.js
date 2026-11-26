@@ -20,7 +20,7 @@
 /**
  * @typedef {{
  *   key?: string,
- *   src: import("./common").RunSource,
+ *   src: import("./util").RunSource,
  *   hadModifier?: boolean,
  *   customPage?: Electron.WebviewTag
  * }} ActionParam
@@ -56,6 +56,7 @@ const {
     writeFile,
     writeJSON
 } = require("../util")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
@@ -72,8 +73,7 @@ const {
     stringToUrl,
     tabForPage,
     updateGuiVisibility
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 let lastSearchInc = true
 let lastIncSearch = ""
@@ -271,7 +271,7 @@ const previousPageNewTab = () => sendToPageOrSubFrame(
 
 /**
  * Modify a url based on a source pattern and a replacement function.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
@@ -286,7 +286,7 @@ const modifyUrl = async(src, source, replacement) => {
 
 /**
  * Move the first number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {number} movement
  */
 const moveFirstNumber = (src, movement) => modifyUrl(
@@ -299,7 +299,7 @@ const moveFirstNumber = (src, movement) => modifyUrl(
 
 /**
  * Move the last number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {number} movement
  */
 const moveLastNumber = (src, movement) => modifyUrl(
@@ -312,7 +312,7 @@ const moveLastNumber = (src, movement) => modifyUrl(
 
 /**
  * Move the page number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {number} movement
  */
 const movePageNumber = (src, movement) => modifyUrl(
@@ -337,7 +337,7 @@ const decreasePageNumber = args => movePageNumber(args.src, -1)
 
 /**
  * Move the port number based on a movement number.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {number} movement
  */
 const movePortNumber = async(src, movement) => {
@@ -879,7 +879,7 @@ const refreshTabWithoutCache = async args => {
  * Open a new tab, switch to explore mode and have the current url ready.
  * @param {{
  *   key?: string,
- *   src: import("./common").RunSource,
+ *   src: import("./util").RunSource,
  *   hadModifier?: boolean,
  *   customPage?: Electron.WebviewTag | HTMLDivElement
  * }} args

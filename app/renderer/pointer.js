@@ -29,14 +29,14 @@ const {
     urlToString,
     writeJSON
 } = require("../util")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
     listReadyPages,
     sendToPageOrSubFrame,
     tabForPage
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 let X = 0
 let Y = 0

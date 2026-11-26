@@ -31,6 +31,7 @@ const {
     readFile,
     urlToString
 } = require("../util")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
@@ -42,8 +43,7 @@ const {
     searchword,
     stringToUrl,
     updateScreenshotHighlight
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /** @type {string[]} */
 let suggestions = []
@@ -737,7 +737,8 @@ const suggestCommand = async searchStr => {
         }
         for (const [themeName, themePath] of Object.entries(themes)) {
             if (themeName.startsWith(args[0] || "")) {
-                await addCommand(`colorscheme${confirmChar} ${themeName}`, themePath)
+                await addCommand(`colorscheme${confirmChar} ${
+                    themeName}`, themePath)
             }
         }
     }

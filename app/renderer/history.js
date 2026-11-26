@@ -30,8 +30,8 @@ const {
     urlToString,
     writeJSON
 } = require("../util")
-const {hasProtocol} = require("./common")
 const {getSetting} = require("./settings")
+const {hasProtocol} = require("./util")
 
 /** @typedef {{visits: string[], title: string}} HistItem */
 

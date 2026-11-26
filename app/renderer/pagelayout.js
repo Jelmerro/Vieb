@@ -18,6 +18,7 @@
 "use strict"
 
 const {propPixels} = require("../util")
+const {getSetting} = require("./settings")
 const {
     currentPage,
     listFakePages,
@@ -26,8 +27,7 @@ const {
     listRealPages,
     listTabs,
     tabForPage
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /**
  * Get a page layout element by id.

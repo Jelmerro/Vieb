@@ -49,6 +49,7 @@ const {
     writeFile,
     writeJSON
 } = require("../util")
+const {getSetting} = require("./settings")
 const {
     currentPage,
     currentTab,
@@ -61,12 +62,11 @@ const {
     pageForTab,
     stringToUrl,
     tabForPage
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
  */
 const listSetting = async(src, setting) => {
@@ -137,7 +137,7 @@ const isStringObject = value => typeof value === "object"
 
 /**
  * Modifiy a list or a number.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"|"replace"} method
@@ -262,7 +262,7 @@ const modifyListOrObject = async(src, setting, value, method) => {
 
 /**
  * Modifiy a list or a number.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} rawValue
  * @param {"append"|"remove"|"special"|"replace"} method
@@ -392,7 +392,7 @@ const modifySetting = async(src, setting, rawValue, method = "replace") => {
 
 /**
  * Use the set command to list or modify any setting.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const setCommand = async(src, args) => {
@@ -602,7 +602,7 @@ const sourcedFiles = []
 
 /**
  * Source a specific viebrc file.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} origin
  * @param {string[]} args
  */
@@ -664,7 +664,7 @@ const source = async(src, origin, args) => {
 
 /**
  * Translate a search based range to a list of tab idxs.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
@@ -729,7 +729,7 @@ const translateSearchRangeToIdx = async(src, range, silent) => {
 
 /**
  * Translate a partial range arg to tab index based on mathematical operations.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {number} start
  * @param {string} rangePart
  * @param {boolean} silent
@@ -790,7 +790,7 @@ const translateRangePosToIdx = async(src, start, rangePart, silent) => {
 
 /**
  * Get the tab indices for a given range.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
@@ -1015,7 +1015,7 @@ const quitall = async() => {
 
 /**
  * Quit the current split, a range of splits or the browser if not using splits.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} range
  */
 const quit = async(src, range) => {
@@ -1038,7 +1038,7 @@ let currentschemes = ["default"]
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} merge
  * @param {string|null} name
  * @param {string|null} trailingArgs
@@ -1129,7 +1129,7 @@ const restart = async() => {
 
 /**
  * Open the development tools.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} userPosition
  * @param {string|null} trailingArgs
  */
@@ -1177,7 +1177,7 @@ const openInternalDevTools = () => {
 
 /**
  * Open a special page using commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} specialPage
  * @param {boolean} forceNewtab
  * @param {string|null} section
@@ -1206,7 +1206,7 @@ const openSpecialPage = async(
 
 /**
  * Open the help page at a specific section.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} forceNewtab
  * @param {string|null} section
  * @param {boolean} trailingArgs
@@ -1227,7 +1227,7 @@ const reloadconfig = async() => {
 
 /**
  * Make a hardcopy print of a page, optionally for a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} range
  */
 const hardcopy = async(src, range) => {
@@ -1246,7 +1246,7 @@ const hardcopy = async(src, range) => {
 
 /**
  * Resolve file arguments to an absolute path with fixed type extension.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} locationArg
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
@@ -1289,7 +1289,7 @@ const resolveFileArg = async(src, locationArg, type, customPage = null) => {
 
 /**
  * Write the html of a page to disk based on tab index or current.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} customLoc
  * @param {"mhtml"|"html"} extension
  * @param {number|null} tabIdx
@@ -1332,7 +1332,7 @@ const writePage = async(src, customLoc, extension, tabIdx = null) => {
 
 /**
  * Write the html of a page to disk, optionally a range of pages at custom loc.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1402,7 +1402,7 @@ const translateDimsToRect = dims => {
 
 /**
  * Copy the current page screen to the clipboard, optionally with custom dims.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const screencopy = async(src, args) => {
@@ -1431,7 +1431,7 @@ const screencopy = async(src, args) => {
 
 /**
  * Write the actual page to disk based on dims and location.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} dims
  * @param {string} location
  */
@@ -1465,7 +1465,7 @@ const takeScreenshot = async(src, dims, location) => {
 
 /**
  * Write the current page screen a location, optionally with custom dims.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const screenshot = async(src, args) => {
@@ -1490,7 +1490,7 @@ const screenshot = async(src, args) => {
 
 /**
  * Make a custom viebrc config based on current settings.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} full
  * @param {boolean} trailingArgs
  */
@@ -1521,7 +1521,7 @@ const mkviebrc = async(src, full = null, trailingArgs = false) => {
 
 /**
  * Buffer switch command, switch pages based on arguments.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const buffer = async(src, args) => {
@@ -1540,7 +1540,7 @@ const buffer = async(src, args) => {
 
 /**
  * List all the buffers currently opened by tab index.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const buffers = async src => {
     const tabStrings = await Promise.all(listTabs().map(async(tab, index) => {
@@ -1556,7 +1556,7 @@ const buffers = async src => {
 
 /**
  * Open command, navigate to a url by argument, mostly useful for mappings.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const open = async(src, args) => {
@@ -1569,7 +1569,7 @@ const open = async(src, args) => {
 
 /**
  * Suspend a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1606,7 +1606,7 @@ const suspend = async(src, args, range = null) => {
 
 /**
  * Hide a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1646,7 +1646,7 @@ const hideCommand = async(src, args, range = null) => {
 
 /**
  * Mute a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1674,7 +1674,7 @@ const setMute = async(src, args, range) => {
 
 /**
  * Toggle mute for a page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1709,7 +1709,7 @@ const mute = async(src, args, range = null) => {
 
 /**
  * Set the pin state for a tab or a range of tabs.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1744,7 +1744,7 @@ const setPin = async(src, args, range) => {
 
 /**
  * Toggle the pin state for a tab or a range of tabs.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
@@ -1799,7 +1799,7 @@ const pin = async(src, args, range) => {
  *   args: string[],
  *   leftOrAbove: boolean,
  *   method: "hor"|"ver",
- *   src: import("./common").RunSource,
+ *   src: import("./util").RunSource,
  *   switchTo: boolean,
  *   range?: string
  * }} opts
@@ -1883,7 +1883,7 @@ const addSplit = async opts => {
 
 /**
  * Close a page or a custom one with ranges/arguments.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} force
  * @param {string[]} args
  * @param {string} range
@@ -1918,7 +1918,7 @@ const close = async(src, force, args, range) => {
 /**
  * Call command, run any mapstring immediately.
  * @param {string[]} args
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const callAction = (args, src) => {
     setTimeout(async() => {
@@ -1930,7 +1930,7 @@ const callAction = (args, src) => {
 
 /**
  * Make Vieb the default browser of the operating system if possible.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const makedefault = async src => {
     if (process.execPath.endsWith("electron")) {
@@ -1981,7 +1981,7 @@ const makedefault = async src => {
 
 /**
  * Close all tabs to the left of the current one, optionally including pinned.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} force
  */
 const lclose = async(src, force = false) => {
@@ -2001,7 +2001,7 @@ const lclose = async(src, force = false) => {
 
 /**
  * Close all tabs to the right of the current one, optionally including pinned.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} force
  */
 const rclose = async(src, force = false) => {
@@ -2022,7 +2022,7 @@ const rclose = async(src, force = false) => {
 
 /**
  * Run custom JS in the page or a range of pages.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} raw
  * @param {string} range
  */
@@ -2047,7 +2047,7 @@ const runjsinpage = async(src, raw, range) => {
 
 /**
  * Open a new tab optionally with a custom session and url.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string|null} session
  * @param {string|null} url
  */
@@ -2055,7 +2055,7 @@ const tabnew = async(src, session = null, url = null) => {
     const {addTab} = require("./tabs")
     /**
      * @type {{
-     *   url?: string, session?: string, src: import("./common").RunSource
+     *   url?: string, session?: string, src: import("./util").RunSource
      * }}
      */
     const options = {src}
@@ -2070,7 +2070,7 @@ const tabnew = async(src, session = null, url = null) => {
 
 /**
  * Make or list marks.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const marks = async(src, args) => {
@@ -2140,7 +2140,7 @@ const marks = async(src, args) => {
 
 /**
  * Restore a mark.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const restoremark = async(src, args) => {
@@ -2185,7 +2185,7 @@ const restoremark = async(src, args) => {
 
 /**
  * Delete marks.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -2222,7 +2222,7 @@ const delmarks = async(src, all, args) => {
 
 /**
  * Set or list scroll positions.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const scrollpos = async(src, args) => {
@@ -2324,7 +2324,7 @@ const scrollpos = async(src, args) => {
 
 /**
  * Restore a scroll position.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const restorescrollpos = async(src, args) => {
@@ -2347,7 +2347,7 @@ const restorescrollpos = async(src, args) => {
 
 /**
  * Delete a scroll position.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -2438,7 +2438,7 @@ const delscrollpos = async(src, all, args) => {
 
 /**
  * Set or list a pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const pointerpos = async(src, args) => {
@@ -2534,7 +2534,7 @@ const pointerpos = async(src, args) => {
 
 /**
  * Restore the pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const restorepointerpos = async(src, args) => {
@@ -2557,7 +2557,7 @@ const restorepointerpos = async(src, args) => {
 
 /**
  * Delete a pointer position.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -2648,7 +2648,7 @@ const delpointerpos = async(src, all, args) => {
 
 /**
  * Translate the current page.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const translatepage = async(src, args) => {
@@ -2708,7 +2708,7 @@ const translatepage = async(src, args) => {
 
 /**
  * Clear history based on an interval.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} type
  * @param {string} interval
  * @param {string|null} trailingArgs
@@ -2811,7 +2811,7 @@ let userCommands = {}
  *     args: string[],
  *     range: string,
  *     raw: string,
- *     src: import("./common").RunSource
+ *     src: import("./util").RunSource
  *   }) => Promise<void>|void
  * }}
  */
@@ -3073,7 +3073,7 @@ for (const prefix of " nicsefpvm") {
 
 /**
  * Add a new command, or optionally overwrite existing custom commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} overwrite
  * @param {string[]} args
  */
@@ -3149,7 +3149,7 @@ const addCommand = async(src, overwrite, args) => {
 
 /**
  * Delete a custom command.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} args
  */
 const deleteCommand = async(src, args) => {
@@ -3318,7 +3318,7 @@ const getPageDomain = async() => {
  * @param {string} com
  * @param {{
  *   settingsFile?: string|null,
- *   src?: import("./common").RunSource
+ *   src?: import("./util").RunSource
  * }} opts
  */
 const execute = async(com, opts = {}) => {

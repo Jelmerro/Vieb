@@ -47,7 +47,7 @@ const {
     stringToUrl,
     tabForPage,
     updateGuiVisibility
-} = require("./common")
+} = require("./util")
 
 const mouseFeatures = [
     "pageininsert",
@@ -680,7 +680,7 @@ let spelllangs = []
 
 /**
  * Check if an option is considered a valid one, only checks at all if an enum.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof validOptions} setting
  * @param {string} value
  */
@@ -704,7 +704,7 @@ const checkOption = async(src, setting, value) => {
 
 /**
  * Check if an option is considered a valid value for a number setting.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof numberRanges} setting
  * @param {number} value
  */
@@ -724,7 +724,7 @@ const checkNumber = async(src, setting, value) => {
 
 /**
  * Check if the provided suggest order is valid.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string[]} value
  */
 const checkSuggestOrder = async(src, value) => {
@@ -810,7 +810,7 @@ const checkSuggestOrder = async(src, value) => {
 
 /**
  * Check if other more advanced settings are configured correctly.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof defaultSettings} setting
  * @param {number|string|boolean|string[]|{[key: string]: string}} value
  */
@@ -1757,7 +1757,7 @@ const isStringSetting = set => isExistingSetting(set)
 
 /**
  * Check if a setting will be valid for a given value.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof defaultSettings} setting
  * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
@@ -1883,7 +1883,7 @@ const updateUseragentSettings = () => ipcRenderer.invoke(
 
 /**
  * Update download related settings in the main thread on change.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const updateDownloadSettings = async(src = "other") => {
     /**
@@ -2114,7 +2114,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
 
 /**
  * Update the help page with updated settings, mapping and commands.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const updateHelpPage = async src => {
     for (const p of listReadyPages()) {
@@ -2177,7 +2177,7 @@ const updateObjectSetting = (setting, value) => {
 
 /**
  * Set the value of a setting, if considered valid, else notify the user.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {keyof typeof defaultSettings} setting
  * @param {typeof defaultSettings[keyof typeof defaultSettings]} value
  */
@@ -2374,7 +2374,7 @@ const set = async(src, setting, value) => {
 /**
  * Load the settings from disk, either as a first run or regular.
  * @param {boolean} firstRun
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  */
 const loadFromDisk = async(firstRun, src = "source") => {
     const {pause, resume} = require("./commandhistory")
@@ -2427,7 +2427,7 @@ const loadFromDisk = async(firstRun, src = "source") => {
 
 /**
  * Reset a setting to its default value.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {string} setting
  */
 const reset = async(src, setting) => {
@@ -2510,7 +2510,7 @@ const listCurrentSettings = async(full = false) => {
 
 /**
  * Save the current settings, mappings, custom commands and colorscheme to disk.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {boolean} full
  */
 const saveToDisk = async(src, full) => {

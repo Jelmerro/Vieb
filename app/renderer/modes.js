@@ -23,13 +23,13 @@ const {
     getUrl,
     guiRelatedUpdate,
     updateScreenshotHighlight
-} = require("./common")
+} = require("./util")
 
 // Sort order determines the appearance in the mode list
 /* eslint-disable perfectionist/sort-objects */
 /**
- * @type {{[K in import("./common").Mode]: {
- *   onLeave?: (newMode: import("./common").Mode) => Promise<void>|void,
+ * @type {{[K in import("./util").Mode]: {
+ *   onLeave?: (newMode: import("./util").Mode) => Promise<void>|void,
  *   onEnter?: () => Promise<void>|void
  * }}}
  */
@@ -43,7 +43,7 @@ const modes = {
         },
         /**
          * When leaving insert mode, all page elements should be unfocused.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./util").Mode} newMode
          */
         "onLeave": newMode => {
             if (currentPage()?.hasAttribute("dom-ready")) {
@@ -131,7 +131,7 @@ const modes = {
     "follow": {
         /**
          * Stop running the follow mode parts then release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./util").Mode} newMode
          */
         "onLeave": newMode => {
             const {cancelFollow} = require("./follow")
@@ -145,7 +145,7 @@ const modes = {
     "pointer": {
         /**
          * Hide url hover and release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./util").Mode} newMode
          */
         "onLeave": newMode => {
             if (!["follow", "visual"].includes(newMode)) {
@@ -164,7 +164,7 @@ const modes = {
     "visual": {
         /**
          * Release keys if needed.
-         * @param {import("./common").Mode} newMode
+         * @param {import("./util").Mode} newMode
          */
         "onLeave": newMode => {
             if (["follow", "pointer"].includes(newMode)) {
@@ -179,7 +179,7 @@ const modes = {
 
 /**
  * Set the current mode.
- * @param {import("./common").Mode} mode
+ * @param {import("./util").Mode} mode
  */
 const setMode = async mode => {
     const page = currentPage()

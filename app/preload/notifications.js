@@ -35,7 +35,7 @@ window.addEventListener("DOMContentLoaded", async() => {
 /**
  * Show the list of notifications.
  * @param {Electron.IpcRendererEvent} _
- * @param {import("../renderer/common").notificationHistory} notifications
+ * @param {import("../renderer/util").notificationHistory} notifications
  */
 const showNofitications = async(_, notifications) => {
     const list = document.getElementById("list")

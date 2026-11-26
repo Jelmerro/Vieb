@@ -27,6 +27,7 @@ const {
     specialChars,
     urlToString
 } = require("../util")
+const {getSetting} = require("./settings")
 const {
     currentMode,
     currentPage,
@@ -41,8 +42,7 @@ const {
     sendToPageOrSubFrame,
     stringToUrl,
     tabForPage
-} = require("./common")
-const {getSetting} = require("./settings")
+} = require("./util")
 
 /**
  * @typedef {(
@@ -68,7 +68,7 @@ const {getSetting} = require("./settings")
  *     force?: boolean,
  *     x?: number,
  *     y?: number,
- *     src?: import("./common").RunSource
+ *     src?: import("./util").RunSource
  *   },
  *   frame?: string,
  *   frameData?: {controllable?: false},
@@ -287,7 +287,7 @@ const select = () => {
 
 /**
  * Execute a common link action by name, position and custom options.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {contextMenuType} type
  * @param {contextMenuAction} action
  * @param {Partial<webviewData>} options
@@ -423,7 +423,7 @@ const commonAction = async(src, type, action, options) => {
 
 /**
  * Open Vieb's internal menu.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {MouseEvent | {path: Element[], x: number, y: number}} options
  * @param {boolean} force
  */
@@ -672,7 +672,7 @@ const viebMenu = async(src, options, force = false) => {
 
 /**
  * Open the link menu for while in explore mode.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {{link: string, x: number, y: number}} options
  */
 const linkMenu = (src, options) => {
@@ -736,7 +736,7 @@ const linkMenu = (src, options) => {
 
 /**
  * Open the command menu for while in command mode.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {{command: string, x: number, y: number}} options
  */
 const commandMenu = (src, options) => {
@@ -766,7 +766,7 @@ const commandMenu = (src, options) => {
 
 /**
  * Show the webview menu using custom options.
- * @param {import("./common").RunSource} src
+ * @param {import("./util").RunSource} src
  * @param {webviewData} options
  * @param {boolean} force
  */

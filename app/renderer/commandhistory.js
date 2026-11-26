@@ -18,8 +18,8 @@
 "use strict"
 
 const {appData, appendFile, joinPath, readFile} = require("../util")
-const {currentMode, getUrl} = require("./common")
 const {getSetting} = require("./settings")
+const {currentMode, getUrl} = require("./util")
 
 let commandsFile = ""
 /** @type {string[]} */

@@ -599,7 +599,7 @@ const currentInputMatches = key => {
 
 /**
  * Send a notification to the renderer thread.
- * @param {import("./renderer/common").NotificationInfo} opts
+ * @param {import("./renderer/util").NotificationInfo} opts
  */
 const notify = opts => mainWindow?.webContents.send("notify", opts)
 
@@ -1303,7 +1303,7 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
  *   cleardownloadsoncompleted?: boolean,
- *   src?: import("./renderer/common").RunSource
+ *   src?: import("./renderer/util").RunSource
  * }}
  */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
@@ -1396,7 +1396,7 @@ const isDownloadObject = d => {
  *   downloadpath: string,
  *   cleardownloadsonquit: boolean,
  *   cleardownloadsoncompleted: boolean,
- *   src: import("./renderer/common").RunSource
+ *   src: import("./renderer/util").RunSource
  * }} settings
  */
 const setDownloadSettings = async(_, settings) => {
