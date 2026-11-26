@@ -17,6 +17,8 @@
 */
 "use strict"
 
+/** @type {Set<string>?} */
+let cachedTldSet = null
 const protocolRegex = /^[a-z][\d+.a-z-]+:\/\//
 const ipv6Regex = /^(([\dA-Fa-f]{1,4}:){7}[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,7}:|([\dA-Fa-f]{1,4}:){1,6}:[\dA-Fa-f]{1,4}|([\dA-Fa-f]{1,4}:){1,5}(:[\dA-Fa-f]{1,4}){1,2}|([\dA-Fa-f]{1,4}:){1,4}(:[\dA-Fa-f]{1,4}){1,3}|([\dA-Fa-f]{1,4}:){1,3}(:[\dA-Fa-f]{1,4}){1,4}|([\dA-Fa-f]{1,4}:){1,2}(:[\dA-Fa-f]{1,4}){1,5}|[\dA-Fa-f]{1,4}:((:[\dA-Fa-f]{1,4}){1,6})|:((:[\dA-Fa-f]{1,4}){1,7}|:)|fe80:(:[\dA-Fa-f]{0,4}){0,4}%[\dA-Za-z]+|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)|([\dA-Fa-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d)\.){3}(25[0-5]|(2[0-4]|1{0,1}\d){0,1}\d))$/
 /**
@@ -226,6 +228,8 @@ const hasProtocol = loc => protocolRegex.test(loc)
  * @param {string} location
  */
 const isUrl = location => {
+    const {domainToASCII} = require("node:url")
+    const {getSetting} = require("./renderer/settings")
     if (hasProtocol(location)) {
         try {
             const url = new URL(location)
@@ -247,6 +251,21 @@ const isUrl = location => {
         return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/]$/, ""))
     }
     const names = url.hostname.split(".")
+    const encoded = domainToASCII(names.at(-1) ?? "").toLowerCase()
+    if (!cachedTldSet) {
+        cachedTldSet = new Set((readFileSync(
+            joinPath(__dirname, "sources", "tldList.txt")
+        ) ?? " ")
+            .split("\n").map(tld => tld.trim().toLowerCase())
+            .filter(v => Boolean(v) && !v.startsWith("#")))
+        cachedTldSet.add("local")
+        cachedTldSet.add("localhost")
+        cachedTldSet.add("onion")
+    }
+    const externalTlds = getSetting("externaltlds").map(v => v.toLowerCase())
+    if (!cachedTldSet.has(encoded) && !externalTlds.includes(encoded)) {
+        return false
+    }
     const invalid = names.find(n => n.includes("---")
         || encodeURI(n) !== n || n.startsWith("-") || n.endsWith("-"))
         || url.host.includes("..")
