@@ -516,6 +516,7 @@ if (argErwic) {
         printUsage()
     }
     if (typeof config.name === "string") {
+        app.setDesktopName(`com.github.Jelmerro.${config.name}`)
         app.setName(config.name)
     }
     if (typeof config.icon === "string") {

@@ -340,17 +340,20 @@ const playbackUp = (x, y) => {
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
-/** @type {Set<number>} */
-const textNodeList = new Set([
-    Node.CDATA_SECTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE
-])
-
 /**
  * Check if a node is a text node.
  * @param {Node} node
  * @returns {node is Text|Comment|CDATASection}
  */
-const isTextNode = node => textNodeList.has(node.nodeType)
+const isTextNode = node => {
+    /** @type {Set<number>} */
+    const textNodeList = new Set([
+        window.Node.CDATA_SECTION_NODE,
+        window.Node.COMMENT_NODE,
+        window.Node.TEXT_NODE
+    ])
+    return textNodeList.has(node.nodeType)
+}
 
 /**
  * Calculate the offset in characters for a given position in an element.

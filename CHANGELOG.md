@@ -38,6 +38,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Redundant builtin colorschemes that can now be achieved by mixing existing ones
 - Light colorscheme variants that are now selected via the nativetheme setting instead
 
+### Fixed
+
+- Later url arguments to second instance not being send in 12.12.x releases
+- Build releases not correctly resolving window.Node in preloads on systems with sandboxed Electron versions
+- Recently added desktopName for 12.12.x not updating to the custom name for Erwic instances
+
 ### Versions
 
 - Electron 45.5.0 (unchanged)

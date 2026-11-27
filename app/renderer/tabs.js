@@ -1614,6 +1614,27 @@ const loadPreviousSessionTabs = async tabs => {
     }
 }
 
+/**
+ * Open a tab based on an argument provided later from main.
+ * @param {Partial<Parameters<typeof addTab>[0]>|string} t
+ */
+const openArgumentBasedTab = async t => {
+    if (typeof t === "string") {
+        await addTab({
+            "src": "source",
+            "startup": true,
+            "url": stringToUrl(t)
+        })
+    } else if (typeof t === "object" && t.url) {
+        await addTab({
+            "src": "source",
+            ...t,
+            "startup": true,
+            "url": stringToUrl(t.url)
+        })
+    }
+}
+
 /** Load the tabs from disk and from startup args. */
 const init = async() => {
     ipcRenderer.on("navigate-to", (_, url) => navigateTo(
@@ -1694,21 +1715,13 @@ const init = async() => {
                 // No tabs yet
             }
         }
-        if (typeof page === "string") {
-            await addTab({
-                "src": "source",
-                "startup": true,
-                "url": stringToUrl(page)
-            })
-        } else if (typeof page === "object" && page.url) {
-            await addTab({
-                "src": "source",
-                ...page,
-                "startup": true,
-                "url": stringToUrl(page.url)
-            })
-        }
+        openArgumentBasedTab(page)
     }
+    ipcRenderer.on("urls", async(_, pages) => {
+        for (const page of pages) {
+            await openArgumentBasedTab(page)
+        }
+    })
 }
 
 /** Move the tab forward in the tab bar. */
