@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {isElement, matchesQuery, pageOffset, specialChars} = require("../util")
+const {isElement, matchesQuery, specialChars} = require("../util")
 const ACTIONS = require("./actions")
 const POINTER = require("./pointer")
 const {getSetting} = require("./settings")
@@ -31,6 +31,7 @@ const {
     listReadyPages,
     listTabs,
     notify,
+    pageOffset,
     sendToPageOrSubFrame,
     setTopOfPageWithMouse,
     updateGuiVisibility,

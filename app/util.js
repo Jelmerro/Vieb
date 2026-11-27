@@ -855,75 +855,6 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
     }).catch(rej)
 })
 
-/** Return the position and dimensions of the page container. */
-const pageContainerPos = () => {
-    const pagelayout = document.getElementById("page-container")
-    if (!pagelayout) {
-        return {"bottom": 0, "left": 0, "right": 0, "top": 0}
-    }
-    return pagelayout.getBoundingClientRect()
-}
-
-/**
- * Calculate the offset in pixels for each dimension of an element.
- * @param {HTMLElement} page
- */
-const pageOffset = page => {
-    const border = propPixels(page, "border-width")
-    const top = Math.round(propPixels(page.style, "top") + border)
-    const left = Math.round(propPixels(page.style, "left") + border)
-    const bottom = Math.round(top + propPixels(page.style, "height") + border)
-    const right = Math.round(left + propPixels(page.style, "width") + border)
-    return {bottom, left, right, top}
-}
-
-/**
- * Check if the given value is a valid interval value.
- * @param {string} value
- * @param {boolean} invertedRangesSupported
- */
-const isValidIntervalValue = (value, invertedRangesSupported = false) => {
-    const validUnits = ["second", "minute", "hour", "day", "month", "year"]
-    for (const unit of validUnits) {
-        if (value.endsWith(unit) || value.endsWith(`${unit}s`)) {
-            const number = value.replace(new RegExp(`${unit}s?$`), "")
-            if (invertedRangesSupported) {
-                return !!/^\d+$/g.test(number.replace(/^last/g, ""))
-            }
-            return !!/^\d+$/g.test(number)
-        }
-    }
-    return false
-}
-
-/**
- * Convert an interval to a date relative to the current date.
- * @param {string} value
- */
-const intervalValueToDate = value => {
-    const date = new Date()
-    if (value.includes("second")) {
-        date.setSeconds(date.getSeconds() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("minute")) {
-        date.setMinutes(date.getMinutes() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("hour")) {
-        date.setHours(date.getHours() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("day")) {
-        date.setDate(date.getDate() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("month")) {
-        date.setMonth(date.getMonth() - Number(value.replace(/[a-z]/g, "")))
-    }
-    if (value.includes("year")) {
-        date.setFullYear(date.getFullYear()
-            - Number(value.replace(/[a-z]/g, "")))
-    }
-    return date
-}
-
 /**
  * Return the last part of the path, usually the filename.
  * @param {string} loc
@@ -1335,105 +1266,12 @@ const urlToString = async url => {
     return url
 }
 
-/** Clear all temporary containers (those that start with temp) from disk. */
-const clearTempContainers = async() => {
-    const partitionDir = joinPath(await appData(), "Partitions")
-    const dirfiles = await listDir(partitionDir, false, true)
-    for (const partition of dirfiles.filter(part => part.startsWith("temp"))
-        .map(part => joinPath(partitionDir, part))) {
-        rm(partition)
-    }
-    rm(joinPath(await appData(), "erwicmode"))
-}
-
-/** Clear the Chromium and Electron cache dirs plus the Vieb cache files. */
-const clearCache = async() => {
-    const partitionDir = joinPath(await appData(), "Partitions")
-    const partitions = [
-        await appData(), ...await listDir(partitionDir, true, true)
-    ]
-    /** @type {string[]} */
-    let subNodes = []
-    for (const part of partitions) {
-        subNodes.push(...await listDir(part))
-        rm(joinPath(part, "File System"))
-        rm(joinPath(part, "MANIFEST"))
-        rm(joinPath(part, "Service Worker"))
-        rm(joinPath(part, "VideoDecodeStats"))
-        rm(joinPath(part, "blob_storage"))
-        rm(joinPath(part, "databases"))
-    }
-    subNodes = [...new Set(subNodes)]
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.endsWith(".log"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.startsWith(".org.chrom"))) {
-            rm(joinPath(part, node))
-        }
-    }
-    rm(joinPath(await appData(), "vimformedits"))
-    rm(joinPath(await appData(), "settings"))
-}
-
-/** Claer all cookies, including those inside partition dirs. */
-const clearCookies = async() => {
-    const partitionDir = joinPath(await appData(), "Partitions")
-    const partitions = [
-        await appData(), ...await listDir(partitionDir, true, true)
-    ]
-    /** @type {string[]} */
-    let subNodes = []
-    for (const part of partitions) {
-        subNodes.push(...await listDir(part))
-    }
-    subNodes = [...new Set(subNodes)]
-    for (const part of partitions) {
-        for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.startsWith("QuotaManager"))) {
-            rm(joinPath(part, node))
-        }
-    }
-}
-
-/** Claer all localstorage, including that inside partition dirs. */
-const clearLocalStorage = async() => {
-    const partitionDir = joinPath(await appData(), "Partitions")
-    const partitions = [
-        await appData(), ...await listDir(partitionDir, true, true)
-    ]
-    /** @type {string[]} */
-    let subNodes = []
-    for (const part of partitions) {
-        subNodes.push(...await listDir(part))
-    }
-    subNodes = [...new Set(subNodes)]
-    for (const part of partitions) {
-        rm(joinPath(part, "IndexedDB"))
-        for (const node of subNodes.filter(n => n.endsWith("Storage"))) {
-            rm(joinPath(part, node))
-        }
-        for (const node of subNodes.filter(n => n.endsWith(".ldb"))) {
-            rm(joinPath(part, node))
-        }
-    }
-}
-
 module.exports = {
     activeElement,
     appConfig,
     appData,
     appendFile,
     basePath,
-    clearCache,
-    clearCookies,
-    clearLocalStorage,
-    clearTempContainers,
     compareVersions,
     defaultUseragent,
     deleteFile,
@@ -1451,7 +1289,6 @@ module.exports = {
     formatSize,
     framePosition,
     getAppRootDir,
-    intervalValueToDate,
     isAbsolutePath,
     isDir,
     isElement,
@@ -1468,15 +1305,12 @@ module.exports = {
     isNestedStringObject,
     isObject,
     isSVGElement,
-    isValidIntervalValue,
     joinPath,
     listDir,
     listDirSync,
     makeDir,
     matchesQuery,
     modifiedAt,
-    pageContainerPos,
-    pageOffset,
     pathExists,
     pathToSpecialPageName,
     propPixels,

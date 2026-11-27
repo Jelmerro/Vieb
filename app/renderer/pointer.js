@@ -23,8 +23,6 @@ const {
     domainName,
     joinPath,
     matchesQuery,
-    pageContainerPos,
-    pageOffset,
     readJSON,
     urlToString,
     writeJSON
@@ -34,6 +32,8 @@ const {
     currentMode,
     currentPage,
     listReadyPages,
+    pageContainerPos,
+    pageOffset,
     sendToPageOrSubFrame,
     tabForPage
 } = require("./util")

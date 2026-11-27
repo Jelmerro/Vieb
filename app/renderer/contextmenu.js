@@ -22,7 +22,6 @@ const {translate} = require("../translate")
 const {
     isElement,
     matchesQuery,
-    pageContainerPos,
     propPixels,
     specialChars,
     urlToString
@@ -38,6 +37,7 @@ const {
     listReadyPages,
     listTabs,
     notify,
+    pageContainerPos,
     pageForTab,
     sendToPageOrSubFrame,
     stringToUrl,
