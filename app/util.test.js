@@ -248,10 +248,10 @@ test("Filesystem helpers should work as expected", async() => {
     assert.strictEqual(UTIL.isDir(file), false)
     assert.strictEqual(UTIL.pathExists(file), false)
     let fileList = await UTIL.listDir(
-        UTIL.joinPath(__dirname, "./img"), false, true)
+        UTIL.joinPath(__dirname, "img"), false, true)
     assert.strictEqual(fileList.length, 1)
     assert.strictEqual(fileList[0], "icons")
-    fileList = await UTIL.listDir(UTIL.joinPath(__dirname, "./img"), true, true)
+    fileList = await UTIL.listDir(UTIL.joinPath(__dirname, "img"), true, true)
     assert.strictEqual(fileList.length, 1)
     assert.strictEqual(fileList[0], UTIL.joinPath(__dirname, "img", "icons"))
     assert.strictEqual(UTIL.dirname("/home/test/"), dirname("/home/test/"))

@@ -33,6 +33,7 @@ const specialPages = new Set([
 ])
 let appDataPath = ""
 let homeDirPath = ""
+let appRootDirPath = ""
 /**
  * @type {{
  *   appdata: string,
@@ -91,25 +92,25 @@ const pathExists = loc => {
     }
 }
 
-/**
- * Get the root app directory from any location.
- */
+/** Get the root app directory from any location. */
 const getAppRootDir = () => {
-    let currentDir = __dirname
-    let tries = 0
-    while (!pathExists(joinPath(currentDir, "package.json")) && tries < 100) {
-        currentDir = joinPath(currentDir, "..")
-        tries += 1
+    if (!appRootDirPath) {
+        let current = __dirname
+        let tries = 0
+        while (!pathExists(joinPath(current, "package.json")) && tries < 100) {
+            current = joinPath(current, "..")
+            tries += 1
+        }
+        if (tries === 100) {
+            appRootDirPath = __dirname
+        } else {
+            appRootDirPath = joinPath(current, "app")
+        }
     }
-    if (tries === 100) {
-        return __dirname
-    }
-    return joinPath(currentDir, "app")
+    return appRootDirPath
 }
 
-/**
- * Returns the app configuration settings.
- */
+/** Returns the app configuration settings. */
 const appConfig = async() => {
     if (!configSettings) {
         const {ipcRenderer} = require("electron")
@@ -141,9 +142,7 @@ const appConfig = async() => {
     return configSettings
 }
 
-/**
- * Returns the appdata path (works from both main, renderer and preloads).
- */
+/** Returns the appdata path (works from both main, renderer and preloads). */
 const appData = async() => {
     if (!appDataPath) {
         try {
@@ -1233,12 +1232,8 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     if (!isSpecialPage(userPage) && !skipExistCheck) {
         page = "help"
     }
-    let url = joinPath(__dirname, `./pages/${page}.html`)
+    const url = joinPath(getAppRootDir(), `pages/${page}.html`)
         .replace(/\\/g, "/").replace(/^\/*/g, "")
-    if (isDir(joinPath(__dirname, "../pages"))) {
-        url = joinPath(__dirname, `../pages/${page}.html`)
-            .replace(/\\/g, "/").replace(/^\/*/g, "")
-    }
     if (section) {
         if (section.startsWith("#")) {
             return `file:///${url}${section}`
