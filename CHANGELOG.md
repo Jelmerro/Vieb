@@ -43,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Later url arguments to second instance not being send in 12.12.x releases
 - Build releases not correctly resolving window.Node in preloads on systems with sandboxed Electron versions
 - Recently added desktopName for 12.12.x not updating to the custom name for Erwic instances
+- Mouse not working correctly with the set command "-=" option
 
 ### Versions
 

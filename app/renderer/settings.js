@@ -1753,7 +1753,7 @@ const isObjectSetting = set => isExistingSetting(set)
  * @returns {set is GetKeysOfType<string, defaultSettings>}
  */
 const isStringSetting = set => isExistingSetting(set)
-    && typeof defaultSettings[set] === "string"
+    && typeof defaultSettings[set] === "string" && set !== "mouse"
 
 /**
  * Check if a setting will be valid for a given value.
